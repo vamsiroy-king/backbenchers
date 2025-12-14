@@ -162,22 +162,15 @@ body {
   scroll-behavior: smooth;
 }
 
-/* GPU acceleration for transforms */
+/* GPU acceleration - only use .transform-gpu class explicitly when needed */
 .transform-gpu {
   transform: translateZ(0);
   backface-visibility: hidden;
-  perspective: 1000px;
-}
-
-/* Enable hardware acceleration for animations */
-[class*="transition"],
-[class*="animate"] {
-  transform: translateZ(0);
-  will-change: transform, opacity;
 }
 
 /* Reduce animations for users who prefer reduced motion */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -205,14 +198,16 @@ body {
   .active\:scale-95:active {
     transform: scale(0.95);
   }
-  
+
   .active\:scale-90:active {
     transform: scale(0.90);
   }
 }
 
 /* Faster tap response on mobile */
-a, button, [role="button"] {
+a,
+button,
+[role="button"] {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
