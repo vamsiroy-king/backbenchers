@@ -2,12 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { KeyRound, Check, Shield, Lock, Sparkles, Loader2 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authService } from "@/lib/services/auth.service";
 
-export default function StudentPasscodeSetupPage() {
+function StudentPasscodeContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const studentId = searchParams.get('studentId');
@@ -328,5 +328,18 @@ export default function StudentPasscodeSetupPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+// Wrap in Suspense for Next.js 15/16 compatibility
+export default function StudentPasscodeSetupPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        }>
+            <StudentPasscodeContent />
+        </Suspense>
     );
 }
