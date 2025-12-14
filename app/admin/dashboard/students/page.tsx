@@ -68,10 +68,8 @@ export default function StudentsListPage() {
                 setAvailableUniversities([]);
                 return;
             }
-            const result = await universityService.getByCity(selectedCity);
-            if (result.success && result.data) {
-                setAvailableUniversities(result.data);
-            }
+            const universities = await universityService.getByCity(selectedCity);
+            setAvailableUniversities(universities);
         }
         fetchUniversities();
         setSelectedUniversity("All Universities");
