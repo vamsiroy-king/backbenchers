@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// COMING SOON MODE: Redirect all traffic to /coming-soon
-// To disable: comment out this file or set COMING_SOON_MODE=false in .env
-const COMING_SOON_MODE = true;
+// COMING SOON MODE: Set to true to redirect all traffic to /coming-soon
+// Set to false to launch the full app
+const COMING_SOON_MODE = false; // DISABLED - Full app is now live!
 
 // Pages that are allowed even in coming soon mode
 const ALLOWED_PATHS = [
