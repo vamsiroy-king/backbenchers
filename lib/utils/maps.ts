@@ -57,6 +57,45 @@ export function extractCoordinatesFromGoogleMapsLink(url: string): { lat: number
 }
 
 /**
+ * Check if URL is a short Google Maps link that needs expansion
+ */
+export function isShortGoogleMapsLink(url: string): boolean {
+    if (!url) return false;
+    return /^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps)\//i.test(url);
+}
+
+/**
+ * Expand a short Google Maps URL to get coordinates
+ * This uses our API endpoint to follow the redirect safely
+ */
+export async function expandAndExtractCoordinates(shortUrl: string): Promise<{ lat: number; lng: number } | null> {
+    try {
+        // Try to expand the URL via our API endpoint
+        const response = await fetch('/api/expand-maps-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: shortUrl })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.expandedUrl) {
+                // Extract coordinates from expanded URL
+                return extractCoordinatesFromGoogleMapsLink(data.expandedUrl);
+            }
+            if (data.lat && data.lng) {
+                return { lat: data.lat, lng: data.lng };
+            }
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Error expanding short URL:', error);
+        return null;
+    }
+}
+
+/**
  * Validate if coordinates are reasonable (within valid lat/lng range)
  */
 export function isValidCoordinate(lat: number, lng: number): boolean {

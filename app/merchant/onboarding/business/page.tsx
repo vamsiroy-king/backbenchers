@@ -107,14 +107,20 @@ export default function BusinessDetailsPage() {
             // Use API to expand short link
             setExtractingLocation(true);
             try {
-                const response = await fetch('/api/maps/expand-url', {
+                const response = await fetch('/api/expand-maps-url', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url: link }),
                 });
                 const data = await response.json();
-                if (data.success && data.latitude && data.longitude) {
-                    setExtractedCoords({ lat: data.latitude, lng: data.longitude });
+                if (data.success && data.lat && data.lng) {
+                    setExtractedCoords({ lat: data.lat, lng: data.lng });
+                } else if (data.expandedUrl) {
+                    // Try to extract from expanded URL
+                    const coords = extractCoordinatesFromGoogleMapsLink(data.expandedUrl);
+                    if (coords) {
+                        setExtractedCoords(coords);
+                    }
                 }
             } catch (error) {
                 console.error('Error expanding URL:', error);
