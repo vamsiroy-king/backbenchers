@@ -134,24 +134,32 @@ export default function PasscodeSetupPage() {
 
                 // Create first offer if saved during onboarding
                 const firstOfferData = localStorage.getItem('merchant_first_offer');
+                console.log('First offer data from localStorage:', firstOfferData);
+                console.log('Merchant ID for offer creation:', merchantId);
+
                 if (firstOfferData && merchantId) {
                     try {
                         const offer = JSON.parse(firstOfferData);
+                        console.log('Parsed offer data:', offer);
+
                         // Import offer service dynamically to create the offer
                         const { offerService } = await import('@/lib/services/offer.service');
-                        await offerService.createForMerchant(merchantId, {
+                        const offerResult = await offerService.createForMerchant(merchantId, {
                             title: offer.title,
                             type: offer.type,
                             discountValue: offer.discountValue,
                             minOrderValue: offer.minOrderValue || undefined,
                             freeItemName: offer.freeItemName || undefined,
                             terms: offer.terms || [],
-                            status: 'pending', // Will become active when merchant is approved
+                            status: 'active', // Create as active so it shows immediately!
                         });
+                        console.log('Offer creation result:', offerResult);
                     } catch (offerError) {
                         console.error('Error creating first offer:', offerError);
                         // Don't block onboarding if offer creation fails
                     }
+                } else {
+                    console.log('No first offer to create or no merchantId');
                 }
 
                 // Clear onboarding data

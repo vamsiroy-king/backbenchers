@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Building2, MapPin, Clock, Phone, Globe, Instagram, Bell, Shield, HelpCircle, FileText, LogOut, ChevronRight, Camera, Store, Wifi, Tag, ChevronLeft, Loader2 } from "lucide-react";
+import { Building2, MapPin, Clock, Phone, Globe, Instagram, Bell, Shield, HelpCircle, FileText, LogOut, ChevronRight, Camera, Store, Wifi, Tag, ChevronLeft, Loader2, QrCode, Upload, Trash2, Eye, EyeOff, Lock } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { merchantService } from "@/lib/services/merchant.service";
 import { authService } from "@/lib/services/auth.service";
 import { Merchant } from "@/lib/types";
+import { supabase } from "@/lib/supabase";
 
 const MENU_ITEMS = [
     { icon: Clock, label: "Opening Hours", href: "#" },
@@ -28,6 +29,11 @@ export default function MerchantProfilePage() {
     const [merchant, setMerchant] = useState<Merchant | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // QR Management State
+    const [showQr, setShowQr] = useState(false);
+    const [qrUploading, setQrUploading] = useState(false);
+    const qrInputRef = useRef<HTMLInputElement>(null);
 
     // Fetch merchant data
     useEffect(() => {
@@ -64,6 +70,62 @@ export default function MerchantProfilePage() {
     const openGallery = (index: number) => {
         setSelectedImageIndex(index);
         setShowImageGallery(true);
+    };
+
+    // QR Upload Handler - Privacy First (Only merchant can access)
+    const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !merchant) return;
+
+        setQrUploading(true);
+        try {
+            // Upload to private merchant-qr bucket
+            const fileExt = file.name.split('.').pop();
+            const fileName = `qr_${merchant.id}_${Date.now()}.${fileExt}`;
+
+            const { data, error } = await supabase.storage
+                .from('merchant-qr')
+                .upload(fileName, file, { upsert: true });
+
+            if (error) throw error;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('merchant-qr')
+                .getPublicUrl(fileName);
+
+            // Update merchant record
+            await supabase
+                .from('merchants')
+                .update({ payment_qr_url: publicUrl })
+                .eq('id', merchant.id);
+
+            // Update local state
+            setMerchant({ ...merchant, paymentQrUrl: publicUrl });
+        } catch (err: any) {
+            console.error('QR upload error:', err);
+            alert('Failed to upload QR code');
+        } finally {
+            setQrUploading(false);
+        }
+    };
+
+    // Remove QR Code
+    const handleRemoveQr = async () => {
+        if (!merchant || !confirm('Remove your payment QR code?')) return;
+
+        setQrUploading(true);
+        try {
+            await supabase
+                .from('merchants')
+                .update({ payment_qr_url: null })
+                .eq('id', merchant.id);
+
+            setMerchant({ ...merchant, paymentQrUrl: undefined });
+        } catch (err: any) {
+            console.error('QR remove error:', err);
+        } finally {
+            setQrUploading(false);
+        }
     };
 
     // Loading state
@@ -301,6 +363,99 @@ export default function MerchantProfilePage() {
                     <div className="bg-purple-50 rounded-2xl p-4 text-center">
                         <p className="text-2xl font-extrabold text-purple-600">{merchant.totalOffers || 0}</p>
                         <p className="text-[10px] text-gray-500">Offers</p>
+                    </div>
+                </div>
+
+                {/* Hidden QR file input */}
+                <input
+                    ref={qrInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleQrUpload}
+                    className="hidden"
+                />
+
+                {/* Payment QR Management - PRIVATE (Only Merchant Access) */}
+                <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                        <Lock className="h-4 w-4 text-primary" />
+                        <h3 className="font-bold text-sm text-gray-400 uppercase tracking-wider">Payment QR Code</h3>
+                        <span className="text-[9px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">PRIVATE</span>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-primary/5 to-blue-50/50 rounded-2xl p-4 border border-primary/10">
+                        {merchant.paymentQrUrl ? (
+                            <div className="space-y-4">
+                                <div className="flex justify-center">
+                                    <div className="relative">
+                                        {showQr ? (
+                                            <img
+                                                src={merchant.paymentQrUrl}
+                                                alt="Payment QR"
+                                                className="w-40 h-40 object-contain rounded-xl border bg-white p-2"
+                                            />
+                                        ) : (
+                                            <div className="w-40 h-40 bg-gray-200 rounded-xl flex items-center justify-center">
+                                                <EyeOff className="h-8 w-8 text-gray-400" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setShowQr(!showQr)}
+                                        className="rounded-lg"
+                                    >
+                                        {showQr ? <EyeOff className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
+                                        {showQr ? 'Hide' : 'View'}
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => qrInputRef.current?.click()}
+                                        disabled={qrUploading}
+                                        className="rounded-lg"
+                                    >
+                                        <Upload className="h-4 w-4 mr-1" />
+                                        Change
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleRemoveQr}
+                                        disabled={qrUploading}
+                                        className="rounded-lg text-red-500 border-red-200 hover:bg-red-50"
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-1" />
+                                        Remove
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-6">
+                                <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                    <QrCode className="h-8 w-8 text-primary" />
+                                </div>
+                                <p className="text-sm font-medium text-gray-700">No payment QR uploaded</p>
+                                <p className="text-xs text-gray-400 mt-1 mb-4">Upload your UPI/Google Pay QR code</p>
+                                <Button
+                                    onClick={() => qrInputRef.current?.click()}
+                                    disabled={qrUploading}
+                                    className="rounded-xl"
+                                >
+                                    {qrUploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                                    Upload QR Code
+                                </Button>
+                            </div>
+                        )}
+
+                        <p className="text-[10px] text-gray-400 text-center mt-3 flex items-center justify-center gap-1">
+                            <Lock className="h-3 w-3" />
+                            Only you can see and manage your payment QR. Admins cannot access this.
+                        </p>
                     </div>
                 </div>
 
