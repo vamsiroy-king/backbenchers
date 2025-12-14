@@ -31,7 +31,7 @@ export default function VerificationPendingPage() {
                         id: result.data.id,
                         businessName: result.data.businessName,
                         status: result.data.status as any,
-                        bbmId: result.data.bbmId,
+                        bbmId: result.data.bbmId ?? undefined,
                     });
 
                     // If already approved, redirect to dashboard
