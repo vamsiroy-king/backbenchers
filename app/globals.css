@@ -154,3 +154,65 @@ body {
     top: calc(100% - 2px);
   }
 }
+
+/* Mobile Performance Optimizations */
+
+/* Smooth scrolling for all scrollable elements */
+* {
+  scroll-behavior: smooth;
+}
+
+/* GPU acceleration for transforms */
+.transform-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Enable hardware acceleration for animations */
+[class*="transition"],
+[class*="animate"] {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Reduce animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Fix for 100vh on mobile browsers */
+.h-screen-safe {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* Prevent text selection for UI elements */
+.select-none {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Active state for touch devices */
+@media (hover: none) {
+  .active\:scale-95:active {
+    transform: scale(0.95);
+  }
+  
+  .active\:scale-90:active {
+    transform: scale(0.90);
+  }
+}
+
+/* Faster tap response on mobile */
+a, button, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
