@@ -100,12 +100,13 @@ export default function PasscodeSetupPage() {
             const result = await authService.completeMerchantOnboarding({
                 businessName: businessData.businessName,
                 category: businessData.category || 'General',
+                subCategory: businessData.subCategory, // Sub-category
                 description: businessData.description || '',
-                address: locationData.address || '',
-                city: locationData.city || '',
-                state: locationData.state || '',
-                pincode: locationData.pincode || '',
-                phone: businessData.phone || '',
+                address: locationData.address || businessData.address || '',
+                city: locationData.city || businessData.city || '',
+                state: locationData.state || businessData.state || '',
+                pincode: locationData.pincode || businessData.pincode || '',
+                phone: businessData.phone || businessData.businessPhone || '',
                 ownerPhone: businessData.ownerPhone || '',
                 ownerName: businessData.ownerName || '',
                 gstNumber: businessData.gstNumber,
@@ -115,16 +116,43 @@ export default function PasscodeSetupPage() {
                 coverPhotoUrl: documentsData.coverPhoto?.url,
                 storeImageUrls: documentsData.storeImages?.map((img: any) => img.url).filter(Boolean) || [],
                 // Include Google Maps data - prefer from location form, fallback to maps page
-                latitude: locationData.latitude || mapsData.latitude,
-                longitude: locationData.longitude || mapsData.longitude,
-                googleMapsLink: locationData.googleMapsLink || mapsData.googleMapsLink,
+                latitude: locationData.latitude || mapsData.latitude || businessData.latitude,
+                longitude: locationData.longitude || mapsData.longitude || businessData.longitude,
+                googleMapsLink: locationData.googleMapsLink || mapsData.googleMapsLink || businessData.googleMapsLink,
                 googleMapsEmbed: mapsData.googleMapsEmbed,
+                // Operating hours (store timings)
+                operatingHours: businessData.operatingHours,
+                // Payment QR code
+                paymentQrUrl: documentsData.paymentQr?.url,
             });
 
             if (result.success) {
                 // Store passcode hash and merchant ID
                 localStorage.setItem('merchant_passcode_hash', hashedPasscode);
-                localStorage.setItem('merchant_id', result.data?.merchantId || '');
+                const merchantId = result.data?.merchantId || '';
+                localStorage.setItem('merchant_id', merchantId);
+
+                // Create first offer if saved during onboarding
+                const firstOfferData = localStorage.getItem('merchant_first_offer');
+                if (firstOfferData && merchantId) {
+                    try {
+                        const offer = JSON.parse(firstOfferData);
+                        // Import offer service dynamically to create the offer
+                        const { offerService } = await import('@/lib/services/offer.service');
+                        await offerService.createForMerchant(merchantId, {
+                            title: offer.title,
+                            type: offer.type,
+                            discountValue: offer.discountValue,
+                            minOrderValue: offer.minOrderValue || undefined,
+                            freeItemName: offer.freeItemName || undefined,
+                            terms: offer.terms || [],
+                            status: 'pending', // Will become active when merchant is approved
+                        });
+                    } catch (offerError) {
+                        console.error('Error creating first offer:', offerError);
+                        // Don't block onboarding if offer creation fails
+                    }
+                }
 
                 // Clear onboarding data
                 localStorage.removeItem('merchant_business');
@@ -132,6 +160,8 @@ export default function PasscodeSetupPage() {
                 localStorage.removeItem('merchant_documents');
                 localStorage.removeItem('merchant_pending_email');
                 localStorage.removeItem('merchant_pending_password');
+                localStorage.removeItem('merchant_first_offer');
+                localStorage.removeItem('merchant_maps');
 
                 // Redirect to pending page
                 router.push('/merchant/onboarding/pending');

@@ -336,6 +336,46 @@ export const offerService = {
         }
     },
 
+    // Create offer for a specific merchant (used during onboarding)
+    async createForMerchant(merchantId: string, offerData: {
+        title: string;
+        type: 'percentage' | 'flat' | 'bogo' | 'freebie' | 'custom';
+        discountValue: number;
+        minOrderValue?: number;
+        freeItemName?: string;
+        terms?: string[];
+        status?: string;
+    }): Promise<ApiResponse<Offer>> {
+        try {
+            const { data, error } = await supabase
+                .from('offers')
+                .insert({
+                    merchant_id: merchantId,
+                    title: offerData.title,
+                    description: `${offerData.type === 'percentage' ? offerData.discountValue + '% OFF' : offerData.type === 'flat' ? '₹' + offerData.discountValue + ' OFF' : 'Special Offer'}`,
+                    type: offerData.type,
+                    original_price: 100, // Placeholder - will be updated by merchant
+                    discount_value: offerData.discountValue,
+                    final_price: offerData.type === 'percentage' ? 100 - offerData.discountValue : 100 - offerData.discountValue,
+                    discount_amount: offerData.discountValue,
+                    min_order_value: offerData.minOrderValue,
+                    terms: offerData.terms || [],
+                    free_item_name: offerData.freeItemName,
+                    status: offerData.status || 'pending'
+                })
+                .select()
+                .single();
+
+            if (error) {
+                return { success: false, data: null, error: error.message };
+            }
+
+            return { success: true, data: mapDbToOffer(data), error: null };
+        } catch (error: any) {
+            return { success: false, data: null, error: error.message };
+        }
+    },
+
     // Update offer
     async update(id: string, offerData: Partial<Offer>): Promise<ApiResponse<Offer>> {
         try {

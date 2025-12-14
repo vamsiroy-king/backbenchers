@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Mail, GraduationCap, MapPin, Calendar, TrendingUp, Edit2, Trash2, ShieldOff, ShieldCheck, X, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, User, Mail, GraduationCap, MapPin, Calendar, TrendingUp, Edit2, Trash2, ShieldOff, ShieldCheck, X, Check, Loader2, Phone } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -321,6 +321,12 @@ export default function StudentDetailPage() {
                                 <span className="text-sm">{student.email}</span>
                             )}
                         </div>
+                        {student.phone && (
+                            <div className="flex items-center gap-3">
+                                <Phone className="h-5 w-5 text-gray-400" />
+                                <span className="text-sm font-medium">{student.phone}</span>
+                            </div>
+                        )}
                         <div className="flex items-center gap-3">
                             <GraduationCap className="h-5 w-5 text-gray-400" />
                             <span className="text-sm">{student.college}</span>

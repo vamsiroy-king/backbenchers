@@ -511,6 +511,7 @@ export const authService = {
     async completeMerchantOnboarding(merchantData: {
         businessName: string;
         category: string;
+        subCategory?: string; // Sub-category
         description: string;
         address: string;
         city: string;
@@ -529,6 +530,10 @@ export const authService = {
         longitude?: number;
         googleMapsLink?: string;
         googleMapsEmbed?: string;
+        // Operating hours
+        operatingHours?: { [day: string]: { open: string; close: string; closed?: boolean } };
+        // Payment QR code
+        paymentQrUrl?: string;
     }): Promise<ApiResponse<{ merchantId: string }>> {
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -567,6 +572,11 @@ export const authService = {
                         longitude: merchantData.longitude,
                         google_maps_link: merchantData.googleMapsLink,
                         google_maps_embed: merchantData.googleMapsEmbed,
+                        // Sub-category and operating hours
+                        sub_category: merchantData.subCategory,
+                        operating_hours: merchantData.operatingHours,
+                        // Payment QR
+                        payment_qr_url: merchantData.paymentQrUrl,
                     })
                     .eq('id', existing.id);
 
@@ -607,6 +617,11 @@ export const authService = {
                     longitude: merchantData.longitude,
                     google_maps_link: merchantData.googleMapsLink,
                     google_maps_embed: merchantData.googleMapsEmbed,
+                    // Sub-category and operating hours
+                    sub_category: merchantData.subCategory,
+                    operating_hours: merchantData.operatingHours,
+                    // Payment QR
+                    payment_qr_url: merchantData.paymentQrUrl,
                     status: 'pending',
                     total_offers: 0,
                     total_redemptions: 0,

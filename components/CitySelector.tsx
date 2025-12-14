@@ -79,32 +79,35 @@ export function CitySelector({ isOpen, onClose, onSelectCity, currentCity }: Cit
     const handleAutoDetect = async () => {
         setDetectingLocation(true);
         try {
-            if ('geolocation' in navigator) {
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                        // Use reverse geocoding to get city name
-                        try {
-                            const response = await fetch(
-                                `https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json`
-                            );
-                            const data = await response.json();
-                            const city = data.address?.city || data.address?.town || data.address?.village;
-                            if (city) {
-                                handleSelectCity(city);
-                            }
-                        } catch (e) {
-                            console.error('Geocoding error:', e);
-                        }
-                        setDetectingLocation(false);
-                    },
-                    (error) => {
-                        console.error('Location error:', error);
-                        setDetectingLocation(false);
-                    }
+            // Import and use the new location service
+            const { locationService } = await import('@/lib/services/location.service');
+            const result = await locationService.detectUserCity();
+
+            if (result.success && result.city) {
+                // Successfully detected city - select it
+                handleSelectCity(result.city);
+            } else if (result.fullAddress) {
+                // Couldn't map to supported city, but got address
+                // Try to find a matching city from our popular cities
+                const addressLower = result.fullAddress.toLowerCase();
+                const matchedCity = popularCities.find(c =>
+                    addressLower.includes(c.name.toLowerCase())
                 );
+
+                if (matchedCity) {
+                    handleSelectCity(matchedCity.name);
+                } else {
+                    // No match - show error and let user select manually
+                    console.log('Could not detect supported city:', result.fullAddress);
+                    alert(`We detected "${result.fullAddress.split(',')[0]}" but it's not in our supported cities yet. Please select your nearest city.`);
+                }
+            } else {
+                alert(result.error || 'Could not detect your location. Please select manually.');
             }
         } catch (error) {
             console.error('Auto detect error:', error);
+            alert('Location detection failed. Please allow location access and try again.');
+        } finally {
             setDetectingLocation(false);
         }
     };
@@ -206,8 +209,8 @@ export function CitySelector({ isOpen, onClose, onSelectCity, currentCity }: Cit
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => handleSelectCity(city.name)}
                                         className={`flex flex-col items-center p-3 rounded-xl border-2 transition-colors ${currentCity === city.name
-                                                ? 'border-purple-500 bg-purple-50'
-                                                : 'border-transparent bg-gray-50'
+                                            ? 'border-purple-500 bg-purple-50'
+                                            : 'border-transparent bg-gray-50'
                                             }`}
                                     >
                                         <span className="text-3xl mb-1">

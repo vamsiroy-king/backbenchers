@@ -16,24 +16,31 @@ const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
     loading: () => <div className="h-full w-full bg-gray-50 flex items-center justify-center text-gray-400 font-mono text-xs">LOADING MAP...</div>
 });
 
-// Category icons mapping
-const CATEGORY_ICONS: Record<string, any> = {
-    "All": Layers,
-    "Food": Coffee,
-    "Food & Beverages": Coffee,
-    "Restaurant": Coffee,
-    "Coffee": Coffee,
-    "Grocery": Coffee,
-    "Tech": Laptop,
-    "Tech & Electronics": Laptop,
-    "Electronics": Laptop,
-    "Fashion": Shirt,
-    "Fashion & Lifestyle": Shirt,
-    "Beauty": Sparkles,
-    "Beauty & Wellness": Sparkles,
-    "Services": Scissors,
-    "Fitness": Dumbbell,
-    "Health & Fitness": Dumbbell,
+// Category icons and colors mapping
+const CATEGORY_CONFIG: Record<string, { icon: any; color: string; emoji: string }> = {
+    "All": { icon: Layers, color: "#374151", emoji: "📍" },
+    "Food": { icon: Coffee, color: "#EF4444", emoji: "🍕" },
+    "Food & Beverages": { icon: Coffee, color: "#EF4444", emoji: "🍕" },
+    "Restaurant": { icon: Coffee, color: "#EF4444", emoji: "🍽️" },
+    "Coffee": { icon: Coffee, color: "#92400E", emoji: "☕" },
+    "Grocery": { icon: Coffee, color: "#16A34A", emoji: "🛒" },
+    "Tech": { icon: Laptop, color: "#3B82F6", emoji: "📱" },
+    "Tech & Electronics": { icon: Laptop, color: "#3B82F6", emoji: "💻" },
+    "Electronics": { icon: Laptop, color: "#3B82F6", emoji: "🔌" },
+    "Fashion": { icon: Shirt, color: "#8B5CF6", emoji: "👕" },
+    "Fashion & Lifestyle": { icon: Shirt, color: "#8B5CF6", emoji: "👗" },
+    "Beauty": { icon: Sparkles, color: "#EC4899", emoji: "💄" },
+    "Beauty & Wellness": { icon: Sparkles, color: "#EC4899", emoji: "💅" },
+    "Services": { icon: Scissors, color: "#6366F1", emoji: "✂️" },
+    "Fitness": { icon: Dumbbell, color: "#22C55E", emoji: "💪" },
+    "Health & Fitness": { icon: Dumbbell, color: "#22C55E", emoji: "🏃" },
+    "Sports": { icon: Dumbbell, color: "#14B8A6", emoji: "🏏" },
+    "Entertainment": { icon: Layers, color: "#F97316", emoji: "🎬" },
+    "Other": { icon: Store, color: "#6B7280", emoji: "🏪" },
+};
+
+const getCategoryConfig = (category: string) => {
+    return CATEGORY_CONFIG[category] || CATEGORY_CONFIG["Other"];
 };
 
 interface MerchantWithOffer {
@@ -221,11 +228,16 @@ export default function MapPage() {
         ? merchants
         : merchants.filter(m => m.category.toLowerCase().includes(selectedCategory.toLowerCase()));
 
-    // Build dynamic filters from actual categories
-    const FILTERS = categories.map(cat => ({
-        id: cat,
-        icon: CATEGORY_ICONS[cat] || Layers
-    }));
+    // Build dynamic filters from actual categories with colors
+    const FILTERS = categories.map(cat => {
+        const config = getCategoryConfig(cat);
+        return {
+            id: cat,
+            icon: config.icon,
+            color: config.color,
+            emoji: config.emoji
+        };
+    });
 
     // 1. Explicit Start Screen (Light Theme)
     if (!sessionActive) {
@@ -287,11 +299,11 @@ export default function MapPage() {
                     const offer = filteredMerchants.find(m => m.id === merchant.id);
                     if (offer) {
                         setSelectedOffer(offer);
-                        setViewState(prev => ({ ...prev, latitude: offer.lat, longitude: offer.lng }));
                     }
                 }}
                 center={userLocation || [viewState.latitude, viewState.longitude]}
                 zoom={viewState.zoom}
+                selectedCategory={selectedCategory}
             />
 
             {/* Expandable Filter Speed Dial */}
@@ -330,21 +342,33 @@ export default function MapPage() {
                                         transition={{ duration: 0.2 }}
                                         className="flex items-center gap-3"
                                     >
-                                        <span className="text-[10px] font-bold bg-white/90 text-black px-2 py-1 rounded-md backdrop-blur-md shadow-sm border border-gray-100">
-                                            {cat.id}
+                                        {/* Category label with emoji */}
+                                        <span 
+                                            className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg backdrop-blur-md shadow-sm border flex items-center gap-1.5"
+                                            style={{ 
+                                                backgroundColor: isSelected ? cat.color : 'rgba(255,255,255,0.95)',
+                                                color: isSelected ? 'white' : '#374151',
+                                                borderColor: isSelected ? cat.color : '#E5E7EB'
+                                            }}
+                                        >
+                                            <span>{cat.emoji}</span>
+                                            <span>{cat.id}</span>
                                         </span>
+                                        {/* Filter button with category color */}
                                         <button
                                             onClick={() => {
                                                 setSelectedCategory(cat.id);
                                                 setSelectedOffer(null);
                                                 setIsFilterMenuOpen(false); // Auto close
                                             }}
-                                            className={`h-10 w-10 rounded-full flex items-center justify-center shadow-lg border transition-all ${isSelected
-                                                ? "bg-black text-white border-black"
-                                                : "bg-white text-gray-700 border-gray-100 hover:bg-gray-50"
-                                                }`}
+                                            className="h-11 w-11 rounded-full flex items-center justify-center shadow-lg transition-all"
+                                            style={{
+                                                backgroundColor: isSelected ? cat.color : 'white',
+                                                color: isSelected ? 'white' : cat.color,
+                                                border: `2px solid ${cat.color}`
+                                            }}
                                         >
-                                            <Icon className="h-4 w-4" />
+                                            <Icon className="h-5 w-5" />
                                         </button>
                                     </motion.div>
                                 )

@@ -183,7 +183,7 @@ export default function DocumentsPage() {
 
     const handleSubmit = () => {
         if (hasMinimumImages) {
-            router.push("/merchant/onboarding/passcode");
+            router.push("/merchant/onboarding/store-timings");
         }
     };
 
