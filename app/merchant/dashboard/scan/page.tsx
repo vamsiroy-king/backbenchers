@@ -706,7 +706,13 @@ export default function ScanPage() {
                                 <p className="text-3xl font-extrabold text-blue-600">₹{selectedOffer.finalPrice}</p>
                             </div>
                             <div className="flex justify-center">
-                                <img src={merchant?.logo || "https://via.placeholder.com/192?text=UPI+QR"} alt="Your Payment QR" className="w-48 h-48 rounded-lg border" />
+                                {merchant?.paymentQrUrl ? (
+                                    <img src={merchant.paymentQrUrl} alt="Your Payment QR" className="w-48 h-48 rounded-lg border object-contain bg-white" />
+                                ) : (
+                                    <div className="w-48 h-48 rounded-lg border bg-gray-100 flex items-center justify-center">
+                                        <p className="text-xs text-gray-400 text-center px-4">No Payment QR uploaded. Add in Settings.</p>
+                                    </div>
+                                )}
                             </div>
                             <p className="text-center text-xs text-gray-400 mt-4">Your UPI Payment QR</p>
                         </div>

@@ -223,6 +223,7 @@ export const merchantService = {
 
             const bbmId = await generateUniqueBbmId();
 
+
             const { data, error } = await supabase
                 .from('merchants')
                 .update({
@@ -237,6 +238,13 @@ export const merchantService = {
             if (error) {
                 return { success: false, data: null, error: error.message };
             }
+
+            // Activate any pending offers for this merchant
+            await supabase
+                .from('offers')
+                .update({ status: 'active' })
+                .eq('merchant_id', id)
+                .eq('status', 'pending');
 
             return { success: true, data: mapDbToMerchant(data), error: null };
         } catch (error: any) {

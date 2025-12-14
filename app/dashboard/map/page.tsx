@@ -387,7 +387,7 @@ export default function MapPage() {
                         initial={{ y: "100%" }}
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
-                        className="absolute bottom-24 left-4 right-4 z-[500] pb-safe"
+                        className="absolute bottom-32 left-4 right-4 z-[500] pb-safe"
                     >
                         <div className="bg-white rounded-3xl p-5 shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-gray-100">
                             <div className="flex justify-between items-start">
