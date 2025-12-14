@@ -198,7 +198,7 @@ export default function DocumentsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#1a1a1a] flex items-center justify-center py-4">
+        <div className="min-h-screen bg-white">
             {/* Hidden file inputs */}
             <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoSelect} />
             <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverSelect} />
@@ -281,217 +281,213 @@ export default function DocumentsPage() {
                 )}
             </AnimatePresence>
 
-            {/* Phone Frame */}
-            <div className="w-full max-w-[430px] h-[932px] bg-black rounded-[55px] shadow-[0_0_0_3px_#3a3a3a,0_25px_60px_rgba(0,0,0,0.5)] relative overflow-hidden">
-                <div className="absolute inset-[12px] bg-white rounded-[45px] overflow-hidden">
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 h-7 w-28 bg-black rounded-full z-[9999]" />
-
-                    <div className="h-full w-full overflow-y-auto pt-12 pb-8 px-6 scrollbar-hide">
-                        {/* Header */}
-                        <div className="flex items-center gap-4 mb-6">
-                            <Link href="/merchant/onboarding/location">
-                                <button className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <ArrowLeft className="h-5 w-5" />
-                                </button>
-                            </Link>
-                            <div>
-                                <h1 className="text-xl font-extrabold">Photos & Documents</h1>
-                                <p className="text-xs text-gray-500">Step 3 of 3</p>
-                            </div>
+            {/* Main Content */}
+            <div className="max-w-lg mx-auto min-h-screen">
+                <div className="min-h-screen overflow-y-auto pt-6 pb-8 px-5 scrollbar-hide">
+                    {/* Header */}
+                    <div className="flex items-center gap-4 mb-6">
+                        <Link href="/merchant/onboarding/location">
+                            <button className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                <ArrowLeft className="h-5 w-5" />
+                            </button>
+                        </Link>
+                        <div>
+                            <h1 className="text-xl font-extrabold">Photos & Documents</h1>
+                            <p className="text-xs text-gray-500">Step 3 of 3</p>
                         </div>
-
-                        {/* Progress Bar */}
-                        <div className="flex gap-2 mb-8">
-                            <div className="h-1.5 flex-1 bg-primary rounded-full" />
-                            <div className="h-1.5 flex-1 bg-primary rounded-full" />
-                            <div className="h-1.5 flex-1 bg-primary rounded-full" />
-                        </div>
-
-                        {/* Error message */}
-                        {error && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="bg-red-50 text-red-500 p-3 rounded-xl text-sm mb-4"
-                            >
-                                {error}
-                            </motion.div>
-                        )}
-
-                        <div className="space-y-6">
-                            {/* Branding Section */}
-                            <div>
-                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Branding</p>
-
-                                {/* Logo Upload - Square */}
-                                <div className="mb-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-semibold">Logo</span>
-                                            <span className="text-[10px] text-gray-400">(Optional)</span>
-                                        </div>
-                                        {logo && (
-                                            <button
-                                                onClick={() => setLogo(null)}
-                                                className="h-6 w-6 bg-red-100 rounded-full flex items-center justify-center"
-                                            >
-                                                <X className="h-3 w-3 text-red-500" />
-                                            </button>
-                                        )}
-                                    </div>
-                                    {logo ? (
-                                        <motion.div
-                                            initial={{ opacity: 0, scale: 0.9 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            className="relative rounded-2xl overflow-hidden w-28 h-28"
-                                        >
-                                            <img src={logo.preview} alt="Logo" className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                                <Check className="h-6 w-6 text-white" />
-                                            </div>
-                                        </motion.div>
-                                    ) : uploading === 'logo' ? (
-                                        <div className="bg-gray-100 rounded-2xl flex items-center justify-center w-28 h-28">
-                                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => logoInputRef.current?.click()}
-                                            className="w-28 h-28 border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center gap-1 hover:border-primary hover:bg-primary/5 transition-colors"
-                                        >
-                                            <Camera className="h-6 w-6 text-gray-400" />
-                                            <span className="text-[10px] text-gray-500">Square</span>
-                                        </button>
-                                    )}
-                                </div>
-
-                                {/* Cover Photo Upload - Horizontal 16:9 */}
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-semibold">Cover Photo</span>
-                                            <span className="text-[10px] text-gray-400">(Optional)</span>
-                                        </div>
-                                        {coverPhoto && (
-                                            <button
-                                                onClick={() => setCoverPhoto(null)}
-                                                className="h-6 w-6 bg-red-100 rounded-full flex items-center justify-center"
-                                            >
-                                                <X className="h-3 w-3 text-red-500" />
-                                            </button>
-                                        )}
-                                    </div>
-                                    {coverPhoto ? (
-                                        <motion.div
-                                            initial={{ opacity: 0, scale: 0.9 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            className="relative rounded-2xl overflow-hidden aspect-[16/9]"
-                                        >
-                                            <img src={coverPhoto.preview} alt="Cover" className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                                <Check className="h-8 w-8 text-white" />
-                                            </div>
-                                        </motion.div>
-                                    ) : uploading === 'cover' ? (
-                                        <div className="bg-gray-100 rounded-2xl flex items-center justify-center aspect-[16/9]">
-                                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => coverInputRef.current?.click()}
-                                            className="w-full border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 transition-colors aspect-[16/9]"
-                                        >
-                                            <Camera className="h-8 w-8 text-gray-400" />
-                                            <span className="text-xs text-gray-500">Tap to upload (16:9)</span>
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Store Images Section */}
-                            <div>
-                                <div className="flex items-center justify-between mb-4">
-                                    <div>
-                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Store Photos</p>
-                                        <p className="text-[10px] text-gray-400 mt-0.5">
-                                            Minimum 3 photos required • {storeImages.length}/10 uploaded
-                                        </p>
-                                    </div>
-                                    {!hasMinimumImages && (
-                                        <span className="text-[10px] text-red-500 font-medium">
-                                            {3 - storeImages.length} more needed
-                                        </span>
-                                    )}
-                                </div>
-
-                                {/* Smart Grid Layout */}
-                                <div className={`grid ${getStorePhotoLayout()} gap-2`}>
-                                    {storeImages.map((img, index) => (
-                                        <motion.div
-                                            key={img.id}
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            layout
-                                            className={`relative rounded-xl overflow-hidden ${storeImages.length === 1 ? 'aspect-video' :
-                                                storeImages.length === 3 && index === 0 ? 'col-span-2 aspect-video' :
-                                                    'aspect-square'
-                                                }`}
-                                        >
-                                            <img src={img.preview} alt="Store" className="w-full h-full object-cover" />
-                                            <button
-                                                onClick={() => removeStoreImage(img.id)}
-                                                className="absolute top-2 right-2 h-6 w-6 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center"
-                                            >
-                                                <X className="h-3 w-3 text-white" />
-                                            </button>
-                                        </motion.div>
-                                    ))}
-
-                                    {/* Add button */}
-                                    {storeImages.length < 10 && (
-                                        <button
-                                            onClick={() => storeInputRef.current?.click()}
-                                            disabled={uploading === 'store'}
-                                            className="border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-1 hover:border-primary hover:bg-primary/5 transition-colors aspect-square"
-                                        >
-                                            {uploading === 'store' ? (
-                                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                                            ) : (
-                                                <>
-                                                    <Plus className="h-6 w-6 text-gray-400" />
-                                                    <span className="text-[10px] text-gray-500">Add Photo</span>
-                                                </>
-                                            )}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Continue Button */}
-                        <motion.div className="mt-8">
-                            <Button
-                                onClick={handleSubmit}
-                                disabled={!hasMinimumImages || uploading !== null}
-                                className="w-full h-14 bg-primary text-white font-bold rounded-2xl text-base disabled:opacity-50"
-                            >
-                                {uploading ? (
-                                    <Loader2 className="h-5 w-5 animate-spin" />
-                                ) : (
-                                    <>
-                                        Continue
-                                        <ArrowRight className="ml-2 h-5 w-5" />
-                                    </>
-                                )}
-                            </Button>
-
-                            {!hasMinimumImages && (
-                                <p className="text-center text-xs text-gray-400 mt-3">
-                                    Please add at least 3 store photos
-                                </p>
-                            )}
-                        </motion.div>
                     </div>
+
+                    {/* Progress Bar */}
+                    <div className="flex gap-2 mb-8">
+                        <div className="h-1.5 flex-1 bg-primary rounded-full" />
+                        <div className="h-1.5 flex-1 bg-primary rounded-full" />
+                        <div className="h-1.5 flex-1 bg-primary rounded-full" />
+                    </div>
+
+                    {/* Error message */}
+                    {error && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-red-50 text-red-500 p-3 rounded-xl text-sm mb-4"
+                        >
+                            {error}
+                        </motion.div>
+                    )}
+
+                    <div className="space-y-6">
+                        {/* Branding Section */}
+                        <div>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Branding</p>
+
+                            {/* Logo Upload - Square */}
+                            <div className="mb-4">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-semibold">Logo</span>
+                                        <span className="text-[10px] text-gray-400">(Optional)</span>
+                                    </div>
+                                    {logo && (
+                                        <button
+                                            onClick={() => setLogo(null)}
+                                            className="h-6 w-6 bg-red-100 rounded-full flex items-center justify-center"
+                                        >
+                                            <X className="h-3 w-3 text-red-500" />
+                                        </button>
+                                    )}
+                                </div>
+                                {logo ? (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="relative rounded-2xl overflow-hidden w-28 h-28"
+                                    >
+                                        <img src={logo.preview} alt="Logo" className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                            <Check className="h-6 w-6 text-white" />
+                                        </div>
+                                    </motion.div>
+                                ) : uploading === 'logo' ? (
+                                    <div className="bg-gray-100 rounded-2xl flex items-center justify-center w-28 h-28">
+                                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => logoInputRef.current?.click()}
+                                        className="w-28 h-28 border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center gap-1 hover:border-primary hover:bg-primary/5 transition-colors"
+                                    >
+                                        <Camera className="h-6 w-6 text-gray-400" />
+                                        <span className="text-[10px] text-gray-500">Square</span>
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Cover Photo Upload - Horizontal 16:9 */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-semibold">Cover Photo</span>
+                                        <span className="text-[10px] text-gray-400">(Optional)</span>
+                                    </div>
+                                    {coverPhoto && (
+                                        <button
+                                            onClick={() => setCoverPhoto(null)}
+                                            className="h-6 w-6 bg-red-100 rounded-full flex items-center justify-center"
+                                        >
+                                            <X className="h-3 w-3 text-red-500" />
+                                        </button>
+                                    )}
+                                </div>
+                                {coverPhoto ? (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="relative rounded-2xl overflow-hidden aspect-[16/9]"
+                                    >
+                                        <img src={coverPhoto.preview} alt="Cover" className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                            <Check className="h-8 w-8 text-white" />
+                                        </div>
+                                    </motion.div>
+                                ) : uploading === 'cover' ? (
+                                    <div className="bg-gray-100 rounded-2xl flex items-center justify-center aspect-[16/9]">
+                                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => coverInputRef.current?.click()}
+                                        className="w-full border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 transition-colors aspect-[16/9]"
+                                    >
+                                        <Camera className="h-8 w-8 text-gray-400" />
+                                        <span className="text-xs text-gray-500">Tap to upload (16:9)</span>
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Store Images Section */}
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Store Photos</p>
+                                    <p className="text-[10px] text-gray-400 mt-0.5">
+                                        Minimum 3 photos required • {storeImages.length}/10 uploaded
+                                    </p>
+                                </div>
+                                {!hasMinimumImages && (
+                                    <span className="text-[10px] text-red-500 font-medium">
+                                        {3 - storeImages.length} more needed
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Smart Grid Layout */}
+                            <div className={`grid ${getStorePhotoLayout()} gap-2`}>
+                                {storeImages.map((img, index) => (
+                                    <motion.div
+                                        key={img.id}
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        layout
+                                        className={`relative rounded-xl overflow-hidden ${storeImages.length === 1 ? 'aspect-video' :
+                                            storeImages.length === 3 && index === 0 ? 'col-span-2 aspect-video' :
+                                                'aspect-square'
+                                            }`}
+                                    >
+                                        <img src={img.preview} alt="Store" className="w-full h-full object-cover" />
+                                        <button
+                                            onClick={() => removeStoreImage(img.id)}
+                                            className="absolute top-2 right-2 h-6 w-6 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center"
+                                        >
+                                            <X className="h-3 w-3 text-white" />
+                                        </button>
+                                    </motion.div>
+                                ))}
+
+                                {/* Add button */}
+                                {storeImages.length < 10 && (
+                                    <button
+                                        onClick={() => storeInputRef.current?.click()}
+                                        disabled={uploading === 'store'}
+                                        className="border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-1 hover:border-primary hover:bg-primary/5 transition-colors aspect-square"
+                                    >
+                                        {uploading === 'store' ? (
+                                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                        ) : (
+                                            <>
+                                                <Plus className="h-6 w-6 text-gray-400" />
+                                                <span className="text-[10px] text-gray-500">Add Photo</span>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Continue Button */}
+                    <motion.div className="mt-8">
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={!hasMinimumImages || uploading !== null}
+                            className="w-full h-14 bg-primary text-white font-bold rounded-2xl text-base disabled:opacity-50"
+                        >
+                            {uploading ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : (
+                                <>
+                                    Continue
+                                    <ArrowRight className="ml-2 h-5 w-5" />
+                                </>
+                            )}
+                        </Button>
+
+                        {!hasMinimumImages && (
+                            <p className="text-center text-xs text-gray-400 mt-3">
+                                Please add at least 3 store photos
+                            </p>
+                        )}
+                    </motion.div>
                 </div>
             </div>
         </div>

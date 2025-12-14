@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, Clock } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
@@ -42,6 +42,21 @@ export default function LocationPage() {
         return initial;
     });
 
+    // Load saved data from localStorage on mount
+    useEffect(() => {
+        const savedHours = localStorage.getItem('merchant_hours');
+        if (savedHours) {
+            try {
+                const data = JSON.parse(savedHours);
+                if (data.sameEveryDay !== undefined) setSameEveryDay(data.sameEveryDay);
+                if (data.commonTiming) setCommonTiming(data.commonTiming);
+                if (data.dayTimings) setDayTimings(data.dayTimings);
+            } catch (e) {
+                console.error('Error loading saved hours:', e);
+            }
+        }
+    }, []);
+
     const handleContinue = () => {
         // Save operating hours
         localStorage.setItem('merchant_hours', JSON.stringify({
@@ -68,158 +83,154 @@ export default function LocationPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#1a1a1a] flex items-center justify-center py-4">
-            <div className="w-full max-w-[430px] h-[932px] bg-black rounded-[55px] shadow-[0_0_0_3px_#3a3a3a,0_25px_60px_rgba(0,0,0,0.5)] relative overflow-hidden">
-                <div className="absolute inset-[12px] bg-white rounded-[45px] overflow-hidden">
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 h-7 w-28 bg-black rounded-full z-[9999]" />
-
-                    <div className="h-full w-full overflow-y-auto pt-12 pb-8 px-6 scrollbar-hide">
-                        {/* Header */}
-                        <div className="flex items-center gap-4 mb-6">
-                            <Link href="/merchant/onboarding/business">
-                                <button className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <ArrowLeft className="h-5 w-5" />
-                                </button>
-                            </Link>
-                            <div>
-                                <h1 className="text-xl font-extrabold">Store Timings</h1>
-                                <p className="text-xs text-gray-500">Step 2 of 3</p>
-                            </div>
+        <div className="min-h-screen bg-white">
+            <div className="max-w-lg mx-auto min-h-screen">
+                <div className="min-h-screen overflow-y-auto pt-6 pb-8 px-5 scrollbar-hide">
+                    {/* Header */}
+                    <div className="flex items-center gap-4 mb-6">
+                        <Link href="/merchant/onboarding/business">
+                            <button className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                <ArrowLeft className="h-5 w-5" />
+                            </button>
+                        </Link>
+                        <div>
+                            <h1 className="text-xl font-extrabold">Store Timings</h1>
+                            <p className="text-xs text-gray-500">Step 2 of 3</p>
                         </div>
-
-                        {/* Progress Bar */}
-                        <div className="flex gap-2 mb-8">
-                            <div className="h-1.5 flex-1 bg-primary rounded-full" />
-                            <div className="h-1.5 flex-1 bg-primary rounded-full" />
-                            <div className="h-1.5 flex-1 bg-gray-200 rounded-full" />
-                        </div>
-
-                        {/* Timings Section */}
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-2">
-                                <Clock className="h-5 w-5 text-primary" />
-                                <p className="font-semibold">When is your store open?</p>
-                            </div>
-
-                            {/* Same every day toggle */}
-                            <div className="bg-gray-50 rounded-2xl p-4">
-                                <p className="text-sm font-medium mb-3">Are your timings same every day?</p>
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => setSameEveryDay(true)}
-                                        className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all ${sameEveryDay ? 'bg-primary text-white' : 'bg-white text-gray-600 shadow-sm'
-                                            }`}
-                                    >
-                                        Yes, Same
-                                    </button>
-                                    <button
-                                        onClick={() => setSameEveryDay(false)}
-                                        className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all ${!sameEveryDay ? 'bg-primary text-white' : 'bg-white text-gray-600 shadow-sm'
-                                            }`}
-                                    >
-                                        No, Different
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Same every day timings */}
-                            {sameEveryDay && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="bg-primary/10 rounded-2xl p-4"
-                                >
-                                    <p className="text-xs font-semibold text-gray-500 mb-3">EVERY DAY</p>
-                                    <div className="flex items-center gap-3">
-                                        <select
-                                            value={commonTiming.openTime}
-                                            onChange={(e) => setCommonTiming({ ...commonTiming, openTime: e.target.value })}
-                                            className="flex-1 h-12 bg-white rounded-xl px-3 text-sm font-medium outline-none"
-                                        >
-                                            {TIME_SLOTS.map(time => (
-                                                <option key={time} value={time}>{time}</option>
-                                            ))}
-                                        </select>
-                                        <span className="text-gray-400">to</span>
-                                        <select
-                                            value={commonTiming.closeTime}
-                                            onChange={(e) => setCommonTiming({ ...commonTiming, closeTime: e.target.value })}
-                                            className="flex-1 h-12 bg-white rounded-xl px-3 text-sm font-medium outline-none"
-                                        >
-                                            {TIME_SLOTS.map(time => (
-                                                <option key={time} value={time}>{time}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {/* Day by day timings */}
-                            {!sameEveryDay && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="space-y-3"
-                                >
-                                    {DAYS.map(day => (
-                                        <div
-                                            key={day.id}
-                                            className={`rounded-xl p-3 ${dayTimings[day.id].isOpen ? 'bg-gray-50' : 'bg-red-50'
-                                                }`}
-                                        >
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="font-semibold text-sm">{day.label}</span>
-                                                <button
-                                                    onClick={() => toggleDayOpen(day.id)}
-                                                    className={`px-3 py-1 rounded-full text-xs font-semibold ${dayTimings[day.id].isOpen
-                                                        ? 'bg-primary/10 text-primary'
-                                                        : 'bg-red-100 text-red-500'
-                                                        }`}
-                                                >
-                                                    {dayTimings[day.id].isOpen ? 'Open' : 'Closed'}
-                                                </button>
-                                            </div>
-
-                                            {dayTimings[day.id].isOpen && (
-                                                <div className="flex items-center gap-2">
-                                                    <select
-                                                        value={dayTimings[day.id].openTime}
-                                                        onChange={(e) => updateDayTiming(day.id, 'openTime', e.target.value)}
-                                                        className="flex-1 h-10 bg-white rounded-lg px-2 text-xs font-medium outline-none"
-                                                    >
-                                                        {TIME_SLOTS.map(time => (
-                                                            <option key={time} value={time}>{time}</option>
-                                                        ))}
-                                                    </select>
-                                                    <span className="text-gray-400 text-xs">to</span>
-                                                    <select
-                                                        value={dayTimings[day.id].closeTime}
-                                                        onChange={(e) => updateDayTiming(day.id, 'closeTime', e.target.value)}
-                                                        className="flex-1 h-10 bg-white rounded-lg px-2 text-xs font-medium outline-none"
-                                                    >
-                                                        {TIME_SLOTS.map(time => (
-                                                            <option key={time} value={time}>{time}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </motion.div>
-                            )}
-                        </div>
-
-                        {/* Continue Button */}
-                        <motion.div className="mt-8">
-                            <Button
-                                onClick={handleContinue}
-                                className="w-full h-14 bg-primary text-white font-bold rounded-2xl text-base"
-                            >
-                                Continue to Photos
-                                <ArrowRight className="ml-2 h-5 w-5" />
-                            </Button>
-                        </motion.div>
                     </div>
+
+                    {/* Progress Bar */}
+                    <div className="flex gap-2 mb-8">
+                        <div className="h-1.5 flex-1 bg-primary rounded-full" />
+                        <div className="h-1.5 flex-1 bg-primary rounded-full" />
+                        <div className="h-1.5 flex-1 bg-gray-200 rounded-full" />
+                    </div>
+
+                    {/* Timings Section */}
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-2">
+                            <Clock className="h-5 w-5 text-primary" />
+                            <p className="font-semibold">When is your store open?</p>
+                        </div>
+
+                        {/* Same every day toggle */}
+                        <div className="bg-gray-50 rounded-2xl p-4">
+                            <p className="text-sm font-medium mb-3">Are your timings same every day?</p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setSameEveryDay(true)}
+                                    className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all ${sameEveryDay ? 'bg-primary text-white' : 'bg-white text-gray-600 shadow-sm'
+                                        }`}
+                                >
+                                    Yes, Same
+                                </button>
+                                <button
+                                    onClick={() => setSameEveryDay(false)}
+                                    className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all ${!sameEveryDay ? 'bg-primary text-white' : 'bg-white text-gray-600 shadow-sm'
+                                        }`}
+                                >
+                                    No, Different
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Same every day timings */}
+                        {sameEveryDay && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-primary/10 rounded-2xl p-4"
+                            >
+                                <p className="text-xs font-semibold text-gray-500 mb-3">EVERY DAY</p>
+                                <div className="flex items-center gap-3">
+                                    <select
+                                        value={commonTiming.openTime}
+                                        onChange={(e) => setCommonTiming({ ...commonTiming, openTime: e.target.value })}
+                                        className="flex-1 h-12 bg-white rounded-xl px-3 text-sm font-medium outline-none"
+                                    >
+                                        {TIME_SLOTS.map(time => (
+                                            <option key={time} value={time}>{time}</option>
+                                        ))}
+                                    </select>
+                                    <span className="text-gray-400">to</span>
+                                    <select
+                                        value={commonTiming.closeTime}
+                                        onChange={(e) => setCommonTiming({ ...commonTiming, closeTime: e.target.value })}
+                                        className="flex-1 h-12 bg-white rounded-xl px-3 text-sm font-medium outline-none"
+                                    >
+                                        {TIME_SLOTS.map(time => (
+                                            <option key={time} value={time}>{time}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Day by day timings */}
+                        {!sameEveryDay && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-3"
+                            >
+                                {DAYS.map(day => (
+                                    <div
+                                        key={day.id}
+                                        className={`rounded-xl p-3 ${dayTimings[day.id].isOpen ? 'bg-gray-50' : 'bg-red-50'
+                                            }`}
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="font-semibold text-sm">{day.label}</span>
+                                            <button
+                                                onClick={() => toggleDayOpen(day.id)}
+                                                className={`px-3 py-1 rounded-full text-xs font-semibold ${dayTimings[day.id].isOpen
+                                                    ? 'bg-primary/10 text-primary'
+                                                    : 'bg-red-100 text-red-500'
+                                                    }`}
+                                            >
+                                                {dayTimings[day.id].isOpen ? 'Open' : 'Closed'}
+                                            </button>
+                                        </div>
+
+                                        {dayTimings[day.id].isOpen && (
+                                            <div className="flex items-center gap-2">
+                                                <select
+                                                    value={dayTimings[day.id].openTime}
+                                                    onChange={(e) => updateDayTiming(day.id, 'openTime', e.target.value)}
+                                                    className="flex-1 h-10 bg-white rounded-lg px-2 text-xs font-medium outline-none"
+                                                >
+                                                    {TIME_SLOTS.map(time => (
+                                                        <option key={time} value={time}>{time}</option>
+                                                    ))}
+                                                </select>
+                                                <span className="text-gray-400 text-xs">to</span>
+                                                <select
+                                                    value={dayTimings[day.id].closeTime}
+                                                    onChange={(e) => updateDayTiming(day.id, 'closeTime', e.target.value)}
+                                                    className="flex-1 h-10 bg-white rounded-lg px-2 text-xs font-medium outline-none"
+                                                >
+                                                    {TIME_SLOTS.map(time => (
+                                                        <option key={time} value={time}>{time}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </motion.div>
+                        )}
+                    </div>
+
+                    {/* Continue Button */}
+                    <motion.div className="mt-8">
+                        <Button
+                            onClick={handleContinue}
+                            className="w-full h-14 bg-primary text-white font-bold rounded-2xl text-base"
+                        >
+                            Continue to Photos
+                            <ArrowRight className="ml-2 h-5 w-5" />
+                        </Button>
+                    </motion.div>
                 </div>
             </div>
         </div>
