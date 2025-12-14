@@ -335,7 +335,7 @@ export default function ScanPage() {
                                     <div className="h-32 w-32 rounded-full p-1.5 bg-white/20 backdrop-blur-sm">
                                         <div className="h-full w-full rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-200">
                                             {hasProfilePhoto ? (
-                                                <img src={student.profileImage} alt={student.name} className="w-full h-full object-cover" />
+                                                <img src={student.profileImage || ''} alt={student.name} className="w-full h-full object-cover" />
                                             ) : (
                                                 <div className="w-full h-full bg-gray-300 flex items-center justify-center">
                                                     <UserX className="h-10 w-10 text-gray-500" />
@@ -587,7 +587,7 @@ export default function ScanPage() {
                             disabled={
                                 !billAmount ||
                                 parseFloat(billAmount) <= 0 ||
-                                (selectedOffer.minPurchase && parseFloat(billAmount) < selectedOffer.minPurchase)
+                                Boolean(selectedOffer.minPurchase && parseFloat(billAmount) < selectedOffer.minPurchase)
                             }
                             className="w-full h-14 bg-primary text-white font-bold rounded-2xl text-base disabled:opacity-50"
                         >
@@ -796,7 +796,7 @@ export default function ScanPage() {
                                 {/* Student Info Row */}
                                 <div className="flex items-center gap-4 pb-5 border-b border-gray-100">
                                     <div className="h-14 w-14 rounded-2xl overflow-hidden bg-gray-100">
-                                        <img src={student.profileImage} alt="" className="h-full w-full object-cover" />
+                                        <img src={student.profileImage || ''} alt="" className="h-full w-full object-cover" />
                                     </div>
                                     <div className="flex-1">
                                         <p className="font-bold text-gray-900">{student.name}</p>
