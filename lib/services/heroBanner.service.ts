@@ -1,0 +1,202 @@
+import { supabase } from '@/lib/supabase';
+import { ApiResponse } from '@/lib/types';
+
+export interface HeroBanner {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    ctaText: string;
+    ctaLink: string | null;
+    backgroundGradient: string;
+    imageUrl: string | null;
+    bannerType: 'promotion' | 'event' | 'partner' | 'announcement';
+    coverageType: 'pan_india' | 'city_specific';
+    cityIds: string[] | null;
+    startDate: string;
+    endDate: string | null;
+    position: number;
+    isActive: boolean;
+    // Event fields
+    eventDate: string | null;
+    eventLocation: string | null;
+    organizerName: string | null;
+    organizerContact: string | null;
+}
+
+const transformBanner = (row: any): HeroBanner => ({
+    id: row.id,
+    title: row.title,
+    subtitle: row.subtitle,
+    ctaText: row.cta_text || 'Claim',
+    ctaLink: row.cta_link,
+    backgroundGradient: row.background_gradient || 'from-green-400 to-green-600',
+    imageUrl: row.image_url,
+    bannerType: row.banner_type,
+    coverageType: row.coverage_type || 'pan_india',
+    cityIds: row.city_ids,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    position: row.position,
+    isActive: row.is_active,
+    eventDate: row.event_date,
+    eventLocation: row.event_location,
+    organizerName: row.organizer_name,
+    organizerContact: row.organizer_contact,
+});
+
+export const heroBannerService = {
+    // Get active banners for a city
+    async getActiveForCity(cityName: string): Promise<ApiResponse<HeroBanner[]>> {
+        try {
+            const now = new Date().toISOString();
+
+            const { data, error } = await supabase
+                .from('hero_banners')
+                .select('*')
+                .eq('is_active', true)
+                .lte('start_date', now)
+                .order('position', { ascending: true });
+
+            if (error) {
+                console.error('[HeroBanners] Error:', error);
+                return { success: false, data: null, error: error.message };
+            }
+
+            // Filter by city coverage (pan_india OR includes user's city)
+            const filtered = (data || []).filter(banner => {
+                // Check if not expired
+                if (banner.end_date && new Date(banner.end_date) < new Date()) {
+                    return false;
+                }
+                // Pan-India or city-specific
+                if (banner.coverage_type === 'pan_india') {
+                    return true;
+                }
+                // Check if user's city is in the list
+                // This is simplified - in production, you'd match city IDs
+                return true; // For now, show all
+            });
+
+            return {
+                success: true,
+                data: filtered.map(transformBanner),
+                error: null
+            };
+        } catch (error: any) {
+            console.error('[HeroBanners] Exception:', error);
+            return { success: false, data: null, error: error.message };
+        }
+    },
+
+    // Get all banners (admin)
+    async getAll(): Promise<ApiResponse<HeroBanner[]>> {
+        try {
+            const { data, error } = await supabase
+                .from('hero_banners')
+                .select('*')
+                .order('position', { ascending: true });
+
+            if (error) {
+                return { success: false, data: null, error: error.message };
+            }
+
+            return {
+                success: true,
+                data: (data || []).map(transformBanner),
+                error: null
+            };
+        } catch (error: any) {
+            return { success: false, data: null, error: error.message };
+        }
+    },
+
+    // Create banner
+    async create(banner: Partial<HeroBanner>): Promise<ApiResponse<HeroBanner>> {
+        try {
+            const { data, error } = await supabase
+                .from('hero_banners')
+                .insert({
+                    title: banner.title,
+                    subtitle: banner.subtitle,
+                    cta_text: banner.ctaText || 'Claim',
+                    cta_link: banner.ctaLink,
+                    background_gradient: banner.backgroundGradient,
+                    image_url: banner.imageUrl,
+                    banner_type: banner.bannerType || 'promotion',
+                    coverage_type: banner.coverageType || 'pan_india',
+                    city_ids: banner.cityIds,
+                    start_date: banner.startDate || new Date().toISOString(),
+                    end_date: banner.endDate,
+                    position: banner.position || 0,
+                    is_active: banner.isActive ?? true,
+                    event_date: banner.eventDate,
+                    event_location: banner.eventLocation,
+                    organizer_name: banner.organizerName,
+                    organizer_contact: banner.organizerContact,
+                })
+                .select()
+                .single();
+
+            if (error) {
+                return { success: false, data: null, error: error.message };
+            }
+
+            return { success: true, data: transformBanner(data), error: null };
+        } catch (error: any) {
+            return { success: false, data: null, error: error.message };
+        }
+    },
+
+    // Update banner
+    async update(id: string, banner: Partial<HeroBanner>): Promise<ApiResponse<HeroBanner>> {
+        try {
+            const updateData: any = {};
+            if (banner.title !== undefined) updateData.title = banner.title;
+            if (banner.subtitle !== undefined) updateData.subtitle = banner.subtitle;
+            if (banner.ctaText !== undefined) updateData.cta_text = banner.ctaText;
+            if (banner.ctaLink !== undefined) updateData.cta_link = banner.ctaLink;
+            if (banner.backgroundGradient !== undefined) updateData.background_gradient = banner.backgroundGradient;
+            if (banner.imageUrl !== undefined) updateData.image_url = banner.imageUrl;
+            if (banner.bannerType !== undefined) updateData.banner_type = banner.bannerType;
+            if (banner.coverageType !== undefined) updateData.coverage_type = banner.coverageType;
+            if (banner.cityIds !== undefined) updateData.city_ids = banner.cityIds;
+            if (banner.startDate !== undefined) updateData.start_date = banner.startDate;
+            if (banner.endDate !== undefined) updateData.end_date = banner.endDate;
+            if (banner.position !== undefined) updateData.position = banner.position;
+            if (banner.isActive !== undefined) updateData.is_active = banner.isActive;
+
+            const { data, error } = await supabase
+                .from('hero_banners')
+                .update(updateData)
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (error) {
+                return { success: false, data: null, error: error.message };
+            }
+
+            return { success: true, data: transformBanner(data), error: null };
+        } catch (error: any) {
+            return { success: false, data: null, error: error.message };
+        }
+    },
+
+    // Delete banner
+    async delete(id: string): Promise<ApiResponse<void>> {
+        try {
+            const { error } = await supabase
+                .from('hero_banners')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                return { success: false, data: null, error: error.message };
+            }
+
+            return { success: true, data: null, error: null };
+        } catch (error: any) {
+            return { success: false, data: null, error: error.message };
+        }
+    },
+};

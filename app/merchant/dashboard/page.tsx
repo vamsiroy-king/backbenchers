@@ -1,0 +1,304 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Bell, TrendingUp, Users, Tag, IndianRupee, Plus, ScanLine, ChevronRight, Loader2, Store } from "lucide-react";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { merchantService } from "@/lib/services/merchant.service";
+import { transactionService } from "@/lib/services/transaction.service";
+import { offerService } from "@/lib/services/offer.service";
+import { Transaction, Merchant, Offer } from "@/lib/types";
+
+export default function MerchantDashboardPage() {
+    const [loading, setLoading] = useState(true);
+    const [merchant, setMerchant] = useState<Merchant | null>(null);
+    const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+    const [offers, setOffers] = useState<Offer[]>([]);
+    const [dashboardStats, setDashboardStats] = useState({
+        todayEarnings: 0,
+        totalRedemptions: 0,
+        activeOffers: 0,
+        totalRevenue: 0
+    });
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                setLoading(true);
+
+                // Get merchant profile
+                const profileResult = await merchantService.getMyProfile();
+                if (profileResult.success && profileResult.data) {
+                    setMerchant(profileResult.data);
+
+                    // Get dashboard stats
+                    const stats = await merchantService.getDashboardStats(profileResult.data.id);
+                    setDashboardStats(stats);
+
+                    // Get recent transactions
+                    const txResult = await transactionService.getMerchantTransactions(profileResult.data.id, 5);
+                    if (txResult.success && txResult.data) {
+                        setRecentTransactions(txResult.data);
+                    }
+
+                    // Get offers
+                    const offersResult = await offerService.getMyOffers();
+                    if (offersResult.success && offersResult.data) {
+                        setOffers(offersResult.data);
+                    }
+
+                    // Subscribe to realtime transaction updates
+                    const unsubscribe = transactionService.subscribeToMerchantTransactions(
+                        profileResult.data.id,
+                        (newTx) => {
+                            setRecentTransactions(prev => [newTx, ...prev.slice(0, 4)]);
+                            setDashboardStats(prev => ({
+                                ...prev,
+                                todayEarnings: prev.todayEarnings + newTx.finalAmount,
+                                totalRedemptions: prev.totalRedemptions + 1
+                            }));
+                        }
+                    );
+
+                    return () => unsubscribe();
+                }
+            } catch (error) {
+                console.error('Error fetching merchant data:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchData();
+    }, []);
+
+    const formatTimeAgo = (dateString: string) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins} min ago`;
+        if (diffMins < 1440) return `${Math.floor(diffMins / 60)} hours ago`;
+        return `${Math.floor(diffMins / 1440)} days ago`;
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-white pb-32 pt-12">
+            {/* Header */}
+            <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-100">
+                <div className="px-4 h-14 flex items-center justify-between">
+                    <div>
+                        <p className="text-xs text-gray-500">Welcome back</p>
+                        <h1 className="font-extrabold text-lg">{merchant?.businessName || 'Merchant'} 👋</h1>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {merchant?.status === 'pending' && (
+                            <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-bold">
+                                Pending Approval
+                            </span>
+                        )}
+                        <button className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center relative">
+                            <Bell className="h-5 w-5 text-gray-600" />
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main className="px-4 pt-6 space-y-6">
+                {/* Status Banner for Pending */}
+                {merchant?.status === 'pending' && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+                        <div className="flex items-center gap-3">
+                            <Store className="h-6 w-6 text-yellow-600" />
+                            <div>
+                                <h3 className="font-bold text-yellow-800">Awaiting Approval</h3>
+                                <p className="text-xs text-yellow-600">Your account is under review. You'll get your BBM-ID once approved.</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Today's Performance */}
+                <div className="bg-gradient-to-r from-primary to-emerald-500 rounded-2xl p-5 text-white">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <p className="text-xs opacity-75">
+                                {new Date().toLocaleDateString('en-IN', {
+                                    weekday: 'long',
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric'
+                                })}
+                            </p>
+                            <h3 className="font-bold text-lg">Today's Performance</h3>
+                        </div>
+                        <TrendingUp className="h-6 w-6 opacity-80" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                        <div>
+                            <p className="text-3xl font-extrabold">{dashboardStats.totalRedemptions}</p>
+                            <p className="text-xs opacity-75">Redemptions</p>
+                        </div>
+                        <div>
+                            <p className="text-3xl font-extrabold">₹{dashboardStats.todayEarnings.toLocaleString('en-IN')}</p>
+                            <p className="text-xs opacity-75">Today's Earnings</p>
+                        </div>
+                        <div>
+                            <p className="text-3xl font-extrabold">{dashboardStats.activeOffers}</p>
+                            <p className="text-xs opacity-75">Active Offers</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="grid grid-cols-2 gap-3">
+                    <Link href="/merchant/dashboard/scan">
+                        <motion.button
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full bg-black text-white rounded-2xl p-4 flex items-center justify-between"
+                            disabled={merchant?.status !== 'approved'}
+                        >
+                            <div className="flex items-center gap-3">
+                                <ScanLine className="h-6 w-6" />
+                                <span className="font-bold">Scan QR</span>
+                            </div>
+                            <ChevronRight className="h-5 w-5" />
+                        </motion.button>
+                    </Link>
+                    <Link href="/merchant/dashboard/offers/new">
+                        <motion.button
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full bg-primary/10 text-primary rounded-2xl p-4 flex items-center justify-between"
+                            disabled={merchant?.status !== 'approved'}
+                        >
+                            <div className="flex items-center gap-3">
+                                <Plus className="h-6 w-6" />
+                                <span className="font-bold">New Offer</span>
+                            </div>
+                            <ChevronRight className="h-5 w-5" />
+                        </motion.button>
+                    </Link>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                    {[
+                        { label: "Total Revenue", value: `₹${dashboardStats.totalRevenue.toLocaleString('en-IN')}`, icon: IndianRupee, color: "bg-purple-500" },
+                        { label: "Active Offers", value: offers.filter(o => o.status === 'active').length.toString(), icon: Tag, color: "bg-primary" },
+                    ].map((stat, index) => (
+                        <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm"
+                        >
+                            <div className={`h-10 w-10 ${stat.color} rounded-xl flex items-center justify-center mb-2`}>
+                                <stat.icon className="h-5 w-5 text-white" />
+                            </div>
+                            <p className="text-2xl font-extrabold">{stat.value}</p>
+                            <p className="text-xs text-gray-500">{stat.label}</p>
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* Recent Redemptions */}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-lg">Recent Redemptions</h3>
+                        <Link href="/merchant/dashboard/transactions" className="text-primary text-sm font-semibold">
+                            View All
+                        </Link>
+                    </div>
+
+                    {recentTransactions.length === 0 ? (
+                        <div className="text-center py-8 bg-gray-50 rounded-2xl">
+                            <TrendingUp className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                            <p className="text-sm text-gray-500">No redemptions yet</p>
+                            <p className="text-xs text-gray-400">Transactions will appear here in real-time</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {recentTransactions.map((tx, index) => (
+                                <motion.div
+                                    key={tx.id}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">
+                                            {tx.studentName.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-sm">{tx.studentName}</p>
+                                            <p className="text-xs text-gray-500">{tx.offerTitle}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-bold text-sm text-primary">₹{tx.finalAmount}</p>
+                                        <p className="text-[10px] text-gray-400">{formatTimeAgo(tx.redeemedAt)}</p>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* My Offers */}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-lg">My Offers</h3>
+                        <Link href="/merchant/dashboard/offers" className="text-primary text-sm font-semibold">
+                            Manage
+                        </Link>
+                    </div>
+
+                    {offers.length === 0 ? (
+                        <Link href="/merchant/dashboard/offers/new">
+                            <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center">
+                                <Plus className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                                <p className="font-bold text-gray-600">Create Your First Offer</p>
+                                <p className="text-xs text-gray-400">Attract students with exclusive discounts</p>
+                            </div>
+                        </Link>
+                    ) : (
+                        <div className="space-y-2">
+                            {offers.slice(0, 3).map((offer) => (
+                                <Link key={offer.id} href={`/merchant/dashboard/offers/${offer.id}`}>
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                        <div>
+                                            <p className="font-bold text-sm">{offer.title}</p>
+                                            <p className="text-xs text-gray-500">
+                                                {offer.type === 'percentage' ? `${offer.discountValue}% OFF` : `₹${offer.discountValue} OFF`}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${offer.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                                                }`}>
+                                                {offer.status}
+                                            </span>
+                                            <ChevronRight className="h-4 w-4 text-gray-300" />
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </main>
+        </div>
+    );
+}

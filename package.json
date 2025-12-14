@@ -1,0 +1,42 @@
+{
+  "name": "backbenchers",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.2.4",
+    "@supabase/supabase-js": "^2.87.1",
+    "@tabler/icons-react": "^3.35.0",
+    "@types/leaflet": "^1.9.21",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.25",
+    "html5-qrcode": "^2.3.8",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.556.0",
+    "maplibre-gl": "^5.14.0",
+    "next": "16.0.8",
+    "qrcode.react": "^4.2.0",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "react-leaflet": "^5.0.0",
+    "react-map-gl": "^8.1.0",
+    "tailwind-merge": "^3.4.0",
+    "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.8",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
