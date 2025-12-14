@@ -343,9 +343,9 @@ export default function MapPage() {
                                         className="flex items-center gap-3"
                                     >
                                         {/* Category label with emoji */}
-                                        <span 
+                                        <span
                                             className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg backdrop-blur-md shadow-sm border flex items-center gap-1.5"
-                                            style={{ 
+                                            style={{
                                                 backgroundColor: isSelected ? cat.color : 'rgba(255,255,255,0.95)',
                                                 color: isSelected ? 'white' : '#374151',
                                                 borderColor: isSelected ? cat.color : '#E5E7EB'
@@ -359,7 +359,9 @@ export default function MapPage() {
                                             onClick={() => {
                                                 setSelectedCategory(cat.id);
                                                 setSelectedOffer(null);
-                                                setIsFilterMenuOpen(false); // Auto close
+                                                setIsFilterMenuOpen(false);
+                                                // Zoom out to show all stores in this category
+                                                setViewState(prev => ({ ...prev, zoom: 12 }));
                                             }}
                                             className="h-11 w-11 rounded-full flex items-center justify-center shadow-lg transition-all"
                                             style={{
@@ -385,7 +387,7 @@ export default function MapPage() {
                         initial={{ y: "100%" }}
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
-                        className="absolute bottom-6 left-4 right-4 z-[500]"
+                        className="absolute bottom-24 left-4 right-4 z-[500] pb-safe"
                     >
                         <div className="bg-white rounded-3xl p-5 shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-gray-100">
                             <div className="flex justify-between items-start">
@@ -424,7 +426,7 @@ export default function MapPage() {
 
             {/* No stores message */}
             {!loading && filteredMerchants.length === 0 && (
-                <div className="absolute bottom-32 left-4 right-4 z-[400]">
+                <div className="absolute bottom-40 left-4 right-4 z-[400]">
                     <div className="bg-white rounded-2xl p-4 shadow-lg text-center">
                         <p className="text-gray-500 text-sm">No stores found {selectedCategory !== "All" && `in ${selectedCategory}`}</p>
                         <p className="text-xs text-gray-400 mt-1">Try selecting "All" categories</p>

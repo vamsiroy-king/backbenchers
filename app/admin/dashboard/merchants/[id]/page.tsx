@@ -479,32 +479,60 @@ export default function MerchantReviewPage() {
                     </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                    <Button
-                        onClick={() => setShowDeleteConfirm(true)}
-                        variant="outline"
-                        className="h-14 px-4 border-red-200 text-red-500 rounded-2xl font-bold"
-                    >
-                        <Trash2 className="h-5 w-5" />
-                    </Button>
-                    <Button
-                        onClick={() => setShowRejectModal(true)}
-                        variant="outline"
-                        className="flex-1 h-14 border-red-200 text-red-500 rounded-2xl font-bold"
-                    >
-                        <X className="h-5 w-5 mr-2" />
-                        Reject
-                    </Button>
-                    <Button
-                        onClick={() => setShowApproveConfirm(true)}
-                        disabled={!allChecked}
-                        className="flex-1 h-14 bg-primary text-white rounded-2xl font-bold disabled:opacity-50"
-                    >
-                        <Check className="h-5 w-5 mr-2" />
-                        Approve
-                    </Button>
-                </div>
+                {/* Action Buttons - Only show for pending merchants */}
+                {merchant.status === 'pending' ? (
+                    <div className="flex gap-3">
+                        <Button
+                            onClick={() => setShowDeleteConfirm(true)}
+                            variant="outline"
+                            className="h-14 px-4 border-red-200 text-red-500 rounded-2xl font-bold"
+                        >
+                            <Trash2 className="h-5 w-5" />
+                        </Button>
+                        <Button
+                            onClick={() => setShowRejectModal(true)}
+                            variant="outline"
+                            className="flex-1 h-14 border-red-200 text-red-500 rounded-2xl font-bold"
+                        >
+                            <X className="h-5 w-5 mr-2" />
+                            Reject
+                        </Button>
+                        <Button
+                            onClick={() => setShowApproveConfirm(true)}
+                            disabled={!allChecked}
+                            className="flex-1 h-14 bg-primary text-white rounded-2xl font-bold disabled:opacity-50"
+                        >
+                            <Check className="h-5 w-5 mr-2" />
+                            Approve
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="flex gap-3">
+                        <Button
+                            onClick={() => setShowDeleteConfirm(true)}
+                            variant="outline"
+                            className="h-14 px-4 border-red-200 text-red-500 rounded-2xl font-bold"
+                        >
+                            <Trash2 className="h-5 w-5" />
+                        </Button>
+                        <div className={`flex-1 h-14 rounded-2xl flex items-center justify-center font-bold ${merchant.status === 'approved'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                            {merchant.status === 'approved' ? (
+                                <>
+                                    <Check className="h-5 w-5 mr-2" />
+                                    Approved - BBM: {merchant.bbmId}
+                                </>
+                            ) : (
+                                <>
+                                    <X className="h-5 w-5 mr-2" />
+                                    Rejected
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );
