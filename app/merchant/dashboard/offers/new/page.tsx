@@ -97,7 +97,7 @@ export default function CreateOfferPage() {
                 discountValue: discountVal,
                 finalPrice: finalPrice,
                 discountAmount: discountAmount,
-                minOrderValue: offerData.minOrderValue ? parseFloat(offerData.minOrderValue) : undefined,
+                minOrderValue: actualPrice, // Auto-set from actual price
                 maxDiscount: offerData.maxDiscount ? parseFloat(offerData.maxDiscount) : undefined,
                 validUntil: offerData.validUntil || undefined,
                 terms: terms.filter(t => t.trim()),
@@ -347,28 +347,26 @@ export default function CreateOfferPage() {
                                 />
                             </div>
 
-                            {/* Minimum Bill Amount - MANDATORY */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Minimum Bill Amount <span className="text-red-500">*</span>
-                                </label>
-                                <div className="relative">
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 h-8 w-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                                        <IndianRupee className="h-4 w-4 text-amber-600" />
+                            {/* Minimum Bill Amount - AUTO-FILLED from Actual Price */}
+                            {actualPrice > 0 && (
+                                <div className="space-y-2">
+                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                        Min. Order Amount <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded ml-2">Auto-Set</span>
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 h-8 w-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                            <IndianRupee className="h-4 w-4 text-emerald-600" />
+                                        </div>
+                                        <div className="w-full h-14 bg-emerald-50/50 rounded-2xl pl-14 pr-4 flex items-center text-xl font-bold text-emerald-700 border-2 border-emerald-100">
+                                            ₹{actualPrice.toFixed(0)}
+                                            <span className="text-sm font-medium text-gray-400 ml-2">& above</span>
+                                        </div>
                                     </div>
-                                    <input
-                                        type="number"
-                                        value={offerData.minOrderValue}
-                                        onChange={(e) => setOfferData({ ...offerData, minOrderValue: e.target.value })}
-                                        placeholder="500"
-                                        className="w-full h-14 bg-white rounded-2xl pl-14 pr-20 text-xl font-bold outline-none border-2 border-gray-100 focus:border-amber-400 transition-colors"
-                                    />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400">& above</span>
+                                    <p className="text-xs text-gray-400">
+                                        Customers must spend at least ₹{actualPrice.toFixed(0)} to get this discount.
+                                    </p>
                                 </div>
-                                <p className="text-xs text-gray-400">
-                                    Students must order at least this amount to get the discount.
-                                </p>
-                            </div>
+                            )}
 
                             {/* Final Amount - READONLY (auto-calculated) */}
                             {actualPrice > 0 && (discountVal > 0 || offerType === "bogo") && (

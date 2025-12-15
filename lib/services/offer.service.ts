@@ -35,8 +35,12 @@ export const offerService = {
                 .from('offers')
                 .select(`
                     *,
-                    merchants!inner (business_name, bbm_id)
+                    merchants!inner (business_name, bbm_id, status)
                 `)
+                // CRITICAL: Only show offers from APPROVED merchants in student app
+                .eq('merchants.status', 'approved')
+                // Only show active offers
+                .eq('status', 'active')
                 .order('created_at', { ascending: false });
 
             if (filters) {
@@ -85,7 +89,7 @@ export const offerService = {
                     merchants!inner (id, business_name, bbm_id, logo_url, category, city, status)
                 `)
                 .eq('status', 'active')
-                .in('merchants.status', ['approved', 'pending']) // Include pending for testing
+                .eq('merchants.status', 'approved') // ONLY approved merchants shown to students
                 .order('created_at', { ascending: false });
 
             if (error) {

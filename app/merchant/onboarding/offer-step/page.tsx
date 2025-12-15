@@ -148,7 +148,7 @@ export default function CreateFirstOfferPage() {
             discountAmount: discountAmount,
             originalPrice: actualPrice,
             finalPrice: finalPrice,
-            minOrderValue: parseFloat(offerData.minOrderValue) || 0,
+            minOrderValue: actualPrice, // Auto-set from actual price
             freeItemName: offerData.freeItemName,
             terms: ["Valid student ID required", "Cannot be combined with other offers"],
         };
@@ -233,8 +233,8 @@ export default function CreateFirstOfferPage() {
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => selectOfferType(type.id)}
                                     className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 transition-all ${offerType === type.id
-                                            ? 'border-primary bg-primary/5 shadow-sm'
-                                            : 'border-gray-100 bg-white hover:border-gray-200'
+                                        ? 'border-primary bg-primary/5 shadow-sm'
+                                        : 'border-gray-100 bg-white hover:border-gray-200'
                                         }`}
                                 >
                                     <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${type.color} flex items-center justify-center shadow-lg`}>
@@ -271,8 +271,8 @@ export default function CreateFirstOfferPage() {
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => applyTemplate(template)}
                                                 className={`p-4 rounded-2xl border-2 text-center transition-all ${selectedTemplate === template.id
-                                                        ? 'border-primary bg-primary/5'
-                                                        : 'border-gray-100 bg-white hover:border-gray-200'
+                                                    ? 'border-primary bg-primary/5'
+                                                    : 'border-gray-100 bg-white hover:border-gray-200'
                                                     }`}
                                             >
                                                 <p className="font-bold text-lg text-gray-900">{template.name}</p>
