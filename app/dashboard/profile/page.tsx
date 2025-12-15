@@ -746,13 +746,10 @@ export default function ProfilePage() {
                 </Button>
             </div>
 
-            {/* App Switcher */}
+            {/* App Switcher - Admin Only */}
             <div className="pt-6 border-t border-gray-100 mt-6">
-                <p className="text-xs text-gray-400 text-center mb-3">Switch to</p>
+                <p className="text-xs text-gray-400 text-center mb-3">Admin Access</p>
                 <div className="flex justify-center gap-3">
-                    <Link href="/merchant" className="px-4 py-2 bg-gray-100 rounded-xl text-xs font-semibold">
-                        Merchant App
-                    </Link>
                     <Link href="/admin/dashboard" className="px-4 py-2 bg-gray-100 rounded-xl text-xs font-semibold">
                         Admin Panel
                     </Link>

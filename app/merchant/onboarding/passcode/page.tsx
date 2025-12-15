@@ -148,7 +148,10 @@ export default function PasscodeSetupPage() {
                             title: offer.title,
                             type: offer.type,
                             discountValue: offer.discountValue,
-                            minOrderValue: offer.minOrderValue || undefined,
+                            originalPrice: offer.originalPrice || offer.minOrderValue,
+                            finalPrice: offer.finalPrice,
+                            discountAmount: offer.discountAmount,
+                            minOrderValue: offer.originalPrice || offer.minOrderValue,
                             freeItemName: offer.freeItemName || undefined,
                             terms: offer.terms || [],
                             status: 'active', // Create as active so it shows immediately!

@@ -345,12 +345,31 @@ export const offerService = {
         title: string;
         type: 'percentage' | 'flat' | 'bogo' | 'freebie' | 'custom';
         discountValue: number;
+        originalPrice?: number;
+        finalPrice?: number;
+        discountAmount?: number;
         minOrderValue?: number;
         freeItemName?: string;
         terms?: string[];
         status?: string;
     }): Promise<ApiResponse<Offer>> {
         try {
+            // Calculate prices if not provided
+            const originalPrice = offerData.originalPrice || offerData.minOrderValue || 100;
+            let discountAmount = offerData.discountAmount || 0;
+            let finalPrice = offerData.finalPrice || 0;
+
+            if (!discountAmount || !finalPrice) {
+                if (offerData.type === 'percentage') {
+                    discountAmount = (originalPrice * offerData.discountValue) / 100;
+                } else if (offerData.type === 'flat') {
+                    discountAmount = offerData.discountValue;
+                } else if (offerData.type === 'bogo') {
+                    discountAmount = originalPrice;
+                }
+                finalPrice = Math.max(0, originalPrice - discountAmount);
+            }
+
             const { data, error } = await supabase
                 .from('offers')
                 .insert({
@@ -358,11 +377,11 @@ export const offerService = {
                     title: offerData.title,
                     description: `${offerData.type === 'percentage' ? offerData.discountValue + '% OFF' : offerData.type === 'flat' ? '₹' + offerData.discountValue + ' OFF' : 'Special Offer'}`,
                     type: offerData.type,
-                    original_price: 100, // Placeholder - will be updated by merchant
+                    original_price: originalPrice,
                     discount_value: offerData.discountValue,
-                    final_price: offerData.type === 'percentage' ? 100 - offerData.discountValue : 100 - offerData.discountValue,
-                    discount_amount: offerData.discountValue,
-                    min_order_value: offerData.minOrderValue,
+                    final_price: finalPrice,
+                    discount_amount: discountAmount,
+                    min_order_value: offerData.minOrderValue || originalPrice,
                     terms: offerData.terms || [],
                     free_item_name: offerData.freeItemName,
                     status: offerData.status || 'pending'
