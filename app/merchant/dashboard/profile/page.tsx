@@ -340,7 +340,7 @@ export default function MerchantProfilePage() {
                             </div>
                             <div className="flex-1">
                                 <p className="text-xs text-gray-500">Hours</p>
-                                <p className="font-medium text-sm">{merchant.operatingHours || "Not set"}</p>
+                                <p className="font-medium text-sm">{merchant.operatingHours ? "Hours configured" : "Not set"}</p>
                             </div>
                         </div>
                     </div>
