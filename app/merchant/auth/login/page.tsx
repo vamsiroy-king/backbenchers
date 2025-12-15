@@ -59,9 +59,16 @@ export default function MerchantLoginPage() {
     const handleGoogleLogin = async () => {
         setIsLoading(true);
         try {
+            // CRITICAL: Set auth_flow markers BEFORE OAuth redirect
+            // This ensures we route back to merchant callback, not student
+            localStorage.setItem('auth_flow', 'merchant');
+            sessionStorage.setItem('auth_flow', 'merchant');
+
             await authService.merchantSignupWithGoogle();
         } catch (error) {
             console.error("Google login error:", error);
+            localStorage.removeItem('auth_flow');
+            sessionStorage.removeItem('auth_flow');
         } finally {
             setIsLoading(false);
         }

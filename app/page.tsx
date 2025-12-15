@@ -14,9 +14,17 @@ export default function Home() {
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hash && window.location.hash.includes('access_token')) {
       console.log('OAuth tokens detected on landing page - redirecting to callback');
-      const authFlow = localStorage.getItem('auth_flow');
-      if (authFlow === 'merchant') {
-        localStorage.removeItem('auth_flow');
+
+      // Check multiple sources for auth flow marker
+      const authFlow = localStorage.getItem('auth_flow') || sessionStorage.getItem('auth_flow');
+      const wasMerchantFlow = authFlow === 'merchant' || document.referrer.includes('/merchant/');
+
+      // Clean up markers
+      localStorage.removeItem('auth_flow');
+      sessionStorage.removeItem('auth_flow');
+
+      if (wasMerchantFlow) {
+        console.log('Merchant flow detected - redirecting to merchant callback');
         router.replace('/merchant/auth/callback' + window.location.hash);
       } else {
         router.replace('/auth/callback' + window.location.hash);

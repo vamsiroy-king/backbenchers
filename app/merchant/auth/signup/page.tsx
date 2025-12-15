@@ -102,7 +102,9 @@ export default function MerchantSignupPage() {
         setError("");
         try {
             // Mark that we're in merchant signup flow (for routing after OAuth)
+            // Set in both storages for reliability
             localStorage.setItem('auth_flow', 'merchant');
+            sessionStorage.setItem('auth_flow', 'merchant');
 
             const result = await authService.merchantSignupWithGoogle();
             if (!result.success) {
