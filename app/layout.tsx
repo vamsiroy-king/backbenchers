@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Providers } from "@/components/providers";
+import { JsonLd } from "@/components/JsonLd";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans", weight: ["400", "500", "600", "700", "800"] });
 
@@ -11,20 +12,77 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: 'cover', // Critical for iPhone notch/home indicator
-  themeColor: '#16a34a', // Primary green color for browser chrome
+  viewportFit: 'cover',
+  themeColor: '#16a34a',
 };
 
 export const metadata: Metadata = {
-  title: "Backbenchers - Student Perks",
-  description: "Exclusive discounts and perks for students.",
+  title: {
+    default: "Backbenchers - India's #1 Student Discount App",
+    template: "%s | Backbenchers"
+  },
+  description: "India's first student discount platform with QR-verified in-store redemption. Get exclusive deals at local restaurants, cafes & stores. Verify once, save everywhere!",
+  keywords: [
+    "student discounts India",
+    "college student offers",
+    "student discount app",
+    "Backbenchers app",
+    "student perks",
+    "QR discount verification",
+    "student deals Bengaluru",
+    "student offers India",
+    "campus discounts",
+    "student savings app"
+  ],
+  authors: [{ name: "Vamsiram G", url: "https://backbenchers.app/founder" }],
+  creator: "Backbenchers",
+  publisher: "Backbenchers",
+  applicationName: "Backbenchers",
+  category: "Lifestyle",
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: "https://backbenchers.app",
+    siteName: "Backbenchers",
+    title: "Backbenchers - India's #1 Student Discount App",
+    description: "India's first student discount platform with QR-verified in-store redemption. Exclusive deals for verified college students.",
+    images: [
+      {
+        url: "https://backbenchers.app/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Backbenchers - Student Discounts Made Easy"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Backbenchers - India's #1 Student Discount App",
+    description: "Get exclusive student discounts at local stores. Verify once, save everywhere!",
+    creator: "@BackbenchersApp",
+    images: ["https://backbenchers.app/twitter-image.png"]
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1
+    }
+  },
+  verification: {
+    google: 'YOUR_GOOGLE_VERIFICATION_CODE', // Add your Google Search Console verification
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'Backbenchers',
   },
   formatDetection: {
-    telephone: false, // Prevent auto-linking phone numbers
+    telephone: false,
   },
 };
 
@@ -35,6 +93,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <JsonLd />
+        <link rel="canonical" href="https://backbenchers.app" />
+      </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased overscroll-none", plusJakarta.variable)} suppressHydrationWarning>
         <Providers>
           {children}
@@ -43,4 +105,3 @@ export default function RootLayout({
     </html>
   );
 }
-
