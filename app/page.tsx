@@ -100,7 +100,7 @@ function LandingContent() {
           transition={{ delay: 0.3 }}
           className="text-lg text-gray-500 mb-12"
         >
-          One ID. Every discount. Everywhere.
+          Backbenchers. Born to Save.
         </motion.p>
 
         {/* CTA */}
@@ -153,6 +153,7 @@ function LandingContent() {
 
       {/* Footer */}
       <div className="px-8 py-6 flex justify-center gap-8 text-sm">
+        <Link href="/about" className="text-gray-400 font-medium">About</Link>
         <Link href="/login" className="text-gray-400 font-medium">Log in</Link>
         <Link href="/merchant/auth/signup" className="text-gray-400 font-medium">For Merchants</Link>
       </div>
