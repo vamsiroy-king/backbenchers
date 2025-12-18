@@ -297,14 +297,14 @@ export default function MerchantReviewPage() {
                                             </div>
                                         </div>
 
-                                        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                                            <p className="text-sm text-green-800">
-                                                ✓ This will generate a <strong>BBM-ID</strong> and make the merchant visible to students.
+                                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                                            <p className="text-sm text-amber-800">
+                                                ⏳ <strong>BBM-ID will be generated</strong> after you create the first discount offer in the next step.
                                             </p>
                                         </div>
 
                                         <p className="text-sm text-gray-500">
-                                            Next, you'll create the first discount offer for this merchant.
+                                            The merchant will become visible to students only after the first offer is created.
                                         </p>
 
                                         <Button
@@ -336,8 +336,8 @@ export default function MerchantReviewPage() {
                                                         key={type.id}
                                                         onClick={() => setOfferData({ ...offerData, type: type.id as any })}
                                                         className={`p-3 rounded-xl border-2 flex items-center gap-2 text-sm font-medium transition-all ${offerData.type === type.id
-                                                                ? 'border-primary bg-primary/5 text-primary'
-                                                                : 'border-gray-200 hover:border-gray-300'
+                                                            ? 'border-primary bg-primary/5 text-primary'
+                                                            : 'border-gray-200 hover:border-gray-300'
                                                             }`}
                                                     >
                                                         <type.icon className="h-4 w-4" />
@@ -347,14 +347,47 @@ export default function MerchantReviewPage() {
                                             </div>
                                         </div>
 
-                                        {/* Offer Name */}
+                                        {/* Premade Templates */}
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Quick Templates</label>
+                                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                                {[
+                                                    { name: 'Student Special', type: 'flat', discount: '50' },
+                                                    { name: 'Campus Feast', type: 'percentage', discount: '20' },
+                                                    { name: 'Buy 1 Get 1 Free', type: 'bogo', discount: '0' },
+                                                    { name: 'First Order Bonus', type: 'flat', discount: '100' }
+                                                ].map(template => (
+                                                    <button
+                                                        key={template.name}
+                                                        onClick={() => setOfferData({
+                                                            ...offerData,
+                                                            name: template.name,
+                                                            type: template.type as any,
+                                                            discountValue: template.discount
+                                                        })}
+                                                        className="p-2 rounded-lg border border-gray-200 text-xs font-medium hover:border-primary hover:bg-primary/5 transition-all text-left"
+                                                    >
+                                                        {template.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Offer Name with Auto-Capitalize */}
                                         <div>
                                             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Offer Name</label>
                                             <input
                                                 type="text"
                                                 value={offerData.name}
-                                                onChange={(e) => setOfferData({ ...offerData, name: e.target.value })}
-                                                placeholder="e.g., Student Special - Flat ₹50 OFF"
+                                                onChange={(e) => {
+                                                    // Auto Title Case: Capitalize first letter of each word
+                                                    const titleCase = e.target.value
+                                                        .split(' ')
+                                                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                                                        .join(' ');
+                                                    setOfferData({ ...offerData, name: titleCase });
+                                                }}
+                                                placeholder="e.g., Student Special"
                                                 className="w-full h-12 bg-gray-100 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
                                             />
                                         </div>
@@ -411,17 +444,42 @@ export default function MerchantReviewPage() {
                                             </div>
                                         )}
 
-                                        {/* Preview */}
-                                        {offerData.name && offerData.discountValue && (
-                                            <div className="bg-gradient-to-r from-primary/10 to-green-100 rounded-xl p-4 border border-primary/20">
-                                                <p className="text-xs text-gray-500 mb-1">Preview</p>
-                                                <p className="font-bold text-primary">{offerData.name}</p>
-                                                <p className="text-sm text-gray-600">
-                                                    {offerData.type === 'percentage' ? `${offerData.discountValue}% OFF` :
-                                                        offerData.type === 'flat' ? `₹${offerData.discountValue} OFF` :
-                                                            offerData.type === 'bogo' ? 'Buy 1 Get 1 Free' :
-                                                                `Free: ${offerData.freeItemName || 'Item'}`}
-                                                </p>
+                                        {/* Enhanced Preview with Price Calculation */}
+                                        {offerData.name && (offerData.discountValue || offerData.type === 'bogo') && (
+                                            <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl p-5 border border-green-200">
+                                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Live Preview</p>
+                                                <p className="font-bold text-lg text-gray-900">{offerData.name}</p>
+
+                                                {/* Price Display */}
+                                                {(offerData.type === 'flat' || offerData.type === 'percentage') && offerData.actualPrice && (
+                                                    <div className="mt-3 flex items-center gap-3">
+                                                        <span className="line-through text-gray-400 text-lg">₹{offerData.actualPrice}</span>
+                                                        <span className="text-2xl font-black text-green-600">
+                                                            ₹{offerData.type === 'flat'
+                                                                ? Math.max(0, parseFloat(offerData.actualPrice) - parseFloat(offerData.discountValue || '0'))
+                                                                : Math.round(parseFloat(offerData.actualPrice) * (1 - parseFloat(offerData.discountValue || '0') / 100))
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {/* Savings Badge */}
+                                                <div className="mt-3 inline-flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold">
+                                                    {offerData.type === 'percentage' ? (
+                                                        <span>🎉 {offerData.discountValue}% OFF</span>
+                                                    ) : offerData.type === 'flat' ? (
+                                                        <span>🎉 Save ₹{offerData.discountValue}</span>
+                                                    ) : offerData.type === 'bogo' ? (
+                                                        <span>🎁 Buy 1 Get 1 FREE</span>
+                                                    ) : (
+                                                        <span>🎁 Free: {offerData.freeItemName || 'Item'}</span>
+                                                    )}
+                                                </div>
+
+                                                {/* Min Order Notice */}
+                                                {offerData.actualPrice && (
+                                                    <p className="text-xs text-gray-500 mt-2">Min. order: ₹{offerData.actualPrice}</p>
+                                                )}
                                             </div>
                                         )}
 
