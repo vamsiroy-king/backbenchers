@@ -83,14 +83,8 @@ export default function MerchantsListPage() {
     };
 
     const handleBulkApprove = async () => {
-        setActionLoading('bulk');
-        for (const id of selectedIds) {
-            await merchantService.approve(id);
-        }
-        setSelectedIds([]);
-        setActionLoading(null);
-        // Refresh
-        window.location.reload();
+        // Bulk approve is disabled - must approve individually with offer creation
+        alert('Please approve merchants individually by clicking the View button (👁️) and using the approval flow to create their first offer.');
     };
 
     const handleBulkReject = async () => {
@@ -311,24 +305,12 @@ export default function MerchantsListPage() {
                                             </Link>
                                             {merchant.status === 'pending' && (
                                                 <>
-                                                    <button
-                                                        onClick={() => handleQuickApprove(merchant.id)}
-                                                        disabled={actionLoading === merchant.id}
-                                                        className="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center hover:bg-green-200 transition-colors disabled:opacity-50"
-                                                    >
-                                                        {actionLoading === merchant.id ? (
-                                                            <Loader2 className="h-4 w-4 animate-spin text-green-600" />
-                                                        ) : (
-                                                            <Check className="h-4 w-4 text-green-600" />
-                                                        )}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleQuickReject(merchant.id)}
-                                                        disabled={actionLoading === merchant.id}
-                                                        className="h-8 w-8 rounded-lg bg-red-100 flex items-center justify-center hover:bg-red-200 transition-colors disabled:opacity-50"
-                                                    >
-                                                        <X className="h-4 w-4 text-red-600" />
-                                                    </button>
+                                                    {/* Quick approve removed - must use detail page for offer creation */}
+                                                    <Link href={`/admin/dashboard/merchants/${merchant.id}`}>
+                                                        <button className="h-8 px-3 rounded-lg bg-green-100 flex items-center justify-center hover:bg-green-200 transition-colors text-xs font-medium text-green-700">
+                                                            Review & Approve →
+                                                        </button>
+                                                    </Link>
                                                 </>
                                             )}
                                         </div>

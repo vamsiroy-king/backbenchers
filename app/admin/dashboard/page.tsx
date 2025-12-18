@@ -232,31 +232,12 @@ export default function AdminDashboardPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
+                                            {/* Redirect to detail page for proper 2-step approval with offer creation */}
                                             <Link href={`/admin/dashboard/merchants/${merchant.id}`}>
-                                                <button className="h-9 w-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors">
-                                                    <Eye className="h-4 w-4 text-gray-500" />
+                                                <button className="h-9 px-4 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium flex items-center gap-1 transition-colors">
+                                                    <Eye className="h-4 w-4" /> Review & Approve
                                                 </button>
                                             </Link>
-                                            <button
-                                                onClick={() => handleApprove(merchant.id)}
-                                                disabled={actionLoading === merchant.id}
-                                                className="h-9 px-4 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium flex items-center gap-1 transition-colors disabled:opacity-50"
-                                            >
-                                                {actionLoading === merchant.id ? (
-                                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                                ) : (
-                                                    <>
-                                                        <Check className="h-4 w-4" /> Approve
-                                                    </>
-                                                )}
-                                            </button>
-                                            <button
-                                                onClick={() => handleReject(merchant.id)}
-                                                disabled={actionLoading === merchant.id}
-                                                className="h-9 px-4 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-sm font-medium flex items-center gap-1 transition-colors disabled:opacity-50"
-                                            >
-                                                <X className="h-4 w-4" /> Reject
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
