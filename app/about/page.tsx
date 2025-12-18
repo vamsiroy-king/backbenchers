@@ -49,7 +49,7 @@ export default function AboutPage() {
                     >
                         <span className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mb-6">
                             <Sparkles className="h-4 w-4" />
-                            India's First Student Discount Platform
+                            Born to Save.
                         </span>
                         <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
                             Making Student Life<br />More Affordable
@@ -167,7 +167,7 @@ export default function AboutPage() {
             <footer className="bg-gray-900 text-white py-12">
                 <div className="max-w-6xl mx-auto px-6 text-center">
                     <p className="text-2xl font-bold mb-2">Backbenchers</p>
-                    <p className="text-gray-400 mb-6">India's First Student Discount Platform</p>
+                    <p className="text-gray-400 mb-6">Born to Save.</p>
                     <div className="flex justify-center gap-6 text-sm text-gray-400">
                         <Link href="/about" className="hover:text-white">About</Link>
                         <Link href="/founder" className="hover:text-white">Founder</Link>

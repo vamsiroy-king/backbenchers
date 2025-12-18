@@ -11,7 +11,8 @@ export function JsonLd() {
         "alternateName": "Backbenchers App",
         "url": "https://backbenchers.app",
         "logo": "https://backbenchers.app/logo.png",
-        "description": "India's first student discount platform with QR-verified in-store redemption. Exclusive deals for verified college students.",
+        "slogan": "Born to Save.",
+        "description": "Backbenchers. Born to Save. India's first student discount platform with QR-verified in-store redemption.",
         "foundingDate": "2024",
         "foundingLocation": {
             "@type": "Place",
@@ -49,7 +50,7 @@ export function JsonLd() {
             "@type": "Organization",
             "name": "Backbenchers"
         },
-        "description": "Founder & CEO of Backbenchers - India's first student discount platform. Building the future of student benefits with QR-verified in-store redemption.",
+        "description": "Founder & CEO of Backbenchers - Born to Save. Building India's first student discount platform with QR-verified in-store redemption.",
         "url": "https://backbenchers.app/founder",
         "sameAs": [
             "https://www.linkedin.com/in/vamsiram"
@@ -61,7 +62,7 @@ export function JsonLd() {
         "@type": "WebSite",
         "name": "Backbenchers",
         "url": "https://backbenchers.app",
-        "description": "India's first student discount platform with QR-verified in-store redemption",
+        "description": "Backbenchers. Born to Save. India's first student discount platform.",
         "potentialAction": {
             "@type": "SearchAction",
             "target": "https://backbenchers.app/search?q={search_term_string}",
@@ -75,7 +76,7 @@ export function JsonLd() {
         "name": "Backbenchers - Student Discounts",
         "operatingSystem": "Android, iOS, Web",
         "applicationCategory": "LifestyleApplication",
-        "description": "Get exclusive student discounts at local stores. Verify once, save everywhere!",
+        "description": "Backbenchers. Born to Save. Get exclusive student discounts at local stores. Verify once, save everywhere!",
         "offers": {
             "@type": "Offer",
             "price": "0",

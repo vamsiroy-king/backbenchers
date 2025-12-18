@@ -18,10 +18,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Backbenchers - India's #1 Student Discount App",
+    default: "Backbenchers — Born to Save | India's #1 Student Discount App",
     template: "%s | Backbenchers"
   },
-  description: "India's first student discount platform with QR-verified in-store redemption. Get exclusive deals at local restaurants, cafes & stores. Verify once, save everywhere!",
+  description: "Backbenchers. Born to Save. India's first student discount platform with QR-verified in-store redemption. Get exclusive deals at local restaurants, cafes & stores.",
   keywords: [
     "student discounts India",
     "college student offers",
@@ -44,8 +44,8 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: "https://backbenchers.app",
     siteName: "Backbenchers",
-    title: "Backbenchers - India's #1 Student Discount App",
-    description: "India's first student discount platform with QR-verified in-store redemption. Exclusive deals for verified college students.",
+    title: "Backbenchers — Born to Save | India's #1 Student Discount App",
+    description: "Backbenchers. Born to Save. India's first student discount platform with QR-verified in-store redemption.",
     images: [
       {
         url: "https://backbenchers.app/og-image.png",
@@ -57,8 +57,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Backbenchers - India's #1 Student Discount App",
-    description: "Get exclusive student discounts at local stores. Verify once, save everywhere!",
+    title: "Backbenchers — Born to Save",
+    description: "Backbenchers. Born to Save. Get exclusive student discounts at local stores!",
     creator: "@BackbenchersApp",
     images: ["https://backbenchers.app/twitter-image.png"]
   },

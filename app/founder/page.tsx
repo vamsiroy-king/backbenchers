@@ -54,8 +54,8 @@ export default function FounderPage() {
                         </h1>
 
                         <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-                            Building India's first student discount platform. Passionate about making
-                            student life more affordable and connecting communities.
+                            Building Backbenchers — Born to Save. India's first student discount platform.
+                            Passionate about making student life more affordable.
                         </p>
 
                         {/* Social Links */}
@@ -198,7 +198,7 @@ export default function FounderPage() {
             <footer className="bg-gray-900 text-white py-12">
                 <div className="max-w-6xl mx-auto px-6 text-center">
                     <p className="text-2xl font-bold mb-2">Backbenchers</p>
-                    <p className="text-gray-400 mb-6">India's First Student Discount Platform</p>
+                    <p className="text-gray-400 mb-6">Born to Save.</p>
                     <div className="flex justify-center gap-6 text-sm text-gray-400">
                         <Link href="/about" className="hover:text-white">About</Link>
                         <Link href="/founder" className="hover:text-white">Founder</Link>
