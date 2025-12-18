@@ -81,6 +81,9 @@ export interface Offer {
     totalRedemptions: number;
     createdAt: string;
     freeItemName?: string;
+    // Creator tracking
+    createdByType?: 'admin' | 'merchant';
+    createdById?: string;
 }
 
 export interface Transaction {

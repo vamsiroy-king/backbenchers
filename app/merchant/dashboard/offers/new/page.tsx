@@ -125,6 +125,28 @@ export default function CreateOfferPage() {
 
     return (
         <div className="min-h-screen bg-[#FAFAFA] pb-32 pt-12">
+            {/* TEMPORARY LOCK - Admin creates offers for now */}
+            <div className="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center px-6 text-center">
+                <div className="h-20 w-20 bg-primary/10 rounded-3xl flex items-center justify-center mb-6">
+                    <Tag className="h-10 w-10 text-primary" />
+                </div>
+                <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Coming Soon</h1>
+                <p className="text-gray-500 text-sm max-w-xs mb-6">
+                    For now, our team creates and manages offers for you to ensure quality and consistency.
+                </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 max-w-xs mb-6">
+                    <p className="text-sm text-blue-800">
+                        📧 <strong>Need an offer?</strong><br />
+                        Contact us at <span className="font-semibold">support@backbenchers.app</span> or message your account manager.
+                    </p>
+                </div>
+                <Link href="/merchant/dashboard/offers">
+                    <Button className="h-12 px-8 bg-primary text-white font-semibold rounded-xl">
+                        <ArrowLeft className="h-4 w-4 mr-2" /> Back to My Offers
+                    </Button>
+                </Link>
+            </div>
+
             {/* Premium Header */}
             <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100/50">
                 <div className="px-5 h-16 flex items-center gap-4">

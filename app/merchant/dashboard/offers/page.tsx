@@ -173,8 +173,11 @@ export default function OffersPage() {
                                     </div>
 
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             <h3 className="font-semibold text-gray-900 truncate">{offer.title}</h3>
+                                            {offer.createdByType === 'admin' && (
+                                                <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded font-medium">ADMIN</span>
+                                            )}
                                             {!offer.isActive && (
                                                 <span className="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded font-medium">PAUSED</span>
                                             )}

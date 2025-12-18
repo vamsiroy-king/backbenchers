@@ -1,12 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Store, MapPin, FileText, Check, X, Eye, Download, Image, Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Store, MapPin, FileText, Check, X, Eye, Download, Image, Loader2, Trash2, AlertTriangle, Tag, Percent, IndianRupee } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useParams } from "next/navigation";
 import { merchantService } from "@/lib/services/merchant.service";
+import { offerService } from "@/lib/services/offer.service";
 import { Merchant } from "@/lib/types";
 
 const CHECKLIST = [
@@ -42,6 +43,16 @@ export default function MerchantReviewPage() {
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+    // 2-Step Approval Flow State
+    const [approvalStep, setApprovalStep] = useState<1 | 2>(1);
+    const [offerData, setOfferData] = useState({
+        type: 'flat' as 'percentage' | 'flat' | 'bogo' | 'freebie',
+        discountValue: '',
+        actualPrice: '',
+        name: '',
+        freeItemName: ''
+    });
+
     // Fetch merchant data
     useEffect(() => {
         async function fetchMerchant() {
@@ -73,19 +84,80 @@ export default function MerchantReviewPage() {
     };
 
     const handleApprove = async () => {
+        if (approvalStep === 1) {
+            // Move to offer creation step
+            setApprovalStep(2);
+            return;
+        }
+
+        // Validate offer data
+        const discountVal = parseFloat(offerData.discountValue);
+        const actualPrice = parseFloat(offerData.actualPrice);
+
+        if (!offerData.name || isNaN(discountVal) || discountVal <= 0) {
+            setError("Please fill in all offer details");
+            return;
+        }
+
+        if ((offerData.type === 'flat' || offerData.type === 'percentage') && (isNaN(actualPrice) || actualPrice <= 0)) {
+            setError("Please enter a valid actual price");
+            return;
+        }
+
         setActionLoading(true);
+        setError("");
+
         try {
-            const result = await merchantService.approve(merchantId);
-            if (result.success) {
-                router.push("/admin/dashboard/merchants");
-            } else {
-                setError(result.error || "Failed to approve merchant");
+            // Step 1: Approve the merchant first to get BBM-ID
+            const approveResult = await merchantService.approve(merchantId);
+            if (!approveResult.success) {
+                throw new Error(approveResult.error || "Failed to approve merchant");
             }
+
+            // Calculate offer values
+            let discountAmount = 0;
+            let finalPrice = 0;
+            const originalPrice = actualPrice || 100;
+
+            if (offerData.type === 'percentage') {
+                discountAmount = (originalPrice * discountVal) / 100;
+                finalPrice = originalPrice - discountAmount;
+            } else if (offerData.type === 'flat') {
+                discountAmount = discountVal;
+                finalPrice = Math.max(0, originalPrice - discountVal);
+            } else if (offerData.type === 'bogo') {
+                discountAmount = originalPrice;
+                finalPrice = originalPrice; // Buy one, get one free - pay for one
+            } else if (offerData.type === 'freebie') {
+                discountAmount = 0;
+                finalPrice = originalPrice;
+            }
+
+            // Step 2: Create the first offer
+            const offerResult = await offerService.createForMerchant(merchantId, {
+                title: offerData.name,
+                type: offerData.type,
+                discountValue: discountVal,
+                originalPrice: originalPrice,
+                finalPrice: finalPrice,
+                discountAmount: discountAmount,
+                minOrderValue: originalPrice,
+                freeItemName: offerData.type === 'freebie' ? offerData.freeItemName : undefined,
+                terms: ["Valid student ID required", "Cannot be combined with other offers"],
+                status: 'active'
+            });
+
+            if (!offerResult.success) {
+                console.error("Offer creation failed:", offerResult.error);
+                // Don't throw - merchant is already approved, just log the error
+            }
+
+            // Success - redirect to merchants list
+            router.push("/admin/dashboard/merchants");
         } catch (err: any) {
             setError(err.message);
         } finally {
             setActionLoading(false);
-            setShowApproveConfirm(false);
         }
     };
 
@@ -173,36 +245,209 @@ export default function MerchantReviewPage() {
                 </div>
             )}
 
-            {/* Approve Confirmation Modal */}
+            {/* 2-Step Approval + Offer Creation Modal */}
             {showApproveConfirm && (
-                <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
+                <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="bg-white rounded-3xl p-6 w-full max-w-sm text-center"
+                        className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto"
                     >
-                        <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Check className="h-8 w-8 text-green-600" />
+                        {/* Header */}
+                        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <Check className="h-5 w-5 text-green-600" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-400 uppercase tracking-wider">Step {approvalStep}/2</p>
+                                    <h2 className="font-bold">{approvalStep === 1 ? "Approve Merchant" : "Create First Offer"}</h2>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => { setShowApproveConfirm(false); setApprovalStep(1); setError(""); }}
+                                className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
                         </div>
-                        <h2 className="text-lg font-bold mb-2">Approve Merchant?</h2>
-                        <p className="text-sm text-gray-500 mb-6">
-                            This will generate a BBM-ID for <strong>{merchant.businessName}</strong> and allow them to create offers.
-                        </p>
-                        <div className="flex gap-3">
-                            <Button
-                                onClick={() => setShowApproveConfirm(false)}
-                                variant="outline"
-                                className="flex-1 h-12 rounded-xl"
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                onClick={handleApprove}
-                                disabled={actionLoading}
-                                className="flex-1 h-12 bg-green-600 text-white rounded-xl"
-                            >
-                                {actionLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Approve"}
-                            </Button>
+
+                        <div className="p-6">
+                            <AnimatePresence mode="wait">
+                                {approvalStep === 1 ? (
+                                    <motion.div
+                                        key="step1"
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        className="space-y-4"
+                                    >
+                                        {/* Merchant Summary */}
+                                        <div className="bg-primary/5 rounded-2xl p-4 flex items-center gap-4">
+                                            {merchant.logo ? (
+                                                <img src={merchant.logo} alt="" className="h-12 w-12 rounded-xl object-cover" />
+                                            ) : (
+                                                <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center">
+                                                    <Store className="h-6 w-6 text-white" />
+                                                </div>
+                                            )}
+                                            <div>
+                                                <p className="font-bold">{merchant.businessName}</p>
+                                                <p className="text-xs text-gray-500">{merchant.category} • {merchant.city}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                                            <p className="text-sm text-green-800">
+                                                ✓ This will generate a <strong>BBM-ID</strong> and make the merchant visible to students.
+                                            </p>
+                                        </div>
+
+                                        <p className="text-sm text-gray-500">
+                                            Next, you'll create the first discount offer for this merchant.
+                                        </p>
+
+                                        <Button
+                                            onClick={handleApprove}
+                                            className="w-full h-12 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold"
+                                        >
+                                            Next: Create Offer →
+                                        </Button>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="step2"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        className="space-y-4"
+                                    >
+                                        {/* Offer Type */}
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Offer Type</label>
+                                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                                {[
+                                                    { id: 'flat', label: '₹ Flat OFF', icon: IndianRupee },
+                                                    { id: 'percentage', label: '% OFF', icon: Percent },
+                                                    { id: 'bogo', label: 'Buy 1 Get 1', icon: Tag },
+                                                    { id: 'freebie', label: 'Free Item', icon: Tag }
+                                                ].map(type => (
+                                                    <button
+                                                        key={type.id}
+                                                        onClick={() => setOfferData({ ...offerData, type: type.id as any })}
+                                                        className={`p-3 rounded-xl border-2 flex items-center gap-2 text-sm font-medium transition-all ${offerData.type === type.id
+                                                                ? 'border-primary bg-primary/5 text-primary'
+                                                                : 'border-gray-200 hover:border-gray-300'
+                                                            }`}
+                                                    >
+                                                        <type.icon className="h-4 w-4" />
+                                                        {type.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Offer Name */}
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Offer Name</label>
+                                            <input
+                                                type="text"
+                                                value={offerData.name}
+                                                onChange={(e) => setOfferData({ ...offerData, name: e.target.value })}
+                                                placeholder="e.g., Student Special - Flat ₹50 OFF"
+                                                className="w-full h-12 bg-gray-100 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                            />
+                                        </div>
+
+                                        {/* Discount Value */}
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                {offerData.type === 'percentage' ? 'Discount Percentage' : offerData.type === 'flat' ? 'Discount Amount (₹)' : 'Discount Value'}
+                                            </label>
+                                            <div className="relative mt-1">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                                    {offerData.type === 'percentage' ? '%' : '₹'}
+                                                </span>
+                                                <input
+                                                    type="number"
+                                                    value={offerData.discountValue}
+                                                    onChange={(e) => setOfferData({ ...offerData, discountValue: e.target.value })}
+                                                    placeholder={offerData.type === 'percentage' ? '10' : '50'}
+                                                    className="w-full h-12 bg-gray-100 rounded-xl pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Actual Price (for flat/percentage) */}
+                                        {(offerData.type === 'flat' || offerData.type === 'percentage') && (
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                    Actual Item Price (₹) <span className="text-gray-400 normal-case">- auto-sets min order</span>
+                                                </label>
+                                                <div className="relative mt-1">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                                    <input
+                                                        type="number"
+                                                        value={offerData.actualPrice}
+                                                        onChange={(e) => setOfferData({ ...offerData, actualPrice: e.target.value })}
+                                                        placeholder="200"
+                                                        className="w-full h-12 bg-gray-100 rounded-xl pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Free Item Name (for freebie) */}
+                                        {offerData.type === 'freebie' && (
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Free Item Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={offerData.freeItemName}
+                                                    onChange={(e) => setOfferData({ ...offerData, freeItemName: e.target.value })}
+                                                    placeholder="e.g., Free Coke with any meal"
+                                                    className="w-full h-12 bg-gray-100 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {/* Preview */}
+                                        {offerData.name && offerData.discountValue && (
+                                            <div className="bg-gradient-to-r from-primary/10 to-green-100 rounded-xl p-4 border border-primary/20">
+                                                <p className="text-xs text-gray-500 mb-1">Preview</p>
+                                                <p className="font-bold text-primary">{offerData.name}</p>
+                                                <p className="text-sm text-gray-600">
+                                                    {offerData.type === 'percentage' ? `${offerData.discountValue}% OFF` :
+                                                        offerData.type === 'flat' ? `₹${offerData.discountValue} OFF` :
+                                                            offerData.type === 'bogo' ? 'Buy 1 Get 1 Free' :
+                                                                `Free: ${offerData.freeItemName || 'Item'}`}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {error && (
+                                            <p className="text-sm text-red-500 text-center">{error}</p>
+                                        )}
+
+                                        <div className="flex gap-3 pt-2">
+                                            <Button
+                                                onClick={() => { setApprovalStep(1); setError(""); }}
+                                                variant="outline"
+                                                className="flex-1 h-12 rounded-xl"
+                                            >
+                                                ← Back
+                                            </Button>
+                                            <Button
+                                                onClick={handleApprove}
+                                                disabled={actionLoading}
+                                                className="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold"
+                                            >
+                                                {actionLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Approve & Create Offer"}
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </motion.div>
                 </div>
@@ -516,8 +761,8 @@ export default function MerchantReviewPage() {
                             <Trash2 className="h-5 w-5" />
                         </Button>
                         <div className={`flex-1 h-14 rounded-2xl flex items-center justify-center font-bold ${merchant.status === 'approved'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-700'
                             }`}>
                             {merchant.status === 'approved' ? (
                                 <>

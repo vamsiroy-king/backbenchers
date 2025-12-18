@@ -119,8 +119,8 @@ export default function StoreTimingsPage() {
                 localStorage.setItem('merchant_documents', JSON.stringify(documentsData));
             }
 
-            // Continue to offer step
-            router.push('/merchant/onboarding/offer-step');
+            // Skip offer step - Admin creates offers after approval
+            router.push('/merchant/onboarding/passcode');
         } catch (error) {
             console.error('Error:', error);
             setUploading(false);
@@ -194,8 +194,8 @@ export default function StoreTimingsPage() {
                                 <button
                                     onClick={() => toggleDayClosed(day.id)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${operatingHours[day.id].closed
-                                            ? 'bg-gray-100 text-gray-500'
-                                            : 'bg-red-50 text-red-500'
+                                        ? 'bg-gray-100 text-gray-500'
+                                        : 'bg-red-50 text-red-500'
                                         }`}
                                 >
                                     {operatingHours[day.id].closed ? 'Open' : 'Close'}

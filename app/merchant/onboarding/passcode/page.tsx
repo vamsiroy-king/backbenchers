@@ -132,38 +132,8 @@ export default function PasscodeSetupPage() {
                 const merchantId = result.data?.merchantId || '';
                 localStorage.setItem('merchant_id', merchantId);
 
-                // Create first offer if saved during onboarding
-                const firstOfferData = localStorage.getItem('merchant_first_offer');
-                console.log('First offer data from localStorage:', firstOfferData);
-                console.log('Merchant ID for offer creation:', merchantId);
-
-                if (firstOfferData && merchantId) {
-                    try {
-                        const offer = JSON.parse(firstOfferData);
-                        console.log('Parsed offer data:', offer);
-
-                        // Import offer service dynamically to create the offer
-                        const { offerService } = await import('@/lib/services/offer.service');
-                        const offerResult = await offerService.createForMerchant(merchantId, {
-                            title: offer.title,
-                            type: offer.type,
-                            discountValue: offer.discountValue,
-                            originalPrice: offer.originalPrice || offer.minOrderValue,
-                            finalPrice: offer.finalPrice,
-                            discountAmount: offer.discountAmount,
-                            minOrderValue: offer.originalPrice || offer.minOrderValue,
-                            freeItemName: offer.freeItemName || undefined,
-                            terms: offer.terms || [],
-                            status: 'active', // Create as active so it shows immediately!
-                        });
-                        console.log('Offer creation result:', offerResult);
-                    } catch (offerError) {
-                        console.error('Error creating first offer:', offerError);
-                        // Don't block onboarding if offer creation fails
-                    }
-                } else {
-                    console.log('No first offer to create or no merchantId');
-                }
+                // NOTE: Offer creation moved to admin approval flow
+                // Admin will create first offer when approving merchant
 
                 // Clear onboarding data
                 localStorage.removeItem('merchant_business');

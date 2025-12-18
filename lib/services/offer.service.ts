@@ -24,7 +24,10 @@ const mapDbToOffer = (row: any): Offer => ({
     status: row.status,
     totalRedemptions: row.total_redemptions || 0,
     createdAt: row.created_at,
-    freeItemName: row.free_item_name
+    freeItemName: row.free_item_name,
+    // Creator tracking
+    createdByType: row.created_by_type || 'merchant',
+    createdById: row.created_by_id
 });
 
 export const offerService = {
