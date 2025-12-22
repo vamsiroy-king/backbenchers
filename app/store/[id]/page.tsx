@@ -19,6 +19,7 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
     const [loading, setLoading] = useState(true);
     const [merchant, setMerchant] = useState<Merchant | null>(null);
     const [offers, setOffers] = useState<Offer[]>([]);
+    const [expandedOfferId, setExpandedOfferId] = useState<string | null>(null);
 
     // Fetch real merchant data and offers
     useEffect(() => {
@@ -234,8 +235,9 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                         {offers.filter(o => o.status === 'active').map((offer) => (
                             <motion.div
                                 key={offer.id}
-                                whileTap={{ scale: 0.98 }}
-                                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative"
+                                layout
+                                onClick={() => setExpandedOfferId(expandedOfferId === offer.id ? null : offer.id)}
+                                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative cursor-pointer"
                             >
                                 {/* Compact Row Layout */}
                                 <div className="flex items-center gap-4">
@@ -262,20 +264,57 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                         </div>
                                     </div>
 
-                                    {/* Arrow */}
-                                    <div className="flex-shrink-0 text-gray-300">
+                                    {/* Chevron - Rotates when expanded */}
+                                    <motion.div
+                                        animate={{ rotate: expandedOfferId === offer.id ? 90 : 0 }}
+                                        className="flex-shrink-0 text-gray-400"
+                                    >
                                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
-                                    </div>
+                                    </motion.div>
                                 </div>
 
-                                {/* Terms - Collapsed by default, minimal */}
-                                {offer.validUntil && (
-                                    <p className="text-[10px] text-gray-400 mt-2 pl-[72px]">
-                                        Valid till {new Date(offer.validUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                                    </p>
-                                )}
+                                {/* Expanded Content - Terms & Validity */}
+                                <AnimatePresence>
+                                    {expandedOfferId === offer.id && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="pt-4 mt-4 border-t border-gray-100 pl-[72px]">
+                                                {/* Terms */}
+                                                {offer.terms && offer.terms.length > 0 && (
+                                                    <div className="mb-3">
+                                                        <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Terms & Conditions</p>
+                                                        {(typeof offer.terms === 'string' ? [offer.terms] : offer.terms).map((term: string, i: number) => (
+                                                            <p key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+                                                                <span className="text-primary">•</span>
+                                                                {term}
+                                                            </p>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Validity */}
+                                                {offer.validUntil && (
+                                                    <p className="text-[10px] text-gray-400">
+                                                        Valid until {new Date(offer.validUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    </p>
+                                                )}
+
+                                                {/* Show at Store Badge */}
+                                                <div className="mt-3 inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
+                                                    <Tag className="h-3 w-3" />
+                                                    Show at store to redeem
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </motion.div>
                         ))}
                     </div>

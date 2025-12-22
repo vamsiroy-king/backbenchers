@@ -489,17 +489,42 @@ export default function MerchantReviewPage() {
                                 </div>
                             )}
 
-                            {/* Terms & Conditions */}
+                            {/* Terms & Conditions - Line by Line */}
                             <div>
                                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Terms & Conditions</label>
-                                <textarea
-                                    value={offerData.terms}
-                                    onChange={(e) => setOfferData({ ...offerData, terms: e.target.value })}
-                                    placeholder="e.g., Valid for dine-in only&#10;Cannot be combined with other offers&#10;Valid student ID required"
-                                    rows={3}
-                                    className="w-full bg-gray-100 rounded-xl px-4 py-3 mt-1 text-sm outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-                                />
-                                <p className="text-[10px] text-gray-400 mt-1">Enter each term on a new line</p>
+                                <div className="mt-2 space-y-2">
+                                    {(offerData.terms ? offerData.terms.split('\n').filter(t => t.trim()) : []).map((term, index) => (
+                                        <div key={index} className="flex items-center gap-2">
+                                            <span className="flex-shrink-0 h-6 w-6 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center font-medium">{index + 1}</span>
+                                            <input
+                                                type="text"
+                                                value={term}
+                                                onChange={(e) => {
+                                                    const terms = offerData.terms.split('\n');
+                                                    terms[index] = e.target.value;
+                                                    setOfferData({ ...offerData, terms: terms.join('\n') });
+                                                }}
+                                                className="flex-1 h-10 bg-gray-100 rounded-lg px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                                            />
+                                            <button
+                                                onClick={() => {
+                                                    const terms = offerData.terms.split('\n').filter((_, i) => i !== index);
+                                                    setOfferData({ ...offerData, terms: terms.join('\n') });
+                                                }}
+                                                className="flex-shrink-0 h-8 w-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button
+                                        onClick={() => setOfferData({ ...offerData, terms: offerData.terms ? offerData.terms + '\n' : '' })}
+                                        className="w-full h-10 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Add Term
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Expiry Date */}
@@ -514,35 +539,56 @@ export default function MerchantReviewPage() {
                                 />
                             </div>
 
-                            {/* Preview */}
+                            {/* Enhanced Live Preview */}
                             {offerData.name && (offerData.discountValue || offerData.type === 'bogo') && (
-                                <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl p-5 border border-green-200">
-                                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Live Preview</p>
-                                    <p className="font-bold text-lg text-gray-900">{offerData.name}</p>
+                                <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
+                                    <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-3">Live Preview</p>
 
-                                    {(offerData.type === 'flat' || offerData.type === 'percentage') && offerData.actualPrice && (
-                                        <div className="mt-3 flex items-center gap-3">
-                                            <span className="line-through text-gray-400 text-lg">₹{offerData.actualPrice}</span>
-                                            <span className="text-2xl font-black text-green-600">
-                                                ₹{offerData.type === 'flat'
-                                                    ? Math.max(0, parseFloat(offerData.actualPrice) - parseFloat(offerData.discountValue || '0'))
-                                                    : Math.round(parseFloat(offerData.actualPrice) * (1 - parseFloat(offerData.discountValue || '0') / 100))
-                                                }
+                                    {/* Offer Card Preview */}
+                                    <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+                                        <div className="flex-shrink-0 h-12 w-12 bg-gradient-to-br from-primary to-emerald-500 rounded-xl flex flex-col items-center justify-center text-white">
+                                            <span className="text-sm font-black leading-none">
+                                                {offerData.type === 'percentage' ? `${offerData.discountValue}%` : `₹${offerData.discountValue}`}
                                             </span>
+                                            <span className="text-[8px] font-medium opacity-80">OFF</span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-gray-900">{offerData.name}</p>
+                                            <div className="flex items-baseline gap-2">
+                                                {offerData.actualPrice && (
+                                                    <>
+                                                        <span className="text-gray-400 text-sm line-through">₹{offerData.actualPrice}</span>
+                                                        <span className="text-primary font-bold">
+                                                            ₹{offerData.type === 'flat'
+                                                                ? Math.max(0, parseFloat(offerData.actualPrice) - parseFloat(offerData.discountValue || '0'))
+                                                                : Math.round(parseFloat(offerData.actualPrice) * (1 - parseFloat(offerData.discountValue || '0') / 100))
+                                                            }
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Terms Preview */}
+                                    {offerData.terms && offerData.terms.trim() && (
+                                        <div className="pt-3">
+                                            <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Terms</p>
+                                            {offerData.terms.split('\n').filter(t => t.trim()).map((term, i) => (
+                                                <p key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+                                                    <span className="text-gray-400">•</span>
+                                                    {term}
+                                                </p>
+                                            ))}
                                         </div>
                                     )}
 
-                                    <div className="mt-3 inline-flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold">
-                                        {offerData.type === 'percentage' ? (
-                                            <span>🎉 {offerData.discountValue}% OFF</span>
-                                        ) : offerData.type === 'flat' ? (
-                                            <span>🎉 Save ₹{offerData.discountValue}</span>
-                                        ) : offerData.type === 'bogo' ? (
-                                            <span>🎁 Buy 1 Get 1 FREE</span>
-                                        ) : (
-                                            <span>🎁 Free: {offerData.freeItemName || 'Item'}</span>
-                                        )}
-                                    </div>
+                                    {/* Expiry Preview */}
+                                    {offerData.expiryDate && (
+                                        <p className="text-[10px] text-gray-400 mt-2">
+                                            Valid until {new Date(offerData.expiryDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                        </p>
+                                    )}
                                 </div>
                             )}
 
@@ -550,22 +596,38 @@ export default function MerchantReviewPage() {
                                 <p className="text-sm text-red-500 text-center">{error}</p>
                             )}
 
-                            {/* Action Buttons */}
-                            <div className="flex gap-3 pt-2">
-                                <Button
+                            {/* Swipe to Confirm */}
+                            <div className="pt-4">
+                                <p className="text-xs text-gray-500 text-center mb-2">Swipe right to confirm</p>
+                                <div className="relative h-14 bg-gray-100 rounded-2xl overflow-hidden">
+                                    <div className="absolute inset-0 flex items-center justify-center text-sm font-medium text-gray-400">
+                                        Slide to Create Offer →
+                                    </div>
+                                    <motion.div
+                                        drag="x"
+                                        dragConstraints={{ left: 0, right: 0 }}
+                                        dragElastic={0}
+                                        onDrag={(_, info) => {
+                                            const slider = info.point.x;
+                                            if (slider > 200) {
+                                                handleCreateNewOffer();
+                                            }
+                                        }}
+                                        className="absolute left-1 top-1 bottom-1 w-12 bg-primary rounded-xl flex items-center justify-center cursor-grab active:cursor-grabbing shadow-lg"
+                                    >
+                                        {actionLoading ? (
+                                            <Loader2 className="h-5 w-5 text-white animate-spin" />
+                                        ) : (
+                                            <Check className="h-5 w-5 text-white" />
+                                        )}
+                                    </motion.div>
+                                </div>
+                                <button
                                     onClick={() => { setShowCreateOfferModal(false); setError(""); }}
-                                    variant="outline"
-                                    className="flex-1 h-12 rounded-xl"
+                                    className="w-full mt-3 text-sm text-gray-500 hover:text-gray-700"
                                 >
                                     Cancel
-                                </Button>
-                                <Button
-                                    onClick={handleCreateNewOffer}
-                                    disabled={actionLoading}
-                                    className="flex-1 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl font-semibold"
-                                >
-                                    {actionLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Create Offer"}
-                                </Button>
+                                </button>
                             </div>
                         </div>
                     </motion.div>
