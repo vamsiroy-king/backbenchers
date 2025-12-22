@@ -2,10 +2,12 @@
 
 import { ArrowRight, Shield, Zap, Store, Star } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+// Curiosity-inducing words (not revealing F³)
+const HOOK_WORDS = ["Student", "Exclusive", "Insider", "Premium"];
 
 export default function Home() {
   const router = useRouter();
@@ -50,6 +52,16 @@ export default function Home() {
 }
 
 function LandingContent() {
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+
+  // Rotate hook words
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentWordIndex((prev) => (prev + 1) % HOOK_WORDS.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
@@ -70,27 +82,44 @@ function LandingContent() {
           </div>
         </motion.div>
 
-        {/* #India's 1st Badge */}
+        {/* #India's 1st - Premium Highlight */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="mb-4"
         >
-          <span className="text-sm font-medium text-primary tracking-wide">India's 1st</span>
+          <span className="text-sm font-semibold text-primary relative">
+            #India's 1st
+            <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary/40 rounded-full" />
+          </span>
         </motion.div>
 
-        {/* Main Headline - Fixed Position */}
-        <motion.h1
+        {/* Main Headline - Animated Words */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="text-5xl font-black tracking-tight leading-[1.1] text-gray-900 mb-6"
+          className="mb-6"
         >
-          Online + Offline
-          <br />
-          Student Perks.
-        </motion.h1>
+          <h1 className="text-5xl font-black tracking-tight leading-[1.1] text-gray-900">
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={currentWordIndex}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.25 }}
+                className="text-primary inline-block"
+              >
+                {HOOK_WORDS[currentWordIndex]}
+              </motion.span>
+            </AnimatePresence>
+            {" "}Perks
+            <br />
+            for Students.
+          </h1>
+        </motion.div>
 
         {/* Tagline - Original */}
         <motion.p
