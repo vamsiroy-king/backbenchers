@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Heart, MapPin, Sparkles, X, ShieldCheck, Wifi, Bell, TrendingUp, Store, Loader2, ChevronDown, Search } from "lucide-react";
+import { Heart, MapPin, Sparkles, X, ShieldCheck, Wifi, Bell, TrendingUp, Store, Loader2, ChevronDown, ChevronRight, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -500,46 +500,56 @@ export default function DashboardPage() {
                     <div className="absolute -right-8 -bottom-8 h-32 w-32 bg-primary/20 rounded-full blur-3xl" />
                 </motion.div>
 
-                {/* F³ Cube - Premium Categories */}
+                {/* F³ Categories - Creative Animated Design */}
                 <div className="space-y-5">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                            <div className="h-8 w-8 bg-gray-900 rounded-lg flex items-center justify-center">
-                                <span className="text-white text-sm font-bold">F³</span>
-                            </div>
-                            <h3 className="text-lg font-bold tracking-tight text-gray-900">Explore Categories</h3>
+                    <div className="flex items-center gap-2.5">
+                        <div className="h-8 w-8 bg-gray-900 rounded-xl flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">F³</span>
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold tracking-tight text-gray-900">Explore Categories</h3>
+                            <p className="text-[10px] text-gray-400">Food • Fashion • Fitness</p>
                         </div>
                     </div>
 
-                    {/* Premium F³ Cards */}
-                    <div className="grid grid-cols-3 gap-3">
+                    {/* Creative Cards with Hover Effect */}
+                    <div className="space-y-3">
                         {CATEGORIES.map((cat, index) => (
                             <Link key={cat.id} href={`/dashboard/category/${cat.name}`}>
                                 <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    whileTap={{ scale: 0.97 }}
-                                    className={`${cat.color} rounded-2xl p-4 h-32 flex flex-col justify-between relative overflow-hidden shadow-card`}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.15, type: "spring" }}
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className={`${cat.color} rounded-2xl p-5 flex items-center justify-between relative overflow-hidden group shadow-lg mb-3`}
                                 >
-                                    {/* Icon */}
-                                    <span className="text-3xl">{cat.icon}</span>
+                                    {/* Shimmer effect on hover */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
 
                                     {/* Content */}
-                                    <div>
-                                        <p className="text-white font-bold text-sm">{cat.name}</p>
-                                        <p className="text-white/70 text-[10px]">{cat.tagline}</p>
+                                    <div className="flex items-center gap-4 relative z-10">
+                                        <span className="text-4xl filter drop-shadow-lg">{cat.icon}</span>
+                                        <div>
+                                            <p className="text-white font-bold text-lg">{cat.name}</p>
+                                            <p className="text-white/60 text-xs">{cat.tagline}</p>
+                                        </div>
                                     </div>
 
-                                    {/* Symbol badge */}
-                                    <div className="absolute top-3 right-3 text-white/30 text-xs font-bold">
-                                        {cat.symbol}
+                                    {/* Arrow */}
+                                    <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center relative z-10">
+                                        <ChevronRight className="h-5 w-5 text-white" />
                                     </div>
+
+                                    {/* Decorative circle */}
+                                    <div className="absolute -right-8 -bottom-8 h-32 w-32 bg-black/10 rounded-full" />
                                 </motion.div>
                             </Link>
                         ))}
                     </div>
                 </div>
+
+                {/* Trending Section */}
                 <div className="space-y-5">
                     <div className="flex items-center gap-2.5">
                         <TrendingUp className="h-5 w-5 text-orange-500" />
@@ -610,45 +620,47 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Top Brands - Conditionally rendered based on admin settings */}
-                {contentSettings.showTopBrands && (
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2.5">
-                            <Sparkles className="h-5 w-5 text-yellow-500" />
-                            <h3 className="text-lg font-bold tracking-tight text-gray-900">Top Brands</h3>
-                        </div>
+                {
+                    contentSettings.showTopBrands && (
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2.5">
+                                <Sparkles className="h-5 w-5 text-yellow-500" />
+                                <h3 className="text-lg font-bold tracking-tight text-gray-900">Top Brands</h3>
+                            </div>
 
-                        <div className="grid grid-cols-3 gap-2.5">
-                            {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
-                                <motion.button
-                                    key={brand.id}
-                                    whileTap={{ scale: 0.97 }}
-                                    onClick={(e) => {
-                                        if (!isVerified) {
-                                            e.preventDefault();
-                                            setShowVerifyModal(true);
-                                        } else {
-                                            router.push(`/store/${brand.id}`);
-                                        }
-                                    }}
-                                    className="bg-white rounded-xl p-3.5 flex flex-col items-center gap-2 shadow-card border border-gray-100/50 hover:shadow-soft transition-shadow"
-                                >
-                                    <div className="h-12 w-12 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden">
-                                        {brand.logo ? (
-                                            <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <Store className="h-5 w-5 text-gray-400" />
-                                        )}
-                                    </div>
-                                    <span className="text-xs font-semibold text-gray-900 text-center line-clamp-1">{brand.name}</span>
-                                    <span className="text-[10px] font-medium text-primary">{brand.discount || brand.category}</span>
-                                </motion.button>
-                            ))}
+                            <div className="grid grid-cols-3 gap-2.5">
+                                {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
+                                    <motion.button
+                                        key={brand.id}
+                                        whileTap={{ scale: 0.97 }}
+                                        onClick={(e) => {
+                                            if (!isVerified) {
+                                                e.preventDefault();
+                                                setShowVerifyModal(true);
+                                            } else {
+                                                router.push(`/store/${brand.id}`);
+                                            }
+                                        }}
+                                        className="bg-white rounded-xl p-3.5 flex flex-col items-center gap-2 shadow-card border border-gray-100/50 hover:shadow-soft transition-shadow"
+                                    >
+                                        <div className="h-12 w-12 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden">
+                                            {brand.logo ? (
+                                                <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Store className="h-5 w-5 text-gray-400" />
+                                            )}
+                                        </div>
+                                        <span className="text-xs font-semibold text-gray-900 text-center line-clamp-1">{brand.name}</span>
+                                        <span className="text-[10px] font-medium text-primary">{brand.discount || brand.category}</span>
+                                    </motion.button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
                 {/* App Switcher */}
-                <div className="pt-8 border-t border-gray-100/80 mt-4">
+                < div className="pt-8 border-t border-gray-100/80 mt-4" >
                     <p className="text-xs text-gray-400 text-center mb-3">Switch to</p>
                     <div className="flex justify-center gap-2.5">
                         <Link href="/merchant" className="px-4 py-2.5 bg-gray-50 rounded-xl text-xs font-medium text-gray-600 border border-gray-100">

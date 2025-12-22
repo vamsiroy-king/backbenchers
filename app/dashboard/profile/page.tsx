@@ -490,7 +490,7 @@ export default function ProfilePage() {
 
             {/* Premium 3D Flip ID Card */}
             <div
-                className="relative w-full aspect-[1.7/1] mb-4 cursor-pointer"
+                className="relative w-full aspect-[1.5/1] mb-4 cursor-pointer"
                 style={{ perspective: "1200px" }}
                 onClick={() => setIsFlipped(!isFlipped)}
             >
@@ -500,37 +500,28 @@ export default function ProfilePage() {
                     transition={{ type: "spring", damping: 30, stiffness: 200, mass: 0.8 }}
                     style={{ transformStyle: "preserve-3d" }}
                 >
-                    {/* FRONT of Card - Ultra Minimal Design */}
+                    {/* FRONT of Card */}
                     <div
-                        className="absolute inset-0 rounded-[24px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.25)] bg-gray-900"
+                        className="absolute inset-0 rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.25)] bg-gray-900"
                         style={{ backfaceVisibility: "hidden" }}
                     >
-                        {/* Card Content - Ultra Spacious */}
-                        <div className="relative h-full p-6 flex flex-col">
+                        {/* Card Content */}
+                        <div className="relative h-full p-5 flex flex-col">
 
-                            {/* Top Row - Logo & Status */}
-                            <div className="flex items-center justify-between mb-6">
-                                {/* Brand */}
-                                <div className="flex items-center gap-2">
-                                    <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                                        <span className="text-white font-bold text-sm">B</span>
-                                    </div>
-                                    <span className="text-[10px] text-white/40 font-medium tracking-widest">BACKBENCHERS</span>
+                            {/* Header - Logo only */}
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
+                                    <span className="text-white font-bold text-xs">B</span>
                                 </div>
-
-                                {/* Verified Badge */}
-                                <div className="bg-primary/20 border border-primary/30 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
-                                    <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                                    <span className="text-[10px] font-semibold text-primary">VERIFIED</span>
-                                </div>
+                                <span className="text-[9px] text-white/40 font-medium tracking-widest">BACKBENCHERS</span>
                             </div>
 
-                            {/* Main Content - Photo + Name */}
-                            <div className="flex items-start gap-4 mb-6">
-                                {/* Large Profile Photo */}
+                            {/* Main Row - Photo + Details */}
+                            <div className="flex gap-4 flex-1">
+                                {/* Profile Photo */}
                                 <motion.div
                                     whileHover={{ scale: 1.02 }}
-                                    className="h-[88px] w-[88px] rounded-2xl bg-gray-800 border border-white/10 overflow-hidden flex-shrink-0"
+                                    className="h-20 w-20 rounded-xl bg-gray-800 border border-white/10 overflow-hidden flex-shrink-0"
                                     onClick={(e) => {
                                         if (!hasProfileImage) {
                                             e.stopPropagation();
@@ -542,49 +533,48 @@ export default function ProfilePage() {
                                         <img src={profileImage} alt="User" className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex flex-col items-center justify-center">
-                                            <Camera className="h-6 w-6 text-gray-600" />
-                                            <span className="text-[8px] text-gray-600 mt-1">TAP TO ADD</span>
+                                            <Camera className="h-5 w-5 text-gray-600" />
+                                            <span className="text-[7px] text-gray-600 mt-0.5">ADD PHOTO</span>
                                         </div>
                                     )}
                                 </motion.div>
 
-                                {/* Name & College */}
-                                <div className="flex-1 min-w-0 pt-1">
-                                    <h2 className="text-xl font-bold text-white leading-tight truncate">{student?.name || 'Loading...'}</h2>
-                                    <p className="text-xs text-white/50 mt-1">{student?.college || 'College'}</p>
-                                    <p className="text-[10px] text-white/30 mt-0.5">{student?.city || 'City'}</p>
-                                </div>
-                            </div>
+                                {/* Details */}
+                                <div className="flex-1 min-w-0">
+                                    {/* Name with Verified Icon */}
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        <h2 className="text-lg font-bold text-white leading-tight truncate">{student?.name || 'Loading...'}</h2>
+                                        <div className="h-4 w-4 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                                            <Check className="h-2.5 w-2.5 text-white" />
+                                        </div>
+                                    </div>
+                                    <p className="text-[11px] text-white/60 truncate">{student?.college || 'College'}</p>
+                                    <p className="text-[10px] text-white/40">{student?.city || 'City'}</p>
 
-                            {/* Details Grid - ALL info */}
-                            <div className="grid grid-cols-2 gap-4 mb-6">
-                                <div>
-                                    <p className="text-[9px] text-white/30 uppercase tracking-wider mb-1">Date of Birth</p>
-                                    <p className="text-xs text-white/80 font-medium">{student?.dob ? new Date(student.dob).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not set'}</p>
-                                </div>
-                                <div>
-                                    <p className="text-[9px] text-white/30 uppercase tracking-wider mb-1">Gender</p>
-                                    <p className="text-xs text-white/80 font-medium capitalize">{student?.gender || 'Not set'}</p>
+                                    {/* Info Row */}
+                                    <div className="flex gap-4 mt-2">
+                                        <div>
+                                            <p className="text-[8px] text-white/30 uppercase">DOB</p>
+                                            <p className="text-[10px] text-white/70">{student?.dob ? new Date(student.dob).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not set'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[8px] text-white/30 uppercase">Gender</p>
+                                            <p className="text-[10px] text-white/70 capitalize">{student?.gender || 'Not set'}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Bottom - BB-ID & Validity */}
-                            <div className="mt-auto flex items-end justify-between">
+                            <div className="flex items-end justify-between mt-3 pt-3 border-t border-white/10">
                                 <div>
-                                    <p className="text-[9px] text-white/30 uppercase tracking-wider mb-1">Student ID</p>
-                                    <div className="bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg inline-block">
-                                        <p className="text-base font-mono font-bold text-white tracking-wider">{student?.bbId || 'Pending'}</p>
-                                    </div>
+                                    <p className="text-[8px] text-white/30 uppercase mb-1">Student ID</p>
+                                    <p className="text-sm font-mono font-bold text-primary">{student?.bbId || 'Pending'}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[9px] text-white/30 uppercase tracking-wider mb-1">Valid Until</p>
-                                    <p className="text-xs text-white/60 font-medium">Dec 2025</p>
+                                    <p className="text-[8px] text-white/30 uppercase mb-1">Valid</p>
+                                    <p className="text-[11px] text-white/60">Dec 2025</p>
                                 </div>
-                            </div>
-
-                            {/* Tap Hint */}
-                            <div className="absolute bottom-2 left-0 right-0 flex justify-center">
-                                <p className="text-[8px] text-white/15 uppercase tracking-widest">Tap for QR Code</p>
                             </div>
                         </div>
                     </div>
