@@ -78,6 +78,7 @@ export default function DashboardPage() {
     const [selectedCity, setSelectedCity] = useState<string | null>(null);
     const [heroBanners, setHeroBanners] = useState<HeroBanner[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState(0); // For Orbit Selection
     const heroRef = useRef<HTMLDivElement>(null);
 
     // Real offers from database
@@ -484,7 +485,7 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* F³ Categories - Clean Minimal */}
+                {/* F³ Categories - Orbit Selection */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2.5">
                         <div className="h-8 w-8 bg-gray-900 rounded-xl flex items-center justify-center">
@@ -493,22 +494,68 @@ export default function DashboardPage() {
                         <h3 className="text-base font-bold tracking-tight text-gray-900">Explore Categories</h3>
                     </div>
 
-                    {/* Simple Grid Cards */}
-                    <div className="grid grid-cols-3 gap-3">
-                        {CATEGORIES.map((cat) => (
-                            <Link key={cat.id} href={`/dashboard/category/${cat.name}`}>
+                    {/* Orbit Selection Cards */}
+                    <div className="flex items-end justify-center gap-2 py-4">
+                        {CATEGORIES.map((cat, index) => {
+                            const isSelected = selectedCategory === index;
+                            const isLeft = (index === selectedCategory - 1) || (selectedCategory === 0 && index === 2);
+                            const isRight = (index === selectedCategory + 1) || (selectedCategory === 2 && index === 0);
+
+                            return (
                                 <motion.div
-                                    whileTap={{ scale: 0.95 }}
-                                    className={`${cat.color} rounded-2xl p-4 aspect-[4/5] flex flex-col justify-between shadow-lg`}
+                                    key={cat.id}
+                                    onClick={() => setSelectedCategory(index)}
+                                    animate={{
+                                        scale: isSelected ? 1 : 0.75,
+                                        opacity: isSelected ? 1 : 0.6,
+                                        y: isSelected ? 0 : 15,
+                                        zIndex: isSelected ? 10 : 1
+                                    }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                    className={`${cat.color} rounded-2xl p-5 cursor-pointer shadow-xl relative overflow-hidden`}
+                                    style={{
+                                        width: isSelected ? '160px' : '100px',
+                                        height: isSelected ? '200px' : '140px',
+                                    }}
                                 >
-                                    <span className="text-3xl">{cat.icon}</span>
-                                    <div>
-                                        <p className="text-white font-bold text-sm">{cat.name}</p>
-                                        <p className="text-white/60 text-[10px]">{cat.tagline}</p>
+                                    {/* Shine effect */}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
+
+                                    {/* Content */}
+                                    <div className="relative z-10 h-full flex flex-col justify-between">
+                                        <span className={`${isSelected ? 'text-5xl' : 'text-3xl'} transition-all duration-200`}>
+                                            {cat.icon}
+                                        </span>
+                                        <div>
+                                            <p className={`text-white font-bold ${isSelected ? 'text-lg' : 'text-xs'} transition-all duration-200`}>
+                                                {cat.name}
+                                            </p>
+                                            {isSelected && (
+                                                <motion.p
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    className="text-white/70 text-xs mt-1"
+                                                >
+                                                    {cat.tagline}
+                                                </motion.p>
+                                            )}
+                                        </div>
                                     </div>
                                 </motion.div>
-                            </Link>
-                        ))}
+                            );
+                        })}
+                    </div>
+
+                    {/* Tap to explore selected */}
+                    <div className="flex justify-center">
+                        <Link href={`/dashboard/category/${CATEGORIES[selectedCategory].name}`}>
+                            <motion.button
+                                whileTap={{ scale: 0.95 }}
+                                className="bg-gray-900 text-white px-6 py-3 rounded-xl text-sm font-semibold"
+                            >
+                                Explore {CATEGORIES[selectedCategory].name} →
+                            </motion.button>
+                        </Link>
                     </div>
                 </div>
 
