@@ -456,9 +456,36 @@ export default function DashboardPage() {
             </header>
 
             <main className="space-y-10 px-5 pt-8 pb-4">
+                {/* Scrolling Hero Banners */}
+                <div>
+                    <div className="flex gap-3 overflow-x-auto hide-scrollbar snap-x snap-mandatory -mx-5 px-5">
+                        {(heroBanners.length > 0 ? heroBanners : [
+                            { id: '1', title: 'Student Discounts', subtitle: 'Up to 50% off on 100+ brands', ctaText: 'Explore', backgroundGradient: 'from-primary to-emerald-500' },
+                            { id: '2', title: 'Flash Deals', subtitle: 'Limited time offers nearby', ctaText: 'View All', backgroundGradient: 'from-orange-500 to-rose-500' },
+                            { id: '3', title: 'New Drops', subtitle: 'Fresh deals every week', ctaText: 'Check Out', backgroundGradient: 'from-blue-500 to-indigo-600' },
+                        ]).map((banner: any) => (
+                            <motion.div
+                                key={banner.id}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={handleOfferClick}
+                                className={`snap-center flex-none w-[85%] h-40 rounded-2xl bg-gradient-to-br ${banner.backgroundGradient} p-5 flex flex-col justify-between shadow-lg cursor-pointer`}
+                            >
+                                <div>
+                                    <h2 className="text-white text-xl font-bold">{banner.title}</h2>
+                                    {banner.subtitle && (
+                                        <p className="text-white/80 text-sm mt-1">{banner.subtitle}</p>
+                                    )}
+                                </div>
+                                <button className="bg-white text-gray-900 font-semibold px-5 py-2 rounded-xl w-fit text-sm">
+                                    {banner.ctaText}
+                                </button>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
 
-                {/* F³ Categories - 3D Floating Tilt Cards */}
-                <div className="space-y-5">
+                {/* F³ Categories - Clean Minimal */}
+                <div className="space-y-4">
                     <div className="flex items-center gap-2.5">
                         <div className="h-8 w-8 bg-gray-900 rounded-xl flex items-center justify-center">
                             <span className="text-white text-xs font-bold">F³</span>
@@ -466,48 +493,22 @@ export default function DashboardPage() {
                         <h3 className="text-base font-bold tracking-tight text-gray-900">Explore Categories</h3>
                     </div>
 
-                    {/* 3D Tilt Cards */}
-                    <div className="relative" style={{ perspective: "1000px" }}>
-                        <div className="flex gap-3">
-                            {CATEGORIES.map((cat, index) => (
-                                <Link key={cat.id} href={`/dashboard/category/${cat.name}`} className="flex-1">
-                                    <motion.div
-                                        initial={{ opacity: 0, rotateY: -15 }}
-                                        animate={{ opacity: 1, rotateY: 0 }}
-                                        transition={{ delay: index * 0.1, type: "spring", stiffness: 100 }}
-                                        whileHover={{
-                                            rotateY: 8,
-                                            rotateX: -5,
-                                            scale: 1.02,
-                                            transition: { type: "spring", stiffness: 300, damping: 20 }
-                                        }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className={`${cat.color} rounded-2xl p-4 h-36 flex flex-col justify-between relative overflow-hidden cursor-pointer`}
-                                        style={{
-                                            transformStyle: "preserve-3d",
-                                            boxShadow: "0 20px 40px -15px rgba(0,0,0,0.35)"
-                                        }}
-                                    >
-                                        {/* Floating Icon - 3D Parallax */}
-                                        <span
-                                            className="text-4xl"
-                                            style={{ transform: "translateZ(30px)" }}
-                                        >
-                                            {cat.icon}
-                                        </span>
-
-                                        {/* Content */}
-                                        <div style={{ transform: "translateZ(20px)" }}>
-                                            <p className="text-white font-bold text-base">{cat.name}</p>
-                                            <p className="text-white/60 text-[10px]">{cat.tagline}</p>
-                                        </div>
-
-                                        {/* Shine overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent opacity-50" />
-                                    </motion.div>
-                                </Link>
-                            ))}
-                        </div>
+                    {/* Simple Grid Cards */}
+                    <div className="grid grid-cols-3 gap-3">
+                        {CATEGORIES.map((cat) => (
+                            <Link key={cat.id} href={`/dashboard/category/${cat.name}`}>
+                                <motion.div
+                                    whileTap={{ scale: 0.95 }}
+                                    className={`${cat.color} rounded-2xl p-4 aspect-[4/5] flex flex-col justify-between shadow-lg`}
+                                >
+                                    <span className="text-3xl">{cat.icon}</span>
+                                    <div>
+                                        <p className="text-white font-bold text-sm">{cat.name}</p>
+                                        <p className="text-white/60 text-[10px]">{cat.tagline}</p>
+                                    </div>
+                                </motion.div>
+                            </Link>
+                        ))}
                     </div>
                 </div>
 

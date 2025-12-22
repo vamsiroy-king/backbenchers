@@ -38,32 +38,25 @@ export function MobileNav() {
                                 prefetch={true}
                                 className="flex-1"
                             >
-                                <motion.div
-                                    whileTap={{ scale: 0.9 }}
-                                    transition={{ type: "spring", damping: 15, stiffness: 400 }}
+                                <div
                                     className="flex flex-col items-center justify-center py-2 relative"
                                     style={{ transform: 'translateZ(0)' }}
                                 >
-                                    <motion.div
-                                        animate={{
-                                            scale: isActive ? 1 : 1,
-                                            backgroundColor: isActive ? 'rgb(16, 185, 129)' : 'transparent'
-                                        }}
-                                        transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                                        className="p-2 rounded-xl"
+                                    <div
+                                        className={`p-2 rounded-xl transition-colors duration-100 ${isActive ? 'bg-primary' : 'bg-transparent'}`}
                                     >
                                         <Icon
-                                            className={`h-5 w-5 transition-colors duration-150 ${isActive ? 'text-white' : 'text-gray-400'}`}
+                                            className={`h-5 w-5 transition-colors duration-100 ${isActive ? 'text-white' : 'text-gray-400'}`}
                                             strokeWidth={isActive ? 2.5 : 1.8}
                                         />
-                                    </motion.div>
+                                    </div>
 
                                     <span
-                                        className={`text-[10px] mt-0.5 font-medium transition-colors duration-150 ${isActive ? 'text-primary' : 'text-gray-400'}`}
+                                        className={`text-[10px] mt-0.5 font-medium transition-colors duration-100 ${isActive ? 'text-primary' : 'text-gray-400'}`}
                                     >
                                         {tab.name}
                                     </span>
-                                </motion.div>
+                                </div>
                             </Link>
                         );
                     })}
