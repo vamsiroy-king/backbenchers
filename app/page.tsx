@@ -1,13 +1,11 @@
 "use client";
 
-import { ArrowRight, Sparkles, Shield, Zap, Store } from "lucide-react";
+import { ArrowRight, Shield, Zap, Store, Star } from "lucide-react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// Animated rotating words for hook
-const HOOK_WORDS = ["Food", "Fashion", "Fitness"];
 
 export default function Home() {
   const router = useRouter();
@@ -52,16 +50,6 @@ export default function Home() {
 }
 
 function LandingContent() {
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-
-  // Rotate hook words
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentWordIndex((prev) => (prev + 1) % HOOK_WORDS.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
@@ -82,62 +70,36 @@ function LandingContent() {
           </div>
         </motion.div>
 
-        {/* #India's 1st Badge - STUNNING */}
+        {/* #India's 1st Badge */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          className="mb-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mb-4"
         >
-          <div className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-full">
-            <motion.div
-              animate={{ rotate: [0, 360] }}
-              transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
-            >
-              <Sparkles className="h-4 w-4 text-yellow-400" />
-            </motion.div>
-            <span className="text-sm font-bold tracking-wide">#India's 1st</span>
-          </div>
+          <span className="text-sm font-medium text-primary tracking-wide">India's 1st</span>
         </motion.div>
 
-        {/* Main Headline - Animated Word */}
-        <motion.div
+        {/* Main Headline - Fixed Position */}
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="mb-6"
+          transition={{ delay: 0.3 }}
+          className="text-5xl font-black tracking-tight leading-[1.1] text-gray-900 mb-6"
         >
-          <h1 className="text-[42px] font-black tracking-tight leading-[1.05] text-gray-900">
-            Unlock Exclusive
-            <br />
-            <span className="relative">
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={currentWordIndex}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="text-primary inline-block"
-                >
-                  {HOOK_WORDS[currentWordIndex]}
-                </motion.span>
-              </AnimatePresence>
-            </span>
-            {" "}Deals.
-          </h1>
-        </motion.div>
+          Online + Offline
+          <br />
+          Student Perks.
+        </motion.h1>
 
-        {/* Tagline */}
+        {/* Tagline - Original */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-lg text-gray-500 mb-10 leading-relaxed"
+          transition={{ delay: 0.4 }}
+          className="text-lg text-gray-500 mb-10"
         >
-          The only app verified students trust.
-          <br />
-          <span className="text-gray-400">Save on everything. Everywhere.</span>
+          Backbenchers. Born to Save.
         </motion.p>
 
         {/* CTAs */}
@@ -180,7 +142,7 @@ function LandingContent() {
               { icon: Store, label: "100+ Brands", color: "text-blue-600", bg: "bg-blue-100" },
               { icon: Zap, label: "Instant Access", color: "text-orange-600", bg: "bg-orange-100" },
               { icon: Shield, label: "Verified Only", color: "text-green-600", bg: "bg-green-100" },
-              { icon: Sparkles, label: "Flash Deals", color: "text-purple-600", bg: "bg-purple-100" },
+              { icon: Star, label: "Flash Deals", color: "text-purple-600", bg: "bg-purple-100" },
             ].map((feature, i) => (
               <motion.div
                 key={i}

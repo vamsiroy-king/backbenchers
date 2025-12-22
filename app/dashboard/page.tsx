@@ -456,98 +456,61 @@ export default function DashboardPage() {
             </header>
 
             <main className="space-y-10 px-5 pt-8 pb-4">
-                {/* Premium Hero - #India's 1st */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="bg-gray-900 rounded-2xl p-6 relative overflow-hidden"
-                >
-                    {/* Subtle pattern */}
-                    <div className="absolute inset-0 opacity-[0.03]" style={{
-                        backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
-                        backgroundSize: '24px 24px'
-                    }} />
 
-                    {/* #India's 1st Badge */}
-                    <motion.div
-                        initial={{ scale: 0.9 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.2, type: "spring" }}
-                        className="inline-flex items-center gap-2 bg-primary px-3 py-1.5 rounded-lg mb-4"
-                    >
-                        <span className="text-white text-xs font-bold tracking-wide">{HERO_CONTENT.badge}</span>
-                    </motion.div>
-
-                    {/* Headline */}
-                    <h1 className="text-white text-2xl font-bold leading-tight mb-2">
-                        {HERO_CONTENT.headline}
-                    </h1>
-                    <p className="text-gray-400 text-sm mb-6">
-                        {HERO_CONTENT.subtext}
-                    </p>
-
-                    {/* CTA Button */}
-                    <motion.button
-                        whileTap={{ scale: 0.97 }}
-                        onClick={handleOfferClick}
-                        className="bg-white text-gray-900 font-semibold px-6 py-3 rounded-xl text-sm shadow-sm"
-                    >
-                        {HERO_CONTENT.cta}
-                    </motion.button>
-
-                    {/* Decorative element */}
-                    <div className="absolute -right-8 -bottom-8 h-32 w-32 bg-primary/20 rounded-full blur-3xl" />
-                </motion.div>
-
-                {/* F³ Categories - Creative Animated Design */}
+                {/* F³ Categories - 3D Floating Tilt Cards */}
                 <div className="space-y-5">
                     <div className="flex items-center gap-2.5">
                         <div className="h-8 w-8 bg-gray-900 rounded-xl flex items-center justify-center">
                             <span className="text-white text-xs font-bold">F³</span>
                         </div>
-                        <div>
-                            <h3 className="text-base font-bold tracking-tight text-gray-900">Explore Categories</h3>
-                            <p className="text-[10px] text-gray-400">Food • Fashion • Fitness</p>
+                        <h3 className="text-base font-bold tracking-tight text-gray-900">Explore Categories</h3>
+                    </div>
+
+                    {/* 3D Tilt Cards */}
+                    <div className="relative" style={{ perspective: "1000px" }}>
+                        <div className="flex gap-3">
+                            {CATEGORIES.map((cat, index) => (
+                                <Link key={cat.id} href={`/dashboard/category/${cat.name}`} className="flex-1">
+                                    <motion.div
+                                        initial={{ opacity: 0, rotateY: -15 }}
+                                        animate={{ opacity: 1, rotateY: 0 }}
+                                        transition={{ delay: index * 0.1, type: "spring", stiffness: 100 }}
+                                        whileHover={{
+                                            rotateY: 8,
+                                            rotateX: -5,
+                                            scale: 1.02,
+                                            transition: { type: "spring", stiffness: 300, damping: 20 }
+                                        }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className={`${cat.color} rounded-2xl p-4 h-36 flex flex-col justify-between relative overflow-hidden cursor-pointer`}
+                                        style={{
+                                            transformStyle: "preserve-3d",
+                                            boxShadow: "0 20px 40px -15px rgba(0,0,0,0.35)"
+                                        }}
+                                    >
+                                        {/* Floating Icon - 3D Parallax */}
+                                        <span
+                                            className="text-4xl"
+                                            style={{ transform: "translateZ(30px)" }}
+                                        >
+                                            {cat.icon}
+                                        </span>
+
+                                        {/* Content */}
+                                        <div style={{ transform: "translateZ(20px)" }}>
+                                            <p className="text-white font-bold text-base">{cat.name}</p>
+                                            <p className="text-white/60 text-[10px]">{cat.tagline}</p>
+                                        </div>
+
+                                        {/* Shine overlay */}
+                                        <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent opacity-50" />
+                                    </motion.div>
+                                </Link>
+                            ))}
                         </div>
                     </div>
-
-                    {/* Creative Cards with Hover Effect */}
-                    <div className="space-y-3">
-                        {CATEGORIES.map((cat, index) => (
-                            <Link key={cat.id} href={`/dashboard/category/${cat.name}`}>
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: index * 0.15, type: "spring" }}
-                                    whileHover={{ scale: 1.01 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className={`${cat.color} rounded-2xl p-5 flex items-center justify-between relative overflow-hidden group shadow-lg mb-3`}
-                                >
-                                    {/* Shimmer effect on hover */}
-                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-
-                                    {/* Content */}
-                                    <div className="flex items-center gap-4 relative z-10">
-                                        <span className="text-4xl filter drop-shadow-lg">{cat.icon}</span>
-                                        <div>
-                                            <p className="text-white font-bold text-lg">{cat.name}</p>
-                                            <p className="text-white/60 text-xs">{cat.tagline}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Arrow */}
-                                    <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center relative z-10">
-                                        <ChevronRight className="h-5 w-5 text-white" />
-                                    </div>
-
-                                    {/* Decorative circle */}
-                                    <div className="absolute -right-8 -bottom-8 h-32 w-32 bg-black/10 rounded-full" />
-                                </motion.div>
-                            </Link>
-                        ))}
-                    </div>
                 </div>
+
 
                 {/* Trending Section */}
                 <div className="space-y-5">
