@@ -10,7 +10,7 @@ export default function DashboardLayout({
             {/* MOBILE: Native fullscreen layout */}
             <div className="md:hidden min-h-screen bg-white relative">
                 {/* Safe area padding for notch/dynamic island */}
-                <div className="h-full w-full overflow-y-auto overflow-x-hidden pb-24 pt-[env(safe-area-inset-top)]">
+                <div className="h-full w-full overflow-y-auto overflow-x-hidden pb-20 pt-[env(safe-area-inset-top)]">
                     {children}
                 </div>
                 <MobileNav />

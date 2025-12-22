@@ -16,16 +16,20 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [showTimings, setShowTimings] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
-    const [loading, setLoading] = useState(true);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [merchant, setMerchant] = useState<Merchant | null>(null);
     const [offers, setOffers] = useState<Offer[]>([]);
     const [expandedOfferId, setExpandedOfferId] = useState<string | null>(null);
+    const [hasFetched, setHasFetched] = useState(false);
 
-    // Fetch real merchant data and offers
+    // Fetch real merchant data and offers - only once
     useEffect(() => {
+        // Skip if already fetched (prevents re-fetch on visibility change)
+        if (hasFetched) return;
+
         async function fetchData() {
             try {
-                setLoading(true);
+                setInitialLoading(true);
                 console.log('Fetching merchant with ID:', id);
 
                 // Fetch merchant by ID
@@ -45,14 +49,16 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 if (offersResult.success && offersResult.data) {
                     setOffers(offersResult.data);
                 }
+
+                setHasFetched(true);
             } catch (error) {
                 console.error('Error fetching store data:', error);
             } finally {
-                setLoading(false);
+                setInitialLoading(false);
             }
         }
         fetchData();
-    }, [id]);
+    }, [id, hasFetched]);
 
     // Prepare images array
     const allImages = merchant ? [
@@ -97,7 +103,7 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
         return `${offer.discountValue}% OFF`;
     };
 
-    if (loading) {
+    if (initialLoading) {
         return (
             <div className="min-h-screen bg-white flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
