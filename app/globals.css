@@ -111,6 +111,115 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  /* Premium Shadow System - Apple/Google Style */
+  .shadow-subtle {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+  
+  .shadow-soft {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+  }
+  
+  .shadow-card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+  
+  .shadow-elevated {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 8px 32px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Premium Section Spacing */
+  .section-spacing {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: #111827;
+  }
+
+  /* Apple-Style Card */
+  .card-premium {
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Consistent Container Padding */
+  .container-px {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  /* Typography Polish */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .font-display {
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  /* Subtle Dividers */
+  .divider-subtle {
+    border-color: rgba(0, 0, 0, 0.05);
+  }
+
+  /* Input Premium Style */
+  .input-premium {
+    background: #f9fafb;
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+    padding: 0.875rem 1rem;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+  }
+  
+  .input-premium:focus {
+    background: white;
+    border-color: rgba(22, 163, 74, 0.3);
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    outline: none;
+  }
+
+  /* Button Premium Styles */
+  .btn-primary {
+    background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+    transition: all 0.2s ease;
+  }
+  
+  .btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+    transform: translateY(-1px);
+  }
+  
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-secondary:hover {
+    background: #e5e7eb;
+  }
 }
 
 .scrollbar-hide {
