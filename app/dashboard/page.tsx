@@ -14,18 +14,19 @@ import { heroBannerService, HeroBanner } from "@/lib/services/heroBanner.service
 import { CitySelector } from "@/components/CitySelector";
 import { Offer } from "@/lib/types";
 
-// Hero Banners
-const HERO_BANNERS = [
-    { id: 1, title: "Get 15% Student Discount!", cta: "Redeem Now", gradient: "from-orange-400 to-pink-500" },
-    { id: 2, title: "Flash Sale: 50% Off Tech!", cta: "Shop Now", gradient: "from-blue-500 to-purple-600" },
-    { id: 3, title: "Free Spotify Premium 3 Months", cta: "Claim", gradient: "from-green-400 to-emerald-600" },
-];
+// Hero Banner - Premium #India's 1st
+const HERO_CONTENT = {
+    badge: "#India's 1st",
+    headline: "Student Discount Platform",
+    subtext: "Exclusive deals for verified college students",
+    cta: "Explore Deals"
+};
 
-// Categories - F3 Cube Launch (Food, Fashion, Fitness)
+// Categories - F³ Cube (Food, Fashion, Fitness) with solid colors
 const CATEGORIES = [
-    { id: 1, name: "Food", emoji: "🍕", color: "bg-gradient-to-br from-orange-400 to-red-500", image: null },
-    { id: 2, name: "Fashion", emoji: "👗", color: "bg-gradient-to-br from-pink-400 to-rose-500", image: null },
-    { id: 3, name: "Fitness", emoji: "💪", color: "bg-gradient-to-br from-blue-500 to-indigo-600", image: null },
+    { id: 1, name: "Food", symbol: "F¹", tagline: "Dine for less", color: "bg-orange-500", icon: "🍕" },
+    { id: 2, name: "Fashion", symbol: "F²", tagline: "Style on budget", color: "bg-rose-500", icon: "👗" },
+    { id: 3, name: "Fitness", symbol: "F³", tagline: "Train smarter", color: "bg-blue-600", icon: "💪" },
 ];
 
 // Top Brands
@@ -58,7 +59,7 @@ const NOTIFICATIONS = [
 
 // All searchable items
 const ALL_ITEMS = [
-    ...CATEGORIES.map(c => ({ type: 'category', name: c.name, emoji: c.emoji, color: c.color })),
+    ...CATEGORIES.map(c => ({ type: 'category', name: c.name, emoji: c.icon, color: c.color })),
     ...TOP_BRANDS.map(b => ({ type: 'brand', name: b.name, emoji: b.emoji, discount: b.discount })),
     { type: 'offer', name: 'Spotify', emoji: '🎵', discount: 'Student Plan' },
     { type: 'offer', name: 'Netflix', emoji: '🎬', discount: '3 Months Free' },
@@ -194,21 +195,6 @@ export default function DashboardPage() {
         }
         fetchData();
     }, []);
-
-    // Auto-scroll hero
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setHeroIndex((prev) => (prev + 1) % HERO_BANNERS.length);
-        }, 4000);
-        return () => clearInterval(interval);
-    }, []);
-
-    useEffect(() => {
-        if (heroRef.current) {
-            const width = heroRef.current.scrollWidth / HERO_BANNERS.length;
-            heroRef.current.scrollTo({ left: width * heroIndex, behavior: 'smooth' });
-        }
-    }, [heroIndex]);
 
     const handleOfferClick = (e: React.MouseEvent) => {
         if (!isVerified) {
@@ -470,70 +456,90 @@ export default function DashboardPage() {
             </header>
 
             <main className="space-y-10 px-5 pt-8 pb-4">
-                {/* Hero */}
-                <div>
-                    <div ref={heroRef} className="flex gap-3 overflow-x-auto hide-scrollbar snap-x snap-mandatory -mx-5 px-5">
-                        {(heroBanners.length > 0 ? heroBanners : HERO_BANNERS.map(b => ({
-                            id: String(b.id),
-                            title: b.title,
-                            subtitle: null,
-                            ctaText: b.cta,
-                            ctaLink: null,
-                            backgroundGradient: b.gradient,
-                        }))).map((banner) => (
-                            <div
-                                key={banner.id}
-                                className={`snap-center flex-none w-[92%] h-44 rounded-2xl bg-gradient-to-br ${banner.backgroundGradient} p-5 flex flex-col justify-between shadow-card relative overflow-hidden`}
-                            >
-                                <div>
-                                    <h2 className="text-white text-xl font-bold leading-snug">{banner.title}</h2>
-                                    {banner.subtitle && (
-                                        <p className="text-white/80 text-sm mt-1.5">{banner.subtitle}</p>
-                                    )}
-                                </div>
-                                <button
-                                    onClick={handleOfferClick}
-                                    className="bg-white text-gray-900 font-semibold px-5 py-2.5 rounded-xl w-fit text-sm shadow-soft active:scale-95 transition-transform"
-                                >
-                                    {banner.ctaText}
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex justify-center gap-1.5 mt-5">
-                        {(heroBanners.length > 0 ? heroBanners : HERO_BANNERS).map((_, i) => (
-                            <button key={i} onClick={() => setHeroIndex(i)} className={`h-1.5 rounded-full transition-all ${i === heroIndex ? 'w-5 bg-gray-800' : 'w-1.5 bg-gray-300'}`} />
-                        ))}
-                    </div>
-                </div>
+                {/* Premium Hero - #India's 1st */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="bg-gray-900 rounded-2xl p-6 relative overflow-hidden"
+                >
+                    {/* Subtle pattern */}
+                    <div className="absolute inset-0 opacity-[0.03]" style={{
+                        backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+                        backgroundSize: '24px 24px'
+                    }} />
 
-                {/* F3 Categories - Food, Fashion, Fitness */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2.5">
-                        <span className="text-xl">🎯</span>
-                        <h3 className="text-lg font-bold tracking-tight text-gray-900">Explore Categories</h3>
+                    {/* #India's 1st Badge */}
+                    <motion.div
+                        initial={{ scale: 0.9 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.2, type: "spring" }}
+                        className="inline-flex items-center gap-2 bg-primary px-3 py-1.5 rounded-lg mb-4"
+                    >
+                        <span className="text-white text-xs font-bold tracking-wide">{HERO_CONTENT.badge}</span>
+                    </motion.div>
+
+                    {/* Headline */}
+                    <h1 className="text-white text-2xl font-bold leading-tight mb-2">
+                        {HERO_CONTENT.headline}
+                    </h1>
+                    <p className="text-gray-400 text-sm mb-6">
+                        {HERO_CONTENT.subtext}
+                    </p>
+
+                    {/* CTA Button */}
+                    <motion.button
+                        whileTap={{ scale: 0.97 }}
+                        onClick={handleOfferClick}
+                        className="bg-white text-gray-900 font-semibold px-6 py-3 rounded-xl text-sm shadow-sm"
+                    >
+                        {HERO_CONTENT.cta}
+                    </motion.button>
+
+                    {/* Decorative element */}
+                    <div className="absolute -right-8 -bottom-8 h-32 w-32 bg-primary/20 rounded-full blur-3xl" />
+                </motion.div>
+
+                {/* F³ Cube - Premium Categories */}
+                <div className="space-y-5">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                            <div className="h-8 w-8 bg-gray-900 rounded-lg flex items-center justify-center">
+                                <span className="text-white text-sm font-bold">F³</span>
+                            </div>
+                            <h3 className="text-lg font-bold tracking-tight text-gray-900">Explore Categories</h3>
+                        </div>
                     </div>
+
+                    {/* Premium F³ Cards */}
                     <div className="grid grid-cols-3 gap-3">
-                        {CATEGORIES.map((cat) => (
+                        {CATEGORIES.map((cat, index) => (
                             <Link key={cat.id} href={`/dashboard/category/${cat.name}`}>
                                 <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
                                     whileTap={{ scale: 0.97 }}
-                                    className={`relative aspect-[4/3] ${cat.color} rounded-xl flex flex-col items-center justify-center shadow-card cursor-pointer overflow-hidden`}
+                                    className={`${cat.color} rounded-2xl p-4 h-32 flex flex-col justify-between relative overflow-hidden shadow-card`}
                                 >
-                                    {cat.image ? (
-                                        <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover" />
-                                    ) : null}
-                                    <div className={`relative z-10 flex flex-col items-center ${cat.image ? 'bg-black/40 absolute inset-0 justify-center' : ''}`}>
-                                        <span className="text-3xl mb-1">{cat.emoji}</span>
-                                        <span className="text-white text-xs font-semibold">{cat.name}</span>
+                                    {/* Icon */}
+                                    <span className="text-3xl">{cat.icon}</span>
+
+                                    {/* Content */}
+                                    <div>
+                                        <p className="text-white font-bold text-sm">{cat.name}</p>
+                                        <p className="text-white/70 text-[10px]">{cat.tagline}</p>
+                                    </div>
+
+                                    {/* Symbol badge */}
+                                    <div className="absolute top-3 right-3 text-white/30 text-xs font-bold">
+                                        {cat.symbol}
                                     </div>
                                 </motion.div>
                             </Link>
                         ))}
                     </div>
                 </div>
-
-                {/* Trending Section */}
                 <div className="space-y-5">
                     <div className="flex items-center gap-2.5">
                         <TrendingUp className="h-5 w-5 text-orange-500" />

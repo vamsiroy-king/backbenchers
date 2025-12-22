@@ -3,6 +3,7 @@
 import { Home, Map as MapIcon, User, Flame, Compass } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 
 const TABS = [
     { name: "Home", href: "/dashboard", icon: Home },
@@ -16,9 +17,15 @@ export function MobileNav() {
     const pathname = usePathname();
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-50">
-            {/* Floating Pill Container - fixed at bottom with safe area */}
-            <div className="bg-white/95 backdrop-blur-xl border-t border-gray-100/80 px-3 pt-2 pb-[max(env(safe-area-inset-bottom),12px)]">
+        <motion.div
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed bottom-0 left-0 right-0 z-50"
+            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+        >
+            {/* Glass effect nav bar */}
+            <div className="bg-white/95 backdrop-blur-xl border-t border-gray-100/80 px-2 pt-2 pb-[max(env(safe-area-inset-bottom),8px)]">
                 <div className="flex items-center justify-around max-w-md mx-auto">
                     {TABS.map((tab) => {
                         const isActive = pathname === tab.href;
@@ -28,30 +35,40 @@ export function MobileNav() {
                             <Link
                                 key={tab.name}
                                 href={tab.href}
+                                prefetch={true}
                                 className="flex-1"
                             >
-                                <div className="flex flex-col items-center justify-center py-1 relative active:scale-90 transition-transform duration-100">
-                                    <div
-                                        className={`p-2 rounded-xl transition-all duration-200 ease-out ${isActive
-                                            ? "bg-primary text-white shadow-sm"
-                                            : "text-gray-400"
-                                            }`}
+                                <motion.div
+                                    whileTap={{ scale: 0.9 }}
+                                    transition={{ type: "spring", damping: 15, stiffness: 400 }}
+                                    className="flex flex-col items-center justify-center py-2 relative"
+                                    style={{ transform: 'translateZ(0)' }}
+                                >
+                                    <motion.div
+                                        animate={{
+                                            scale: isActive ? 1 : 1,
+                                            backgroundColor: isActive ? 'rgb(16, 185, 129)' : 'transparent'
+                                        }}
+                                        transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                                        className="p-2 rounded-xl"
                                     >
-                                        <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 1.8} />
-                                    </div>
+                                        <Icon
+                                            className={`h-5 w-5 transition-colors duration-150 ${isActive ? 'text-white' : 'text-gray-400'}`}
+                                            strokeWidth={isActive ? 2.5 : 1.8}
+                                        />
+                                    </motion.div>
 
                                     <span
-                                        className={`text-[10px] mt-0.5 font-medium transition-all duration-200 ${isActive ? "text-primary" : "text-gray-400"
-                                            }`}
+                                        className={`text-[10px] mt-0.5 font-medium transition-colors duration-150 ${isActive ? 'text-primary' : 'text-gray-400'}`}
                                     >
                                         {tab.name}
                                     </span>
-                                </div>
+                                </motion.div>
                             </Link>
                         );
                     })}
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
