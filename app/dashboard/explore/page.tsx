@@ -1,41 +1,29 @@
 "use client";
 
-import { Search, Sparkles, TrendingUp, Store, Percent, Tag } from "lucide-react";
+import { Search, Sparkles, TrendingUp, Store } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { offerService } from "@/lib/services/offer.service";
 import { merchantService } from "@/lib/services/merchant.service";
-import { Offer, Merchant } from "@/lib/types";
+import { Merchant } from "@/lib/types";
 
+// F3 Categories - Food, Fashion, Fitness
 const CATEGORIES = [
-    { name: "Food", emoji: "🍕", color: "bg-purple-500" },
-    { name: "Coffee", emoji: "☕", color: "bg-amber-600" },
-    { name: "Grocery", emoji: "🥗", color: "bg-emerald-600" },
-    { name: "Beauty", emoji: "💄", color: "bg-pink-400" },
-    { name: "Tech", emoji: "📱", color: "bg-blue-700" },
-    { name: "Fashion", emoji: "👗", color: "bg-rose-500" },
-    { name: "Restaurant", emoji: "🍽️", color: "bg-orange-500" },
-    { name: "Services", emoji: "✂️", color: "bg-teal-500" },
+    { name: "Food", emoji: "🍕", color: "bg-gradient-to-br from-orange-400 to-red-500", image: null },
+    { name: "Fashion", emoji: "👗", color: "bg-gradient-to-br from-pink-400 to-rose-500", image: null },
+    { name: "Fitness", emoji: "💪", color: "bg-gradient-to-br from-blue-500 to-indigo-600", image: null },
 ];
 
 export default function ExplorePage() {
     const [searchQuery, setSearchQuery] = useState("");
-    const [offers, setOffers] = useState<Offer[]>([]);
     const [featuredBrands, setFeaturedBrands] = useState<Merchant[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Fetch offers and featured brands from Supabase
+    // Fetch featured brands from Supabase
     useEffect(() => {
         async function fetchData() {
             try {
                 setLoading(true);
-
-                // Fetch active offers
-                const offersResult = await offerService.getActiveOffers();
-                if (offersResult.success && offersResult.data) {
-                    setOffers(offersResult.data);
-                }
 
                 // Fetch featured brands
                 const brandsResult = await merchantService.getFeaturedBrands();
@@ -52,55 +40,50 @@ export default function ExplorePage() {
         fetchData();
     }, []);
 
-    // Filter offers by search
-    const filteredOffers = offers.filter(offer =>
-        offer.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        offer.merchantName?.toLowerCase().includes(searchQuery.toLowerCase())
+    // Filter featured brands by search
+    const filteredBrands = featuredBrands.filter(brand =>
+        brand.businessName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        brand.category?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
-    // Get discount display text
-    const getDiscountText = (offer: Offer) => {
-        if (offer.type === 'percentage') return `${offer.discountValue}% OFF`;
-        if (offer.type === 'flat') return `₹${offer.discountValue} OFF`;
-        if (offer.type === 'bogo') return 'Buy 1 Get 1';
-        if (offer.type === 'freebie') return 'Free Gift';
-        return `${offer.discountValue}% OFF`;
-    };
 
     return (
         <div className="min-h-screen bg-white pb-28">
             {/* Header with Search */}
-            <header className="sticky top-0 z-40 bg-white/98 backdrop-blur-lg border-b border-gray-100 px-4 py-3">
-                <h1 className="text-2xl font-bold mb-3">Explore</h1>
+            <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-100/80 px-5 py-4">
+                <h1 className="text-xl font-bold mb-4 text-gray-900">Explore</h1>
                 <div className="relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-12 bg-gray-100 rounded-2xl pl-12 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white transition-all border border-transparent focus:border-gray-200"
-                        placeholder="Search brands, offers..."
+                        className="w-full h-12 bg-gray-50 rounded-xl pl-12 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all border border-gray-100 focus:border-primary/30"
+                        placeholder="Search brands, categories..."
                     />
                 </div>
             </header>
 
-            <main className="px-4 pt-6 space-y-8">
-                {/* Categories Grid */}
+            <main className="px-5 pt-8 space-y-10">
+                {/* F3 Categories Grid */}
                 <section>
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-2.5 mb-5">
                         <Sparkles className="h-5 w-5 text-yellow-500" />
-                        <h2 className="text-lg font-bold">Categories</h2>
+                        <h2 className="text-lg font-bold text-gray-900">Categories</h2>
                     </div>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-3 gap-3">
                         {CATEGORIES.map((cat) => (
-                            <Link key={cat.name} href={`/dashboard/category/${cat.name.toLowerCase()}`}>
+                            <Link key={cat.name} href={`/dashboard/category/${cat.name}`}>
                                 <motion.button
-                                    whileTap={{ scale: 0.95 }}
-                                    className={`${cat.color} w-full aspect-square rounded-2xl flex flex-col items-center justify-center shadow-md relative overflow-hidden`}
+                                    whileTap={{ scale: 0.97 }}
+                                    className={`${cat.color} w-full aspect-[4/3] rounded-xl flex flex-col items-center justify-center shadow-card relative overflow-hidden`}
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-                                    <span className="text-2xl mb-1 relative z-10">{cat.emoji}</span>
-                                    <span className="text-white text-[10px] font-bold relative z-10">{cat.name}</span>
+                                    {cat.image ? (
+                                        <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover" />
+                                    ) : null}
+                                    <div className={`relative z-10 flex flex-col items-center ${cat.image ? 'bg-black/40 absolute inset-0 justify-center' : ''}`}>
+                                        <span className="text-3xl mb-1">{cat.emoji}</span>
+                                        <span className="text-white text-xs font-semibold">{cat.name}</span>
+                                    </div>
                                 </motion.button>
                             </Link>
                         ))}
@@ -108,30 +91,40 @@ export default function ExplorePage() {
                 </section>
 
                 {/* Featured Brands */}
-                {featuredBrands.length > 0 && (
+                {loading ? (
                     <section>
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <TrendingUp className="h-5 w-5 text-primary" />
-                                <h2 className="text-lg font-bold">Featured Brands</h2>
-                            </div>
+                        <div className="flex items-center gap-2.5 mb-5">
+                            <TrendingUp className="h-5 w-5 text-primary" />
+                            <h2 className="text-lg font-bold text-gray-900">Featured Brands</h2>
                         </div>
-                        <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-                            {featuredBrands.map((brand) => (
+                        <div className="flex gap-3 overflow-x-auto pb-2 -mx-5 px-5">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="bg-gray-100 rounded-xl h-28 w-24 animate-pulse flex-shrink-0" />
+                            ))}
+                        </div>
+                    </section>
+                ) : filteredBrands.length > 0 ? (
+                    <section>
+                        <div className="flex items-center gap-2.5 mb-5">
+                            <TrendingUp className="h-5 w-5 text-primary" />
+                            <h2 className="text-lg font-bold text-gray-900">Featured Brands</h2>
+                        </div>
+                        <div className="flex gap-3 overflow-x-auto pb-2 -mx-5 px-5">
+                            {filteredBrands.map((brand) => (
                                 <Link key={brand.id} href={`/store/${brand.id}`}>
                                     <motion.div
-                                        whileTap={{ scale: 0.95 }}
-                                        className="bg-white rounded-2xl shadow-md border border-gray-100 p-4 flex flex-col items-center justify-center gap-2 min-w-[100px]"
+                                        whileTap={{ scale: 0.97 }}
+                                        className="bg-white rounded-xl shadow-card border border-gray-100/50 p-3.5 flex flex-col items-center justify-center gap-2 min-w-[95px]"
                                     >
                                         {brand.logo ? (
-                                            <img src={brand.logo} alt={brand.businessName} className="w-12 h-12 rounded-full object-cover" />
+                                            <img src={brand.logo} alt={brand.businessName} className="w-11 h-11 rounded-lg object-cover" />
                                         ) : (
-                                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                                                <Store className="w-6 h-6 text-primary" />
+                                            <div className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                <Store className="w-5 h-5 text-primary" />
                                             </div>
                                         )}
-                                        <span className="text-xs font-bold text-gray-900 text-center line-clamp-1">{brand.businessName}</span>
-                                        <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                        <span className="text-xs font-semibold text-gray-900 text-center line-clamp-1">{brand.businessName}</span>
+                                        <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-md">
                                             {brand.category}
                                         </span>
                                     </motion.div>
@@ -139,79 +132,17 @@ export default function ExplorePage() {
                             ))}
                         </div>
                     </section>
-                )}
+                ) : null}
 
-                {/* Active Offers */}
-                <section>
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <Percent className="h-5 w-5 text-orange-500" />
-                            <h2 className="text-lg font-bold">Active Offers</h2>
-                        </div>
-                        <span className="text-xs text-gray-500">{filteredOffers.length} offers</span>
+                {/* Coming Soon Message */}
+                <section className="text-center py-8">
+                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <span className="text-3xl">🚀</span>
                     </div>
-
-                    {loading ? (
-                        // Loading skeleton
-                        <div className="space-y-3">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="bg-gray-100 rounded-2xl h-24 animate-pulse" />
-                            ))}
-                        </div>
-                    ) : filteredOffers.length > 0 ? (
-                        <div className="space-y-3">
-                            {filteredOffers.map((offer) => (
-                                <Link key={offer.id} href={`/store/${offer.merchantId}`}>
-                                    <motion.div
-                                        whileTap={{ scale: 0.98 }}
-                                        className="bg-gradient-to-r from-white to-gray-50 rounded-2xl p-4 shadow-sm border border-gray-100 flex gap-4 items-center"
-                                    >
-                                        {/* Merchant Logo */}
-                                        <div className="flex-shrink-0">
-                                            {offer.merchantLogo ? (
-                                                <img src={offer.merchantLogo} alt={offer.merchantName} className="w-14 h-14 rounded-xl object-cover" />
-                                            ) : (
-                                                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
-                                                    <Store className="w-6 h-6 text-primary" />
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Offer Details */}
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-bold text-sm text-gray-900 truncate">{offer.title}</h3>
-                                            <p className="text-xs text-gray-500 mt-0.5">{offer.merchantName}</p>
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <span className="text-xs font-bold text-white bg-primary px-2 py-0.5 rounded-full">
-                                                    {getDiscountText(offer)}
-                                                </span>
-                                                {offer.merchantCity && (
-                                                    <span className="text-[10px] text-gray-400">{offer.merchantCity}</span>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Price */}
-                                        <div className="text-right flex-shrink-0">
-                                            {offer.originalPrice && (
-                                                <p className="text-xs text-gray-400 line-through">₹{offer.originalPrice}</p>
-                                            )}
-                                            {offer.finalPrice && (
-                                                <p className="text-lg font-bold text-primary">₹{offer.finalPrice}</p>
-                                            )}
-                                        </div>
-                                    </motion.div>
-                                </Link>
-                            ))}
-                        </div>
-                    ) : (
-                        // Empty state
-                        <div className="text-center py-12">
-                            <Tag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                            <h3 className="font-bold text-gray-600">No offers yet</h3>
-                            <p className="text-sm text-gray-400 mt-1">Check back soon for amazing deals!</p>
-                        </div>
-                    )}
+                    <h3 className="font-bold text-gray-900 text-lg">More Coming Soon!</h3>
+                    <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">
+                        We're onboarding amazing brands in Food, Fashion & Fitness. Stay tuned!
+                    </p>
                 </section>
             </main>
         </div>

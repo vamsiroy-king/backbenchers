@@ -21,12 +21,11 @@ const HERO_BANNERS = [
     { id: 3, title: "Free Spotify Premium 3 Months", cta: "Claim", gradient: "from-green-400 to-emerald-600" },
 ];
 
-// Categories - Core 4
+// Categories - F3 Cube Launch (Food, Fashion, Fitness)
 const CATEGORIES = [
-    { id: 1, name: "Food", emoji: "🍕", color: "bg-orange-500" },
-    { id: 2, name: "Fashion", emoji: "👗", color: "bg-pink-500" },
-    { id: 3, name: "Fitness", emoji: "💪", color: "bg-blue-600" },
-    { id: 4, name: "Sports", emoji: "🏏", color: "bg-emerald-500" },
+    { id: 1, name: "Food", emoji: "🍕", color: "bg-gradient-to-br from-orange-400 to-red-500", image: null },
+    { id: 2, name: "Fashion", emoji: "👗", color: "bg-gradient-to-br from-pink-400 to-rose-500", image: null },
+    { id: 3, name: "Fitness", emoji: "💪", color: "bg-gradient-to-br from-blue-500 to-indigo-600", image: null },
 ];
 
 // Top Brands
@@ -91,11 +90,26 @@ export default function DashboardPage() {
     // Top brands from admin
     const [topBrandsData, setTopBrandsData] = useState<{ id: string; name: string; logo: string | null; category: string; discount?: string }[]>([]);
 
+    // Content visibility settings (from admin)
+    const [contentSettings, setContentSettings] = useState({
+        showTopBrands: true,
+        showHeroBanners: true,
+        showTrending: true,
+    });
+
     // Check if student is verified (logged in with profile)
     const [isVerified, setIsVerified] = useState(false);
     const [studentId, setStudentId] = useState<string | null>(null);
 
     const unreadCount = NOTIFICATIONS.filter(n => n.isNew).length;
+
+    // Load content visibility settings
+    useEffect(() => {
+        const saved = localStorage.getItem('contentSettings');
+        if (saved) {
+            setContentSettings(JSON.parse(saved));
+        }
+    }, []);
 
     // Fetch real offers and check verification status
     useEffect(() => {
@@ -493,21 +507,26 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* Categories */}
+                {/* F3 Categories - Food, Fashion, Fitness */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2.5">
                         <span className="text-xl">🎯</span>
-                        <h3 className="text-lg font-bold tracking-tight text-gray-900">Browse Categories</h3>
+                        <h3 className="text-lg font-bold tracking-tight text-gray-900">Explore Categories</h3>
                     </div>
-                    <div className="grid grid-cols-4 gap-2.5">
+                    <div className="grid grid-cols-3 gap-3">
                         {CATEGORIES.map((cat) => (
                             <Link key={cat.id} href={`/dashboard/category/${cat.name}`}>
                                 <motion.div
-                                    whileTap={{ scale: 0.95 }}
-                                    className={`aspect-square ${cat.color} rounded-xl flex flex-col items-center justify-center shadow-card cursor-pointer`}
+                                    whileTap={{ scale: 0.97 }}
+                                    className={`relative aspect-[4/3] ${cat.color} rounded-xl flex flex-col items-center justify-center shadow-card cursor-pointer overflow-hidden`}
                                 >
-                                    <span className="text-2xl mb-0.5">{cat.emoji}</span>
-                                    <span className="text-white text-[10px] font-semibold">{cat.name}</span>
+                                    {cat.image ? (
+                                        <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover" />
+                                    ) : null}
+                                    <div className={`relative z-10 flex flex-col items-center ${cat.image ? 'bg-black/40 absolute inset-0 justify-center' : ''}`}>
+                                        <span className="text-3xl mb-1">{cat.emoji}</span>
+                                        <span className="text-white text-xs font-semibold">{cat.name}</span>
+                                    </div>
                                 </motion.div>
                             </Link>
                         ))}
@@ -584,41 +603,43 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* Top Brands */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2.5">
-                        <Sparkles className="h-5 w-5 text-yellow-500" />
-                        <h3 className="text-lg font-bold tracking-tight text-gray-900">Top Brands</h3>
-                    </div>
+                {/* Top Brands - Conditionally rendered based on admin settings */}
+                {contentSettings.showTopBrands && (
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2.5">
+                            <Sparkles className="h-5 w-5 text-yellow-500" />
+                            <h3 className="text-lg font-bold tracking-tight text-gray-900">Top Brands</h3>
+                        </div>
 
-                    <div className="grid grid-cols-3 gap-2.5">
-                        {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
-                            <motion.button
-                                key={brand.id}
-                                whileTap={{ scale: 0.97 }}
-                                onClick={(e) => {
-                                    if (!isVerified) {
-                                        e.preventDefault();
-                                        setShowVerifyModal(true);
-                                    } else {
-                                        router.push(`/store/${brand.id}`);
-                                    }
-                                }}
-                                className="bg-white rounded-xl p-3.5 flex flex-col items-center gap-2 shadow-card border border-gray-100/50 hover:shadow-soft transition-shadow"
-                            >
-                                <div className="h-12 w-12 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden">
-                                    {brand.logo ? (
-                                        <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <Store className="h-5 w-5 text-gray-400" />
-                                    )}
-                                </div>
-                                <span className="text-xs font-semibold text-gray-900 text-center line-clamp-1">{brand.name}</span>
-                                <span className="text-[10px] font-medium text-primary">{brand.discount || brand.category}</span>
-                            </motion.button>
-                        ))}
+                        <div className="grid grid-cols-3 gap-2.5">
+                            {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
+                                <motion.button
+                                    key={brand.id}
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={(e) => {
+                                        if (!isVerified) {
+                                            e.preventDefault();
+                                            setShowVerifyModal(true);
+                                        } else {
+                                            router.push(`/store/${brand.id}`);
+                                        }
+                                    }}
+                                    className="bg-white rounded-xl p-3.5 flex flex-col items-center gap-2 shadow-card border border-gray-100/50 hover:shadow-soft transition-shadow"
+                                >
+                                    <div className="h-12 w-12 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden">
+                                        {brand.logo ? (
+                                            <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Store className="h-5 w-5 text-gray-400" />
+                                        )}
+                                    </div>
+                                    <span className="text-xs font-semibold text-gray-900 text-center line-clamp-1">{brand.name}</span>
+                                    <span className="text-[10px] font-medium text-primary">{brand.discount || brand.category}</span>
+                                </motion.button>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* App Switcher */}
                 <div className="pt-8 border-t border-gray-100/80 mt-4">
