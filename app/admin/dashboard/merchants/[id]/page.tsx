@@ -493,9 +493,9 @@ export default function MerchantReviewPage() {
                             <div>
                                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Terms & Conditions</label>
                                 <div className="mt-2 space-y-2">
-                                    {(offerData.terms ? offerData.terms.split('\n').filter(t => t.trim()) : []).map((term, index) => (
+                                    {(offerData.terms ? offerData.terms.split('\n') : []).map((term, index) => (
                                         <div key={index} className="flex items-center gap-2">
-                                            <span className="flex-shrink-0 h-6 w-6 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center font-medium">{index + 1}</span>
+                                            <span className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-semibold">{index + 1}</span>
                                             <input
                                                 type="text"
                                                 value={term}
@@ -504,9 +504,11 @@ export default function MerchantReviewPage() {
                                                     terms[index] = e.target.value;
                                                     setOfferData({ ...offerData, terms: terms.join('\n') });
                                                 }}
+                                                placeholder="Enter term..."
                                                 className="flex-1 h-10 bg-gray-100 rounded-lg px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
                                             />
                                             <button
+                                                type="button"
                                                 onClick={() => {
                                                     const terms = offerData.terms.split('\n').filter((_, i) => i !== index);
                                                     setOfferData({ ...offerData, terms: terms.join('\n') });
@@ -518,7 +520,8 @@ export default function MerchantReviewPage() {
                                         </div>
                                     ))}
                                     <button
-                                        onClick={() => setOfferData({ ...offerData, terms: offerData.terms ? offerData.terms + '\n' : '' })}
+                                        type="button"
+                                        onClick={() => setOfferData({ ...offerData, terms: offerData.terms ? offerData.terms + '\n' : ' ' })}
                                         className="w-full h-10 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
                                     >
                                         <Plus className="h-4 w-4" />
