@@ -94,35 +94,37 @@ export default function MerchantDashboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white pb-32 pt-12">
+        <div className="min-h-screen bg-gray-50/50 pb-32 pt-12">
             {/* Header */}
-            <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-100">
-                <div className="px-4 h-14 flex items-center justify-between">
+            <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-100/80">
+                <div className="px-5 h-16 flex items-center justify-between">
                     <div>
-                        <p className="text-xs text-gray-500">Welcome back</p>
-                        <h1 className="font-extrabold text-lg">{merchant?.businessName || 'Merchant'} 👋</h1>
+                        <p className="text-xs text-gray-400">Welcome back</p>
+                        <h1 className="font-bold text-lg text-gray-900">{merchant?.businessName || 'Merchant'} 👋</h1>
                     </div>
                     <div className="flex items-center gap-2">
                         {merchant?.status === 'pending' && (
-                            <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-bold">
-                                Pending Approval
+                            <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-lg font-semibold">
+                                Pending
                             </span>
                         )}
-                        <button className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center relative">
-                            <Bell className="h-5 w-5 text-gray-600" />
+                        <button className="h-10 w-10 rounded-xl bg-white shadow-subtle border border-gray-100/50 flex items-center justify-center">
+                            <Bell className="h-5 w-5 text-gray-500" />
                         </button>
                     </div>
                 </div>
             </header>
 
-            <main className="px-4 pt-6 space-y-6">
+            <main className="px-5 pt-8 space-y-6">
                 {/* Status Banner for Pending */}
                 {merchant?.status === 'pending' && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+                    <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-4 shadow-subtle">
                         <div className="flex items-center gap-3">
-                            <Store className="h-6 w-6 text-yellow-600" />
+                            <div className="h-10 w-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <Store className="h-5 w-5 text-yellow-600" />
+                            </div>
                             <div>
-                                <h3 className="font-bold text-yellow-800">Awaiting Approval</h3>
+                                <h3 className="font-semibold text-yellow-800 text-sm">Awaiting Approval</h3>
                                 <p className="text-xs text-yellow-600">Your account is under review. You'll get your BBM-ID once approved.</p>
                             </div>
                         </div>
@@ -130,33 +132,34 @@ export default function MerchantDashboardPage() {
                 )}
 
                 {/* Today's Performance */}
-                <div className="bg-gradient-to-r from-primary to-emerald-500 rounded-2xl p-5 text-white">
-                    <div className="flex items-center justify-between mb-4">
+                <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-5 text-white shadow-elevated">
+                    <div className="flex items-center justify-between mb-5">
                         <div>
-                            <p className="text-xs opacity-75">
+                            <p className="text-[10px] text-white/50 uppercase tracking-wider">
                                 {new Date().toLocaleDateString('en-IN', {
                                     weekday: 'long',
                                     day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric'
+                                    month: 'long'
                                 })}
                             </p>
-                            <h3 className="font-bold text-lg">Today's Performance</h3>
+                            <h3 className="font-semibold text-base mt-0.5">Today's Performance</h3>
                         </div>
-                        <TrendingUp className="h-6 w-6 opacity-80" />
+                        <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center">
+                            <TrendingUp className="h-5 w-5 text-white/80" />
+                        </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                         <div>
-                            <p className="text-3xl font-extrabold">{dashboardStats.totalRedemptions}</p>
-                            <p className="text-xs opacity-75">Redemptions</p>
+                            <p className="text-2xl font-bold">{dashboardStats.totalRedemptions}</p>
+                            <p className="text-[10px] text-white/50">Redemptions</p>
                         </div>
                         <div>
-                            <p className="text-3xl font-extrabold">₹{dashboardStats.todayEarnings.toLocaleString('en-IN')}</p>
-                            <p className="text-xs opacity-75">Today's Earnings</p>
+                            <p className="text-2xl font-bold">₹{dashboardStats.todayEarnings.toLocaleString('en-IN')}</p>
+                            <p className="text-[10px] text-white/50">Today's Earnings</p>
                         </div>
                         <div>
-                            <p className="text-3xl font-extrabold">{dashboardStats.activeOffers}</p>
-                            <p className="text-xs opacity-75">Active Offers</p>
+                            <p className="text-2xl font-bold">{dashboardStats.activeOffers}</p>
+                            <p className="text-[10px] text-white/50">Active Offers</p>
                         </div>
                     </div>
                 </div>
@@ -166,27 +169,27 @@ export default function MerchantDashboardPage() {
                     <Link href="/merchant/dashboard/scan">
                         <motion.button
                             whileTap={{ scale: 0.98 }}
-                            className="w-full bg-black text-white rounded-2xl p-4 flex items-center justify-between"
+                            className="w-full bg-gray-900 text-white rounded-xl p-4 flex items-center justify-between shadow-card"
                             disabled={merchant?.status !== 'approved'}
                         >
                             <div className="flex items-center gap-3">
-                                <ScanLine className="h-6 w-6" />
-                                <span className="font-bold">Scan QR</span>
+                                <ScanLine className="h-5 w-5" />
+                                <span className="font-semibold text-sm">Scan QR</span>
                             </div>
-                            <ChevronRight className="h-5 w-5" />
+                            <ChevronRight className="h-4 w-4 opacity-50" />
                         </motion.button>
                     </Link>
                     <Link href="/merchant/dashboard/offers/new">
                         <motion.button
                             whileTap={{ scale: 0.98 }}
-                            className="w-full bg-primary/10 text-primary rounded-2xl p-4 flex items-center justify-between"
+                            className="w-full bg-primary text-white rounded-xl p-4 flex items-center justify-between shadow-card"
                             disabled={merchant?.status !== 'approved'}
                         >
                             <div className="flex items-center gap-3">
-                                <Plus className="h-6 w-6" />
-                                <span className="font-bold">New Offer</span>
+                                <Plus className="h-5 w-5" />
+                                <span className="font-semibold text-sm">New Offer</span>
                             </div>
-                            <ChevronRight className="h-5 w-5" />
+                            <ChevronRight className="h-4 w-4 opacity-50" />
                         </motion.button>
                     </Link>
                 </div>

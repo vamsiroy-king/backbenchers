@@ -151,53 +151,51 @@ export default function AdminDashboardPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
+                    <h1 className="text-xl font-bold text-gray-900">Dashboard Overview</h1>
                     <p className="text-sm text-gray-500 mt-1">Welcome back! Here's what's happening with your platform.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <select className="h-10 px-4 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none">
-                        <option>Last 7 days</option>
-                        <option>Last 30 days</option>
-                        <option>Last 90 days</option>
-                    </select>
-                </div>
+                <select className="h-10 px-4 bg-white border border-gray-100 rounded-xl text-sm font-medium outline-none shadow-subtle">
+                    <option>Last 7 days</option>
+                    <option>Last 30 days</option>
+                    <option>Last 90 days</option>
+                </select>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                 {STATS.map((stat, index) => (
                     <Link key={index} href={stat.link}>
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            whileHover={{ y: -4, boxShadow: "0 12px 40px -12px rgba(0,0,0,0.15)" }}
-                            className="bg-white rounded-2xl p-6 border border-gray-100 cursor-pointer transition-all"
+                            transition={{ delay: index * 0.05 }}
+                            whileHover={{ y: -2 }}
+                            className="bg-white rounded-xl p-5 border border-gray-100/50 shadow-card cursor-pointer transition-all hover:shadow-elevated"
                         >
                             <div className="flex items-center justify-between mb-4">
-                                <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}>
-                                    <stat.icon className="h-6 w-6 text-white" />
+                                <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-sm`}>
+                                    <stat.icon className="h-5 w-5 text-white" />
                                 </div>
-                                <div className={`flex items-center gap-1 text-xs font-semibold ${stat.trendUp ? 'text-green-600' : 'text-gray-500'}`}>
+                                <div className={`flex items-center gap-1 text-[10px] font-medium ${stat.trendUp ? 'text-green-600' : 'text-gray-400'}`}>
                                     {stat.trendUp ? <ArrowUpRight className="h-3 w-3" /> : null}
                                     {stat.trend}
                                 </div>
                             </div>
-                            <p className="text-3xl font-bold text-gray-900">{stat.value.toLocaleString()}</p>
-                            <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
+                            <p className="text-2xl font-bold text-gray-900">{stat.value.toLocaleString()}</p>
+                            <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
                         </motion.div>
                     </Link>
                 ))}
             </div>
 
             {/* Two Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 {/* Pending Approvals */}
-                <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100/50 shadow-card overflow-hidden">
                     <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 bg-yellow-100 rounded-xl flex items-center justify-center">

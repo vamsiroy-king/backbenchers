@@ -272,7 +272,7 @@ export default function ProfilePage() {
 
     // Verified User View - Full Profile with ID Card
     return (
-        <div className="min-h-screen bg-white pb-28 px-4">
+        <div className="min-h-screen bg-gray-50/50 pb-24 px-5">
             {/* Camera Modal */}
             <AnimatePresence>
                 {showCameraModal && (
@@ -448,10 +448,10 @@ export default function ProfilePage() {
             </AnimatePresence>
 
             <header className="py-6 flex justify-between items-center">
-                <h1 className="text-2xl font-bold">My ID</h1>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                    <Settings className="h-5 w-5" />
-                </Button>
+                <h1 className="text-xl font-bold text-gray-900">My ID</h1>
+                <button className="h-10 w-10 rounded-xl bg-white shadow-subtle border border-gray-100/50 flex items-center justify-center">
+                    <Settings className="h-5 w-5 text-gray-500" />
+                </button>
             </header>
 
             {/* Profile Photo Warning */}
@@ -656,11 +656,13 @@ export default function ProfilePage() {
 
 
             {/* Savings Section */}
-            <div className="bg-gradient-to-r from-primary/10 to-emerald-100 rounded-3xl p-5 mb-6">
+            <div className="bg-white rounded-2xl p-5 mb-6 shadow-card border border-gray-100/50">
                 <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <Wallet className="h-5 w-5 text-primary" />
-                        <h3 className="font-bold">Your Savings</h3>
+                    <div className="flex items-center gap-2.5">
+                        <div className="h-9 w-9 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <Wallet className="h-5 w-5 text-primary" />
+                        </div>
+                        <h3 className="font-semibold text-gray-900">Your Savings</h3>
                     </div>
                     <button
                         onClick={async () => {
@@ -737,20 +739,23 @@ export default function ProfilePage() {
 
             {/* Actions */}
             <div className="space-y-3">
-                <Button
-                    variant="outline"
-                    className="w-full h-14 justify-start gap-4 rounded-2xl border-red-200 text-red-500 hover:text-red-600 hover:bg-red-50"
+                <button
                     onClick={handleSignOut}
+                    className="w-full h-14 flex items-center justify-center gap-3 rounded-xl bg-white border border-red-100 text-red-500 font-medium shadow-subtle hover:bg-red-50 transition-colors"
                 >
-                    <LogOut className="h-5 w-5" /> Sign Out
-                </Button>
+                    <LogOut className="h-5 w-5" />
+                    Sign Out
+                </button>
             </div>
 
-            {/* App Switcher - Admin Only */}
-            <div className="pt-6 border-t border-gray-100 mt-6">
-                <p className="text-xs text-gray-400 text-center mb-3">Admin Access</p>
-                <div className="flex justify-center gap-3">
-                    <Link href="/admin/dashboard" className="px-4 py-2 bg-gray-100 rounded-xl text-xs font-semibold">
+            {/* App Switcher */}
+            <div className="pt-8 border-t border-gray-100/80 mt-6">
+                <p className="text-xs text-gray-400 text-center mb-3">Switch to</p>
+                <div className="flex justify-center gap-2.5">
+                    <Link href="/merchant" className="px-4 py-2.5 bg-white rounded-xl text-xs font-medium text-gray-600 border border-gray-100 shadow-subtle">
+                        Merchant App
+                    </Link>
+                    <Link href="/admin/dashboard" className="px-4 py-2.5 bg-white rounded-xl text-xs font-medium text-gray-600 border border-gray-100 shadow-subtle">
                         Admin Panel
                     </Link>
                 </div>

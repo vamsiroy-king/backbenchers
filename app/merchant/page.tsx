@@ -31,7 +31,7 @@ export default function MerchantLandingPage() {
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.1 }}
-                                className="bg-gray-50 rounded-2xl p-4 flex items-center gap-4"
+                                className="bg-white rounded-xl p-4 flex items-center gap-4 shadow-card border border-gray-100/50"
                             >
                                 <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center">
                                     <Users className="h-6 w-6 text-blue-600" />
@@ -91,27 +91,27 @@ export default function MerchantLandingPage() {
                         {/* CTA Buttons */}
                         <div className="space-y-3">
                             <Link href="/merchant/auth/signup" className="block">
-                                <Button className="w-full h-14 bg-primary text-white font-bold rounded-2xl text-base">
+                                <button className="w-full h-14 bg-primary text-white font-semibold rounded-xl text-base shadow-card flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors">
                                     Register Your Business
-                                    <ArrowRight className="ml-2 h-5 w-5" />
-                                </Button>
+                                    <ArrowRight className="h-5 w-5" />
+                                </button>
                             </Link>
 
                             <Link href="/merchant/auth/login" className="block">
-                                <Button variant="outline" className="w-full h-14 font-bold rounded-2xl text-base border-2">
+                                <button className="w-full h-14 bg-white border border-gray-200 text-gray-900 font-semibold rounded-xl text-base shadow-subtle flex items-center justify-center hover:bg-gray-50 transition-colors">
                                     Already a Partner? Login
-                                </Button>
+                                </button>
                             </Link>
                         </div>
 
                         {/* App Switcher */}
                         <div className="mt-10 pt-6 border-t border-gray-100">
                             <p className="text-xs text-gray-400 text-center mb-3">Switch to</p>
-                            <div className="flex justify-center gap-3">
-                                <Link href="/dashboard" className="px-4 py-2 bg-gray-100 rounded-xl text-xs font-semibold">
+                            <div className="flex justify-center gap-2.5">
+                                <Link href="/dashboard" className="px-4 py-2.5 bg-white rounded-xl text-xs font-medium text-gray-600 border border-gray-100 shadow-subtle">
                                     Student App
                                 </Link>
-                                <Link href="/admin/dashboard" className="px-4 py-2 bg-gray-100 rounded-xl text-xs font-semibold">
+                                <Link href="/admin/dashboard" className="px-4 py-2.5 bg-white rounded-xl text-xs font-medium text-gray-600 border border-gray-100 shadow-subtle">
                                     Admin Panel
                                 </Link>
                             </div>
