@@ -225,45 +225,56 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                     <ExternalLink className="h-4 w-4 ml-2" />
                 </Button>
 
-                {/* Active Offers */}
+                {/* Active Offers - Compact Apple-Style Design */}
                 {offers.length > 0 && (
-                    <div className="space-y-4">
-                        <h3 className="font-bold flex items-center gap-2">
-                            <Tag className="h-5 w-5 text-primary" />
-                            Student Offers ({offers.length})
+                    <div className="space-y-3">
+                        <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider">
+                            Available Offers
                         </h3>
                         {offers.filter(o => o.status === 'active').map((offer) => (
                             <motion.div
                                 key={offer.id}
                                 whileTap={{ scale: 0.98 }}
-                                className="bg-gradient-to-br from-primary to-emerald-600 rounded-2xl p-5 text-white relative overflow-hidden"
+                                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative"
                             >
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
-                                {new Date(offer.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
-                                    <div className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">NEW</div>
-                                )}
-                                <p className="text-white/80 text-xs uppercase tracking-wider mb-1">{getDiscountText(offer)}</p>
-                                <h4 className="font-bold text-lg mb-3">{offer.title}</h4>
-                                <div className="bg-white/10 backdrop-blur rounded-xl p-4 mb-3">
-                                    <div className="flex items-baseline gap-3 mb-2">
-                                        <span className="text-white/50 text-xl line-through">₹{offer.originalPrice || 0}</span>
-                                        <span className="text-white text-4xl font-black">₹{offer.finalPrice || 0}</span>
+                                {/* Compact Row Layout */}
+                                <div className="flex items-center gap-4">
+                                    {/* Discount Badge */}
+                                    <div className="flex-shrink-0 h-14 w-14 bg-gradient-to-br from-primary to-emerald-500 rounded-xl flex flex-col items-center justify-center text-white">
+                                        <span className="text-lg font-black leading-none">
+                                            {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
+                                        </span>
+                                        <span className="text-[9px] font-medium opacity-80">OFF</span>
                                     </div>
-                                    <div className="bg-yellow-400 text-gray-900 text-sm font-bold px-3 py-1.5 rounded-lg inline-flex items-center gap-1">
-                                        <span>🎉</span> Save ₹{offer.discountAmount || 0}
+
+                                    {/* Content */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-0.5">
+                                            <h4 className="font-semibold text-gray-900 truncate">{offer.title}</h4>
+                                            {new Date(offer.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
+                                                <span className="flex-shrink-0 text-[9px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded">NEW</span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-gray-400 text-sm line-through">₹{offer.originalPrice}</span>
+                                            <span className="text-primary text-lg font-bold">₹{offer.finalPrice}</span>
+                                            <span className="text-xs text-green-600 font-medium">Save ₹{offer.discountAmount}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Arrow */}
+                                    <div className="flex-shrink-0 text-gray-300">
+                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
                                     </div>
                                 </div>
-                                {offer.description && <p className="text-sm text-white/80">{offer.description}</p>}
-                                {offer.terms && (
-                                    <div className="mt-3 pt-3 border-t border-white/20">
-                                        <p className="text-[10px] text-white/60 uppercase tracking-wider mb-1">Terms:</p>
-                                        {(typeof offer.terms === 'string' ? [offer.terms] : offer.terms).map((term: string, i: number) => (
-                                            <p key={i} className="text-xs text-white/70">• {term}</p>
-                                        ))}
-                                    </div>
-                                )}
+
+                                {/* Terms - Collapsed by default, minimal */}
                                 {offer.validUntil && (
-                                    <p className="text-[10px] text-white/50 mt-3">Valid until {new Date(offer.validUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                                    <p className="text-[10px] text-gray-400 mt-2 pl-[72px]">
+                                        Valid till {new Date(offer.validUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                                    </p>
                                 )}
                             </motion.div>
                         ))}

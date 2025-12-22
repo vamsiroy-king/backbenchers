@@ -1,14 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Store, MapPin, FileText, Check, X, Eye, Download, Image, Loader2, Trash2, AlertTriangle, Tag, Percent, IndianRupee } from "lucide-react";
+import { ArrowLeft, Store, MapPin, FileText, Check, X, Eye, Download, Image, Loader2, Trash2, AlertTriangle, Tag, Percent, IndianRupee, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useParams } from "next/navigation";
 import { merchantService } from "@/lib/services/merchant.service";
 import { offerService } from "@/lib/services/offer.service";
-import { Merchant } from "@/lib/types";
+import { Merchant, Offer } from "@/lib/types";
 
 const CHECKLIST = [
     { id: 1, label: "Business details verified", checked: false },
@@ -50,8 +50,15 @@ export default function MerchantReviewPage() {
         discountValue: '',
         actualPrice: '',
         name: '',
-        freeItemName: ''
+        freeItemName: '',
+        terms: '',
+        expiryDate: ''
     });
+
+    // Offers Management State
+    const [offers, setOffers] = useState<Offer[]>([]);
+    const [showCreateOfferModal, setShowCreateOfferModal] = useState(false);
+    const [offersLoading, setOffersLoading] = useState(false);
 
     // Fetch merchant data
     useEffect(() => {
@@ -70,10 +77,112 @@ export default function MerchantReviewPage() {
             }
         }
 
+        async function fetchOffers() {
+            setOffersLoading(true);
+            try {
+                const result = await offerService.getByMerchantId(merchantId);
+                if (result.success && result.data) {
+                    setOffers(result.data);
+                }
+            } catch (err: any) {
+                console.error("Failed to fetch offers:", err);
+            } finally {
+                setOffersLoading(false);
+            }
+        }
+
         if (merchantId) {
             fetchMerchant();
+            fetchOffers();
         }
     }, [merchantId]);
+
+    // Refresh offers list (called after creating new offer)
+    const refreshOffers = async () => {
+        setOffersLoading(true);
+        try {
+            const result = await offerService.getByMerchantId(merchantId);
+            if (result.success && result.data) {
+                setOffers(result.data);
+            }
+        } catch (err: any) {
+            console.error("Failed to refresh offers:", err);
+        } finally {
+            setOffersLoading(false);
+        }
+    };
+
+    // Handle creating a new offer (for approved merchants)
+    const handleCreateNewOffer = async () => {
+        const discountVal = parseFloat(offerData.discountValue);
+        const actualPrice = parseFloat(offerData.actualPrice);
+
+        if (!offerData.name || isNaN(discountVal) || discountVal <= 0) {
+            setError("Please fill in all offer details");
+            return;
+        }
+
+        if ((offerData.type === 'flat' || offerData.type === 'percentage') && (isNaN(actualPrice) || actualPrice <= 0)) {
+            setError("Please enter a valid actual price");
+            return;
+        }
+
+        setActionLoading(true);
+        setError("");
+
+        try {
+            // Calculate discount amount and final price
+            let discountAmount = 0;
+            let finalPrice = actualPrice;
+
+            if (offerData.type === 'flat') {
+                discountAmount = discountVal;
+                finalPrice = Math.max(0, actualPrice - discountVal);
+            } else if (offerData.type === 'percentage') {
+                discountAmount = Math.round(actualPrice * (discountVal / 100));
+                finalPrice = actualPrice - discountAmount;
+            }
+
+            // Create the offer with admin tracking
+            const termsArray = offerData.terms
+                ? offerData.terms.split('\n').filter((t: string) => t.trim())
+                : ["Valid for verified students only"];
+
+            const offerResult = await offerService.createForMerchant(merchantId, {
+                title: offerData.name,
+                type: offerData.type,
+                discountValue: discountVal,
+                originalPrice: actualPrice || 100,
+                finalPrice: finalPrice,
+                discountAmount: discountAmount,
+                minOrderValue: actualPrice || 100,
+                freeItemName: offerData.freeItemName || undefined,
+                terms: termsArray,
+                status: 'active'
+            });
+
+            if (!offerResult.success) {
+                setError(offerResult.error || "Failed to create offer");
+            } else {
+                // Success - close modal and refresh offers
+                setShowCreateOfferModal(false);
+                setOfferData({
+                    type: 'flat',
+                    discountValue: '',
+                    actualPrice: '',
+                    name: '',
+                    freeItemName: '',
+                    terms: '',
+                    expiryDate: ''
+                });
+                await refreshOffers();
+            }
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     const allChecked = checklist.every(item => item.checked);
 
@@ -242,6 +351,224 @@ export default function MerchantReviewPage() {
                     >
                         <X className="h-6 w-6 text-white" />
                     </button>
+                </div>
+            )}
+
+            {/* Create New Offer Modal (for approved merchants) */}
+            {showCreateOfferModal && merchant.status === 'approved' && (
+                <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+                    >
+                        {/* Header */}
+                        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                    <Tag className="h-5 w-5 text-primary" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-400 uppercase tracking-wider">Admin</p>
+                                    <h2 className="font-bold">Create New Offer</h2>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => { setShowCreateOfferModal(false); setError(""); }}
+                                className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            {/* Quick Templates */}
+                            <div>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Quick Templates</label>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                    {[
+                                        { name: 'Student Special', type: 'flat', discount: '50' },
+                                        { name: 'Campus Feast', type: 'percentage', discount: '20' },
+                                        { name: 'Buy 1 Get 1 Free', type: 'bogo', discount: '0' },
+                                        { name: 'First Order Bonus', type: 'flat', discount: '100' }
+                                    ].map(template => (
+                                        <button
+                                            key={template.name}
+                                            onClick={() => setOfferData({
+                                                ...offerData,
+                                                name: template.name,
+                                                type: template.type as any,
+                                                discountValue: template.discount
+                                            })}
+                                            className="p-2 rounded-lg border border-gray-200 text-xs font-medium hover:border-primary hover:bg-primary/5 transition-all text-left"
+                                        >
+                                            {template.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Offer Type */}
+                            <div>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Offer Type</label>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                    {[
+                                        { id: 'flat', label: '₹ Flat OFF', icon: IndianRupee },
+                                        { id: 'percentage', label: '% OFF', icon: Percent },
+                                        { id: 'bogo', label: 'Buy 1 Get 1', icon: Tag },
+                                        { id: 'freebie', label: 'Free Item', icon: Tag }
+                                    ].map(type => (
+                                        <button
+                                            key={type.id}
+                                            onClick={() => setOfferData({ ...offerData, type: type.id as any })}
+                                            className={`p-3 rounded-xl border-2 flex items-center gap-2 text-sm font-medium transition-all ${offerData.type === type.id
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                                }`}
+                                        >
+                                            <type.icon className="h-4 w-4" />
+                                            {type.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Offer Name */}
+                            <div>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Offer Name</label>
+                                <input
+                                    type="text"
+                                    value={offerData.name}
+                                    onChange={(e) => {
+                                        const titleCase = e.target.value
+                                            .split(' ')
+                                            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                                            .join(' ');
+                                        setOfferData({ ...offerData, name: titleCase });
+                                    }}
+                                    placeholder="e.g., Student Special"
+                                    className="w-full h-12 bg-gray-100 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                />
+                            </div>
+
+                            {/* Discount Value */}
+                            <div>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {offerData.type === 'percentage' ? 'Discount Percentage' : offerData.type === 'flat' ? 'Discount Amount (₹)' : 'Discount Value'}
+                                </label>
+                                <div className="relative mt-1">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                        {offerData.type === 'percentage' ? '%' : '₹'}
+                                    </span>
+                                    <input
+                                        type="number"
+                                        value={offerData.discountValue}
+                                        onChange={(e) => setOfferData({ ...offerData, discountValue: e.target.value })}
+                                        placeholder={offerData.type === 'percentage' ? '10' : '50'}
+                                        className="w-full h-12 bg-gray-100 rounded-xl pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Actual Price */}
+                            {(offerData.type === 'flat' || offerData.type === 'percentage') && (
+                                <div>
+                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                        Actual Item Price (₹)
+                                    </label>
+                                    <div className="relative mt-1">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                        <input
+                                            type="number"
+                                            value={offerData.actualPrice}
+                                            onChange={(e) => setOfferData({ ...offerData, actualPrice: e.target.value })}
+                                            placeholder="200"
+                                            className="w-full h-12 bg-gray-100 rounded-xl pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Terms & Conditions */}
+                            <div>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Terms & Conditions</label>
+                                <textarea
+                                    value={offerData.terms}
+                                    onChange={(e) => setOfferData({ ...offerData, terms: e.target.value })}
+                                    placeholder="e.g., Valid for dine-in only&#10;Cannot be combined with other offers&#10;Valid student ID required"
+                                    rows={3}
+                                    className="w-full bg-gray-100 rounded-xl px-4 py-3 mt-1 text-sm outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                                />
+                                <p className="text-[10px] text-gray-400 mt-1">Enter each term on a new line</p>
+                            </div>
+
+                            {/* Expiry Date */}
+                            <div>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Offer Valid Until</label>
+                                <input
+                                    type="date"
+                                    value={offerData.expiryDate}
+                                    onChange={(e) => setOfferData({ ...offerData, expiryDate: e.target.value })}
+                                    min={new Date().toISOString().split('T')[0]}
+                                    className="w-full h-12 bg-gray-100 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                />
+                            </div>
+
+                            {/* Preview */}
+                            {offerData.name && (offerData.discountValue || offerData.type === 'bogo') && (
+                                <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl p-5 border border-green-200">
+                                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Live Preview</p>
+                                    <p className="font-bold text-lg text-gray-900">{offerData.name}</p>
+
+                                    {(offerData.type === 'flat' || offerData.type === 'percentage') && offerData.actualPrice && (
+                                        <div className="mt-3 flex items-center gap-3">
+                                            <span className="line-through text-gray-400 text-lg">₹{offerData.actualPrice}</span>
+                                            <span className="text-2xl font-black text-green-600">
+                                                ₹{offerData.type === 'flat'
+                                                    ? Math.max(0, parseFloat(offerData.actualPrice) - parseFloat(offerData.discountValue || '0'))
+                                                    : Math.round(parseFloat(offerData.actualPrice) * (1 - parseFloat(offerData.discountValue || '0') / 100))
+                                                }
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    <div className="mt-3 inline-flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold">
+                                        {offerData.type === 'percentage' ? (
+                                            <span>🎉 {offerData.discountValue}% OFF</span>
+                                        ) : offerData.type === 'flat' ? (
+                                            <span>🎉 Save ₹{offerData.discountValue}</span>
+                                        ) : offerData.type === 'bogo' ? (
+                                            <span>🎁 Buy 1 Get 1 FREE</span>
+                                        ) : (
+                                            <span>🎁 Free: {offerData.freeItemName || 'Item'}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {error && (
+                                <p className="text-sm text-red-500 text-center">{error}</p>
+                            )}
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 pt-2">
+                                <Button
+                                    onClick={() => { setShowCreateOfferModal(false); setError(""); }}
+                                    variant="outline"
+                                    className="flex-1 h-12 rounded-xl"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleCreateNewOffer}
+                                    disabled={actionLoading}
+                                    className="flex-1 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl font-semibold"
+                                >
+                                    {actionLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Create Offer"}
+                                </Button>
+                            </div>
+                        </div>
+                    </motion.div>
                 </div>
             )}
 
@@ -756,6 +1083,71 @@ export default function MerchantReviewPage() {
                                     </button>
                                 ))}
                             </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Discount Offers Section */}
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-sm text-gray-400 uppercase tracking-wider">Discount Offers</h3>
+                        {merchant.status === 'approved' && (
+                            <button
+                                onClick={() => setShowCreateOfferModal(true)}
+                                className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Add Offer
+                            </button>
+                        )}
+                    </div>
+
+                    {offersLoading ? (
+                        <div className="bg-gray-50 rounded-2xl p-8 flex items-center justify-center">
+                            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                        </div>
+                    ) : offers.length === 0 ? (
+                        <div className="bg-gray-50 rounded-2xl p-8 text-center">
+                            <Tag className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                            <p className="text-sm text-gray-400">No offers created yet</p>
+                            {merchant.status === 'approved' && (
+                                <button
+                                    onClick={() => setShowCreateOfferModal(true)}
+                                    className="mt-3 text-xs font-medium text-primary hover:underline"
+                                >
+                                    + Create First Offer
+                                </button>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {offers.map((offer) => (
+                                <div key={offer.id} className="bg-gradient-to-r from-primary/10 to-green-50 rounded-xl p-4 border border-primary/20">
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div>
+                                            <p className="font-bold text-gray-900">{offer.title}</p>
+                                            <p className="text-xs text-gray-500">
+                                                {offer.type === 'percentage' ? `${offer.discountValue}% OFF` :
+                                                    offer.type === 'flat' ? `₹${offer.discountValue} OFF` :
+                                                        offer.type === 'bogo' ? 'Buy 1 Get 1' : 'Free Item'}
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-1">
+                                            {offer.createdByType === 'admin' && (
+                                                <span className="text-[10px] font-semibold bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">ADMIN</span>
+                                            )}
+                                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${offer.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                                                {offer.status?.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-gray-400 line-through text-sm">₹{offer.originalPrice}</span>
+                                        <span className="text-xl font-black text-primary">₹{offer.finalPrice}</span>
+                                        <span className="text-xs text-green-600 font-medium">Save ₹{offer.discountAmount}</span>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
