@@ -26,6 +26,66 @@ const REJECTION_REASONS = [
     "Other (specify below)"
 ];
 
+// Category-based terms templates
+const TERMS_TEMPLATES: Record<string, string[]> = {
+    'Food': [
+        'Valid for dine-in only',
+        'Cannot be combined with other offers',
+        'Valid student ID required',
+        'One redemption per visit',
+        'Minimum order value may apply'
+    ],
+    'Cafe': [
+        'Valid on all beverages',
+        'Valid student ID required',
+        'Cannot be clubbed with other offers',
+        'One redemption per day',
+        'Applicable on dine-in only'
+    ],
+    'Gym': [
+        'Valid on monthly membership only',
+        'Valid student ID required',
+        'First-time members only',
+        'Registration fee applies separately',
+        'Cannot be transferred'
+    ],
+    'Salon': [
+        'Prior appointment required',
+        'Valid student ID required',
+        'Applicable on selected services',
+        'Cannot be combined with other offers',
+        'One redemption per month'
+    ],
+    'Electronics': [
+        'Valid on MRP only',
+        'Valid student ID required',
+        'Not applicable on sale items',
+        'One unit per student',
+        'Warranty as per brand policy'
+    ],
+    'Fashion': [
+        'Valid on fresh arrivals',
+        'Valid student ID required',
+        'Not valid on discounted items',
+        'One redemption per purchase',
+        'Exchange policy as per store'
+    ],
+    'Books': [
+        'Valid on all books',
+        'Valid student ID required',
+        'Not applicable on stationery',
+        'One redemption per bill',
+        'No cash refunds'
+    ],
+    'General': [
+        'Valid student ID required',
+        'Cannot be combined with other offers',
+        'One redemption per visit',
+        'Subject to availability',
+        'Terms may change without notice'
+    ]
+};
+
 export default function MerchantReviewPage() {
     const router = useRouter();
     const params = useParams();
@@ -490,28 +550,65 @@ export default function MerchantReviewPage() {
                                 </div>
                             )}
 
-                            {/* Terms & Conditions - Line by Line */}
+                            {/* Terms & Conditions - Templates + Custom */}
                             <div>
                                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Terms & Conditions</label>
-                                <div className="mt-2 space-y-2">
-                                    {(offerData.terms ? offerData.terms.split('\n') : []).map((term, index) => (
+
+                                {/* Quick Templates based on category */}
+                                {merchant?.category && (
+                                    <div className="mt-2 mb-3">
+                                        <p className="text-[10px] text-gray-400 mb-2">Quick select ({merchant.category}):</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(TERMS_TEMPLATES[merchant.category] || TERMS_TEMPLATES['General']).map((template, idx) => {
+                                                const currentTerms = offerData.terms ? offerData.terms.split('\n').filter(t => t.trim()) : [];
+                                                const isSelected = currentTerms.includes(template);
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (isSelected) {
+                                                                // Remove template
+                                                                const newTerms = currentTerms.filter(t => t !== template);
+                                                                setOfferData({ ...offerData, terms: newTerms.join('\n') });
+                                                            } else {
+                                                                // Add template
+                                                                const newTerms = [...currentTerms, template];
+                                                                setOfferData({ ...offerData, terms: newTerms.join('\n') });
+                                                            }
+                                                        }}
+                                                        className={`text-xs px-3 py-1.5 rounded-full border transition-all ${isSelected
+                                                                ? 'bg-primary text-white border-primary'
+                                                                : 'bg-white text-gray-600 border-gray-300 hover:border-primary'
+                                                            }`}
+                                                    >
+                                                        {isSelected ? '✓ ' : '+ '}{template}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Selected Terms (editable) */}
+                                <div className="space-y-2">
+                                    {(offerData.terms ? offerData.terms.split('\n').filter(t => t.trim()) : []).map((term, index) => (
                                         <div key={index} className="flex items-center gap-2">
                                             <span className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-semibold">{index + 1}</span>
                                             <input
                                                 type="text"
                                                 value={term}
                                                 onChange={(e) => {
-                                                    const terms = offerData.terms.split('\n');
+                                                    const terms = offerData.terms.split('\n').filter(t => t.trim());
                                                     terms[index] = e.target.value;
                                                     setOfferData({ ...offerData, terms: terms.join('\n') });
                                                 }}
-                                                placeholder="Enter term..."
                                                 className="flex-1 h-10 bg-gray-100 rounded-lg px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    const terms = offerData.terms.split('\n').filter((_, i) => i !== index);
+                                                    const terms = offerData.terms.split('\n').filter((t, i) => t.trim() && i !== index);
                                                     setOfferData({ ...offerData, terms: terms.join('\n') });
                                                 }}
                                                 className="flex-shrink-0 h-8 w-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200"
@@ -522,11 +619,14 @@ export default function MerchantReviewPage() {
                                     ))}
                                     <button
                                         type="button"
-                                        onClick={() => setOfferData({ ...offerData, terms: offerData.terms ? offerData.terms + '\n' : ' ' })}
+                                        onClick={() => {
+                                            const currentTerms = offerData.terms ? offerData.terms.split('\n').filter(t => t.trim()) : [];
+                                            setOfferData({ ...offerData, terms: [...currentTerms, ''].join('\n') });
+                                        }}
                                         className="w-full h-10 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
                                     >
                                         <Plus className="h-4 w-4" />
-                                        Add Term
+                                        Add Custom Term
                                     </button>
                                 </div>
                             </div>
