@@ -158,30 +158,30 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 </div>
             </div>
 
-            <div className="px-4 pt-4 pb-32 space-y-5">
+            <div className="px-5 pt-5 pb-32 space-y-6">
                 {/* Rating & Status */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-lg">
+                        <div className="flex items-center gap-1.5 bg-primary/10 px-2.5 py-1 rounded-lg">
                             <Star className="h-4 w-4 text-primary fill-primary" />
-                            <span className="font-bold text-sm text-primary">4.5</span>
+                            <span className="font-semibold text-sm text-primary">4.5</span>
                         </div>
-                        <span className="text-xs text-gray-500">(New)</span>
+                        <span className="text-xs text-gray-400">(New)</span>
                     </div>
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-700">
-                        <div className="h-2 w-2 rounded-full bg-green-500" />
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-green-50 text-green-600">
+                        <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
                         Open
                     </div>
                 </div>
 
                 {/* Store Images */}
                 {merchant.storeImages && merchant.storeImages.length > 0 && (
-                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-5 px-5">
                         {merchant.storeImages.map((img, index) => (
                             <button
                                 key={index}
                                 onClick={() => openGallery(index + 1)}
-                                className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden"
+                                className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden shadow-subtle"
                             >
                                 <img src={img} alt="" className="w-full h-full object-cover" />
                             </button>
@@ -195,19 +195,19 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 )}
 
                 {/* Quick Info */}
-                <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <div className="space-y-2.5">
+                    <div className="flex items-center gap-3 p-3.5 bg-gray-50/80 rounded-xl border border-gray-100/50">
                         <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
                             <MapPin className="h-5 w-5 text-primary" />
                         </div>
                         <div className="flex-1">
-                            <p className="font-medium text-sm">{merchant.address}</p>
+                            <p className="font-medium text-sm text-gray-900">{merchant.address}</p>
                             <p className="text-xs text-gray-500">{merchant.city}, {merchant.pinCode}</p>
                         </div>
                     </div>
 
                     {merchant.phone && (
-                        <a href={`tel:${merchant.phone}`} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <a href={`tel:${merchant.phone}`} className="flex items-center gap-3 p-3.5 bg-gray-50/80 rounded-xl border border-gray-100/50">
                             <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
                                 <Phone className="h-5 w-5 text-primary" />
                             </div>
@@ -219,17 +219,17 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 {/* Get Directions Button */}
                 <Button
                     onClick={handleGetDirections}
-                    className="w-full h-12 bg-gray-900 text-white font-semibold rounded-xl"
+                    className="w-full h-12 bg-gray-900 text-white font-semibold rounded-xl shadow-card hover:bg-gray-800"
                 >
                     <Navigation className="h-5 w-5 mr-2" />
                     Get Directions
                     <ExternalLink className="h-4 w-4 ml-2" />
                 </Button>
 
-                {/* Active Offers - Compact Apple-Style Design */}
+                {/* Active Offers */}
                 {offers.length > 0 && (
                     <div className="space-y-3">
-                        <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider">
+                        <h3 className="font-semibold text-xs text-gray-400 uppercase tracking-wider">
                             Available Offers
                         </h3>
                         {offers.filter(o => o.status === 'active').map((offer) => (
@@ -237,16 +237,16 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                 key={offer.id}
                                 layout
                                 onClick={() => setExpandedOfferId(expandedOfferId === offer.id ? null : offer.id)}
-                                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative cursor-pointer"
+                                className="bg-white rounded-xl p-3.5 shadow-card border border-gray-100/50 relative cursor-pointer"
                             >
                                 {/* Compact Row Layout */}
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3.5">
                                     {/* Discount Badge */}
-                                    <div className="flex-shrink-0 h-14 w-14 bg-gradient-to-br from-primary to-emerald-500 rounded-xl flex flex-col items-center justify-center text-white">
-                                        <span className="text-lg font-black leading-none">
+                                    <div className="flex-shrink-0 h-12 w-12 bg-gradient-to-br from-primary to-emerald-500 rounded-lg flex flex-col items-center justify-center text-white shadow-sm">
+                                        <span className="text-base font-bold leading-none">
                                             {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
                                         </span>
-                                        <span className="text-[9px] font-medium opacity-80">OFF</span>
+                                        <span className="text-[8px] font-medium opacity-80">OFF</span>
                                     </div>
 
                                     {/* Content */}
