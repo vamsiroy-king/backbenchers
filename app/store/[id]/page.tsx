@@ -290,12 +290,23 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                                 {offer.terms && offer.terms.length > 0 && (
                                                     <div className="mb-3">
                                                         <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Terms & Conditions</p>
-                                                        {(typeof offer.terms === 'string' ? [offer.terms] : offer.terms).map((term: string, i: number) => (
-                                                            <p key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
-                                                                <span className="text-primary">•</span>
-                                                                {term}
-                                                            </p>
-                                                        ))}
+                                                        {(() => {
+                                                            // Parse terms properly - handle both array and concatenated string
+                                                            let termsArray: string[] = [];
+                                                            if (Array.isArray(offer.terms)) {
+                                                                termsArray = offer.terms;
+                                                            } else if (typeof offer.terms === 'string') {
+                                                                // Split on common term start patterns
+                                                                const patterns = /(?=Valid |Cannot |One |Minimum |Prior |First|Not |Subject |Terms |Applicable |No |Exchange )/g;
+                                                                termsArray = offer.terms.split(patterns).filter(t => t.trim());
+                                                            }
+                                                            return termsArray.map((term: string, i: number) => (
+                                                                <p key={i} className="text-xs text-gray-600 flex items-start gap-1.5 mb-0.5">
+                                                                    <span className="text-primary flex-shrink-0">•</span>
+                                                                    <span>{term.trim()}</span>
+                                                                </p>
+                                                            ));
+                                                        })()}
                                                     </div>
                                                 )}
 

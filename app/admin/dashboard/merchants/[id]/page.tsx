@@ -578,8 +578,8 @@ export default function MerchantReviewPage() {
                                                             }
                                                         }}
                                                         className={`text-xs px-3 py-1.5 rounded-full border transition-all ${isSelected
-                                                                ? 'bg-primary text-white border-primary'
-                                                                : 'bg-white text-gray-600 border-gray-300 hover:border-primary'
+                                                            ? 'bg-primary text-white border-primary'
+                                                            : 'bg-white text-gray-600 border-gray-300 hover:border-primary'
                                                             }`}
                                                     >
                                                         {isSelected ? '✓ ' : '+ '}{template}
@@ -1342,12 +1342,21 @@ export default function MerchantReviewPage() {
                                                     {offer.terms && offer.terms.length > 0 && (
                                                         <div className="mb-2">
                                                             <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Terms</p>
-                                                            {(typeof offer.terms === 'string' ? [offer.terms] : offer.terms).map((term: string, i: number) => (
-                                                                <p key={i} className="text-xs text-gray-600 flex items-start gap-1">
-                                                                    <span className="text-primary">•</span>
-                                                                    {term}
-                                                                </p>
-                                                            ))}
+                                                            {(() => {
+                                                                let termsArray: string[] = [];
+                                                                if (Array.isArray(offer.terms)) {
+                                                                    termsArray = offer.terms;
+                                                                } else if (typeof offer.terms === 'string') {
+                                                                    const patterns = /(?=Valid |Cannot |One |Minimum |Prior |First|Not |Subject |Terms |Applicable |No |Exchange )/g;
+                                                                    termsArray = offer.terms.split(patterns).filter(t => t.trim());
+                                                                }
+                                                                return termsArray.map((term: string, i: number) => (
+                                                                    <p key={i} className="text-xs text-gray-600 flex items-start gap-1 mb-0.5">
+                                                                        <span className="text-primary flex-shrink-0">•</span>
+                                                                        <span>{term.trim()}</span>
+                                                                    </p>
+                                                                ));
+                                                            })()}
                                                         </div>
                                                     )}
                                                     {offer.validUntil && (
