@@ -59,6 +59,7 @@ export default function MerchantReviewPage() {
     const [offers, setOffers] = useState<Offer[]>([]);
     const [showCreateOfferModal, setShowCreateOfferModal] = useState(false);
     const [offersLoading, setOffersLoading] = useState(false);
+    const [expandedAdminOfferId, setExpandedAdminOfferId] = useState<string | null>(null);
 
     // Fetch merchant data
     useEffect(() => {
@@ -599,37 +600,32 @@ export default function MerchantReviewPage() {
                                 <p className="text-sm text-red-500 text-center">{error}</p>
                             )}
 
-                            {/* Swipe to Confirm */}
-                            <div className="pt-4">
-                                <p className="text-xs text-gray-500 text-center mb-2">Swipe right to confirm</p>
-                                <div className="relative h-14 bg-gray-100 rounded-2xl overflow-hidden">
-                                    <div className="absolute inset-0 flex items-center justify-center text-sm font-medium text-gray-400">
-                                        Slide to Create Offer →
-                                    </div>
-                                    <motion.div
-                                        drag="x"
-                                        dragConstraints={{ left: 0, right: 0 }}
-                                        dragElastic={0}
-                                        onDrag={(_, info) => {
-                                            const slider = info.point.x;
-                                            if (slider > 200) {
-                                                handleCreateNewOffer();
-                                            }
-                                        }}
-                                        className="absolute left-1 top-1 bottom-1 w-12 bg-primary rounded-xl flex items-center justify-center cursor-grab active:cursor-grabbing shadow-lg"
-                                    >
-                                        {actionLoading ? (
-                                            <Loader2 className="h-5 w-5 text-white animate-spin" />
-                                        ) : (
-                                            <Check className="h-5 w-5 text-white" />
-                                        )}
-                                    </motion.div>
-                                </div>
+                            {/* Create Button */}
+                            <div className="flex gap-3 pt-4">
                                 <button
+                                    type="button"
                                     onClick={() => { setShowCreateOfferModal(false); setError(""); }}
-                                    className="w-full mt-3 text-sm text-gray-500 hover:text-gray-700"
+                                    className="flex-1 h-12 rounded-xl border border-gray-300 text-gray-600 font-medium hover:bg-gray-50"
                                 >
                                     Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleCreateNewOffer}
+                                    disabled={actionLoading || !offerData.name || (!offerData.discountValue && offerData.type !== 'bogo')}
+                                    className="flex-1 h-12 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {actionLoading ? (
+                                        <>
+                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                            Creating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Check className="h-5 w-5" />
+                                            Create Offer
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -1185,33 +1181,85 @@ export default function MerchantReviewPage() {
                             )}
                         </div>
                     ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                             {offers.map((offer) => (
-                                <div key={offer.id} className="bg-gradient-to-r from-primary/10 to-green-50 rounded-xl p-4 border border-primary/20">
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div>
-                                            <p className="font-bold text-gray-900">{offer.title}</p>
-                                            <p className="text-xs text-gray-500">
-                                                {offer.type === 'percentage' ? `${offer.discountValue}% OFF` :
-                                                    offer.type === 'flat' ? `₹${offer.discountValue} OFF` :
-                                                        offer.type === 'bogo' ? 'Buy 1 Get 1' : 'Free Item'}
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-col items-end gap-1">
-                                            {offer.createdByType === 'admin' && (
-                                                <span className="text-[10px] font-semibold bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">ADMIN</span>
-                                            )}
-                                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${offer.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
-                                                {offer.status?.toUpperCase()}
+                                <motion.div
+                                    key={offer.id}
+                                    layout
+                                    onClick={() => setExpandedAdminOfferId(expandedAdminOfferId === offer.id ? null : offer.id)}
+                                    className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm cursor-pointer hover:border-primary/30 transition-colors"
+                                >
+                                    {/* Compact Row */}
+                                    <div className="flex items-center gap-3">
+                                        {/* Discount Badge */}
+                                        <div className="flex-shrink-0 h-12 w-12 bg-gradient-to-br from-primary to-emerald-500 rounded-lg flex flex-col items-center justify-center text-white">
+                                            <span className="text-sm font-black leading-none">
+                                                {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
                                             </span>
+                                            <span className="text-[8px] font-medium opacity-80">OFF</span>
                                         </div>
+
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-0.5">
+                                                <p className="font-semibold text-gray-900 truncate text-sm">{offer.title}</p>
+                                                {offer.createdByType === 'admin' && (
+                                                    <span className="flex-shrink-0 text-[9px] font-bold bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">ADMIN</span>
+                                                )}
+                                                <span className={`flex-shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded ${offer.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                                                    {offer.status?.toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-gray-400 text-xs line-through">₹{offer.originalPrice}</span>
+                                                <span className="text-primary font-bold">₹{offer.finalPrice}</span>
+                                                <span className="text-[10px] text-green-600">Save ₹{offer.discountAmount}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Chevron */}
+                                        <motion.div
+                                            animate={{ rotate: expandedAdminOfferId === offer.id ? 90 : 0 }}
+                                            className="flex-shrink-0 text-gray-400"
+                                        >
+                                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </motion.div>
                                     </div>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-gray-400 line-through text-sm">₹{offer.originalPrice}</span>
-                                        <span className="text-xl font-black text-primary">₹{offer.finalPrice}</span>
-                                        <span className="text-xs text-green-600 font-medium">Save ₹{offer.discountAmount}</span>
-                                    </div>
-                                </div>
+
+                                    {/* Expanded - Terms */}
+                                    <AnimatePresence>
+                                        {expandedAdminOfferId === offer.id && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="pt-3 mt-3 border-t border-gray-100 pl-[60px]">
+                                                    {offer.terms && offer.terms.length > 0 && (
+                                                        <div className="mb-2">
+                                                            <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Terms</p>
+                                                            {(typeof offer.terms === 'string' ? [offer.terms] : offer.terms).map((term: string, i: number) => (
+                                                                <p key={i} className="text-xs text-gray-600 flex items-start gap-1">
+                                                                    <span className="text-primary">•</span>
+                                                                    {term}
+                                                                </p>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    {offer.validUntil && (
+                                                        <p className="text-[10px] text-gray-400">
+                                                            Valid until {new Date(offer.validUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.div>
                             ))}
                         </div>
                     )}
