@@ -447,10 +447,10 @@ export default function DashboardPage() {
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: -20, opacity: 0 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="absolute top-16 right-4 left-4 bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[70vh]"
+                            className="absolute top-16 right-4 left-4 bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden max-h-[70vh]"
                         >
-                            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                                <h3 className="font-bold text-lg">Notifications</h3>
+                            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                                <h3 className="font-bold text-lg dark:text-white">Notifications</h3>
                                 <button
                                     onClick={async () => {
                                         await notificationService.markAllAsRead();
@@ -461,7 +461,7 @@ export default function DashboardPage() {
                                     Mark all read
                                 </button>
                             </div>
-                            <div className="divide-y divide-gray-50 max-h-[50vh] overflow-y-auto">
+                            <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[50vh] overflow-y-auto">
                                 {notificationsToShow.length === 0 ? (
                                     <div className="p-8 text-center text-gray-400">
                                         <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -470,17 +470,17 @@ export default function DashboardPage() {
                                 ) : (
                                     notificationsToShow.map((notif) => (
                                         <div key={notif.id} className={`p-4 flex gap-3 ${!notif.isRead ? 'bg-primary/5' : ''}`}>
-                                            <div className={`h-10 w-10 rounded-full flex items-center justify-center text-lg ${!notif.isRead ? 'bg-primary/10' : 'bg-gray-100'}`}>
+                                            <div className={`h-10 w-10 rounded-full flex items-center justify-center text-lg ${!notif.isRead ? 'bg-primary/10' : 'bg-gray-100 dark:bg-gray-800'}`}>
                                                 {notif.type === 'offer_expiring' ? '⏰' :
                                                     notif.type === 'new_deal' ? '🎁' :
                                                         notif.type === 'redemption' ? '✅' : '🔔'}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <p className="font-semibold text-sm truncate">{notif.title}</p>
+                                                    <p className="font-semibold text-sm truncate dark:text-white">{notif.title}</p>
                                                     {!notif.isRead && <span className="h-2 w-2 bg-primary rounded-full" />}
                                                 </div>
-                                                <p className="text-xs text-gray-500 truncate">{notif.body}</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{notif.body}</p>
                                                 <p className="text-[10px] text-gray-400 mt-1">
                                                     {new Date(notif.createdAt).toLocaleDateString()}
                                                 </p>
@@ -501,22 +501,22 @@ export default function DashboardPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[90] bg-white"
+                        className="fixed inset-0 z-[90] bg-white dark:bg-gray-950"
                     >
                         <div className="p-4 pt-12">
                             <div className="flex items-center gap-3 mb-6">
-                                <button onClick={() => { setShowSearch(false); setSearchQuery(""); }} className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <X className="h-5 w-5" />
+                                <button onClick={() => { setShowSearch(false); setSearchQuery(""); }} className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                    <X className="h-5 w-5 dark:text-white" />
                                 </button>
                                 <div className="flex-1 relative">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                                     <input
                                         autoFocus
                                         type="text"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         placeholder="Search brands, categories..."
-                                        className="w-full h-12 bg-gray-100 rounded-2xl pl-12 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                        className="w-full h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl pl-12 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30 dark:text-white dark:placeholder:text-gray-500"
                                     />
                                 </div>
                             </div>
@@ -527,7 +527,7 @@ export default function DashboardPage() {
                                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Recent Searches</h4>
                                         <div className="flex flex-wrap gap-2">
                                             {['Nike', 'Starbucks', 'Netflix'].map((term) => (
-                                                <button key={term} onClick={() => setSearchQuery(term)} className="px-4 py-2 bg-gray-100 rounded-full text-sm font-medium">
+                                                <button key={term} onClick={() => setSearchQuery(term)} className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-medium dark:text-white">
                                                     {term}
                                                 </button>
                                             ))}
@@ -537,9 +537,9 @@ export default function DashboardPage() {
                                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Trending</h4>
                                         <div className="space-y-2">
                                             {['Spotify Student', 'Apple Education', 'Uber'].map((term, i) => (
-                                                <button key={term} onClick={() => setSearchQuery(term)} className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-gray-50">
+                                                <button key={term} onClick={() => setSearchQuery(term)} className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800">
                                                     <span className="text-lg">🔥</span>
-                                                    <span className="font-medium text-sm">{term}</span>
+                                                    <span className="font-medium text-sm dark:text-white">{term}</span>
                                                     <span className="text-xs text-gray-400 ml-auto">#{i + 1}</span>
                                                 </button>
                                             ))}
@@ -561,15 +561,15 @@ export default function DashboardPage() {
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: i * 0.05 }}
                                                 onClick={() => { setShowSearch(false); setSearchQuery(""); }}
-                                                className="flex items-center gap-4 w-full p-4 rounded-2xl bg-gray-50 hover:bg-gray-100"
+                                                className="flex items-center gap-4 w-full p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
                                             >
                                                 <span className="text-2xl">{item.emoji}</span>
                                                 <div className="text-left">
-                                                    <p className="font-bold text-sm">{item.name}</p>
-                                                    <p className="text-xs text-gray-500 capitalize">{item.type}</p>
+                                                    <p className="font-bold text-sm dark:text-white">{item.name}</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{item.type}</p>
                                                 </div>
                                                 {'discount' in item && (
-                                                    <span className="ml-auto text-xs font-semibold text-purple-600">{item.discount}</span>
+                                                    <span className="ml-auto text-xs font-semibold text-purple-600 dark:text-purple-400">{item.discount}</span>
                                                 )}
                                             </motion.button>
                                         ))
@@ -604,19 +604,19 @@ export default function DashboardPage() {
             />
 
             {/* Header with City & Bell */}
-            <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-100/80">
+            <header className="sticky top-0 z-40 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border-b border-gray-100/80 dark:border-gray-800">
                 <div className="px-5 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="h-9 w-9 bg-gradient-to-br from-primary to-emerald-600 rounded-xl flex items-center justify-center shadow-sm">
                             <span className="text-white font-bold text-base">B</span>
                         </div>
-                        <span className="font-extrabold text-xl tracking-tight">Backbenchers</span>
+                        <span className="font-extrabold text-xl tracking-tight dark:text-white">Backbenchers</span>
                     </div>
                     <div className="flex items-center gap-2">
                         {/* City Selector */}
                         <button
                             onClick={() => setShowCitySelector(true)}
-                            className="flex items-center gap-1.5 px-3.5 h-10 rounded-full bg-gray-50 text-sm font-medium text-gray-700 active:scale-95 transition-transform border border-gray-100"
+                            className="flex items-center gap-1.5 px-3.5 h-10 rounded-full bg-gray-50 dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 active:scale-95 transition-transform border border-gray-100 dark:border-gray-700"
                         >
                             <MapPin className="h-4 w-4 text-primary" />
                             <span className="max-w-24 truncate">{selectedCity || 'Select City'}</span>
@@ -625,9 +625,9 @@ export default function DashboardPage() {
                         {/* Notifications */}
                         <button
                             onClick={() => setShowNotifications(true)}
-                            className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center relative active:scale-95 transition-transform border border-gray-100"
+                            className="h-10 w-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center relative active:scale-95 transition-transform border border-gray-100 dark:border-gray-700"
                         >
-                            <Bell className="h-5 w-5 text-gray-600" />
+                            <Bell className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                             {unreadCount > 0 && (
                                 <span className="absolute -top-0.5 -right-0.5 h-5 w-5 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
                                     {unreadCount}
@@ -643,11 +643,11 @@ export default function DashboardPage() {
                 <motion.button
                     onClick={() => setShowSearch(true)}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full h-14 bg-gray-100 rounded-2xl flex items-center gap-3 px-5 relative overflow-hidden group hover:bg-gray-200/80 transition-colors"
+                    className="w-full h-14 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center gap-3 px-5 relative overflow-hidden group hover:bg-gray-200/80 dark:hover:bg-gray-700 transition-colors"
                 >
-                    <Search className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                    <Search className="h-5 w-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                     <div className="flex-1 text-left flex items-center gap-1 overflow-hidden">
-                        <span className="text-sm text-gray-400 font-medium">Search</span>
+                        <span className="text-sm text-gray-400 dark:text-gray-500 font-medium">Search</span>
                         <AnimatePresence mode="wait">
                             <motion.span
                                 key={searchPlaceholderIndex}
@@ -655,13 +655,13 @@ export default function DashboardPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -8 }}
                                 transition={{ duration: 0.25 }}
-                                className="text-sm text-gray-300 font-medium"
+                                className="text-sm text-gray-300 dark:text-gray-600 font-medium"
                             >
                                 {SEARCH_PLACEHOLDERS[searchPlaceholderIndex].replace('Search ', '')}
                             </motion.span>
                         </AnimatePresence>
                     </div>
-                    <div className="text-xs font-bold text-gray-300 px-2 py-1 bg-gray-200/50 rounded-lg">
+                    <div className="text-xs font-bold text-gray-300 dark:text-gray-600 px-2 py-1 bg-gray-200/50 dark:bg-gray-700 rounded-lg">
                         ⌘K
                     </div>
                 </motion.button>
@@ -828,13 +828,13 @@ export default function DashboardPage() {
                 {/* Trending Offers - Premium Horizontal Scroll */}
                 <div className="py-6">
                     <div className="flex items-center justify-between mb-5">
-                        <h3 className="text-lg font-bold text-gray-900">Trending</h3>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Trending</h3>
                         <div className="flex gap-1">
                             <button
                                 onClick={() => setTrendingTab('offline')}
                                 className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${trendingTab === 'offline'
-                                    ? 'bg-gray-900 text-white'
-                                    : 'text-gray-400 hover:text-gray-600'
+                                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                                     }`}
                             >
                                 In-Store
@@ -842,8 +842,8 @@ export default function DashboardPage() {
                             <button
                                 onClick={() => setTrendingTab('online')}
                                 className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${trendingTab === 'online'
-                                    ? 'bg-gray-900 text-white'
-                                    : 'text-gray-400 hover:text-gray-600'
+                                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                                     }`}
                             >
                                 Online
@@ -871,7 +871,7 @@ export default function DashboardPage() {
                                     }}
                                     className={`flex-none w-[280px] cursor-pointer ${isExpired ? 'opacity-40 grayscale' : ''}`}
                                 >
-                                    <div className="bg-white rounded-3xl p-5 relative">
+                                    <div className="bg-white dark:bg-gray-800 rounded-3xl p-5 relative">
                                         {/* Discount Badge - Top Right Inside */}
                                         <div className="absolute top-3 right-3 z-10">
                                             <span className="bg-primary text-white px-3 py-1 rounded-full text-xs font-bold">
@@ -885,8 +885,8 @@ export default function DashboardPage() {
                                         <div className="flex items-start gap-4">
                                             {/* Merchant Logo */}
                                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${trendingTab === 'online'
-                                                ? 'bg-gradient-to-br from-violet-50 to-purple-50'
-                                                : 'bg-gradient-to-br from-emerald-50 to-teal-50'
+                                                ? 'bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30'
+                                                : 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30'
                                                 }`}>
                                                 {offer.merchantLogo ? (
                                                     <img src={offer.merchantLogo} alt="" className="w-10 h-10 object-contain rounded-xl" />
@@ -897,17 +897,17 @@ export default function DashboardPage() {
 
                                             {/* Text Content */}
                                             <div className="flex-1 min-w-0">
-                                                <h4 className={`font-bold text-base text-gray-900 ${isExpired ? 'line-through' : ''}`}>
+                                                <h4 className={`font-bold text-base text-gray-900 dark:text-white ${isExpired ? 'line-through' : ''}`}>
                                                     {offer.merchantName || offer.brand || 'Special Offer'}
                                                 </h4>
-                                                <p className={`text-sm text-gray-500 mt-0.5 ${isExpired ? 'line-through' : ''}`}>
+                                                <p className={`text-sm text-gray-500 dark:text-gray-400 mt-0.5 ${isExpired ? 'line-through' : ''}`}>
                                                     {offer.title || 'Limited time offer'}
                                                 </p>
 
                                                 {expiryText && !isExpired && (
                                                     <span className={`inline-block text-[10px] font-medium mt-2 px-2 py-0.5 rounded-full ${expiryText.includes('h')
-                                                        ? 'bg-red-50 text-red-600'
-                                                        : 'bg-gray-100 text-gray-500'
+                                                        ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                                                         }`}>
                                                         {expiryText}
                                                     </span>
@@ -939,7 +939,7 @@ export default function DashboardPage() {
                         <div className="space-y-4">
                             <div className="flex items-center gap-2.5">
                                 <Sparkles className="h-5 w-5 text-yellow-500" />
-                                <h3 className="text-lg font-bold tracking-tight text-gray-900">Top Brands</h3>
+                                <h3 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Top Brands</h3>
                             </div>
 
                             <div className="grid grid-cols-3 gap-2.5">
@@ -955,16 +955,16 @@ export default function DashboardPage() {
                                                 router.push(`/store/${brand.id}`);
                                             }
                                         }}
-                                        className="bg-white rounded-xl p-3.5 flex flex-col items-center gap-2 shadow-card border border-gray-100/50 hover:shadow-soft transition-shadow"
+                                        className="bg-white dark:bg-gray-800 rounded-xl p-3.5 flex flex-col items-center gap-2 shadow-card border border-gray-100/50 dark:border-gray-700 hover:shadow-soft transition-shadow"
                                     >
-                                        <div className="h-12 w-12 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden">
+                                        <div className="h-12 w-12 rounded-lg bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
                                             {brand.logo ? (
                                                 <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
                                             ) : (
                                                 <Store className="h-5 w-5 text-gray-400" />
                                             )}
                                         </div>
-                                        <span className="text-xs font-semibold text-gray-900 text-center line-clamp-1">{brand.name}</span>
+                                        <span className="text-xs font-semibold text-gray-900 dark:text-white text-center line-clamp-1">{brand.name}</span>
                                         <span className="text-[10px] font-medium text-primary">{brand.discount || brand.category}</span>
                                     </motion.button>
                                 ))}
@@ -974,13 +974,13 @@ export default function DashboardPage() {
                 }
 
                 {/* App Switcher */}
-                < div className="pt-8 border-t border-gray-100/80 mt-4" >
+                < div className="pt-8 border-t border-gray-100/80 dark:border-gray-800 mt-4" >
                     <p className="text-xs text-gray-400 text-center mb-3">Switch to</p>
                     <div className="flex justify-center gap-2.5">
-                        <Link href="/merchant" className="px-4 py-2.5 bg-gray-50 rounded-xl text-xs font-medium text-gray-600 border border-gray-100">
+                        <Link href="/merchant" className="px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700">
                             Merchant App
                         </Link>
-                        <Link href="/admin/dashboard" className="px-4 py-2.5 bg-gray-50 rounded-xl text-xs font-medium text-gray-600 border border-gray-100">
+                        <Link href="/admin/dashboard" className="px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700">
                             Admin Panel
                         </Link>
                     </div>

@@ -126,27 +126,27 @@ export function CitySelector({ isOpen, onClose, onSelectCity, currentCity }: Cit
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[100] bg-white"
+                className="fixed inset-0 z-[100] bg-white dark:bg-gray-950"
             >
                 {/* Header */}
-                <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-4">
+                <div className="sticky top-0 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 px-4 py-4">
                     <div className="flex items-center justify-between mb-4">
                         <button onClick={onClose} className="p-2 -ml-2">
-                            <X className="h-6 w-6 text-gray-600" />
+                            <X className="h-6 w-6 text-gray-600 dark:text-gray-300" />
                         </button>
-                        <h2 className="text-lg font-bold">{currentCity || 'Select City'}</h2>
+                        <h2 className="text-lg font-bold dark:text-white">{currentCity || 'Select City'}</h2>
                         <div className="w-10" /> {/* Spacer */}
                     </div>
 
                     {/* Search Bar */}
                     <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                         <input
                             type="text"
                             placeholder="Search for your city"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-12 pl-12 pr-4 bg-gray-100 rounded-xl text-base outline-none"
+                            className="w-full h-12 pl-12 pr-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-base outline-none dark:text-white dark:placeholder:text-gray-500"
                         />
                     </div>
 
@@ -180,12 +180,12 @@ export function CitySelector({ isOpen, onClose, onSelectCity, currentCity }: Cit
                                 </div>
                             )}
                             {searchResults.length > 0 ? (
-                                <div className="divide-y divide-gray-100">
+                                <div className="divide-y divide-gray-100 dark:divide-gray-800">
                                     {searchResults.map((city) => (
                                         <button
                                             key={city.id}
                                             onClick={() => handleSelectCity(city.name)}
-                                            className={`w-full py-4 text-left hover:bg-gray-50 ${currentCity === city.name ? 'text-purple-600 font-medium' : ''
+                                            className={`w-full py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white ${currentCity === city.name ? 'text-purple-600 font-medium' : ''
                                                 }`}
                                         >
                                             {city.name}
@@ -209,14 +209,14 @@ export function CitySelector({ isOpen, onClose, onSelectCity, currentCity }: Cit
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => handleSelectCity(city.name)}
                                         className={`flex flex-col items-center p-3 rounded-xl border-2 transition-colors ${currentCity === city.name
-                                            ? 'border-purple-500 bg-purple-50'
-                                            : 'border-transparent bg-gray-50'
+                                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30'
+                                            : 'border-transparent bg-gray-50 dark:bg-gray-800'
                                             }`}
                                     >
                                         <span className="text-3xl mb-1">
                                             {CITY_ICONS[city.name] || city.iconEmoji || '🏙️'}
                                         </span>
-                                        <span className="text-xs font-medium text-center truncate w-full">
+                                        <span className="text-xs font-medium text-center truncate w-full dark:text-white">
                                             {city.name}
                                         </span>
                                     </motion.button>
@@ -227,13 +227,13 @@ export function CitySelector({ isOpen, onClose, onSelectCity, currentCity }: Cit
                             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">
                                 Other Cities
                             </h3>
-                            <div className="divide-y divide-gray-100">
+                            <div className="divide-y divide-gray-100 dark:divide-gray-800">
                                 {/* Show a few other cities as examples */}
                                 {['Vizag', 'Jaipur', 'Lucknow', 'Indore', 'Bhopal', 'Coimbatore'].map((city) => (
                                     <button
                                         key={city}
                                         onClick={() => handleSelectCity(city)}
-                                        className={`w-full py-4 text-left hover:bg-gray-50 ${currentCity === city ? 'text-purple-600 font-medium' : ''
+                                        className={`w-full py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white ${currentCity === city ? 'text-purple-600 font-medium' : ''
                                             }`}
                                     >
                                         {city}
