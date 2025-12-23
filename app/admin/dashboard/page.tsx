@@ -2,7 +2,7 @@
 
 import {
     Users, Store, Tag, TrendingUp, ChevronRight, Clock, Check, X,
-    Loader2, ArrowUpRight, ArrowDownRight, MoreHorizontal, Eye
+    Loader2, ArrowUpRight, ArrowDownRight, MoreHorizontal, Eye, Image
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -311,6 +311,16 @@ export default function AdminDashboardPage() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Link href="/admin/dashboard/hero-banners">
+                    <motion.div
+                        whileHover={{ y: -2 }}
+                        className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white cursor-pointer"
+                    >
+                        <Image className="h-8 w-8 mb-3" />
+                        <h4 className="font-bold">Hero Banners</h4>
+                        <p className="text-sm opacity-80">Manage home banners</p>
+                    </motion.div>
+                </Link>
                 <Link href="/admin/dashboard/trending">
                     <motion.div
                         whileHover={{ y: -2 }}
