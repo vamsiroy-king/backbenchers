@@ -598,24 +598,25 @@ export default function DashboardPage() {
             </header>
 
             <main className="space-y-8 px-5 pt-6 pb-4">
-                {/* Animated Search Bar Trigger */}
+                {/* Animated Search Bar Trigger - "Search" stays stable, only placeholder animates */}
                 <motion.button
                     onClick={() => setShowSearch(true)}
                     whileTap={{ scale: 0.98 }}
                     className="w-full h-14 bg-gray-100 rounded-2xl flex items-center gap-3 px-5 relative overflow-hidden group hover:bg-gray-200/80 transition-colors"
                 >
                     <Search className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                    <div className="flex-1 text-left overflow-hidden h-6">
+                    <div className="flex-1 text-left flex items-center gap-1 overflow-hidden">
+                        <span className="text-sm text-gray-400 font-medium">Search</span>
                         <AnimatePresence mode="wait">
                             <motion.span
                                 key={searchPlaceholderIndex}
-                                initial={{ opacity: 0, y: 10 }}
+                                initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.3 }}
-                                className="text-sm text-gray-400 font-medium absolute"
+                                exit={{ opacity: 0, y: -8 }}
+                                transition={{ duration: 0.25 }}
+                                className="text-sm text-gray-300 font-medium"
                             >
-                                {SEARCH_PLACEHOLDERS[searchPlaceholderIndex]}
+                                {SEARCH_PLACEHOLDERS[searchPlaceholderIndex].replace('Search ', '')}
                             </motion.span>
                         </AnimatePresence>
                     </div>
@@ -639,7 +640,7 @@ export default function DashboardPage() {
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -100 }}
                                     transition={{ duration: 0.5, ease: "easeInOut" }}
-                                    className={`mx-5 h-44 rounded-3xl bg-gradient-to-br ${banner.backgroundGradient} p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden`}
+                                    className={`mx-5 h-44 rounded-3xl bg-gradient-to-br ${banner.backgroundGradient} p-6 flex flex-col justify-between relative overflow-hidden`}
                                 >
                                     {/* Shine overlay */}
                                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
@@ -675,92 +676,85 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* F³ Categories - Creative Radial Wheel */}
-                <div className="py-4">
-                    <div className="flex items-center justify-center gap-2 mb-6">
-                        <span className="text-xs font-bold text-gray-400 tracking-widest">F³</span>
-                        <span className="h-px flex-1 bg-gray-100" />
-                    </div>
-
+                {/* F³ Categories - Radial Wheel with 3D Center */}
+                <div className="py-6">
                     {/* Radial Category Selector */}
-                    <div className="relative h-[200px] flex items-center justify-center">
-                        {/* Center Pulsing Element */}
+                    <div className="relative h-[220px] flex items-center justify-center">
+                        {/* Center 3D F³ Branding */}
                         <motion.div
                             animate={{
-                                scale: [1, 1.05, 1],
-                                opacity: [0.8, 1, 0.8]
+                                scale: [1, 1.02, 1],
                             }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                            className="absolute w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center"
+                            transition={{ duration: 3, repeat: Infinity }}
+                            className="absolute w-24 h-24 bg-gradient-to-br from-primary via-emerald-500 to-teal-500 rounded-3xl flex items-center justify-center shadow-lg"
+                            style={{ transform: 'perspective(500px) rotateX(5deg)' }}
                         >
-                            <span className="text-4xl">{CATEGORIES[selectedCategory].icon}</span>
+                            <span className="text-white text-3xl font-black tracking-tight" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>F³</span>
                         </motion.div>
 
-                        {/* Orbiting Categories */}
+                        {/* Orbiting Categories - Click directly navigates */}
                         {CATEGORIES.map((cat, index) => {
-                            const angle = (index * 120) - 90; // 3 items, 120° apart
-                            const radius = 80;
+                            const angle = (index * 120) - 90;
+                            const radius = 90;
                             const isActive = index === selectedCategory;
                             const x = Math.cos((angle * Math.PI) / 180) * radius;
                             const y = Math.sin((angle * Math.PI) / 180) * radius;
 
                             return (
-                                <motion.button
-                                    key={cat.id}
-                                    onClick={() => setSelectedCategory(index)}
-                                    animate={{
-                                        x,
-                                        y,
-                                        scale: isActive ? 1.15 : 1
-                                    }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                                    className={`absolute flex flex-col items-center gap-1 ${isActive ? 'z-10' : 'z-0 opacity-50'
-                                        }`}
-                                >
-                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${isActive ? cat.color : 'bg-gray-100'
-                                        }`}>
-                                        <span className="text-2xl">{cat.icon}</span>
-                                    </div>
-                                    <span className={`text-xs font-semibold ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
-                                        {cat.name}
-                                    </span>
-                                </motion.button>
+                                <Link key={cat.id} href={`/dashboard/category/${cat.name}`}>
+                                    <motion.button
+                                        onMouseEnter={() => setSelectedCategory(index)}
+                                        animate={{
+                                            x,
+                                            y,
+                                            scale: isActive ? 1.1 : 0.9
+                                        }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                        className={`absolute flex flex-col items-center gap-1.5 ${isActive ? 'z-10' : 'z-0 opacity-40'}`}
+                                    >
+                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${isActive ? cat.color + ' shadow-md' : 'bg-gray-100'}`}>
+                                            <span className="text-2xl">{cat.icon}</span>
+                                        </div>
+                                        <span className={`text-xs font-semibold ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                                            {cat.name}
+                                        </span>
+                                    </motion.button>
+                                </Link>
                             );
                         })}
                     </div>
 
-                    {/* Selected Category Info */}
-                    <motion.div
+                    {/* Tagline only - no explore button */}
+                    <motion.p
                         key={selectedCategory}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-center mt-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-center text-gray-400 text-sm mt-2"
                     >
-                        <p className="text-gray-500 text-sm">{CATEGORIES[selectedCategory].tagline}</p>
-                        <Link href={`/dashboard/category/${CATEGORIES[selectedCategory].name}`}>
-                            <button className="mt-3 text-primary text-sm font-semibold">
-                                Explore {CATEGORIES[selectedCategory].name} →
-                            </button>
-                        </Link>
-                    </motion.div>
+                        {CATEGORIES[selectedCategory].tagline}
+                    </motion.p>
                 </div>
 
 
-                {/* Trending Offers - Clean Minimal List */}
-                <div className="py-4">
-                    <div className="flex items-center justify-between mb-4">
+                {/* Trending Offers - Premium Horizontal Scroll */}
+                <div className="py-6">
+                    <div className="flex items-center justify-between mb-5">
                         <h3 className="text-lg font-bold text-gray-900">Trending</h3>
-                        <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
+                        <div className="flex gap-1">
                             <button
                                 onClick={() => setTrendingTab('offline')}
-                                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${trendingTab === 'offline' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${trendingTab === 'offline'
+                                        ? 'bg-gray-900 text-white'
+                                        : 'text-gray-400 hover:text-gray-600'
                                     }`}
                             >
                                 In-Store
                             </button>
                             <button
                                 onClick={() => setTrendingTab('online')}
-                                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${trendingTab === 'online' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${trendingTab === 'online'
+                                        ? 'bg-gray-900 text-white'
+                                        : 'text-gray-400 hover:text-gray-600'
                                     }`}
                             >
                                 Online
@@ -768,8 +762,8 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* Clean List View */}
-                    <div className="space-y-1">
+                    {/* Horizontal Scroll Cards */}
+                    <div className="flex gap-4 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
                         {currentOffers.map((offer: any) => {
                             const isFav = offer.id && favoriteIds.includes(offer.id);
                             const expiryText = getExpiryText(offer.validUntil);
@@ -778,7 +772,7 @@ export default function DashboardPage() {
                             return (
                                 <motion.div
                                     key={offer.id}
-                                    whileTap={{ scale: 0.99 }}
+                                    whileTap={{ scale: 0.98 }}
                                     onClick={() => {
                                         if (!isVerified) {
                                             setShowVerifyModal(true);
@@ -786,61 +780,67 @@ export default function DashboardPage() {
                                             router.push(`/store/${offer.merchantId}`);
                                         }
                                     }}
-                                    className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors ${isExpired ? 'opacity-40' : ''
-                                        }`}
+                                    className={`flex-none w-[280px] cursor-pointer ${isExpired ? 'opacity-40 grayscale' : ''}`}
                                 >
-                                    {/* Merchant Icon */}
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${trendingTab === 'online' ? 'bg-violet-50' : 'bg-emerald-50'
-                                        }`}>
-                                        {offer.merchantLogo ? (
-                                            <img src={offer.merchantLogo} alt="" className="w-8 h-8 object-contain" />
-                                        ) : (
-                                            trendingTab === 'online' ? '🌐' : '🏪'
-                                        )}
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <span className={`font-semibold text-sm ${isExpired ? 'line-through' : 'text-gray-900'}`}>
-                                                {offer.merchantName || offer.brand || 'Special Offer'}
+                                    <div className="bg-white border border-gray-100 rounded-3xl p-5 relative">
+                                        {/* Discount Badge - Floating */}
+                                        <div className="absolute -top-2 -right-2 z-10">
+                                            <span className="bg-primary text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                                                {offer.discountValue
+                                                    ? `${offer.type === 'percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue}`
+                                                    : (offer.discount || 'Deal')}
                                             </span>
-                                            {expiryText && (
-                                                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${isExpired ? 'bg-gray-100 text-gray-400' :
-                                                        expiryText.includes('h') ? 'bg-red-50 text-red-600' :
-                                                            'bg-gray-100 text-gray-500'
-                                                    }`}>
-                                                    {expiryText}
-                                                </span>
-                                            )}
                                         </div>
-                                        <p className={`text-xs ${isExpired ? 'line-through text-gray-300' : 'text-gray-500'}`}>
-                                            {offer.title || 'Limited time offer'}
-                                        </p>
-                                    </div>
 
-                                    {/* Discount + Favorite */}
-                                    <div className="flex items-center gap-3 flex-shrink-0">
-                                        <span className={`text-sm font-bold ${isExpired ? 'text-gray-300 line-through' : 'text-primary'
-                                            }`}>
-                                            {offer.discountValue
-                                                ? `${offer.type === 'percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue}`
-                                                : (offer.discount || '')}
-                                        </span>
-                                        <button
-                                            onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
-                                            className="p-2"
-                                        >
-                                            <Heart className={`h-4 w-4 ${isFav ? 'fill-red-500 text-red-500' : 'text-gray-300'}`} />
-                                        </button>
+                                        {/* Content Row */}
+                                        <div className="flex items-start gap-4">
+                                            {/* Merchant Logo */}
+                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${trendingTab === 'online'
+                                                    ? 'bg-gradient-to-br from-violet-50 to-purple-50'
+                                                    : 'bg-gradient-to-br from-emerald-50 to-teal-50'
+                                                }`}>
+                                                {offer.merchantLogo ? (
+                                                    <img src={offer.merchantLogo} alt="" className="w-10 h-10 object-contain rounded-xl" />
+                                                ) : (
+                                                    <span className="text-2xl">{trendingTab === 'online' ? '🌐' : '🏪'}</span>
+                                                )}
+                                            </div>
+
+                                            {/* Text Content */}
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className={`font-bold text-base text-gray-900 ${isExpired ? 'line-through' : ''}`}>
+                                                    {offer.merchantName || offer.brand || 'Special Offer'}
+                                                </h4>
+                                                <p className={`text-sm text-gray-500 mt-0.5 ${isExpired ? 'line-through' : ''}`}>
+                                                    {offer.title || 'Limited time offer'}
+                                                </p>
+
+                                                {expiryText && !isExpired && (
+                                                    <span className={`inline-block text-[10px] font-medium mt-2 px-2 py-0.5 rounded-full ${expiryText.includes('h')
+                                                            ? 'bg-red-50 text-red-600'
+                                                            : 'bg-gray-100 text-gray-500'
+                                                        }`}>
+                                                        {expiryText}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Favorite */}
+                                            <button
+                                                onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
+                                                className="p-1"
+                                            >
+                                                <Heart className={`h-5 w-5 ${isFav ? 'fill-red-500 text-red-500' : 'text-gray-200 hover:text-gray-400'}`} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </motion.div>
                             );
                         })}
                     </div>
 
-                    <Link href="/dashboard/explore" className="block text-center mt-4">
-                        <span className="text-sm text-gray-400 font-medium">See all offers →</span>
+                    <Link href="/dashboard/explore" className="block text-center mt-5">
+                        <span className="text-sm text-gray-400">See all offers →</span>
                     </Link>
                 </div>
 
