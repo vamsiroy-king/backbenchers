@@ -2,7 +2,7 @@
 
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminTopbar } from "@/components/admin/AdminTopbar";
-import { useState, createContext, useContext } from "react";
+import { useState, createContext, useContext, useEffect } from "react";
 
 // Context for sidebar state
 const SidebarContext = createContext({ collapsed: false, setCollapsed: (v: boolean) => { } });
@@ -15,9 +15,17 @@ export default function AdminDashboardLayout({
 }) {
     const [collapsed, setCollapsed] = useState(false);
 
+    // Restore dark mode from localStorage on mount
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('admin_theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    }, []);
+
     return (
         <SidebarContext.Provider value={{ collapsed, setCollapsed }}>
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
                 {/* Sidebar */}
                 <AdminSidebar />
 

@@ -40,19 +40,19 @@ export function AdminTopbar({ sidebarCollapsed = false }: AdminTopbarProps) {
 
     return (
         <header
-            className="h-16 bg-white border-b border-gray-200 fixed top-0 right-0 z-40 flex items-center justify-between px-6"
+            className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 fixed top-0 right-0 z-40 flex items-center justify-between px-6"
             style={{ left: sidebarCollapsed ? 80 : 280, transition: "left 0.3s ease-in-out" }}
         >
             {/* Search */}
             <div className="flex-1 max-w-xl">
                 <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                     <input
                         type="text"
                         placeholder="Search merchants, students, offers..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-11 pl-12 pr-4 bg-gray-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white border border-transparent focus:border-primary/30 transition-all"
+                        className="w-full h-11 pl-12 pr-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white dark:focus:bg-gray-800 border border-transparent focus:border-primary/30 transition-all text-gray-900 dark:text-white placeholder:text-gray-500"
                     />
                 </div>
             </div>

@@ -448,9 +448,9 @@ export default function ProfilePage() {
             </AnimatePresence>
 
             <header className="py-6 flex justify-between items-center">
-                <h1 className="text-xl font-bold text-gray-900">My ID</h1>
-                <button className="h-10 w-10 rounded-xl bg-white shadow-subtle border border-gray-100/50 flex items-center justify-center">
-                    <Settings className="h-5 w-5 text-gray-500" />
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">My ID</h1>
+                <button className="h-10 w-10 rounded-xl bg-white dark:bg-gray-800 shadow-subtle border border-gray-100/50 dark:border-gray-700 flex items-center justify-center">
+                    <Settings className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 </button>
             </header>
 
@@ -622,13 +622,13 @@ export default function ProfilePage() {
 
 
             {/* Savings Section */}
-            <div className="bg-white rounded-2xl p-5 mb-6 shadow-card border border-gray-100/50">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 mb-6 shadow-card border border-gray-100/50 dark:border-gray-800">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2.5">
                         <div className="h-9 w-9 bg-primary/10 rounded-lg flex items-center justify-center">
                             <Wallet className="h-5 w-5 text-primary" />
                         </div>
-                        <h3 className="font-semibold text-gray-900">Your Savings</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">Your Savings</h3>
                     </div>
                     <button
                         onClick={async () => {
@@ -649,46 +649,46 @@ export default function ProfilePage() {
                             }
                         }}
                         disabled={isRefreshing}
-                        className="h-8 w-8 bg-white rounded-full flex items-center justify-center shadow-sm active:scale-95 transition-transform disabled:opacity-50"
+                        className="h-8 w-8 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-sm active:scale-95 transition-transform disabled:opacity-50"
                     >
-                        <RefreshCcw className={`h-4 w-4 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`} />
+                        <RefreshCcw className={`h-4 w-4 text-gray-500 dark:text-gray-400 ${isRefreshing ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
 
                 <div className="text-center mb-4">
-                    <p className="text-xs text-gray-500">Total Saved</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Total Saved</p>
                     <p className="text-4xl font-extrabold text-primary">₹{savingsStats.total}</p>
-                    <p className="text-xs text-gray-500 mt-1">from {totalRedemptions} redemptions</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">from {totalRedemptions} redemptions</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="bg-white rounded-xl p-3 text-center">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center">
                         <div className="flex items-center justify-center gap-1 mb-1">
                             <Store className="h-4 w-4 text-orange-500" />
-                            <span className="text-xs text-gray-500">Offline</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Offline</span>
                         </div>
-                        <p className="font-bold text-lg">₹{savingsStats.offline}</p>
+                        <p className="font-bold text-lg dark:text-white">₹{savingsStats.offline}</p>
                     </div>
-                    <div className="bg-white rounded-xl p-3 text-center">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center">
                         <div className="flex items-center justify-center gap-1 mb-1">
                             <Globe className="h-4 w-4 text-blue-500" />
-                            <span className="text-xs text-gray-500">Online</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Online</span>
                         </div>
-                        <p className="font-bold text-lg">₹{savingsStats.online}</p>
+                        <p className="font-bold text-lg dark:text-white">₹{savingsStats.online}</p>
                     </div>
                 </div>
 
                 {/* Recent Transactions */}
                 {transactions.length > 0 && (
-                    <div className="bg-white rounded-xl p-3">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-gray-500">Recent Activity</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Recent Activity</span>
                             <TrendingUp className="h-4 w-4 text-primary" />
                         </div>
                         <div className="space-y-2">
                             {transactions.slice(0, 3).map((tx: Transaction, i: number) => (
                                 <div key={tx.id} className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-600 truncate max-w-[150px]">{tx.merchantName}</span>
+                                    <span className="text-gray-600 dark:text-gray-300 truncate max-w-[150px]">{tx.merchantName}</span>
                                     <span className="text-primary font-semibold">₹{tx.discountAmount}</span>
                                 </div>
                             ))}
