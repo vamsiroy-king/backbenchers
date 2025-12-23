@@ -38,7 +38,7 @@ export const offerService = {
                 .from('offers')
                 .select(`
                     *,
-                    merchants!inner (business_name, bbm_id, status)
+                    merchants!inner (business_name, bbm_id, status, state, city)
                 `)
                 // CRITICAL: Only show offers from APPROVED merchants in student app
                 .eq('merchants.status', 'approved')
@@ -62,6 +62,14 @@ export const offerService = {
                 if (filters.search) {
                     query = query.or(`title.ilike.%${filters.search}%,merchants.business_name.ilike.%${filters.search}%`);
                 }
+                // Filter by merchant state
+                if (filters.state && filters.state !== 'All States') {
+                    query = query.eq('merchants.state', filters.state);
+                }
+                // Filter by merchant city
+                if (filters.city && filters.city !== 'All Cities') {
+                    query = query.eq('merchants.city', filters.city);
+                }
             }
 
             const { data, error } = await query;
@@ -73,7 +81,9 @@ export const offerService = {
             const offers = data.map((row: any) => ({
                 ...mapDbToOffer(row),
                 merchantName: row.merchants?.business_name,
-                merchantBbmId: row.merchants?.bbm_id
+                merchantBbmId: row.merchants?.bbm_id,
+                merchantState: row.merchants?.state,
+                merchantCity: row.merchants?.city
             }));
 
             return { success: true, data: offers, error: null };

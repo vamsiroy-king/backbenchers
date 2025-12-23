@@ -168,6 +168,8 @@ export interface OfferFilters {
     bbmIdSearch?: string;
     search?: string;
     merchantBbmId?: string;
+    state?: string;  // Filter by merchant state
+    city?: string;   // Filter by merchant city
 }
 
 export interface TransactionFilters {

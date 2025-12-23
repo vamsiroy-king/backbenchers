@@ -36,14 +36,13 @@ export default function OffersListPage() {
                 const result = await offerService.getAll({
                     status: filter === 'all' ? undefined : filter,
                     search: searchQuery || undefined,
-                    merchantBbmId: merchantIdSearch ? `BBM-${merchantIdSearch}` : undefined
+                    merchantBbmId: merchantIdSearch ? `BBM-${merchantIdSearch}` : undefined,
+                    state: selectedState !== "All States" ? selectedState : undefined,
+                    city: selectedCity !== "All Cities" ? selectedCity : undefined
                 });
 
                 if (result.success && result.data) {
-                    // Filter by state/city locally since offers don't have direct location
-                    let filtered = result.data;
-                    // Note: Further filtering by merchant location would require joining with merchants table
-                    setOffers(filtered);
+                    setOffers(result.data);
 
                     // Calculate stats
                     const all = result.data;
@@ -60,7 +59,7 @@ export default function OffersListPage() {
         }
 
         fetchOffers();
-    }, [filter, searchQuery, merchantIdSearch]);
+    }, [filter, searchQuery, merchantIdSearch, selectedState, selectedCity]);
 
     const getStatusColor = (status: string) => {
         switch (status) {

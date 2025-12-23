@@ -32,15 +32,27 @@ export default function StudentDetailPage() {
             try {
                 const result = await studentService.getById(studentId);
                 if (result.success && result.data) {
-                    setStudent(result.data);
-                    setEditedName(result.data.name);
-                    setEditedEmail(result.data.email);
-
-                    // Fetch transactions
+                    // Fetch transactions first to calculate real stats
                     const txResult = await transactionService.getStudentTransactions(studentId);
+
+                    // Calculate real stats from transactions
+                    let realSavings = 0;
+                    let realRedemptions = 0;
+
                     if (txResult.success && txResult.data) {
+                        realRedemptions = txResult.data.length;
+                        realSavings = txResult.data.reduce((sum, tx) => sum + (tx.discountAmount || 0), 0);
                         setTransactions(txResult.data);
                     }
+
+                    // Override student stats with calculated values
+                    setStudent({
+                        ...result.data,
+                        totalSavings: realSavings,
+                        totalRedemptions: realRedemptions
+                    });
+                    setEditedName(result.data.name);
+                    setEditedEmail(result.data.email);
                 } else {
                     console.error("Student not found");
                 }
