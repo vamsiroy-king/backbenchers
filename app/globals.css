@@ -150,6 +150,67 @@
   .dark .section-title {
     color: hsl(0, 0%, 95%);
   }
+
+  /* Global dark mode overrides for hardcoded colors */
+  .dark .bg-white {
+    background-color: hsl(0, 0%, 6%) !important;
+  }
+
+  .dark .bg-white\/50 {
+    background-color: rgba(20, 20, 20, 0.9) !important;
+  }
+
+  .dark .bg-gray-50 {
+    background-color: hsl(0, 0%, 8%) !important;
+  }
+
+  .dark .bg-gray-100 {
+    background-color: hsl(0, 0%, 12%) !important;
+  }
+
+  .dark .bg-blue-50 {
+    background-color: hsl(217, 91%, 15%) !important;
+  }
+
+  .dark .text-gray-900 {
+    color: hsl(0, 0%, 95%) !important;
+  }
+
+  .dark .text-gray-800 {
+    color: hsl(0, 0%, 90%) !important;
+  }
+
+  .dark .text-gray-700 {
+    color: hsl(0, 0%, 80%) !important;
+  }
+
+  .dark .text-gray-600 {
+    color: hsl(0, 0%, 70%) !important;
+  }
+
+  .dark .text-gray-500 {
+    color: hsl(0, 0%, 60%) !important;
+  }
+
+  .dark .text-blue-900 {
+    color: hsl(217, 91%, 80%) !important;
+  }
+
+  .dark .text-blue-700 {
+    color: hsl(217, 91%, 70%) !important;
+  }
+
+  .dark .border-gray-100 {
+    border-color: hsl(0, 0%, 15%) !important;
+  }
+
+  .dark .border-gray-200 {
+    border-color: hsl(0, 0%, 18%) !important;
+  }
+
+  .dark .border-white\/60 {
+    border-color: rgba(255, 255, 255, 0.15) !important;
+  }
 }
 
 @layer base {
