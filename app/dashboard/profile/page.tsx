@@ -622,7 +622,7 @@ export default function ProfilePage() {
 
 
             {/* Savings Section */}
-            <div className="bg-white dark:bg-gray-950 rounded-2xl p-5 mb-6 shadow-card border border-gray-100/50 dark:border-transparent dark:shadow-none">
+            <div className="bg-white dark:bg-transparent rounded-2xl p-5 mb-6 shadow-card dark:shadow-none border border-gray-100/50 dark:border-transparent">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2.5">
                         <div className="h-9 w-9 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -649,7 +649,7 @@ export default function ProfilePage() {
                             }
                         }}
                         disabled={isRefreshing}
-                        className="h-8 w-8 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-sm active:scale-95 transition-transform disabled:opacity-50"
+                        className="h-8 w-8 bg-white dark:bg-transparent rounded-full flex items-center justify-center shadow-sm dark:shadow-none active:scale-95 transition-transform disabled:opacity-50"
                     >
                         <RefreshCcw className={`h-4 w-4 text-gray-500 dark:text-gray-400 ${isRefreshing ? 'animate-spin' : ''}`} />
                     </button>
@@ -662,14 +662,14 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center">
+                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 text-center border border-transparent dark:border-gray-800">
                         <div className="flex items-center justify-center gap-1 mb-1">
                             <Store className="h-4 w-4 text-orange-500" />
                             <span className="text-xs text-gray-500 dark:text-gray-400">Offline</span>
                         </div>
                         <p className="font-bold text-lg dark:text-white">₹{savingsStats.offline}</p>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center">
+                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 text-center border border-transparent dark:border-gray-800">
                         <div className="flex items-center justify-center gap-1 mb-1">
                             <Globe className="h-4 w-4 text-blue-500" />
                             <span className="text-xs text-gray-500 dark:text-gray-400">Online</span>
@@ -680,7 +680,7 @@ export default function ProfilePage() {
 
                 {/* Recent Transactions */}
                 {transactions.length > 0 && (
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3">
+                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 border border-transparent dark:border-gray-800">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-xs text-gray-500 dark:text-gray-400">Recent Activity</span>
                             <TrendingUp className="h-4 w-4 text-primary" />
