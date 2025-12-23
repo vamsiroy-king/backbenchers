@@ -1,101 +1,127 @@
 // Pending Ratings Service
-// Stores rating requests in localStorage so they persist and show immediately on app open
+// Stores rating requests in SUPABASE DATABASE so they work across devices
+// (localStorage is browser-specific and won't work if merchant and student use different devices)
 
-const PENDING_RATINGS_KEY = 'bb_pending_ratings';
+import { supabase } from '../supabase';
 
 export interface PendingRating {
+    id: string;
     transactionId: string;
     merchantId: string;
     merchantName: string;
     studentId: string;
-    createdAt: string; // ISO timestamp
-    expiresAt: string; // ISO timestamp (48 hours from creation)
+    createdAt: string;
+    expiresAt: string;
 }
 
-// Get all pending ratings from localStorage
-export function getPendingRatings(): PendingRating[] {
-    if (typeof window === 'undefined') return [];
-
+// Get all pending ratings for current student from database
+export async function getPendingRatingsFromDB(studentId: string): Promise<PendingRating[]> {
     try {
-        const stored = localStorage.getItem(PENDING_RATINGS_KEY);
-        if (!stored) return [];
+        const now = new Date().toISOString();
 
-        const ratings: PendingRating[] = JSON.parse(stored);
+        const { data, error } = await supabase
+            .from('pending_ratings')
+            .select('*')
+            .eq('student_id', studentId)
+            .eq('is_dismissed', false)
+            .gt('expires_at', now)
+            .order('created_at', { ascending: true });
 
-        // Filter out expired ratings (older than 48 hours)
-        const now = new Date();
-        const validRatings = ratings.filter(r => new Date(r.expiresAt) > now);
-
-        // Update storage if we filtered out any expired ones
-        if (validRatings.length !== ratings.length) {
-            localStorage.setItem(PENDING_RATINGS_KEY, JSON.stringify(validRatings));
+        if (error) {
+            console.error('[PendingRatings] Error fetching:', error);
+            return [];
         }
 
-        return validRatings;
+        return (data || []).map(row => ({
+            id: row.id,
+            transactionId: row.transaction_id,
+            merchantId: row.merchant_id,
+            merchantName: row.merchant_name,
+            studentId: row.student_id,
+            createdAt: row.created_at,
+            expiresAt: row.expires_at,
+        }));
     } catch (error) {
-        console.error('Error reading pending ratings:', error);
+        console.error('[PendingRatings] Error:', error);
         return [];
     }
 }
 
-// Add a new pending rating
-export function addPendingRating(rating: Omit<PendingRating, 'createdAt' | 'expiresAt'>): void {
-    if (typeof window === 'undefined') return;
-
+// Add a new pending rating to database
+export async function addPendingRatingToDB(rating: {
+    transactionId: string;
+    merchantId: string;
+    merchantName: string;
+    studentId: string;
+}): Promise<boolean> {
     try {
-        const existing = getPendingRatings();
+        const { error } = await supabase
+            .from('pending_ratings')
+            .upsert({
+                transaction_id: rating.transactionId,
+                merchant_id: rating.merchantId,
+                merchant_name: rating.merchantName,
+                student_id: rating.studentId,
+            }, {
+                onConflict: 'transaction_id',
+            });
 
-        // Don't add duplicate for same transaction
-        if (existing.some(r => r.transactionId === rating.transactionId)) {
-            return;
+        if (error) {
+            console.error('[PendingRatings] Error adding:', error);
+            return false;
         }
 
-        const now = new Date();
-        const expiresAt = new Date(now.getTime() + 48 * 60 * 60 * 1000); // 48 hours
-
-        const newRating: PendingRating = {
-            ...rating,
-            createdAt: now.toISOString(),
-            expiresAt: expiresAt.toISOString(),
-        };
-
-        existing.push(newRating);
-        localStorage.setItem(PENDING_RATINGS_KEY, JSON.stringify(existing));
-
         console.log('[PendingRatings] Added pending rating for:', rating.merchantName);
+        return true;
     } catch (error) {
-        console.error('Error adding pending rating:', error);
+        console.error('[PendingRatings] Error:', error);
+        return false;
     }
 }
 
-// Remove a pending rating (after user rates or skips)
-export function removePendingRating(transactionId: string): void {
-    if (typeof window === 'undefined') return;
-
+// Remove/dismiss a pending rating (after user rates or skips)
+export async function dismissPendingRating(transactionId: string): Promise<boolean> {
     try {
-        const existing = getPendingRatings();
-        const filtered = existing.filter(r => r.transactionId !== transactionId);
-        localStorage.setItem(PENDING_RATINGS_KEY, JSON.stringify(filtered));
+        const { error } = await supabase
+            .from('pending_ratings')
+            .update({ is_dismissed: true })
+            .eq('transaction_id', transactionId);
 
-        console.log('[PendingRatings] Removed pending rating for transaction:', transactionId);
+        if (error) {
+            console.error('[PendingRatings] Error dismissing:', error);
+            return false;
+        }
+
+        console.log('[PendingRatings] Dismissed pending rating for transaction:', transactionId);
+        return true;
     } catch (error) {
-        console.error('Error removing pending rating:', error);
+        console.error('[PendingRatings] Error:', error);
+        return false;
     }
 }
 
 // Get the first (oldest) pending rating to show
-export function getNextPendingRating(): PendingRating | null {
-    const ratings = getPendingRatings();
+export async function getNextPendingRatingFromDB(studentId: string): Promise<PendingRating | null> {
+    const ratings = await getPendingRatingsFromDB(studentId);
     return ratings.length > 0 ? ratings[0] : null;
 }
 
-// Clear all pending ratings
-export function clearAllPendingRatings(): void {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(PENDING_RATINGS_KEY);
-}
+// Delete a pending rating completely (after successful rating submission)
+export async function deletePendingRating(transactionId: string): Promise<boolean> {
+    try {
+        const { error } = await supabase
+            .from('pending_ratings')
+            .delete()
+            .eq('transaction_id', transactionId);
 
-// Check if a transaction already has a pending rating
-export function hasPendingRating(transactionId: string): boolean {
-    return getPendingRatings().some(r => r.transactionId === transactionId);
+        if (error) {
+            console.error('[PendingRatings] Error deleting:', error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('[PendingRatings] Error:', error);
+        return false;
+    }
 }
