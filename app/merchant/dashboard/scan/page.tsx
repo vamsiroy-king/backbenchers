@@ -208,7 +208,7 @@ export default function ScanPage() {
 
         try {
             // Record the transaction in Supabase with actual bill amounts
-            await transactionService.recordTransaction({
+            const txResult = await transactionService.recordTransaction({
                 studentId: student.id,
                 studentBbId: student.bbId || '',
                 studentName: student.name,
@@ -222,6 +222,27 @@ export default function ScanPage() {
                 finalAmount: final,                  // Final amount to collect
                 paymentMethod: paymentMethod || 'cash'
             });
+
+            // Send notification to student to rate the merchant
+            if (txResult.success && txResult.data) {
+                try {
+                    const { notificationService } = await import('@/lib/services/notification.service');
+                    await notificationService.createForUser(
+                        student.id,
+                        'student',
+                        'rating_request',
+                        '⭐ Rate Your Experience',
+                        `How was your experience at ${merchant.businessName}? Tap to rate!`,
+                        {
+                            transactionId: txResult.data.id,
+                            merchantId: merchant.id,
+                            merchantName: merchant.businessName
+                        }
+                    );
+                } catch (notifError) {
+                    console.log('Notification not sent (optional):', notifError);
+                }
+            }
 
             setStep("success");
         } catch (error) {

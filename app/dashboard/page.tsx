@@ -635,8 +635,29 @@ export default function DashboardPage() {
                     </div>
                 </motion.button>
 
-                {/* Hero Banner - Auto-scroll Carousel */}
-                <div className="relative -mx-5 overflow-hidden">
+                {/* Hero Banner - Touch/Swipe Carousel */}
+                <div
+                    className="relative -mx-5 overflow-hidden touch-pan-y"
+                    onTouchStart={(e) => {
+                        const touch = e.touches[0];
+                        (e.currentTarget as any).startX = touch.clientX;
+                    }}
+                    onTouchEnd={(e) => {
+                        const target = e.currentTarget as any;
+                        if (!target.startX) return;
+                        const touch = e.changedTouches[0];
+                        const diff = target.startX - touch.clientX;
+                        const count = heroBanners.length > 0 ? heroBanners.length : 3;
+                        if (diff > 50) {
+                            // Swipe left - next
+                            setCurrentBannerIndex((prev) => (prev + 1) % count);
+                        } else if (diff < -50) {
+                            // Swipe right - previous
+                            setCurrentBannerIndex((prev) => (prev - 1 + count) % count);
+                        }
+                        target.startX = null;
+                    }}
+                >
                     <AnimatePresence mode="wait">
                         {(heroBanners.length > 0 ? heroBanners : [
                             { id: '1', title: 'Student Discounts', subtitle: 'Up to 50% off on 100+ brands', ctaText: 'Explore', backgroundGradient: 'from-primary to-emerald-500' },
@@ -649,8 +670,8 @@ export default function DashboardPage() {
                                     initial={{ opacity: 0, x: 100 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -100 }}
-                                    transition={{ duration: 0.5, ease: "easeInOut" }}
-                                    className={`mx-5 h-44 rounded-3xl bg-gradient-to-br ${banner.backgroundGradient} p-6 flex flex-col justify-between relative overflow-hidden`}
+                                    transition={{ duration: 0.4, ease: "easeOut" }}
+                                    className={`mx-5 h-44 rounded-3xl bg-gradient-to-br ${banner.backgroundGradient} p-6 flex flex-col justify-between relative overflow-hidden cursor-grab active:cursor-grabbing`}
                                 >
                                     {/* Shine overlay */}
                                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
@@ -673,9 +694,10 @@ export default function DashboardPage() {
                         )}
                     </AnimatePresence>
 
-                    {/* Active dot indicators */}
-                    <div className="flex justify-center gap-2 mt-4">
-                        {[0, 1, 2].map((i) => (
+                    {/* Swipe hint + Active dot indicators */}
+                    <div className="flex items-center justify-center gap-2 mt-4">
+                        <span className="text-[10px] text-gray-400 mr-2">← Swipe →</span>
+                        {(heroBanners.length > 0 ? heroBanners : [1, 2, 3]).map((_, i) => (
                             <button
                                 key={i}
                                 onClick={() => setCurrentBannerIndex(i)}
