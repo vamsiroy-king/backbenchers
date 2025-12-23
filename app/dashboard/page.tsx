@@ -701,17 +701,16 @@ export default function DashboardPage() {
                             <button
                                 key={i}
                                 onClick={() => setCurrentBannerIndex(i)}
-                                className={`h-2 rounded-full transition-all duration-300 ${currentBannerIndex === i ? 'w-8 bg-gray-900' : 'w-2 bg-gray-300 hover:bg-gray-400'
-                                    }`}
+                                className={`h-2 rounded-full transition-all duration-300 ${currentBannerIndex === i ? 'w-8 bg-gray-900 dark:bg-white' : 'w-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400'}`}
                             />
                         ))}
                     </div>
                 </div>
 
-                {/* F³ Categories - Premium Green Gradient Triangle */}
+                {/* F³ Categories - Dark Theme Compatible */}
                 <div className="py-6 -mx-5">
-                    {/* Smooth Green Gradient Background */}
-                    <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 px-5 py-8 rounded-3xl mx-5">
+                    {/* Background adapts to dark mode */}
+                    <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 px-5 py-8 rounded-3xl mx-5 dark:border dark:border-gray-700">
                         {/* Triangle Layout Container */}
                         <div className="relative flex flex-col items-center gap-3">
                             {/* Top Row - Food Category */}
@@ -720,7 +719,7 @@ export default function DashboardPage() {
                                     <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
                                         <span className="text-2xl">🍕</span>
                                     </div>
-                                    <span className="text-[11px] font-semibold text-gray-600">Food</span>
+                                    <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-300">Food</span>
                                 </div>
                             </Link>
 
@@ -738,7 +737,7 @@ export default function DashboardPage() {
                                         <div className="w-14 h-14 bg-gradient-to-br from-pink-400 to-rose-500 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
                                             <span className="text-2xl">👗</span>
                                         </div>
-                                        <span className="text-[11px] font-semibold text-gray-600">Fashion</span>
+                                        <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-300">Fashion</span>
                                     </div>
                                 </Link>
                                 <Link href="/dashboard/category/Fitness">
@@ -746,7 +745,7 @@ export default function DashboardPage() {
                                         <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
                                             <span className="text-2xl">💪</span>
                                         </div>
-                                        <span className="text-[11px] font-semibold text-gray-600">Fitness</span>
+                                        <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-300">Fitness</span>
                                     </div>
                                 </Link>
                             </div>

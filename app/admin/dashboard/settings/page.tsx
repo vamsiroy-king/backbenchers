@@ -1,6 +1,6 @@
 "use client";
 
-import { Shield, Bell, Palette, Database, HelpCircle, FileText, LogOut, ChevronRight, Eye, EyeOff } from "lucide-react";
+import { Shield, Bell, Palette, Database, HelpCircle, FileText, LogOut, ChevronRight, Eye, EyeOff, Moon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -23,6 +23,7 @@ interface ContentSettings {
 
 export default function AdminSettingsPage() {
     const router = useRouter();
+    const [isDarkMode, setIsDarkMode] = useState(false);
 
     const [contentSettings, setContentSettings] = useState<ContentSettings>({
         showTopBrands: true,
@@ -38,8 +39,23 @@ export default function AdminSettingsPage() {
         if (saved) {
             setContentSettings(JSON.parse(saved));
         }
+        // Check dark mode state
+        setIsDarkMode(document.documentElement.classList.contains('dark'));
         setLoading(false);
     }, []);
+
+    // Toggle dark mode
+    const toggleDarkMode = () => {
+        const html = document.documentElement;
+        const newDark = !isDarkMode;
+        if (newDark) {
+            html.classList.add('dark');
+        } else {
+            html.classList.remove('dark');
+        }
+        localStorage.setItem('admin_theme', newDark ? 'dark' : 'light');
+        setIsDarkMode(newDark);
+    };
 
     // Save settings
     const toggleSetting = async (key: keyof ContentSettings) => {
@@ -61,11 +77,11 @@ export default function AdminSettingsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50/50 pb-32 pt-12">
+        <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900 pb-32 pt-12">
             {/* Header */}
-            <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-100/80">
+            <header className="sticky top-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-100/80 dark:border-gray-800">
                 <div className="px-5 h-16 flex items-center">
-                    <h1 className="font-bold text-xl text-gray-900">Settings</h1>
+                    <h1 className="font-bold text-xl text-gray-900 dark:text-white">Settings</h1>
                 </div>
             </header>
 
@@ -83,10 +99,30 @@ export default function AdminSettingsPage() {
                     </div>
                 </div>
 
+                {/* Dark Mode Toggle */}
+                <div>
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">Appearance</h3>
+                    <button
+                        onClick={toggleDarkMode}
+                        className="w-full flex items-center gap-4 p-4 bg-gray-900 dark:bg-gray-800 rounded-xl"
+                    >
+                        <div className="h-10 w-10 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                            <Moon className="h-5 w-5 text-yellow-500" />
+                        </div>
+                        <span className="flex-1 font-semibold text-white text-left">Dark Mode</span>
+                        <div className={`relative w-12 h-7 rounded-full transition-colors ${isDarkMode ? 'bg-primary' : 'bg-gray-600'}`}>
+                            <div
+                                className="absolute top-1 h-5 w-5 bg-white rounded-full transition-all shadow-sm"
+                                style={{ left: isDarkMode ? 'calc(100% - 22px)' : '2px' }}
+                            />
+                        </div>
+                    </button>
+                </div>
+
                 {/* Content Visibility - NEW SECTION */}
                 <div>
                     <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">Content Visibility</h3>
-                    <div className="bg-white rounded-xl shadow-card border border-gray-100/50 divide-y divide-gray-100">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-card border border-gray-100/50 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700">
                         {[
                             { key: 'showTopBrands' as const, label: 'Top Brands Section', desc: 'Show/hide in student app' },
                             { key: 'showHeroBanners' as const, label: 'Hero Banners', desc: 'Promotional banners on home' },
@@ -96,9 +132,9 @@ export default function AdminSettingsPage() {
                                 key={item.key}
                                 onClick={() => toggleSetting(item.key)}
                                 disabled={saving}
-                                className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-50/50 transition-colors disabled:opacity-50"
+                                className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors disabled:opacity-50"
                             >
-                                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${contentSettings[item.key] ? 'bg-primary/10' : 'bg-gray-100'}`}>
+                                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${contentSettings[item.key] ? 'bg-primary/10' : 'bg-gray-100 dark:bg-gray-700'}`}>
                                     {contentSettings[item.key] ? (
                                         <Eye className="h-5 w-5 text-primary" />
                                     ) : (
@@ -106,10 +142,10 @@ export default function AdminSettingsPage() {
                                     )}
                                 </div>
                                 <div className="flex-1">
-                                    <p className="font-medium text-sm text-gray-900">{item.label}</p>
-                                    <p className="text-xs text-gray-500">{item.desc}</p>
+                                    <p className="font-medium text-sm text-gray-900 dark:text-white">{item.label}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{item.desc}</p>
                                 </div>
-                                <div className={`relative w-11 h-6 rounded-full transition-colors ${contentSettings[item.key] ? 'bg-primary' : 'bg-gray-300'}`}>
+                                <div className={`relative w-11 h-6 rounded-full transition-colors ${contentSettings[item.key] ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
                                     <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-all ${contentSettings[item.key] ? 'left-5.5 right-0.5' : 'left-0.5'}`}
                                         style={{ left: contentSettings[item.key] ? 'calc(100% - 22px)' : '2px' }} />
                                 </div>
@@ -121,20 +157,20 @@ export default function AdminSettingsPage() {
                 {/* Settings List */}
                 <div>
                     <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">General Settings</h3>
-                    <div className="bg-white rounded-xl shadow-card border border-gray-100/50 divide-y divide-gray-100">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-card border border-gray-100/50 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700">
                         {SETTINGS.map((setting, index) => (
                             <button
                                 key={index}
-                                className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-50/50 transition-colors"
+                                className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors"
                             >
-                                <div className="h-10 w-10 bg-gray-50 rounded-xl flex items-center justify-center">
-                                    <setting.icon className="h-5 w-5 text-gray-600" />
+                                <div className="h-10 w-10 bg-gray-50 dark:bg-gray-700 rounded-xl flex items-center justify-center">
+                                    <setting.icon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="font-medium text-sm text-gray-900">{setting.label}</p>
-                                    <p className="text-xs text-gray-500">{setting.description}</p>
+                                    <p className="font-medium text-sm text-gray-900 dark:text-white">{setting.label}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{setting.description}</p>
                                 </div>
-                                <ChevronRight className="h-5 w-5 text-gray-300" />
+                                <ChevronRight className="h-5 w-5 text-gray-300 dark:text-gray-500" />
                             </button>
                         ))}
                     </div>

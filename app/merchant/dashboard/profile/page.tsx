@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Building2, MapPin, Clock, Phone, Globe, Instagram, Bell, Shield, HelpCircle, FileText, LogOut, ChevronRight, Camera, Store, Wifi, Tag, ChevronLeft, Loader2, QrCode, Upload, Trash2, Eye, EyeOff, Lock } from "lucide-react";
+import { Building2, MapPin, Clock, Phone, Globe, Instagram, Bell, Shield, HelpCircle, FileText, LogOut, ChevronRight, Camera, Store, Wifi, Tag, ChevronLeft, Loader2, QrCode, Upload, Trash2, Eye, EyeOff, Lock, Moon } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -478,6 +478,24 @@ export default function MerchantProfilePage() {
                         ))}
                     </div>
                 </div>
+
+                {/* Dark Mode Toggle */}
+                <button
+                    onClick={() => {
+                        const html = document.documentElement;
+                        const isDark = html.classList.toggle('dark');
+                        localStorage.setItem('merchant_theme', isDark ? 'dark' : 'light');
+                    }}
+                    className="w-full flex items-center gap-4 p-4 bg-gray-900 dark:bg-gray-800 rounded-2xl"
+                >
+                    <div className="h-10 w-10 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                        <Moon className="h-5 w-5 text-yellow-500" />
+                    </div>
+                    <span className="flex-1 font-semibold text-white text-left">Dark Mode</span>
+                    <div className="relative w-12 h-7 bg-gray-700 rounded-full p-1">
+                        <div className="absolute right-1 top-1 h-5 w-5 bg-primary rounded-full transition-all" />
+                    </div>
+                </button>
 
                 {/* Logout Button */}
                 <button
