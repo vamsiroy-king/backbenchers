@@ -23,6 +23,13 @@ CREATE INDEX IF NOT EXISTS idx_pending_ratings_expires ON pending_ratings(expire
 -- RLS Policies
 ALTER TABLE pending_ratings ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies first (in case re-running)
+DROP POLICY IF EXISTS "Students can read own pending ratings" ON pending_ratings;
+DROP POLICY IF EXISTS "Students can update own pending ratings" ON pending_ratings;
+DROP POLICY IF EXISTS "Students can delete own pending ratings" ON pending_ratings;
+DROP POLICY IF EXISTS "Service role can insert pending ratings" ON pending_ratings;
+DROP POLICY IF EXISTS "Authenticated users can insert pending ratings" ON pending_ratings;
+
 -- Students can read their own pending ratings
 CREATE POLICY "Students can read own pending ratings"
 ON pending_ratings FOR SELECT
@@ -38,11 +45,12 @@ CREATE POLICY "Students can delete own pending ratings"
 ON pending_ratings FOR DELETE
 USING (student_id IN (SELECT id FROM students WHERE user_id = auth.uid()));
 
--- Service role can insert (from merchant scanner)
-CREATE POLICY "Service role can insert pending ratings"
+-- ANY authenticated user can insert (merchants insert for students)
+CREATE POLICY "Authenticated users can insert pending ratings"
 ON pending_ratings FOR INSERT
+TO authenticated
 WITH CHECK (true);
 
 -- Grant permissions
 GRANT SELECT, UPDATE, DELETE ON pending_ratings TO authenticated;
-GRANT INSERT ON pending_ratings TO authenticated, service_role;
+GRANT INSERT ON pending_ratings TO authenticated;
