@@ -50,8 +50,8 @@ export default function ExplorePage() {
                     setFeaturedBrands(brandsResult.data);
                 }
 
-                // Fetch trending offers
-                const offersResult = await offerService.getTrendingOffers(20);
+                // Fetch active offers
+                const offersResult = await offerService.getActiveOffers();
                 if (offersResult.success && offersResult.data) {
                     setOffers(offersResult.data);
                 }
