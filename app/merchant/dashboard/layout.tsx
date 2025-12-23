@@ -6,9 +6,9 @@ export default function MerchantDashboardLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-black flex justify-center">
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-950 flex justify-center">
             {/* Mobile-sized container centered on all screens */}
-            <div className="w-full max-w-[430px] min-h-screen bg-white dark:bg-gray-950 relative shadow-xl">
+            <div className="w-full max-w-[430px] min-h-screen bg-white dark:bg-gray-950 relative shadow-xl dark:shadow-none">
                 <div className="h-full w-full overflow-y-auto overflow-x-hidden pb-24 pt-[env(safe-area-inset-top)]">
                     {children}
                 </div>
