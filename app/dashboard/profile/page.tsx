@@ -705,9 +705,26 @@ export default function ProfilePage() {
 
             {/* Actions */}
             <div className="space-y-3">
+                {/* Dark Mode Toggle */}
+                <button
+                    onClick={() => {
+                        const isDark = document.documentElement.classList.toggle('dark');
+                        localStorage.setItem('bb-theme', isDark ? 'dark' : 'light');
+                    }}
+                    className="w-full h-14 flex items-center justify-between px-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 font-medium shadow-subtle"
+                >
+                    <div className="flex items-center gap-3">
+                        <span className="text-lg">🌙</span>
+                        <span className="dark:text-white">Dark Mode</span>
+                    </div>
+                    <div className="relative h-6 w-11 bg-gray-200 dark:bg-primary rounded-full transition-colors">
+                        <div className="absolute h-5 w-5 bg-white rounded-full top-0.5 left-0.5 dark:left-[22px] transition-all shadow-sm" />
+                    </div>
+                </button>
+
                 <button
                     onClick={handleSignOut}
-                    className="w-full h-14 flex items-center justify-center gap-3 rounded-xl bg-white border border-red-100 text-red-500 font-medium shadow-subtle hover:bg-red-50 transition-colors"
+                    className="w-full h-14 flex items-center justify-center gap-3 rounded-xl bg-white dark:bg-gray-800 border border-red-100 dark:border-red-900 text-red-500 font-medium shadow-subtle hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 >
                     <LogOut className="h-5 w-5" />
                     Sign Out

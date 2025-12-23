@@ -96,6 +96,18 @@ export default function RootLayout({
       <head>
         <JsonLd />
         <link rel="canonical" href="https://backbenchers.app" />
+        {/* Theme initialization script - runs before page renders to prevent flash */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+          (function() {
+            try {
+              var theme = localStorage.getItem('bb-theme');
+              if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+              }
+            } catch(e) {}
+          })();
+        `}} />
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased overscroll-none", plusJakarta.variable)} suppressHydrationWarning>
         <Providers>
