@@ -676,63 +676,47 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* F³ Categories - Radial Wheel with 3D Center */}
-                <div className="py-6">
-                    {/* Radial Category Selector */}
-                    <div className="relative h-[220px] flex items-center justify-center">
-                        {/* Center 3D F³ Branding */}
-                        <motion.div
-                            animate={{
-                                scale: [1, 1.02, 1],
-                            }}
-                            transition={{ duration: 3, repeat: Infinity }}
-                            className="absolute w-24 h-24 bg-gradient-to-br from-primary via-emerald-500 to-teal-500 rounded-3xl flex items-center justify-center shadow-lg"
-                            style={{ transform: 'perspective(500px) rotateX(5deg)' }}
-                        >
-                            <span className="text-white text-3xl font-black tracking-tight" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>F³</span>
-                        </motion.div>
+                {/* F³ Categories - Clean Static Triangle Layout */}
+                <div className="py-8">
+                    {/* Triangle Layout Container */}
+                    <div className="relative flex flex-col items-center gap-4">
+                        {/* Top Row - Food Category */}
+                        <Link href="/dashboard/category/Food">
+                            <div className="flex flex-col items-center gap-2 cursor-pointer">
+                                <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl flex items-center justify-center">
+                                    <span className="text-3xl">🍕</span>
+                                </div>
+                                <span className="text-xs font-semibold text-gray-700">Food</span>
+                            </div>
+                        </Link>
 
-                        {/* Orbiting Categories - Click directly navigates */}
-                        {CATEGORIES.map((cat, index) => {
-                            const angle = (index * 120) - 90;
-                            const radius = 90;
-                            const isActive = index === selectedCategory;
-                            const x = Math.cos((angle * Math.PI) / 180) * radius;
-                            const y = Math.sin((angle * Math.PI) / 180) * radius;
+                        {/* Middle Row - F³ Center */}
+                        <div className="flex items-center justify-center">
+                            <div className="w-14 h-14 bg-primary rounded-xl flex items-center justify-center">
+                                <span className="text-white text-xl font-black">F³</span>
+                            </div>
+                        </div>
 
-                            return (
-                                <Link key={cat.id} href={`/dashboard/category/${cat.name}`}>
-                                    <motion.button
-                                        onMouseEnter={() => setSelectedCategory(index)}
-                                        animate={{
-                                            x,
-                                            y,
-                                            scale: isActive ? 1.1 : 0.9
-                                        }}
-                                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                                        className={`absolute flex flex-col items-center gap-1.5 ${isActive ? 'z-10' : 'z-0'}`}
-                                    >
-                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${cat.color} ${isActive ? 'shadow-lg scale-110' : 'opacity-70'}`}>
-                                            <span className="text-2xl">{cat.icon}</span>
-                                        </div>
-                                        <span className={`text-xs font-semibold ${isActive ? 'text-gray-900' : 'text-gray-500'}`}>
-                                            {cat.name}
-                                        </span>
-                                    </motion.button>
-                                </Link>
-                            );
-                        })}
+                        {/* Bottom Row - Fashion & Fitness */}
+                        <div className="flex items-center justify-center gap-12">
+                            <Link href="/dashboard/category/Fashion">
+                                <div className="flex flex-col items-center gap-2 cursor-pointer">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl flex items-center justify-center">
+                                        <span className="text-3xl">👗</span>
+                                    </div>
+                                    <span className="text-xs font-semibold text-gray-700">Fashion</span>
+                                </div>
+                            </Link>
+                            <Link href="/dashboard/category/Fitness">
+                                <div className="flex flex-col items-center gap-2 cursor-pointer">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center">
+                                        <span className="text-3xl">💪</span>
+                                    </div>
+                                    <span className="text-xs font-semibold text-gray-700">Fitness</span>
+                                </div>
+                            </Link>
+                        </div>
                     </div>
-
-                    {/* Tagline only - no explore button */}
-                    <motion.p
-                        key={selectedCategory}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-center text-gray-400 text-sm mt-2"
-                    >
-                        {CATEGORIES[selectedCategory].tagline}
-                    </motion.p>
                 </div>
 
 
@@ -763,7 +747,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Horizontal Scroll Cards */}
-                    <div className="flex gap-4 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
+                    <div className="flex gap-4 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2 pt-1">
                         {currentOffers.map((offer: any) => {
                             const isFav = offer.id && favoriteIds.includes(offer.id);
                             const expiryText = getExpiryText(offer.validUntil);
@@ -783,9 +767,9 @@ export default function DashboardPage() {
                                     className={`flex-none w-[280px] cursor-pointer ${isExpired ? 'opacity-40 grayscale' : ''}`}
                                 >
                                     <div className="bg-white rounded-3xl p-5 relative">
-                                        {/* Discount Badge - Floating */}
-                                        <div className="absolute -top-2 -right-2 z-10">
-                                            <span className="bg-primary text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                                        {/* Discount Badge - Top Right Inside */}
+                                        <div className="absolute top-3 right-3 z-10">
+                                            <span className="bg-primary text-white px-3 py-1 rounded-full text-xs font-bold">
                                                 {offer.discountValue
                                                     ? `${offer.type === 'percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue}`
                                                     : (offer.discount || 'Deal')}
