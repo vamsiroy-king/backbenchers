@@ -230,7 +230,7 @@ export default function ScanPage() {
                     await notificationService.createForUser(
                         student.id,
                         'student',
-                        'rating_request',
+                        'rate_merchant', // This type triggers rating modal on student app
                         '⭐ Rate Your Experience',
                         `How was your experience at ${merchant.businessName}? Tap to rate!`,
                         {

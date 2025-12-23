@@ -15,6 +15,7 @@ import { favoriteService } from "@/lib/services/favorite.service";
 import { newMerchantService, NewMerchant } from "@/lib/services/newMerchant.service";
 import { notificationService, Notification } from "@/lib/services/notification.service";
 import { CitySelector } from "@/components/CitySelector";
+import { RatingModal } from "@/components/RatingModal";
 import { Offer } from "@/lib/types";
 
 // Hero Banner - Premium #India's 1st
@@ -124,6 +125,14 @@ export default function DashboardPage() {
     // Favorite offers
     const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
+    // Rating modal state for post-redemption rating
+    const [ratingModalData, setRatingModalData] = useState<{
+        isOpen: boolean;
+        transactionId: string;
+        merchantId: string;
+        merchantName: string;
+    } | null>(null);
+
     // Real notifications from database
     const [realNotifications, setRealNotifications] = useState<Notification[]>([]);
 
@@ -158,10 +167,12 @@ export default function DashboardPage() {
 
     // Auto-scroll hero banners every 4 seconds
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+    const [swipeDirection, setSwipeDirection] = useState<'left' | 'right'>('left'); // Track swipe direction for animation
     const bannerCount = heroBanners.length > 0 ? heroBanners.length : 3;
 
     useEffect(() => {
         const interval = setInterval(() => {
+            setSwipeDirection('left'); // Auto-scroll always goes "left" (next)
             setCurrentBannerIndex((prev) => (prev + 1) % bannerCount);
         }, 4000);
         return () => clearInterval(interval);
@@ -256,6 +267,26 @@ export default function DashboardPage() {
                     const notifResult = await notificationService.getMyNotifications(10);
                     if (notifResult.success && notifResult.data) {
                         setRealNotifications(notifResult.data);
+
+                        // Check for unread rate_merchant notification to auto-show rating modal
+                        const rateNotif = notifResult.data.find(n =>
+                            n.type === 'rate_merchant' && !n.isRead && n.data
+                        );
+                        if (rateNotif && rateNotif.data) {
+                            const data = typeof rateNotif.data === 'string'
+                                ? JSON.parse(rateNotif.data)
+                                : rateNotif.data;
+                            if (data.merchantId && data.merchantName) {
+                                setRatingModalData({
+                                    isOpen: true,
+                                    transactionId: data.transactionId || rateNotif.id,
+                                    merchantId: data.merchantId,
+                                    merchantName: data.merchantName,
+                                });
+                                // Mark as read to prevent showing again
+                                await notificationService.markAsRead(rateNotif.id);
+                            }
+                        }
                     }
                 }
             } catch (error) {
@@ -649,10 +680,12 @@ export default function DashboardPage() {
                         const diff = target.startX - touch.clientX;
                         const count = heroBanners.length > 0 ? heroBanners.length : 3;
                         if (diff > 50) {
-                            // Swipe left - next
+                            // Swipe left on screen = go to next banner
+                            setSwipeDirection('left');
                             setCurrentBannerIndex((prev) => (prev + 1) % count);
                         } else if (diff < -50) {
-                            // Swipe right - previous
+                            // Swipe right on screen = go to previous banner
+                            setSwipeDirection('right');
                             setCurrentBannerIndex((prev) => (prev - 1 + count) % count);
                         }
                         target.startX = null;
@@ -667,10 +700,10 @@ export default function DashboardPage() {
                             index === currentBannerIndex && (
                                 <motion.div
                                     key={banner.id}
-                                    initial={{ opacity: 0, x: 100 }}
+                                    initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -100 }}
-                                    transition={{ duration: 0.4, ease: "easeOut" }}
+                                    exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+                                    transition={{ duration: 0.35, ease: "easeOut" }}
                                     className={`mx-5 h-44 rounded-3xl bg-gradient-to-br ${banner.backgroundGradient} p-6 flex flex-col justify-between relative overflow-hidden cursor-grab active:cursor-grabbing`}
                                 >
                                     {/* Shine overlay */}
@@ -953,6 +986,22 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </main>
+
+            {/* Rating Modal - Shows after successful redemption */}
+            {ratingModalData && studentId && (
+                <RatingModal
+                    isOpen={ratingModalData.isOpen}
+                    onClose={() => setRatingModalData(null)}
+                    transactionId={ratingModalData.transactionId}
+                    merchantId={ratingModalData.merchantId}
+                    merchantName={ratingModalData.merchantName}
+                    studentId={studentId}
+                    onRatingSubmitted={() => {
+                        setRatingModalData(null);
+                        // Could refresh data here if needed
+                    }}
+                />
+            )}
         </div >
     );
 }
