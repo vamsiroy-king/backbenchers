@@ -182,17 +182,31 @@ export default function DashboardPage() {
     // Check for pending ratings on page load - SHOW IMMEDIATELY in center of screen
     useEffect(() => {
         async function checkPendingRatings() {
-            if (!studentId) return;
+            console.log('[RatingCheck] StudentId:', studentId);
+            if (!studentId) {
+                console.log('[RatingCheck] No studentId, skipping');
+                return;
+            }
 
-            const pendingRating = await getNextPendingRatingFromDB(studentId);
-            if (pendingRating) {
-                // Show rating modal immediately
-                setRatingModalData({
-                    isOpen: true,
-                    transactionId: pendingRating.transactionId,
-                    merchantId: pendingRating.merchantId,
-                    merchantName: pendingRating.merchantName,
-                });
+            try {
+                console.log('[RatingCheck] Fetching pending ratings from DB...');
+                const pendingRating = await getNextPendingRatingFromDB(studentId);
+                console.log('[RatingCheck] Result:', pendingRating);
+
+                if (pendingRating) {
+                    console.log('[RatingCheck] ✅ Found pending rating! Showing modal for:', pendingRating.merchantName);
+                    // Show rating modal immediately
+                    setRatingModalData({
+                        isOpen: true,
+                        transactionId: pendingRating.transactionId,
+                        merchantId: pendingRating.merchantId,
+                        merchantName: pendingRating.merchantName,
+                    });
+                } else {
+                    console.log('[RatingCheck] No pending ratings found');
+                }
+            } catch (err) {
+                console.error('[RatingCheck] Error:', err);
             }
         }
         checkPendingRatings();
