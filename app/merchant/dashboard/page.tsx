@@ -87,29 +87,29 @@ export default function MerchantDashboardPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50/50 pb-32 pt-12">
+        <div className="min-h-screen bg-gray-50/50 dark:bg-gray-950 pb-32 pt-12">
             {/* Header */}
-            <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-100/80">
+            <header className="sticky top-0 z-40 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border-b border-gray-100/80 dark:border-gray-800">
                 <div className="px-5 h-16 flex items-center justify-between">
                     <div>
-                        <p className="text-xs text-gray-400">Welcome back</p>
-                        <h1 className="font-bold text-lg text-gray-900">{merchant?.businessName || 'Merchant'} 👋</h1>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">Welcome back</p>
+                        <h1 className="font-bold text-lg text-gray-900 dark:text-white">{merchant?.businessName || 'Merchant'} 👋</h1>
                     </div>
                     <div className="flex items-center gap-2">
                         {merchant?.status === 'pending' && (
-                            <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-lg font-semibold">
+                            <span className="text-[10px] bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 px-2.5 py-1 rounded-lg font-semibold">
                                 Pending
                             </span>
                         )}
-                        <button className="h-10 w-10 rounded-xl bg-white shadow-subtle border border-gray-100/50 flex items-center justify-center">
-                            <Bell className="h-5 w-5 text-gray-500" />
+                        <button className="h-10 w-10 rounded-xl bg-white dark:bg-gray-800 shadow-subtle dark:shadow-none border border-gray-100/50 dark:border-gray-700 flex items-center justify-center">
+                            <Bell className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                         </button>
                     </div>
                 </div>
@@ -205,13 +205,13 @@ export default function MerchantDashboardPage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm"
+                            className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-none"
                         >
                             <div className={`h-10 w-10 ${stat.color} rounded-xl flex items-center justify-center mb-2`}>
                                 <stat.icon className="h-5 w-5 text-white" />
                             </div>
-                            <p className="text-2xl font-extrabold">{stat.value}</p>
-                            <p className="text-xs text-gray-500">{stat.label}</p>
+                            <p className="text-2xl font-extrabold dark:text-white">{stat.value}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{stat.label}</p>
                         </motion.div>
                     ))}
                 </div>
@@ -219,17 +219,17 @@ export default function MerchantDashboardPage() {
                 {/* Recent Redemptions */}
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-lg">Recent Redemptions</h3>
+                        <h3 className="font-bold text-lg dark:text-white">Recent Redemptions</h3>
                         <Link href="/merchant/dashboard/transactions" className="text-primary text-sm font-semibold">
                             View All
                         </Link>
                     </div>
 
                     {recentTransactions.length === 0 ? (
-                        <div className="text-center py-8 bg-gray-50 rounded-2xl">
-                            <TrendingUp className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                            <p className="text-sm text-gray-500">No redemptions yet</p>
-                            <p className="text-xs text-gray-400">Transactions will appear here in real-time</p>
+                        <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-2xl">
+                            <TrendingUp className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                            <p className="text-sm text-gray-500 dark:text-gray-400">No redemptions yet</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">Transactions will appear here in real-time</p>
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -239,20 +239,20 @@ export default function MerchantDashboardPage() {
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.05 }}
-                                    className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
+                                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-xl"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">
                                             {tx.studentName.charAt(0)}
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-sm">{tx.studentName}</p>
-                                            <p className="text-xs text-gray-500">{tx.offerTitle}</p>
+                                            <p className="font-semibold text-sm dark:text-white">{tx.studentName}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">{tx.offerTitle}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
                                         <p className="font-bold text-sm text-primary">₹{tx.finalAmount}</p>
-                                        <p className="text-[10px] text-gray-400">{formatTimeAgo(tx.redeemedAt)}</p>
+                                        <p className="text-[10px] text-gray-400 dark:text-gray-500">{formatTimeAgo(tx.redeemedAt)}</p>
                                     </div>
                                 </motion.div>
                             ))}
@@ -263,7 +263,7 @@ export default function MerchantDashboardPage() {
                 {/* My Offers */}
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-lg">My Offers</h3>
+                        <h3 className="font-bold text-lg dark:text-white">My Offers</h3>
                         <Link href="/merchant/dashboard/offers" className="text-primary text-sm font-semibold">
                             Manage
                         </Link>
@@ -271,29 +271,29 @@ export default function MerchantDashboardPage() {
 
                     {offers.length === 0 ? (
                         <Link href="/merchant/dashboard/offers/new">
-                            <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center">
-                                <Plus className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                                <p className="font-bold text-gray-600">Create Your First Offer</p>
-                                <p className="text-xs text-gray-400">Attract students with exclusive discounts</p>
+                            <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl p-6 text-center">
+                                <Plus className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                                <p className="font-bold text-gray-600 dark:text-gray-300">Create Your First Offer</p>
+                                <p className="text-xs text-gray-400 dark:text-gray-500">Attract students with exclusive discounts</p>
                             </div>
                         </Link>
                     ) : (
                         <div className="space-y-2">
                             {offers.slice(0, 3).map((offer) => (
                                 <Link key={offer.id} href={`/merchant/dashboard/offers/${offer.id}`}>
-                                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
                                         <div>
-                                            <p className="font-bold text-sm">{offer.title}</p>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="font-bold text-sm dark:text-white">{offer.title}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">
                                                 {offer.type === 'percentage' ? `${offer.discountValue}% OFF` : `₹${offer.discountValue} OFF`}
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${offer.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${offer.status === 'active' ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                                                 }`}>
                                                 {offer.status}
                                             </span>
-                                            <ChevronRight className="h-4 w-4 text-gray-300" />
+                                            <ChevronRight className="h-4 w-4 text-gray-300 dark:text-gray-600" />
                                         </div>
                                     </div>
                                 </Link>

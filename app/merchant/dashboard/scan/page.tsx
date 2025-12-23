@@ -225,6 +225,21 @@ export default function ScanPage() {
 
             // Send notification to student to rate the merchant
             if (txResult.success && txResult.data) {
+                // Store pending rating in localStorage (for immediate display)
+                try {
+                    const { addPendingRating } = await import('@/lib/services/pendingRatings');
+                    addPendingRating({
+                        transactionId: txResult.data.id,
+                        merchantId: merchant.id,
+                        merchantName: merchant.businessName,
+                        studentId: student.id,
+                    });
+                } catch (e) {
+                    // localStorage might not be available
+                    console.log('Could not store pending rating locally');
+                }
+
+                // Also send notification as backup
                 try {
                     const { notificationService } = await import('@/lib/services/notification.service');
                     await notificationService.createForUser(

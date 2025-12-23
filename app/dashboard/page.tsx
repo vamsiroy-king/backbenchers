@@ -14,6 +14,7 @@ import { heroBannerService, HeroBanner } from "@/lib/services/heroBanner.service
 import { favoriteService } from "@/lib/services/favorite.service";
 import { newMerchantService, NewMerchant } from "@/lib/services/newMerchant.service";
 import { notificationService, Notification } from "@/lib/services/notification.service";
+import { getNextPendingRating, removePendingRating, PendingRating } from "@/lib/services/pendingRatings";
 import { CitySelector } from "@/components/CitySelector";
 import { RatingModal } from "@/components/RatingModal";
 import { Offer } from "@/lib/types";
@@ -177,6 +178,20 @@ export default function DashboardPage() {
         }, 4000);
         return () => clearInterval(interval);
     }, [bannerCount]);
+
+    // Check for pending ratings on page load - SHOW IMMEDIATELY in center of screen
+    useEffect(() => {
+        const pendingRating = getNextPendingRating();
+        if (pendingRating && studentId) {
+            // Show rating modal immediately
+            setRatingModalData({
+                isOpen: true,
+                transactionId: pendingRating.transactionId,
+                merchantId: pendingRating.merchantId,
+                merchantName: pendingRating.merchantName,
+            });
+        }
+    }, [studentId]);
 
     // Fetch real offers and check verification status
     useEffect(() => {
@@ -991,14 +1006,19 @@ export default function DashboardPage() {
             {ratingModalData && studentId && (
                 <RatingModal
                     isOpen={ratingModalData.isOpen}
-                    onClose={() => setRatingModalData(null)}
+                    onClose={() => {
+                        // Remove from localStorage when skipped/closed
+                        removePendingRating(ratingModalData.transactionId);
+                        setRatingModalData(null);
+                    }}
                     transactionId={ratingModalData.transactionId}
                     merchantId={ratingModalData.merchantId}
                     merchantName={ratingModalData.merchantName}
                     studentId={studentId}
                     onRatingSubmitted={() => {
+                        // Remove from localStorage when submitted
+                        removePendingRating(ratingModalData.transactionId);
                         setRatingModalData(null);
-                        // Could refresh data here if needed
                     }}
                 />
             )}

@@ -204,7 +204,7 @@ export default function ProfilePage() {
     // Loading state
     if (loading) {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
@@ -213,7 +213,7 @@ export default function ProfilePage() {
     // Guest View - Get Verified CTA (only if no student record found)
     if (!isVerified || !student) {
         return (
-            <div className="min-h-screen bg-white pb-28 px-4">
+            <div className="min-h-screen bg-white dark:bg-gray-950 pb-28 px-4">
                 <header className="py-6">
                     <h1 className="text-2xl font-bold">Profile</h1>
                 </header>
@@ -612,11 +612,11 @@ export default function ProfilePage() {
 
             {/* Tap Hint */}
             <motion.p
-                className="text-[11px] text-gray-400 text-center mb-6 flex items-center justify-center gap-2"
+                className="text-[11px] text-gray-400 dark:text-gray-500 text-center mb-6 flex items-center justify-center gap-2"
                 animate={{ opacity: [0.5, 1, 0.5] }}
                 transition={{ repeat: Infinity, duration: 2 }}
             >
-                <span className="inline-block h-4 w-4 border border-gray-300 rounded flex items-center justify-center text-[8px]">↻</span>
+                <span className="inline-block h-4 w-4 border border-gray-300 dark:border-gray-600 rounded flex items-center justify-center text-[8px]">↻</span>
                 Tap the card to flip
             </motion.p>
 
@@ -732,13 +732,13 @@ export default function ProfilePage() {
             </div>
 
             {/* App Switcher */}
-            <div className="pt-8 border-t border-gray-100/80 mt-6">
-                <p className="text-xs text-gray-400 text-center mb-3">Switch to</p>
+            <div className="pt-8 border-t border-gray-100/80 dark:border-gray-800 mt-6">
+                <p className="text-xs text-gray-400 dark:text-gray-500 text-center mb-3">Switch to</p>
                 <div className="flex justify-center gap-2.5">
-                    <Link href="/merchant" className="px-4 py-2.5 bg-white rounded-xl text-xs font-medium text-gray-600 border border-gray-100 shadow-subtle">
+                    <Link href="/merchant" className="px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700 shadow-subtle dark:shadow-none">
                         Merchant App
                     </Link>
-                    <Link href="/admin/dashboard" className="px-4 py-2.5 bg-white rounded-xl text-xs font-medium text-gray-600 border border-gray-100 shadow-subtle">
+                    <Link href="/admin/dashboard" className="px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700 shadow-subtle dark:shadow-none">
                         Admin Panel
                     </Link>
                 </div>
