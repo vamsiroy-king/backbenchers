@@ -12,6 +12,7 @@ import { topBrandsService } from "@/lib/services/topBrands.service";
 import { cityService } from "@/lib/services/city.service";
 import { heroBannerService, HeroBanner } from "@/lib/services/heroBanner.service";
 import { favoriteService } from "@/lib/services/favorite.service";
+import { newMerchantService, NewMerchant } from "@/lib/services/newMerchant.service";
 import { notificationService, Notification } from "@/lib/services/notification.service";
 import { CitySelector } from "@/components/CitySelector";
 import { Offer } from "@/lib/types";
@@ -105,6 +106,9 @@ export default function DashboardPage() {
 
     // Top brands from admin
     const [topBrandsData, setTopBrandsData] = useState<{ id: string; name: string; logo: string | null; category: string; discount?: string }[]>([]);
+
+    // New merchants for "New on BackBenchers" section
+    const [newMerchants, setNewMerchants] = useState<NewMerchant[]>([]);
 
     // Content visibility settings (from admin)
     const [contentSettings, setContentSettings] = useState({
@@ -225,6 +229,12 @@ export default function DashboardPage() {
                         logo: b.merchant?.logo || null,
                         category: b.merchant?.category || 'Store',
                     })));
+                }
+
+                // Fetch new merchants for "New on BackBenchers"
+                const newMerchantsResult = await newMerchantService.getNewMerchants(7, 10);
+                if (newMerchantsResult.success && newMerchantsResult.data) {
+                    setNewMerchants(newMerchantsResult.data);
                 }
 
                 // Check if student is verified
@@ -722,6 +732,44 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
+                {/* New on BackBenchers Section */}
+                {newMerchants.length > 0 && (
+                    <div className="py-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <Sparkles className="h-5 w-5 text-primary" />
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">New on BackBenchers</h3>
+                            </div>
+                            <span className="text-xs text-gray-400">Recently joined</span>
+                        </div>
+                        <div className="flex gap-3 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
+                            {newMerchants.map((merchant, i) => (
+                                <Link key={merchant.id} href={`/store/${merchant.id}`}>
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="flex-shrink-0 w-36 bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-card border border-gray-100 dark:border-gray-700 cursor-pointer hover:shadow-lg transition-shadow"
+                                    >
+                                        <div className="h-16 w-16 mx-auto bg-gradient-to-br from-primary/10 to-emerald-100 dark:from-primary/20 dark:to-emerald-800 rounded-xl flex items-center justify-center mb-2 overflow-hidden">
+                                            {merchant.logoUrl ? (
+                                                <img src={merchant.logoUrl} alt={merchant.businessName} className="w-full h-full object-cover rounded-xl" />
+                                            ) : (
+                                                <Store className="h-7 w-7 text-primary" />
+                                            )}
+                                        </div>
+                                        <p className="font-semibold text-sm text-center truncate dark:text-white">{merchant.businessName}</p>
+                                        <p className="text-[10px] text-gray-500 dark:text-gray-400 text-center truncate">{merchant.category}</p>
+                                        <div className="flex items-center justify-center gap-1 mt-1">
+                                            <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-full text-[9px] font-semibold">NEW</span>
+                                            {merchant.daysOld <= 3 && <span className="text-[9px] text-gray-400">🔥</span>}
+                                        </div>
+                                    </motion.div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Trending Offers - Premium Horizontal Scroll */}
                 <div className="py-6">
