@@ -398,10 +398,12 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 )}
             </AnimatePresence>
 
-            {/* Full-width layout for all screen sizes */}
-            <div className="min-h-screen bg-white dark:bg-gray-950">
-                <div className="h-full w-full overflow-y-auto">
-                    {storeContent}
+            {/* Mobile-sized container centered on all screens */}
+            <div className="min-h-screen bg-gray-100 dark:bg-black flex justify-center">
+                <div className="w-full max-w-[430px] min-h-screen bg-white dark:bg-gray-950 shadow-xl">
+                    <div className="h-full w-full overflow-y-auto">
+                        {storeContent}
+                    </div>
                 </div>
             </div>
         </>
