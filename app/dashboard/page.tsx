@@ -710,12 +710,12 @@ export default function DashboardPage() {
                                             scale: isActive ? 1.1 : 0.9
                                         }}
                                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                                        className={`absolute flex flex-col items-center gap-1.5 ${isActive ? 'z-10' : 'z-0 opacity-40'}`}
+                                        className={`absolute flex flex-col items-center gap-1.5 ${isActive ? 'z-10' : 'z-0'}`}
                                     >
-                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${isActive ? cat.color + ' shadow-md' : 'bg-gray-100'}`}>
+                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${cat.color} ${isActive ? 'shadow-lg scale-110' : 'opacity-70'}`}>
                                             <span className="text-2xl">{cat.icon}</span>
                                         </div>
-                                        <span className={`text-xs font-semibold ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                                        <span className={`text-xs font-semibold ${isActive ? 'text-gray-900' : 'text-gray-500'}`}>
                                             {cat.name}
                                         </span>
                                     </motion.button>
@@ -744,8 +744,8 @@ export default function DashboardPage() {
                             <button
                                 onClick={() => setTrendingTab('offline')}
                                 className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${trendingTab === 'offline'
-                                        ? 'bg-gray-900 text-white'
-                                        : 'text-gray-400 hover:text-gray-600'
+                                    ? 'bg-gray-900 text-white'
+                                    : 'text-gray-400 hover:text-gray-600'
                                     }`}
                             >
                                 In-Store
@@ -753,8 +753,8 @@ export default function DashboardPage() {
                             <button
                                 onClick={() => setTrendingTab('online')}
                                 className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${trendingTab === 'online'
-                                        ? 'bg-gray-900 text-white'
-                                        : 'text-gray-400 hover:text-gray-600'
+                                    ? 'bg-gray-900 text-white'
+                                    : 'text-gray-400 hover:text-gray-600'
                                     }`}
                             >
                                 Online
@@ -782,7 +782,7 @@ export default function DashboardPage() {
                                     }}
                                     className={`flex-none w-[280px] cursor-pointer ${isExpired ? 'opacity-40 grayscale' : ''}`}
                                 >
-                                    <div className="bg-white border border-gray-100 rounded-3xl p-5 relative">
+                                    <div className="bg-white rounded-3xl p-5 relative">
                                         {/* Discount Badge - Floating */}
                                         <div className="absolute -top-2 -right-2 z-10">
                                             <span className="bg-primary text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
@@ -796,8 +796,8 @@ export default function DashboardPage() {
                                         <div className="flex items-start gap-4">
                                             {/* Merchant Logo */}
                                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${trendingTab === 'online'
-                                                    ? 'bg-gradient-to-br from-violet-50 to-purple-50'
-                                                    : 'bg-gradient-to-br from-emerald-50 to-teal-50'
+                                                ? 'bg-gradient-to-br from-violet-50 to-purple-50'
+                                                : 'bg-gradient-to-br from-emerald-50 to-teal-50'
                                                 }`}>
                                                 {offer.merchantLogo ? (
                                                     <img src={offer.merchantLogo} alt="" className="w-10 h-10 object-contain rounded-xl" />
@@ -817,8 +817,8 @@ export default function DashboardPage() {
 
                                                 {expiryText && !isExpired && (
                                                     <span className={`inline-block text-[10px] font-medium mt-2 px-2 py-0.5 rounded-full ${expiryText.includes('h')
-                                                            ? 'bg-red-50 text-red-600'
-                                                            : 'bg-gray-100 text-gray-500'
+                                                        ? 'bg-red-50 text-red-600'
+                                                        : 'bg-gray-100 text-gray-500'
                                                         }`}>
                                                         {expiryText}
                                                     </span>
