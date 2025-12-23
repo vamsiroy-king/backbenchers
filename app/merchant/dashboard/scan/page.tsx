@@ -326,20 +326,34 @@ export default function ScanPage() {
                         <div className="flex gap-2">
                             <input
                                 type="text"
-                                placeholder="BB-XXXXXX"
+                                placeholder="BB-XXXXXX or just 536339"
                                 value={scanInput}
                                 onChange={(e) => setScanInput(e.target.value.toUpperCase())}
-                                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-center font-mono font-bold"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && scanInput.length >= 3) {
+                                        const idToVerify = scanInput.startsWith("BB-") ? scanInput : `BB-${scanInput.replace(/\D/g, '')}`;
+                                        handleQRScan(idToVerify);
+                                    }
+                                }}
+                                className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-xl text-center font-mono font-bold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                 suppressHydrationWarning
                             />
                             <Button
-                                onClick={() => scanInput && handleQRScan(scanInput)}
-                                disabled={!scanInput.startsWith("BB-")}
-                                className="px-4"
+                                onClick={() => {
+                                    if (scanInput.length >= 3) {
+                                        // Auto-add BB- prefix if not present
+                                        const idToVerify = scanInput.startsWith("BB-") ? scanInput : `BB-${scanInput.replace(/\D/g, '')}`;
+                                        console.log('[ManualInput] Verifying:', idToVerify);
+                                        handleQRScan(idToVerify);
+                                    }
+                                }}
+                                disabled={scanInput.length < 3}
+                                className="px-6 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                             >
                                 Verify
                             </Button>
                         </div>
+                        <p className="text-xs text-gray-400 text-center mt-2">Enter just the number (e.g., 536339) or full ID (BB-536339)</p>
                     </div>
                 </motion.div>
             )}
