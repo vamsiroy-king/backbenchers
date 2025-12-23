@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, User, Flame, Compass } from "lucide-react";
+import { Home, User, Flame, Compass, Heart } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 const TABS = [
     { name: "Home", href: "/dashboard", icon: Home },
     { name: "Explore", href: "/dashboard/explore", icon: Compass },
+    { name: "Saved", href: "/dashboard/saved", icon: Heart },
     { name: "Drops", href: "/dashboard/drops", icon: Flame },
     { name: "Profile", href: "/dashboard/profile", icon: User },
 ];

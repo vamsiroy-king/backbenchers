@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Heart, MapPin, Sparkles, X, ShieldCheck, Wifi, Bell, TrendingUp, Store, Loader2, ChevronDown, ChevronRight, Search } from "lucide-react";
+import { Heart, MapPin, Sparkles, X, ShieldCheck, Wifi, Bell, TrendingUp, Store, Loader2, ChevronDown, ChevronRight, Search, Clock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -11,6 +11,8 @@ import { trendingService } from "@/lib/services/trending.service";
 import { topBrandsService } from "@/lib/services/topBrands.service";
 import { cityService } from "@/lib/services/city.service";
 import { heroBannerService, HeroBanner } from "@/lib/services/heroBanner.service";
+import { favoriteService } from "@/lib/services/favorite.service";
+import { notificationService, Notification } from "@/lib/services/notification.service";
 import { CitySelector } from "@/components/CitySelector";
 import { Offer } from "@/lib/types";
 
@@ -115,7 +117,24 @@ export default function DashboardPage() {
     const [isVerified, setIsVerified] = useState(false);
     const [studentId, setStudentId] = useState<string | null>(null);
 
-    const unreadCount = NOTIFICATIONS.filter(n => n.isNew).length;
+    // Favorite offers
+    const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+
+    // Real notifications from database
+    const [realNotifications, setRealNotifications] = useState<Notification[]>([]);
+
+    // Use real notifications count if available, otherwise mock
+    const notificationsToShow = realNotifications.length > 0 ? realNotifications : NOTIFICATIONS.map(n => ({
+        id: String(n.id),
+        userId: '',
+        userType: 'student' as const,
+        type: 'general',
+        title: n.title,
+        body: n.message,
+        isRead: !n.isNew,
+        createdAt: new Date().toISOString()
+    }));
+    const unreadCount = notificationsToShow.filter(n => !n.isRead).length;
 
     // Load content visibility settings
     useEffect(() => {
@@ -132,6 +151,17 @@ export default function DashboardPage() {
         }, 2000);
         return () => clearInterval(interval);
     }, []);
+
+    // Auto-scroll hero banners every 4 seconds
+    const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+    const bannerCount = heroBanners.length > 0 ? heroBanners.length : 3;
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentBannerIndex((prev) => (prev + 1) % bannerCount);
+        }, 4000);
+        return () => clearInterval(interval);
+    }, [bannerCount]);
 
     // Fetch real offers and check verification status
     useEffect(() => {
@@ -207,6 +237,16 @@ export default function DashboardPage() {
                     if (profileResult.data.selectedCity) {
                         setSelectedCity(profileResult.data.selectedCity);
                     }
+
+                    // Fetch favorite IDs
+                    const favIds = await favoriteService.getFavoriteIds();
+                    setFavoriteIds(favIds);
+
+                    // Fetch real notifications
+                    const notifResult = await notificationService.getMyNotifications(10);
+                    if (notifResult.success && notifResult.data) {
+                        setRealNotifications(notifResult.data);
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -222,6 +262,48 @@ export default function DashboardPage() {
             e.preventDefault();
             setShowVerifyModal(true);
         }
+    };
+
+    // Toggle favorite with optimistic update
+    const toggleFavorite = async (offerId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!isVerified) {
+            setShowVerifyModal(true);
+            return;
+        }
+
+        const isFav = favoriteIds.includes(offerId);
+        // Optimistic update
+        if (isFav) {
+            setFavoriteIds(prev => prev.filter(id => id !== offerId));
+        } else {
+            setFavoriteIds(prev => [...prev, offerId]);
+        }
+
+        // Actual API call
+        const result = await favoriteService.toggleFavorite(offerId);
+        if (!result.success) {
+            // Revert on failure
+            if (isFav) {
+                setFavoriteIds(prev => [...prev, offerId]);
+            } else {
+                setFavoriteIds(prev => prev.filter(id => id !== offerId));
+            }
+        }
+    };
+
+    // Get expiry text
+    const getExpiryText = (validUntil?: string) => {
+        if (!validUntil) return null;
+        const expiry = new Date(validUntil);
+        const now = new Date();
+        const diff = expiry.getTime() - now.getTime();
+        if (diff <= 0) return 'Expired';
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        if (days === 0) return `${hours}h left`;
+        if (days <= 3) return `${days}d left`;
+        return null;
     };
 
     // Filter offers based on tab - apply city filter to offline offers
@@ -328,24 +410,43 @@ export default function DashboardPage() {
                         >
                             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                                 <h3 className="font-bold text-lg">Notifications</h3>
-                                <span className="text-xs text-primary font-semibold">Mark all read</span>
+                                <button
+                                    onClick={async () => {
+                                        await notificationService.markAllAsRead();
+                                        setRealNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+                                    }}
+                                    className="text-xs text-primary font-semibold"
+                                >
+                                    Mark all read
+                                </button>
                             </div>
-                            <div className="divide-y divide-gray-50">
-                                {NOTIFICATIONS.map((notif) => (
-                                    <div key={notif.id} className={`p-4 flex gap-3 ${notif.isNew ? 'bg-primary/5' : ''}`}>
-                                        <div className={`h-10 w-10 rounded-full flex items-center justify-center text-lg ${notif.isNew ? 'bg-primary/10' : 'bg-gray-100'}`}>
-                                            {notif.title.includes('Flash') ? '⚡' : notif.title.includes('Drop') ? '🎁' : '📍'}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-semibold text-sm truncate">{notif.title}</p>
-                                                {notif.isNew && <span className="h-2 w-2 bg-primary rounded-full" />}
-                                            </div>
-                                            <p className="text-xs text-gray-500 truncate">{notif.message}</p>
-                                            <p className="text-[10px] text-gray-400 mt-1">{notif.time}</p>
-                                        </div>
+                            <div className="divide-y divide-gray-50 max-h-[50vh] overflow-y-auto">
+                                {notificationsToShow.length === 0 ? (
+                                    <div className="p-8 text-center text-gray-400">
+                                        <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                        <p className="text-sm">No notifications yet</p>
                                     </div>
-                                ))}
+                                ) : (
+                                    notificationsToShow.map((notif) => (
+                                        <div key={notif.id} className={`p-4 flex gap-3 ${!notif.isRead ? 'bg-primary/5' : ''}`}>
+                                            <div className={`h-10 w-10 rounded-full flex items-center justify-center text-lg ${!notif.isRead ? 'bg-primary/10' : 'bg-gray-100'}`}>
+                                                {notif.type === 'offer_expiring' ? '⏰' :
+                                                    notif.type === 'new_deal' ? '🎁' :
+                                                        notif.type === 'redemption' ? '✅' : '🔔'}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-semibold text-sm truncate">{notif.title}</p>
+                                                    {!notif.isRead && <span className="h-2 w-2 bg-primary rounded-full" />}
+                                                </div>
+                                                <p className="text-xs text-gray-500 truncate">{notif.body}</p>
+                                                <p className="text-[10px] text-gray-400 mt-1">
+                                                    {new Date(notif.createdAt).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </motion.div>
                     </motion.div>
@@ -523,55 +624,58 @@ export default function DashboardPage() {
                     </div>
                 </motion.button>
 
-                {/* Hero Banners - Smooth Drag Scroll with Momentum */}
-                <div className="relative -mx-5">
-                    <motion.div
-                        className="flex gap-4 px-5 cursor-grab active:cursor-grabbing"
-                        drag="x"
-                        dragConstraints={{ left: -((heroBanners.length > 0 ? heroBanners.length : 3) - 1) * 300, right: 0 }}
-                        dragElastic={0.1}
-                        dragTransition={{ bounceStiffness: 300, bounceDamping: 30 }}
-                    >
+                {/* Hero Banner - Auto-scroll Carousel */}
+                <div className="relative -mx-5 overflow-hidden">
+                    <AnimatePresence mode="wait">
                         {(heroBanners.length > 0 ? heroBanners : [
                             { id: '1', title: 'Student Discounts', subtitle: 'Up to 50% off on 100+ brands', ctaText: 'Explore', backgroundGradient: 'from-primary to-emerald-500' },
                             { id: '2', title: 'Flash Deals', subtitle: 'Limited time offers nearby', ctaText: 'View All', backgroundGradient: 'from-orange-500 to-rose-500' },
                             { id: '3', title: 'New Drops', subtitle: 'Fresh deals every week', ctaText: 'Check Out', backgroundGradient: 'from-blue-500 to-indigo-600' },
-                        ]).map((banner: any, index: number) => (
-                            <motion.div
-                                key={banner.id}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: index * 0.1, type: "spring", stiffness: 300 }}
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={handleOfferClick}
-                                className={`flex-none w-[85vw] max-w-[340px] h-44 rounded-3xl bg-gradient-to-br ${banner.backgroundGradient} p-6 flex flex-col justify-between shadow-2xl cursor-pointer relative overflow-hidden`}
-                            >
-                                {/* Shine overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
-                                <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+                        ]).map((banner: any, index: number) =>
+                            index === currentBannerIndex && (
+                                <motion.div
+                                    key={banner.id}
+                                    initial={{ opacity: 0, x: 100 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -100 }}
+                                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                                    className={`mx-5 h-44 rounded-3xl bg-gradient-to-br ${banner.backgroundGradient} p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden`}
+                                >
+                                    {/* Shine overlay */}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
+                                    <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
 
-                                <div className="relative z-10">
-                                    <h2 className="text-white text-2xl font-extrabold tracking-tight">{banner.title}</h2>
-                                    {banner.subtitle && (
-                                        <p className="text-white/80 text-sm mt-1.5 font-medium">{banner.subtitle}</p>
-                                    )}
-                                </div>
-                                <button className="relative z-10 bg-white text-gray-900 font-bold px-6 py-2.5 rounded-xl w-fit text-sm shadow-lg hover:shadow-xl transition-shadow">
-                                    {banner.ctaText}
-                                </button>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                    {/* Scroll indicator dots */}
+                                    <div className="relative z-10">
+                                        <h2 className="text-white text-2xl font-extrabold tracking-tight">{banner.title}</h2>
+                                        {banner.subtitle && (
+                                            <p className="text-white/80 text-sm mt-1.5 font-medium">{banner.subtitle}</p>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={handleOfferClick}
+                                        className="relative z-10 bg-white text-gray-900 font-bold px-6 py-2.5 rounded-xl w-fit text-sm shadow-lg"
+                                    >
+                                        {banner.ctaText}
+                                    </button>
+                                </motion.div>
+                            )
+                        )}
+                    </AnimatePresence>
+
+                    {/* Active dot indicators */}
                     <div className="flex justify-center gap-2 mt-4">
                         {[0, 1, 2].map((i) => (
-                            <div key={i} className={`h-1.5 rounded-full transition-all ${i === 0 ? 'w-6 bg-gray-900' : 'w-1.5 bg-gray-300'}`} />
+                            <button
+                                key={i}
+                                onClick={() => setCurrentBannerIndex(i)}
+                                className={`h-2 rounded-full transition-all duration-300 ${currentBannerIndex === i ? 'w-8 bg-gray-900' : 'w-2 bg-gray-300 hover:bg-gray-400'
+                                    }`}
+                            />
                         ))}
                     </div>
                 </div>
 
-                {/* F³ Categories - Floating Card Stack */}
+                {/* F³ Categories - Simple Horizontal Scroll */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2.5">
                         <div className="h-8 w-8 bg-gradient-to-br from-gray-900 to-gray-700 rounded-xl flex items-center justify-center shadow-lg">
@@ -580,184 +684,153 @@ export default function DashboardPage() {
                         <h3 className="text-base font-bold tracking-tight text-gray-900">Explore Categories</h3>
                     </div>
 
-                    {/* Floating Card Stack */}
-                    <div
-                        className="relative h-[280px] flex items-center justify-center perspective-1000"
-                        style={{ perspective: '1000px' }}
-                    >
-                        {CATEGORIES.map((cat, index) => {
-                            // Calculate position relative to selected
-                            const position = index - selectedCategory;
-                            const isActive = position === 0;
-                            const behind = position < 0 ? Math.abs(position) : 0;
-                            const ahead = position > 0 ? position : 0;
+                    {/* Horizontal scroll cards */}
+                    <div className="flex gap-4 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
+                        {CATEGORIES.map((cat) => (
+                            <Link
+                                key={cat.id}
+                                href={`/dashboard/category/${cat.name}`}
+                                className="flex-none"
+                            >
+                                <motion.div
+                                    whileHover={{ scale: 1.02, y: -2 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className={`w-[140px] h-[180px] ${cat.color} rounded-2xl p-4 flex flex-col justify-between shadow-xl relative overflow-hidden cursor-pointer`}
+                                >
+                                    {/* Shine effect */}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent pointer-events-none" />
+
+                                    <div className="relative z-10">
+                                        <span className="text-4xl">{cat.icon}</span>
+                                        <span className="block text-white/50 text-xs font-bold mt-1">{cat.symbol}</span>
+                                    </div>
+
+                                    <div className="relative z-10">
+                                        <p className="text-white font-bold text-lg">{cat.name}</p>
+                                        <p className="text-white/70 text-xs">{cat.tagline}</p>
+                                    </div>
+                                </motion.div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
+
+                {/* Trending Section - Redesigned */}
+                <div className="space-y-5">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                            <TrendingUp className="h-5 w-5 text-orange-500" />
+                            <h3 className="text-lg font-bold tracking-tight text-gray-900">Trending Offers</h3>
+                        </div>
+                        <Link href="/dashboard/explore" className="text-sm text-primary font-semibold">
+                            See All
+                        </Link>
+                    </div>
+
+                    {/* Premium Pill Tabs */}
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setTrendingTab('offline')}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${trendingTab === 'offline'
+                                ? 'bg-gray-900 text-white shadow-lg'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            <Store className="h-4 w-4" />
+                            In-Store
+                        </button>
+                        <button
+                            onClick={() => setTrendingTab('online')}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${trendingTab === 'online'
+                                ? 'bg-gray-900 text-white shadow-lg'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            <Wifi className="h-4 w-4" />
+                            Online
+                        </button>
+                    </div>
+
+                    {/* Premium Offer Cards */}
+                    <div className="flex gap-4 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
+                        {currentOffers.map((offer: any) => {
+                            const isFav = offer.id && favoriteIds.includes(offer.id);
+                            const expiryText = getExpiryText(offer.validUntil);
+                            const isUrgent = expiryText && (expiryText.includes('h') || expiryText === 'Expired');
 
                             return (
                                 <motion.div
-                                    key={cat.id}
-                                    onClick={() => setSelectedCategory(index)}
-                                    animate={{
-                                        scale: isActive ? 1 : 0.85 - Math.abs(position) * 0.05,
-                                        y: isActive ? 0 : behind ? -20 - behind * 15 : 20 + ahead * 15,
-                                        zIndex: isActive ? 30 : 20 - Math.abs(position) * 5,
-                                        rotateX: isActive ? 0 : position > 0 ? 8 : -8,
-                                        opacity: isActive ? 1 : 0.6 - Math.abs(position) * 0.15,
-                                    }}
-                                    transition={{
-                                        type: "spring",
-                                        stiffness: 400,
-                                        damping: 30,
-                                        mass: 0.8
-                                    }}
-                                    drag="y"
-                                    dragConstraints={{ top: 0, bottom: 0 }}
-                                    dragElastic={0.3}
-                                    onDragEnd={(_, info) => {
-                                        if (info.offset.y < -50 && selectedCategory < CATEGORIES.length - 1) {
-                                            setSelectedCategory(selectedCategory + 1);
-                                        } else if (info.offset.y > 50 && selectedCategory > 0) {
-                                            setSelectedCategory(selectedCategory - 1);
+                                    key={offer.id}
+                                    whileHover={{ y: -4 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => {
+                                        if (!isVerified) {
+                                            setShowVerifyModal(true);
+                                        } else if (offer.merchantId) {
+                                            router.push(`/store/${offer.merchantId}`);
                                         }
                                     }}
-                                    className={`absolute w-[85%] max-w-[320px] h-[200px] ${cat.color} rounded-3xl p-6 cursor-pointer shadow-2xl overflow-hidden`}
-                                    style={{
-                                        transformStyle: 'preserve-3d',
-                                    }}
+                                    className="flex-none w-[200px] cursor-pointer"
                                 >
-                                    {/* Glass shine effect */}
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-white/5 to-transparent pointer-events-none" />
-                                    <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/20 rounded-full blur-3xl" />
-                                    <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-black/10 rounded-full blur-2xl" />
+                                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                                        {/* Card Header with Gradient */}
+                                        <div className={`h-24 relative ${trendingTab === 'online'
+                                            ? 'bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500'
+                                            : 'bg-gradient-to-br from-primary via-emerald-500 to-teal-500'
+                                            }`}>
+                                            {/* Shine effect */}
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent" />
 
-                                    {/* Content */}
-                                    <div className="relative z-10 h-full flex flex-col justify-between">
-                                        <div className="flex items-start justify-between">
-                                            <motion.span
-                                                className="text-6xl"
-                                                animate={{ scale: isActive ? 1 : 0.8 }}
-                                            >
-                                                {cat.icon}
-                                            </motion.span>
-                                            <span className="text-white/40 text-xs font-bold tracking-wider">
-                                                {cat.symbol}
-                                            </span>
+                                            {/* Top row */}
+                                            <div className="p-3 flex justify-between items-start">
+                                                {/* Expiry Badge */}
+                                                {expiryText && (
+                                                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold ${isUrgent
+                                                        ? 'bg-red-500 text-white'
+                                                        : 'bg-white/90 text-gray-700'
+                                                        }`}>
+                                                        <Clock className="h-3 w-3" />
+                                                        {expiryText}
+                                                    </div>
+                                                )}
+
+                                                {/* Favorite Button */}
+                                                <button
+                                                    onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
+                                                    className={`h-8 w-8 rounded-full flex items-center justify-center ml-auto transition-all ${isFav
+                                                        ? 'bg-red-500 text-white'
+                                                        : 'bg-white/90 text-gray-500 hover:bg-white'
+                                                        }`}
+                                                >
+                                                    <Heart className={`h-4 w-4 ${isFav ? 'fill-white' : ''}`} />
+                                                </button>
+                                            </div>
+
+                                            {/* Discount Badge */}
+                                            <div className="absolute bottom-3 left-3">
+                                                <span className="bg-white text-gray-900 px-3 py-1.5 rounded-xl text-sm font-bold shadow-md">
+                                                    {offer.discountValue
+                                                        ? `${offer.type === 'percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue} OFF`
+                                                        : (offer.discount || 'Deal')
+                                                    }
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <p className="text-white font-extrabold text-2xl tracking-tight">
-                                                {cat.name}
+                                        {/* Card Content */}
+                                        <div className="p-3.5">
+                                            <h4 className="font-bold text-sm text-gray-900 truncate">
+                                                {offer.merchantName || offer.brand || 'Special Offer'}
+                                            </h4>
+                                            <p className="text-xs text-gray-500 mt-0.5 truncate">
+                                                {offer.title || offer.description || 'Limited time offer'}
                                             </p>
-                                            <p className="text-white/70 text-sm mt-1">
-                                                {cat.tagline}
-                                            </p>
-                                            {isActive && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: 0.1 }}
-                                                >
-                                                    <Link href={`/dashboard/category/${cat.name}`}>
-                                                        <button className="mt-4 bg-white/20 backdrop-blur-sm text-white px-5 py-2.5 rounded-xl text-sm font-bold border border-white/30 hover:bg-white/30 transition-colors">
-                                                            Explore {cat.name} →
-                                                        </button>
-                                                    </Link>
-                                                </motion.div>
-                                            )}
                                         </div>
                                     </div>
                                 </motion.div>
                             );
                         })}
-                    </div>
-
-                    {/* Navigation dots */}
-                    <div className="flex justify-center gap-2">
-                        {CATEGORIES.map((_, index) => (
-                            <button
-                                key={index}
-                                onClick={() => setSelectedCategory(index)}
-                                className={`h-2 rounded-full transition-all duration-300 ${selectedCategory === index
-                                    ? 'w-8 bg-gray-900'
-                                    : 'w-2 bg-gray-300 hover:bg-gray-400'
-                                    }`}
-                            />
-                        ))}
-                    </div>
-
-                    {/* Swipe hint */}
-                    <p className="text-center text-xs text-gray-400 font-medium">
-                        Swipe up or down to browse
-                    </p>
-                </div>
-
-
-                {/* Trending Section */}
-                <div className="space-y-5">
-                    <div className="flex items-center gap-2.5">
-                        <TrendingUp className="h-5 w-5 text-orange-500" />
-                        <h3 className="text-lg font-bold tracking-tight text-gray-900">Trending Offers</h3>
-                    </div>
-
-                    {/* Tabs */}
-                    <div className="flex justify-center">
-                        <div className="inline-flex bg-gray-100 rounded-xl p-1">
-                            <button
-                                onClick={() => setTrendingTab('online')}
-                                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${trendingTab === 'online' ? 'bg-white text-gray-900 shadow-subtle' : 'text-gray-500'
-                                    }`}
-                            >
-                                <Wifi className="h-4 w-4" />
-                                Online
-                            </button>
-                            <button
-                                onClick={() => setTrendingTab('offline')}
-                                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${trendingTab === 'offline' ? 'bg-white text-gray-900 shadow-subtle' : 'text-gray-500'
-                                    }`}
-                            >
-                                <MapPin className="h-4 w-4" />
-                                Offline
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Offers */}
-                    <div className="flex gap-3 overflow-x-auto hide-scrollbar snap-x -mx-5 px-5">
-                        {currentOffers.map((offer: any) => (
-                            <motion.div
-                                key={offer.id}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => {
-                                    if (!isVerified) {
-                                        setShowVerifyModal(true);
-                                    } else if (offer.merchantId) {
-                                        router.push(`/store/${offer.merchantId}`);
-                                    }
-                                }}
-                                className="snap-start flex-none w-[260px] cursor-pointer"
-                            >
-                                <div className="bg-white rounded-2xl shadow-card border border-gray-100/50 overflow-hidden">
-                                    <div className={`h-28 ${trendingTab === 'online' ? 'bg-gradient-to-br from-blue-500 to-purple-600' : 'bg-gradient-to-br from-primary to-emerald-500'}`}>
-                                        <div className="p-3.5 flex justify-between">
-                                            {(offer.isNew || (offer.createdAt && new Date(offer.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))) && (
-                                                <span className="bg-white text-gray-900 text-[10px] font-bold px-2.5 py-1 rounded-md">NEW</span>
-                                            )}
-                                            <button className="h-7 w-7 bg-white/90 rounded-lg flex items-center justify-center ml-auto shadow-sm">
-                                                <Heart className="h-3.5 w-3.5 text-gray-600" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="p-3.5">
-                                        <h4 className="font-semibold text-sm text-gray-900 truncate">{offer.merchantName || offer.brand || offer.title}</h4>
-                                        <p className="text-sm text-primary font-medium mt-0.5">
-                                            {offer.discountValue
-                                                ? `${offer.type === 'percentage' ? offer.discountValue + '% OFF' : '₹' + offer.discountValue + ' OFF'}`
-                                                : (offer.discount || offer.title)
-                                            }
-                                        </p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
                     </div>
                 </div>
 
