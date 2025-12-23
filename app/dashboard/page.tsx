@@ -742,8 +742,8 @@ export default function DashboardPage() {
 
                 {/* F³ Categories - Dark Theme Compatible */}
                 <div className="py-6 -mx-5">
-                    {/* Background adapts to dark mode */}
-                    <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 px-5 py-8 rounded-3xl mx-5 dark:border dark:border-gray-700">
+                    {/* Background adapts to dark mode - NO border in dark mode for seamless blend */}
+                    <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-gray-950 dark:via-gray-950 dark:to-gray-950 px-5 py-8 rounded-3xl mx-5">
                         {/* Triangle Layout Container */}
                         <div className="relative flex flex-col items-center gap-3">
                             {/* Top Row - Food Category */}
