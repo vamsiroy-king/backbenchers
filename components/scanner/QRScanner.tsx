@@ -94,7 +94,7 @@ export default function QRScanner({ onScan, onError, isActive }: QRScannerProps)
             scannedRef.current = false;
 
             // Small delay for DOM readiness
-            await new Promise(r => setTimeout(r, 50));
+            await new Promise(r => setTimeout(r, 100));
 
             const element = document.getElementById(containerIdRef.current);
             if (!element) {
@@ -102,48 +102,57 @@ export default function QRScanner({ onScan, onError, isActive }: QRScannerProps)
                 return;
             }
 
-            // Create high-performance scanner
+            // Create scanner with basic config (more compatible)
             const scanner = new Html5Qrcode(containerIdRef.current, {
                 verbose: false,
-                formatsToSupport: SCANNER_CONFIG.formatsToSupport,
-                experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true, // Native API when available
-                }
+                formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
             });
 
             scannerRef.current = scanner;
 
-            // Try with advanced camera constraints
-            try {
-                await scanner.start(
-                    CAMERA_CONSTRAINTS,
-                    {
-                        fps: SCANNER_CONFIG.fps,
-                        qrbox: SCANNER_CONFIG.qrbox,
-                        aspectRatio: SCANNER_CONFIG.aspectRatio,
-                        disableFlip: SCANNER_CONFIG.disableFlip,
-                    },
-                    handleSuccessfulScan,
-                    () => { } // Ignore frame decode failures
-                );
-            } catch (advancedError) {
-                // Fallback to basic constraints
-                console.log("[QRScanner] Falling back to basic camera constraints");
-                await scanner.start(
-                    { facingMode: "environment" },
-                    {
-                        fps: SCANNER_CONFIG.fps,
-                        qrbox: SCANNER_CONFIG.qrbox,
-                        aspectRatio: SCANNER_CONFIG.aspectRatio,
-                    },
-                    handleSuccessfulScan,
-                    () => { }
-                );
+            // Scanner config - simpler version for compatibility
+            const scanConfig = {
+                fps: 15,  // Reduced for better compatibility
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+            };
+
+            // Try multiple camera options in order of preference
+            const cameraAttempts: Array<{ facingMode: string | { exact: string } }> = [
+                { facingMode: "environment" },  // Back camera
+                { facingMode: { exact: "environment" } },  // Strict back camera
+                { facingMode: "user" },  // Front camera as fallback
+            ];
+
+            let started = false;
+            let lastError = null;
+
+            for (const cameraId of cameraAttempts) {
+                if (started || !mountedRef.current) break;
+
+                try {
+                    console.log("[QRScanner] Trying camera:", cameraId);
+                    await scanner.start(
+                        cameraId,
+                        scanConfig,
+                        handleSuccessfulScan,
+                        () => { } // Ignore frame errors
+                    );
+                    started = true;
+                    console.log("[QRScanner] ✅ Camera started successfully");
+                } catch (err: any) {
+                    console.log("[QRScanner] Camera attempt failed:", err?.message);
+                    lastError = err;
+                    // Try next camera option
+                }
+            }
+
+            if (!started) {
+                throw lastError || new Error("No camera could be started");
             }
 
             if (mountedRef.current) {
                 setStatus("scanning");
-                console.log("[QRScanner] 📷 Scanner started with optimal settings");
             } else {
                 await cleanupScanner();
             }
@@ -157,12 +166,14 @@ export default function QRScanner({ onScan, onError, isActive }: QRScannerProps)
                 setStatus("error");
                 let msg = "Camera access failed";
 
-                if (err?.message?.includes("Permission")) {
-                    msg = "Camera permission denied. Please allow camera access.";
+                if (err?.message?.includes("Permission") || err?.message?.includes("denied")) {
+                    msg = "Camera permission denied. Please allow camera access in your browser settings.";
                 } else if (err?.message?.includes("NotFound") || err?.message?.includes("Requested device not found")) {
-                    msg = "No camera found on this device.";
+                    msg = "No camera found. Please ensure your device has a camera.";
                 } else if (err?.message?.includes("NotReadable") || err?.message?.includes("in use")) {
-                    msg = "Camera is in use by another app. Please close other apps.";
+                    msg = "Camera is busy. Please close other apps using the camera.";
+                } else if (err?.message?.includes("NotAllowed")) {
+                    msg = "Camera access blocked. Check your browser permissions.";
                 } else if (err?.message) {
                     msg = err.message;
                 }

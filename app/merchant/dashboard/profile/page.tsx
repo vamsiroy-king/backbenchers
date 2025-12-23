@@ -131,7 +131,7 @@ export default function MerchantProfilePage() {
     // Loading state
     if (loading) {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
@@ -140,7 +140,7 @@ export default function MerchantProfilePage() {
     // Error state
     if (error || !merchant) {
         return (
-            <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 px-4">
+            <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col items-center justify-center gap-4 px-4">
                 <p className="text-red-500">{error || "Merchant not found"}</p>
                 <Button onClick={() => router.push("/merchant/auth/login")}>
                     Go to Login
@@ -152,7 +152,7 @@ export default function MerchantProfilePage() {
     const storeImages = merchant.storeImages || [];
 
     return (
-        <div className="min-h-screen bg-white pb-32 pt-12">
+        <div className="min-h-screen bg-white dark:bg-gray-950 pb-32 pt-12">
             {/* Image Gallery Modal - Google Maps Style */}
             <AnimatePresence>
                 {showImageGallery && storeImages.length > 0 && (
