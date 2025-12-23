@@ -54,8 +54,11 @@ export async function addPendingRatingToDB(rating: {
     merchantName: string;
     studentId: string;
 }): Promise<boolean> {
+    console.log('[PendingRatings] ⏳ Attempting to add pending rating...');
+    console.log('[PendingRatings] Input data:', JSON.stringify(rating, null, 2));
+
     try {
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('pending_ratings')
             .upsert({
                 transaction_id: rating.transactionId,
@@ -64,14 +67,20 @@ export async function addPendingRatingToDB(rating: {
                 student_id: rating.studentId,
             }, {
                 onConflict: 'transaction_id',
-            });
+            })
+            .select();
 
         if (error) {
-            console.error('[PendingRatings] Error adding:', error);
+            console.error('[PendingRatings] ❌ ERROR adding:', {
+                code: error.code,
+                message: error.message,
+                details: error.details,
+                hint: error.hint
+            });
             return false;
         }
 
-        console.log('[PendingRatings] Added pending rating for:', rating.merchantName);
+        console.log('[PendingRatings] ✅ Successfully added! Result:', data);
         return true;
     } catch (error) {
         console.error('[PendingRatings] Error:', error);
