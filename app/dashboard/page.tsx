@@ -67,6 +67,17 @@ const ALL_ITEMS = [
     { type: 'location', name: 'Mumbai', emoji: '📍', info: '32 offers' },
 ];
 
+// Animated search placeholders
+const SEARCH_PLACEHOLDERS = [
+    "Search Food deals...",
+    "Search Fashion...",
+    "Search Fitness...",
+    "Search Starbucks...",
+    "Search Nike...",
+    "Search Netflix...",
+    "Search near you...",
+];
+
 export default function DashboardPage() {
     const router = useRouter();
     const [heroIndex, setHeroIndex] = useState(0);
@@ -78,7 +89,8 @@ export default function DashboardPage() {
     const [selectedCity, setSelectedCity] = useState<string | null>(null);
     const [heroBanners, setHeroBanners] = useState<HeroBanner[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState(0); // For Orbit Selection
+    const [selectedCategory, setSelectedCategory] = useState(0); // For Floating Card Stack
+    const [searchPlaceholderIndex, setSearchPlaceholderIndex] = useState(0);
     const heroRef = useRef<HTMLDivElement>(null);
 
     // Real offers from database
@@ -111,6 +123,14 @@ export default function DashboardPage() {
         if (saved) {
             setContentSettings(JSON.parse(saved));
         }
+    }, []);
+
+    // Animate search placeholder
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setSearchPlaceholderIndex((prev) => (prev + 1) % SEARCH_PLACEHOLDERS.length);
+        }, 2000);
+        return () => clearInterval(interval);
     }, []);
 
     // Fetch real offers and check verification status
@@ -219,8 +239,28 @@ export default function DashboardPage() {
             ? cityFilteredTrendingOffline
             : (cityFilteredRealOffers.length > 0 ? cityFilteredRealOffers : OFFLINE_OFFERS));
 
+    // Enhanced search: merge local items with real offers from database
     const filteredItems = searchQuery.length > 0
-        ? ALL_ITEMS.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        ? [
+            // Local categories/brands
+            ...ALL_ITEMS.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase())),
+            // Real offers from database
+            ...realOffers
+                .filter(offer =>
+                    offer.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    offer.merchantName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    offer.merchantCategory?.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .slice(0, 10) // Limit to 10 offer results
+                .map(offer => ({
+                    type: 'offer' as const,
+                    name: offer.title,
+                    emoji: offer.merchantCategory === 'Food' ? '🍕' : offer.merchantCategory === 'Fashion' ? '👗' : offer.merchantCategory === 'Fitness' ? '💪' : '🏷️',
+                    discount: `${offer.discountValue}${offer.type === 'percentage' ? '%' : '₹'} OFF`,
+                    id: offer.id,
+                    merchantName: offer.merchantName
+                }))
+        ]
         : [];
 
     return (
@@ -456,88 +496,172 @@ export default function DashboardPage() {
                 </div>
             </header>
 
-            <main className="space-y-10 px-5 pt-8 pb-4">
-                {/* Scrolling Hero Banners */}
-                <div>
-                    <div className="flex gap-3 overflow-x-auto hide-scrollbar snap-x snap-mandatory -mx-5 px-5">
+            <main className="space-y-8 px-5 pt-6 pb-4">
+                {/* Animated Search Bar Trigger */}
+                <motion.button
+                    onClick={() => setShowSearch(true)}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full h-14 bg-gray-100 rounded-2xl flex items-center gap-3 px-5 relative overflow-hidden group hover:bg-gray-200/80 transition-colors"
+                >
+                    <Search className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                    <div className="flex-1 text-left overflow-hidden h-6">
+                        <AnimatePresence mode="wait">
+                            <motion.span
+                                key={searchPlaceholderIndex}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3 }}
+                                className="text-sm text-gray-400 font-medium absolute"
+                            >
+                                {SEARCH_PLACEHOLDERS[searchPlaceholderIndex]}
+                            </motion.span>
+                        </AnimatePresence>
+                    </div>
+                    <div className="text-xs font-bold text-gray-300 px-2 py-1 bg-gray-200/50 rounded-lg">
+                        ⌘K
+                    </div>
+                </motion.button>
+
+                {/* Hero Banners - Smooth Drag Scroll with Momentum */}
+                <div className="relative -mx-5">
+                    <motion.div
+                        className="flex gap-4 px-5 cursor-grab active:cursor-grabbing"
+                        drag="x"
+                        dragConstraints={{ left: -((heroBanners.length > 0 ? heroBanners.length : 3) - 1) * 300, right: 0 }}
+                        dragElastic={0.1}
+                        dragTransition={{ bounceStiffness: 300, bounceDamping: 30 }}
+                    >
                         {(heroBanners.length > 0 ? heroBanners : [
                             { id: '1', title: 'Student Discounts', subtitle: 'Up to 50% off on 100+ brands', ctaText: 'Explore', backgroundGradient: 'from-primary to-emerald-500' },
                             { id: '2', title: 'Flash Deals', subtitle: 'Limited time offers nearby', ctaText: 'View All', backgroundGradient: 'from-orange-500 to-rose-500' },
                             { id: '3', title: 'New Drops', subtitle: 'Fresh deals every week', ctaText: 'Check Out', backgroundGradient: 'from-blue-500 to-indigo-600' },
-                        ]).map((banner: any) => (
+                        ]).map((banner: any, index: number) => (
                             <motion.div
                                 key={banner.id}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: index * 0.1, type: "spring", stiffness: 300 }}
+                                whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={handleOfferClick}
-                                className={`snap-center flex-none w-[85%] h-40 rounded-2xl bg-gradient-to-br ${banner.backgroundGradient} p-5 flex flex-col justify-between shadow-lg cursor-pointer`}
+                                className={`flex-none w-[85vw] max-w-[340px] h-44 rounded-3xl bg-gradient-to-br ${banner.backgroundGradient} p-6 flex flex-col justify-between shadow-2xl cursor-pointer relative overflow-hidden`}
                             >
-                                <div>
-                                    <h2 className="text-white text-xl font-bold">{banner.title}</h2>
+                                {/* Shine overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
+                                <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+
+                                <div className="relative z-10">
+                                    <h2 className="text-white text-2xl font-extrabold tracking-tight">{banner.title}</h2>
                                     {banner.subtitle && (
-                                        <p className="text-white/80 text-sm mt-1">{banner.subtitle}</p>
+                                        <p className="text-white/80 text-sm mt-1.5 font-medium">{banner.subtitle}</p>
                                     )}
                                 </div>
-                                <button className="bg-white text-gray-900 font-semibold px-5 py-2 rounded-xl w-fit text-sm">
+                                <button className="relative z-10 bg-white text-gray-900 font-bold px-6 py-2.5 rounded-xl w-fit text-sm shadow-lg hover:shadow-xl transition-shadow">
                                     {banner.ctaText}
                                 </button>
                             </motion.div>
                         ))}
+                    </motion.div>
+                    {/* Scroll indicator dots */}
+                    <div className="flex justify-center gap-2 mt-4">
+                        {[0, 1, 2].map((i) => (
+                            <div key={i} className={`h-1.5 rounded-full transition-all ${i === 0 ? 'w-6 bg-gray-900' : 'w-1.5 bg-gray-300'}`} />
+                        ))}
                     </div>
                 </div>
 
-                {/* F³ Categories - Orbit Selection */}
+                {/* F³ Categories - Floating Card Stack */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 bg-gray-900 rounded-xl flex items-center justify-center">
+                        <div className="h-8 w-8 bg-gradient-to-br from-gray-900 to-gray-700 rounded-xl flex items-center justify-center shadow-lg">
                             <span className="text-white text-xs font-bold">F³</span>
                         </div>
                         <h3 className="text-base font-bold tracking-tight text-gray-900">Explore Categories</h3>
                     </div>
 
-                    {/* Orbit Selection Cards */}
-                    <div className="flex items-end justify-center gap-2 py-4">
+                    {/* Floating Card Stack */}
+                    <div
+                        className="relative h-[280px] flex items-center justify-center perspective-1000"
+                        style={{ perspective: '1000px' }}
+                    >
                         {CATEGORIES.map((cat, index) => {
-                            const isSelected = selectedCategory === index;
-                            const isLeft = (index === selectedCategory - 1) || (selectedCategory === 0 && index === 2);
-                            const isRight = (index === selectedCategory + 1) || (selectedCategory === 2 && index === 0);
+                            // Calculate position relative to selected
+                            const position = index - selectedCategory;
+                            const isActive = position === 0;
+                            const behind = position < 0 ? Math.abs(position) : 0;
+                            const ahead = position > 0 ? position : 0;
 
                             return (
                                 <motion.div
                                     key={cat.id}
                                     onClick={() => setSelectedCategory(index)}
                                     animate={{
-                                        scale: isSelected ? 1 : 0.75,
-                                        opacity: isSelected ? 1 : 0.6,
-                                        y: isSelected ? 0 : 15,
-                                        zIndex: isSelected ? 10 : 1
+                                        scale: isActive ? 1 : 0.85 - Math.abs(position) * 0.05,
+                                        y: isActive ? 0 : behind ? -20 - behind * 15 : 20 + ahead * 15,
+                                        zIndex: isActive ? 30 : 20 - Math.abs(position) * 5,
+                                        rotateX: isActive ? 0 : position > 0 ? 8 : -8,
+                                        opacity: isActive ? 1 : 0.6 - Math.abs(position) * 0.15,
                                     }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                                    className={`${cat.color} rounded-2xl p-5 cursor-pointer shadow-xl relative overflow-hidden`}
+                                    transition={{
+                                        type: "spring",
+                                        stiffness: 400,
+                                        damping: 30,
+                                        mass: 0.8
+                                    }}
+                                    drag="y"
+                                    dragConstraints={{ top: 0, bottom: 0 }}
+                                    dragElastic={0.3}
+                                    onDragEnd={(_, info) => {
+                                        if (info.offset.y < -50 && selectedCategory < CATEGORIES.length - 1) {
+                                            setSelectedCategory(selectedCategory + 1);
+                                        } else if (info.offset.y > 50 && selectedCategory > 0) {
+                                            setSelectedCategory(selectedCategory - 1);
+                                        }
+                                    }}
+                                    className={`absolute w-[85%] max-w-[320px] h-[200px] ${cat.color} rounded-3xl p-6 cursor-pointer shadow-2xl overflow-hidden`}
                                     style={{
-                                        width: isSelected ? '160px' : '100px',
-                                        height: isSelected ? '200px' : '140px',
+                                        transformStyle: 'preserve-3d',
                                     }}
                                 >
-                                    {/* Shine effect */}
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
+                                    {/* Glass shine effect */}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-white/5 to-transparent pointer-events-none" />
+                                    <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/20 rounded-full blur-3xl" />
+                                    <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-black/10 rounded-full blur-2xl" />
 
                                     {/* Content */}
                                     <div className="relative z-10 h-full flex flex-col justify-between">
-                                        <span className={`${isSelected ? 'text-5xl' : 'text-3xl'} transition-all duration-200`}>
-                                            {cat.icon}
-                                        </span>
+                                        <div className="flex items-start justify-between">
+                                            <motion.span
+                                                className="text-6xl"
+                                                animate={{ scale: isActive ? 1 : 0.8 }}
+                                            >
+                                                {cat.icon}
+                                            </motion.span>
+                                            <span className="text-white/40 text-xs font-bold tracking-wider">
+                                                {cat.symbol}
+                                            </span>
+                                        </div>
+
                                         <div>
-                                            <p className={`text-white font-bold ${isSelected ? 'text-lg' : 'text-xs'} transition-all duration-200`}>
+                                            <p className="text-white font-extrabold text-2xl tracking-tight">
                                                 {cat.name}
                                             </p>
-                                            {isSelected && (
-                                                <motion.p
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{ opacity: 1 }}
-                                                    className="text-white/70 text-xs mt-1"
+                                            <p className="text-white/70 text-sm mt-1">
+                                                {cat.tagline}
+                                            </p>
+                                            {isActive && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: 0.1 }}
                                                 >
-                                                    {cat.tagline}
-                                                </motion.p>
+                                                    <Link href={`/dashboard/category/${cat.name}`}>
+                                                        <button className="mt-4 bg-white/20 backdrop-blur-sm text-white px-5 py-2.5 rounded-xl text-sm font-bold border border-white/30 hover:bg-white/30 transition-colors">
+                                                            Explore {cat.name} →
+                                                        </button>
+                                                    </Link>
+                                                </motion.div>
                                             )}
                                         </div>
                                     </div>
@@ -546,17 +670,24 @@ export default function DashboardPage() {
                         })}
                     </div>
 
-                    {/* Tap to explore selected */}
-                    <div className="flex justify-center">
-                        <Link href={`/dashboard/category/${CATEGORIES[selectedCategory].name}`}>
-                            <motion.button
-                                whileTap={{ scale: 0.95 }}
-                                className="bg-gray-900 text-white px-6 py-3 rounded-xl text-sm font-semibold"
-                            >
-                                Explore {CATEGORIES[selectedCategory].name} →
-                            </motion.button>
-                        </Link>
+                    {/* Navigation dots */}
+                    <div className="flex justify-center gap-2">
+                        {CATEGORIES.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => setSelectedCategory(index)}
+                                className={`h-2 rounded-full transition-all duration-300 ${selectedCategory === index
+                                    ? 'w-8 bg-gray-900'
+                                    : 'w-2 bg-gray-300 hover:bg-gray-400'
+                                    }`}
+                            />
+                        ))}
                     </div>
+
+                    {/* Swipe hint */}
+                    <p className="text-center text-xs text-gray-400 font-medium">
+                        Swipe up or down to browse
+                    </p>
                 </div>
 
 

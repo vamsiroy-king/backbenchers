@@ -84,6 +84,11 @@ export interface Offer {
     // Creator tracking
     createdByType?: 'admin' | 'merchant';
     createdById?: string;
+    // Redemption rules
+    maxPerStudent?: number | null;
+    cooldownHours?: number | null;
+    oneTimeOnly?: boolean;
+    maxTotalRedemptions?: number | null;
 }
 
 export interface Transaction {
