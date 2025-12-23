@@ -675,95 +675,110 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* F³ Categories - Simple Horizontal Scroll */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 bg-gradient-to-br from-gray-900 to-gray-700 rounded-xl flex items-center justify-center shadow-lg">
-                            <span className="text-white text-xs font-bold">F³</span>
-                        </div>
-                        <h3 className="text-base font-bold tracking-tight text-gray-900">Explore Categories</h3>
+                {/* F³ Categories - Creative Radial Wheel */}
+                <div className="py-4">
+                    <div className="flex items-center justify-center gap-2 mb-6">
+                        <span className="text-xs font-bold text-gray-400 tracking-widest">F³</span>
+                        <span className="h-px flex-1 bg-gray-100" />
                     </div>
 
-                    {/* Horizontal scroll cards */}
-                    <div className="flex gap-4 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
-                        {CATEGORIES.map((cat) => (
-                            <Link
-                                key={cat.id}
-                                href={`/dashboard/category/${cat.name}`}
-                                className="flex-none"
-                            >
-                                <motion.div
-                                    whileHover={{ scale: 1.02, y: -2 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className={`w-[140px] h-[180px] ${cat.color} rounded-2xl p-4 flex flex-col justify-between shadow-xl relative overflow-hidden cursor-pointer`}
+                    {/* Radial Category Selector */}
+                    <div className="relative h-[200px] flex items-center justify-center">
+                        {/* Center Pulsing Element */}
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.05, 1],
+                                opacity: [0.8, 1, 0.8]
+                            }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className="absolute w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center"
+                        >
+                            <span className="text-4xl">{CATEGORIES[selectedCategory].icon}</span>
+                        </motion.div>
+
+                        {/* Orbiting Categories */}
+                        {CATEGORIES.map((cat, index) => {
+                            const angle = (index * 120) - 90; // 3 items, 120° apart
+                            const radius = 80;
+                            const isActive = index === selectedCategory;
+                            const x = Math.cos((angle * Math.PI) / 180) * radius;
+                            const y = Math.sin((angle * Math.PI) / 180) * radius;
+
+                            return (
+                                <motion.button
+                                    key={cat.id}
+                                    onClick={() => setSelectedCategory(index)}
+                                    animate={{
+                                        x,
+                                        y,
+                                        scale: isActive ? 1.15 : 1
+                                    }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                    className={`absolute flex flex-col items-center gap-1 ${isActive ? 'z-10' : 'z-0 opacity-50'
+                                        }`}
                                 >
-                                    {/* Shine effect */}
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent pointer-events-none" />
-
-                                    <div className="relative z-10">
-                                        <span className="text-4xl">{cat.icon}</span>
-                                        <span className="block text-white/50 text-xs font-bold mt-1">{cat.symbol}</span>
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${isActive ? cat.color : 'bg-gray-100'
+                                        }`}>
+                                        <span className="text-2xl">{cat.icon}</span>
                                     </div>
-
-                                    <div className="relative z-10">
-                                        <p className="text-white font-bold text-lg">{cat.name}</p>
-                                        <p className="text-white/70 text-xs">{cat.tagline}</p>
-                                    </div>
-                                </motion.div>
-                            </Link>
-                        ))}
+                                    <span className={`text-xs font-semibold ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                                        {cat.name}
+                                    </span>
+                                </motion.button>
+                            );
+                        })}
                     </div>
+
+                    {/* Selected Category Info */}
+                    <motion.div
+                        key={selectedCategory}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center mt-4"
+                    >
+                        <p className="text-gray-500 text-sm">{CATEGORIES[selectedCategory].tagline}</p>
+                        <Link href={`/dashboard/category/${CATEGORIES[selectedCategory].name}`}>
+                            <button className="mt-3 text-primary text-sm font-semibold">
+                                Explore {CATEGORIES[selectedCategory].name} →
+                            </button>
+                        </Link>
+                    </motion.div>
                 </div>
 
 
-                {/* Trending Section - Redesigned */}
-                <div className="space-y-5">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                            <TrendingUp className="h-5 w-5 text-orange-500" />
-                            <h3 className="text-lg font-bold tracking-tight text-gray-900">Trending Offers</h3>
+                {/* Trending Offers - Clean Minimal List */}
+                <div className="py-4">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold text-gray-900">Trending</h3>
+                        <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
+                            <button
+                                onClick={() => setTrendingTab('offline')}
+                                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${trendingTab === 'offline' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                                    }`}
+                            >
+                                In-Store
+                            </button>
+                            <button
+                                onClick={() => setTrendingTab('online')}
+                                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${trendingTab === 'online' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                                    }`}
+                            >
+                                Online
+                            </button>
                         </div>
-                        <Link href="/dashboard/explore" className="text-sm text-primary font-semibold">
-                            See All
-                        </Link>
                     </div>
 
-                    {/* Premium Pill Tabs */}
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setTrendingTab('offline')}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${trendingTab === 'offline'
-                                ? 'bg-gray-900 text-white shadow-lg'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            <Store className="h-4 w-4" />
-                            In-Store
-                        </button>
-                        <button
-                            onClick={() => setTrendingTab('online')}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${trendingTab === 'online'
-                                ? 'bg-gray-900 text-white shadow-lg'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            <Wifi className="h-4 w-4" />
-                            Online
-                        </button>
-                    </div>
-
-                    {/* Premium Offer Cards */}
-                    <div className="flex gap-4 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
+                    {/* Clean List View */}
+                    <div className="space-y-1">
                         {currentOffers.map((offer: any) => {
                             const isFav = offer.id && favoriteIds.includes(offer.id);
                             const expiryText = getExpiryText(offer.validUntil);
-                            const isUrgent = expiryText && (expiryText.includes('h') || expiryText === 'Expired');
+                            const isExpired = expiryText === 'Expired';
 
                             return (
                                 <motion.div
                                     key={offer.id}
-                                    whileHover={{ y: -4 }}
-                                    whileTap={{ scale: 0.98 }}
+                                    whileTap={{ scale: 0.99 }}
                                     onClick={() => {
                                         if (!isVerified) {
                                             setShowVerifyModal(true);
@@ -771,67 +786,62 @@ export default function DashboardPage() {
                                             router.push(`/store/${offer.merchantId}`);
                                         }
                                     }}
-                                    className="flex-none w-[200px] cursor-pointer"
+                                    className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors ${isExpired ? 'opacity-40' : ''
+                                        }`}
                                 >
-                                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                                        {/* Card Header with Gradient */}
-                                        <div className={`h-24 relative ${trendingTab === 'online'
-                                            ? 'bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500'
-                                            : 'bg-gradient-to-br from-primary via-emerald-500 to-teal-500'
-                                            }`}>
-                                            {/* Shine effect */}
-                                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent" />
+                                    {/* Merchant Icon */}
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${trendingTab === 'online' ? 'bg-violet-50' : 'bg-emerald-50'
+                                        }`}>
+                                        {offer.merchantLogo ? (
+                                            <img src={offer.merchantLogo} alt="" className="w-8 h-8 object-contain" />
+                                        ) : (
+                                            trendingTab === 'online' ? '🌐' : '🏪'
+                                        )}
+                                    </div>
 
-                                            {/* Top row */}
-                                            <div className="p-3 flex justify-between items-start">
-                                                {/* Expiry Badge */}
-                                                {expiryText && (
-                                                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold ${isUrgent
-                                                        ? 'bg-red-500 text-white'
-                                                        : 'bg-white/90 text-gray-700'
-                                                        }`}>
-                                                        <Clock className="h-3 w-3" />
-                                                        {expiryText}
-                                                    </div>
-                                                )}
-
-                                                {/* Favorite Button */}
-                                                <button
-                                                    onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
-                                                    className={`h-8 w-8 rounded-full flex items-center justify-center ml-auto transition-all ${isFav
-                                                        ? 'bg-red-500 text-white'
-                                                        : 'bg-white/90 text-gray-500 hover:bg-white'
-                                                        }`}
-                                                >
-                                                    <Heart className={`h-4 w-4 ${isFav ? 'fill-white' : ''}`} />
-                                                </button>
-                                            </div>
-
-                                            {/* Discount Badge */}
-                                            <div className="absolute bottom-3 left-3">
-                                                <span className="bg-white text-gray-900 px-3 py-1.5 rounded-xl text-sm font-bold shadow-md">
-                                                    {offer.discountValue
-                                                        ? `${offer.type === 'percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue} OFF`
-                                                        : (offer.discount || 'Deal')
-                                                    }
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Card Content */}
-                                        <div className="p-3.5">
-                                            <h4 className="font-bold text-sm text-gray-900 truncate">
+                                    {/* Content */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className={`font-semibold text-sm ${isExpired ? 'line-through' : 'text-gray-900'}`}>
                                                 {offer.merchantName || offer.brand || 'Special Offer'}
-                                            </h4>
-                                            <p className="text-xs text-gray-500 mt-0.5 truncate">
-                                                {offer.title || offer.description || 'Limited time offer'}
-                                            </p>
+                                            </span>
+                                            {expiryText && (
+                                                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${isExpired ? 'bg-gray-100 text-gray-400' :
+                                                        expiryText.includes('h') ? 'bg-red-50 text-red-600' :
+                                                            'bg-gray-100 text-gray-500'
+                                                    }`}>
+                                                    {expiryText}
+                                                </span>
+                                            )}
                                         </div>
+                                        <p className={`text-xs ${isExpired ? 'line-through text-gray-300' : 'text-gray-500'}`}>
+                                            {offer.title || 'Limited time offer'}
+                                        </p>
+                                    </div>
+
+                                    {/* Discount + Favorite */}
+                                    <div className="flex items-center gap-3 flex-shrink-0">
+                                        <span className={`text-sm font-bold ${isExpired ? 'text-gray-300 line-through' : 'text-primary'
+                                            }`}>
+                                            {offer.discountValue
+                                                ? `${offer.type === 'percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue}`
+                                                : (offer.discount || '')}
+                                        </span>
+                                        <button
+                                            onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
+                                            className="p-2"
+                                        >
+                                            <Heart className={`h-4 w-4 ${isFav ? 'fill-red-500 text-red-500' : 'text-gray-300'}`} />
+                                        </button>
                                     </div>
                                 </motion.div>
                             );
                         })}
                     </div>
+
+                    <Link href="/dashboard/explore" className="block text-center mt-4">
+                        <span className="text-sm text-gray-400 font-medium">See all offers →</span>
+                    </Link>
                 </div>
 
                 {/* Top Brands - Conditionally rendered based on admin settings */}
