@@ -676,45 +676,48 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* F³ Categories - Clean Static Triangle Layout */}
-                <div className="py-8">
-                    {/* Triangle Layout Container */}
-                    <div className="relative flex flex-col items-center gap-4">
-                        {/* Top Row - Food Category */}
-                        <Link href="/dashboard/category/Food">
-                            <div className="flex flex-col items-center gap-2 cursor-pointer">
-                                <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl flex items-center justify-center">
-                                    <span className="text-3xl">🍕</span>
-                                </div>
-                                <span className="text-xs font-semibold text-gray-700">Food</span>
-                            </div>
-                        </Link>
-
-                        {/* Middle Row - F³ Center */}
-                        <div className="flex items-center justify-center">
-                            <div className="w-14 h-14 bg-primary rounded-xl flex items-center justify-center">
-                                <span className="text-white text-xl font-black">F³</span>
-                            </div>
-                        </div>
-
-                        {/* Bottom Row - Fashion & Fitness */}
-                        <div className="flex items-center justify-center gap-12">
-                            <Link href="/dashboard/category/Fashion">
-                                <div className="flex flex-col items-center gap-2 cursor-pointer">
-                                    <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-rose-500 rounded-2xl flex items-center justify-center">
-                                        <span className="text-3xl">👗</span>
+                {/* F³ Categories - Premium Green Gradient Triangle */}
+                <div className="py-6 -mx-5">
+                    {/* Smooth Green Gradient Background */}
+                    <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 px-5 py-8 rounded-3xl mx-5">
+                        {/* Triangle Layout Container */}
+                        <div className="relative flex flex-col items-center gap-3">
+                            {/* Top Row - Food Category */}
+                            <Link href="/dashboard/category/Food">
+                                <div className="flex flex-col items-center gap-1.5 cursor-pointer group">
+                                    <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                                        <span className="text-2xl">🍕</span>
                                     </div>
-                                    <span className="text-xs font-semibold text-gray-700">Fashion</span>
+                                    <span className="text-[11px] font-semibold text-gray-600">Food</span>
                                 </div>
                             </Link>
-                            <Link href="/dashboard/category/Fitness">
-                                <div className="flex flex-col items-center gap-2 cursor-pointer">
-                                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center">
-                                        <span className="text-3xl">💪</span>
-                                    </div>
-                                    <span className="text-xs font-semibold text-gray-700">Fitness</span>
+
+                            {/* Middle Row - F³ Center */}
+                            <div className="flex items-center justify-center my-1">
+                                <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-sm">
+                                    <span className="text-white text-lg font-black">F³</span>
                                 </div>
-                            </Link>
+                            </div>
+
+                            {/* Bottom Row - Fashion & Fitness */}
+                            <div className="flex items-center justify-center gap-10">
+                                <Link href="/dashboard/category/Fashion">
+                                    <div className="flex flex-col items-center gap-1.5 cursor-pointer group">
+                                        <div className="w-14 h-14 bg-gradient-to-br from-pink-400 to-rose-500 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                                            <span className="text-2xl">👗</span>
+                                        </div>
+                                        <span className="text-[11px] font-semibold text-gray-600">Fashion</span>
+                                    </div>
+                                </Link>
+                                <Link href="/dashboard/category/Fitness">
+                                    <div className="flex flex-col items-center gap-1.5 cursor-pointer group">
+                                        <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                                            <span className="text-2xl">💪</span>
+                                        </div>
+                                        <span className="text-[11px] font-semibold text-gray-600">Fitness</span>
+                                    </div>
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>

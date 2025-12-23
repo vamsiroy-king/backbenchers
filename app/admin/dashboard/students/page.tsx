@@ -91,15 +91,31 @@ export default function StudentsListPage() {
 
     const handleSuspend = async (id: string) => {
         setActionLoading(id);
-        // TODO: Implement suspend in studentService
-        setStudents(prev => prev.map(s => s.id === id ? { ...s, status: 'suspended' } : s));
+        const result = await studentService.updateStatus(id, 'suspended');
+        if (result.success) {
+            setStudents(prev => prev.map(s => s.id === id ? { ...s, status: 'suspended' } : s));
+            // Update stats
+            setStats(prev => ({
+                ...prev,
+                suspended: prev.suspended + 1,
+                verified: Math.max(0, prev.verified - 1)
+            }));
+        }
         setActionLoading(null);
     };
 
     const handleUnsuspend = async (id: string) => {
         setActionLoading(id);
-        // TODO: Implement unsuspend in studentService
-        setStudents(prev => prev.map(s => s.id === id ? { ...s, status: 'verified' } : s));
+        const result = await studentService.updateStatus(id, 'verified');
+        if (result.success) {
+            setStudents(prev => prev.map(s => s.id === id ? { ...s, status: 'verified' } : s));
+            // Update stats
+            setStats(prev => ({
+                ...prev,
+                suspended: Math.max(0, prev.suspended - 1),
+                verified: prev.verified + 1
+            }));
+        }
         setActionLoading(null);
     };
 

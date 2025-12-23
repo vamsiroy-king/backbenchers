@@ -80,6 +80,17 @@ export default function AuthCallbackPage() {
 
                 if (student) {
                     addDebug(`Student found: ${JSON.stringify(student)}`);
+
+                    // Check if student is suspended
+                    if (student.status === 'suspended') {
+                        addDebug("Student account is SUSPENDED - blocking login");
+                        setStatus("Account suspended");
+                        // Sign out the user
+                        await supabase.auth.signOut();
+                        router.replace("/suspended");
+                        return;
+                    }
+
                     setStatus("Welcome back! Loading dashboard...");
                     router.replace("/dashboard");
                 } else {
@@ -97,6 +108,15 @@ export default function AuthCallbackPage() {
 
                     if (studentByEmail) {
                         addDebug(`Student found by email: ${JSON.stringify(studentByEmail)}`);
+
+                        // Check if student is suspended
+                        if (studentByEmail.status === 'suspended') {
+                            addDebug("Student account is SUSPENDED - blocking login");
+                            setStatus("Account suspended");
+                            await supabase.auth.signOut();
+                            router.replace("/suspended");
+                            return;
+                        }
 
                         // If student exists but user_id doesn't match, update it
                         if (studentByEmail.user_id !== session.user.id) {
