@@ -9,6 +9,7 @@ import { useRouter, useParams } from "next/navigation";
 import { studentService } from "@/lib/services/student.service";
 import { transactionService } from "@/lib/services/transaction.service";
 import { Student, Transaction } from "@/lib/types";
+import { toast } from "@/lib/stores/app.store";
 
 export default function StudentDetailPage() {
     const router = useRouter();
@@ -96,18 +97,19 @@ export default function StudentDetailPage() {
                 const result = await studentService.delete(student.id);
                 console.log('Delete result:', result);
                 if (result.success) {
+                    toast.success('Student deleted successfully');
                     router.push("/admin/dashboard/students");
                 } else {
-                    alert('Failed to delete student: ' + (result.error || 'Unknown error'));
+                    toast.error('Failed to delete student: ' + (result.error || 'Unknown error'));
                 }
             } else if (action === 'suspend') {
                 const result = await studentService.updateStatus(student.id, 'suspended');
                 console.log('Suspend result:', result);
                 if (result.success) {
                     setStudent({ ...student, status: 'suspended' });
-                    alert('Student suspended successfully!');
+                    toast.success('Student suspended successfully!');
                 } else {
-                    alert('Failed to suspend student: ' + (result.error || 'Unknown error'));
+                    toast.error('Failed to suspend student: ' + (result.error || 'Unknown error'));
                 }
                 setShowConfirmModal(null);
             } else if (action === 'verify') {
@@ -115,14 +117,14 @@ export default function StudentDetailPage() {
                 console.log('Reinstate result:', result);
                 if (result.success) {
                     setStudent({ ...student, status: 'verified' });
-                    alert('Student reinstated successfully!');
+                    toast.success('Student reinstated successfully!');
                 } else {
-                    alert('Failed to reinstate student: ' + (result.error || 'Unknown error'));
+                    toast.error('Failed to reinstate student: ' + (result.error || 'Unknown error'));
                 }
             }
         } catch (error: any) {
             console.error("Error performing action:", error);
-            alert('Error: ' + (error.message || 'Unknown error occurred'));
+            toast.error('Error: ' + (error.message || 'Unknown error occurred'));
         } finally {
             setActionLoading(false);
         }
