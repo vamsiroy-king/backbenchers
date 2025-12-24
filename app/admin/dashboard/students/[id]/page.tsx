@@ -90,25 +90,39 @@ export default function StudentDetailPage() {
         setActionLoading(true);
 
         try {
+            console.log('Performing action:', action, 'on student:', student.id);
+
             if (action === 'delete') {
                 const result = await studentService.delete(student.id);
+                console.log('Delete result:', result);
                 if (result.success) {
                     router.push("/admin/dashboard/students");
+                } else {
+                    alert('Failed to delete student: ' + (result.error || 'Unknown error'));
                 }
             } else if (action === 'suspend') {
                 const result = await studentService.updateStatus(student.id, 'suspended');
+                console.log('Suspend result:', result);
                 if (result.success) {
                     setStudent({ ...student, status: 'suspended' });
+                    alert('Student suspended successfully!');
+                } else {
+                    alert('Failed to suspend student: ' + (result.error || 'Unknown error'));
                 }
                 setShowConfirmModal(null);
             } else if (action === 'verify') {
                 const result = await studentService.updateStatus(student.id, 'verified');
+                console.log('Reinstate result:', result);
                 if (result.success) {
                     setStudent({ ...student, status: 'verified' });
+                    alert('Student reinstated successfully!');
+                } else {
+                    alert('Failed to reinstate student: ' + (result.error || 'Unknown error'));
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error performing action:", error);
+            alert('Error: ' + (error.message || 'Unknown error occurred'));
         } finally {
             setActionLoading(false);
         }
