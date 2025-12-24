@@ -276,8 +276,8 @@ export default function DashboardPage() {
                     })));
                 }
 
-                // Fetch new merchants for "New on BackBenchers"
-                const newMerchantsResult = await newMerchantService.getNewMerchants(7, 10);
+                // Fetch new merchants for "New on BackBenchers" (filtered by city!)
+                const newMerchantsResult = await newMerchantService.getNewMerchants(7, 10, savedCity || undefined);
                 if (newMerchantsResult.success && newMerchantsResult.data) {
                     setNewMerchants(newMerchantsResult.data);
                 }
@@ -331,6 +331,20 @@ export default function DashboardPage() {
         }
         fetchData();
     }, []);
+
+    // Re-fetch new merchants when city changes
+    useEffect(() => {
+        async function refetchNewMerchants() {
+            if (selectedCity) {
+                const result = await newMerchantService.getNewMerchants(7, 10, selectedCity);
+                if (result.success && result.data) {
+                    setNewMerchants(result.data);
+                }
+            }
+        }
+        refetchNewMerchants();
+    }, [selectedCity]);
+
 
     const handleOfferClick = (e: React.MouseEvent) => {
         if (!isVerified) {

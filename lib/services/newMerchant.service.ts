@@ -15,13 +15,13 @@ export interface NewMerchant {
 }
 
 export const newMerchantService = {
-    // Get new merchants (registered within last N days)
-    async getNewMerchants(days: number = 7, limit: number = 10): Promise<ApiResponse<NewMerchant[]>> {
+    // Get new merchants (registered within last N days, optionally filtered by city)
+    async getNewMerchants(days: number = 7, limit: number = 10, city?: string): Promise<ApiResponse<NewMerchant[]>> {
         try {
             const cutoffDate = new Date();
             cutoffDate.setDate(cutoffDate.getDate() - days);
 
-            const { data, error } = await supabase
+            let query = supabase
                 .from('merchants')
                 .select(`
                     id, business_name, category, city, logo_url, created_at,
@@ -31,6 +31,13 @@ export const newMerchantService = {
                 .gte('created_at', cutoffDate.toISOString())
                 .order('created_at', { ascending: false })
                 .limit(limit);
+
+            // Filter by city if provided (case-insensitive match)
+            if (city && city.trim() !== '') {
+                query = query.ilike('city', city);
+            }
+
+            const { data, error } = await query;
 
             if (error) {
                 return { success: false, data: null, error: error.message };
