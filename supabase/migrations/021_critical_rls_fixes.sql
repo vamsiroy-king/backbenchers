@@ -47,16 +47,18 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Students can view own notifications" ON notifications;
 DROP POLICY IF EXISTS "Students can update own notifications" ON notifications;
 DROP POLICY IF EXISTS "Admins can manage notifications" ON notifications;
+DROP POLICY IF EXISTS "Users can view own notifications" ON notifications;
+DROP POLICY IF EXISTS "Users can update own notifications" ON notifications;
 
--- Students can view their own notifications
-CREATE POLICY "Students can view own notifications" ON notifications
+-- Users can view their own notifications (user_id matches auth.uid)
+CREATE POLICY "Users can view own notifications" ON notifications
     FOR SELECT
-    USING (student_id IN (SELECT id FROM students WHERE user_id = auth.uid()));
+    USING (user_id = auth.uid());
 
--- Students can update their own notifications (mark as read)
-CREATE POLICY "Students can update own notifications" ON notifications
+-- Users can update their own notifications (mark as read)
+CREATE POLICY "Users can update own notifications" ON notifications
     FOR UPDATE
-    USING (student_id IN (SELECT id FROM students WHERE user_id = auth.uid()));
+    USING (user_id = auth.uid());
 
 -- Admins can do everything with notifications
 CREATE POLICY "Admins can manage notifications" ON notifications
