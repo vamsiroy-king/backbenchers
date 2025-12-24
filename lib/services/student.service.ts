@@ -315,12 +315,15 @@ export const studentService = {
                 .eq('id', id);
 
             if (error) {
-                return { success: false, error: error.message };
+                console.error('Error updating student status:', error);
+                return { success: false, data: undefined, error: error.message };
             }
 
-            return { success: true };
+            console.log('Student status updated to:', status);
+            return { success: true, data: undefined, error: null };
         } catch (error: any) {
-            return { success: false, error: error.message };
+            console.error('Exception updating student status:', error);
+            return { success: false, data: undefined, error: error.message };
         }
     },
 
