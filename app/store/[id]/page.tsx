@@ -171,20 +171,13 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 </div>
             </div>
 
-            <div className="px-5 pt-5 pb-32 space-y-6">
+            <div className="px-5 pt-5 pb-32 space-y-6 dark:bg-gray-950">
                 {/* Rating & Status */}
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1.5 bg-primary/10 dark:bg-primary/20 px-2.5 py-1 rounded-lg">
-                            <Star className="h-4 w-4 text-primary fill-primary" />
-                            <span className="font-semibold text-sm text-primary">
-                                {ratingStats.avgRating > 0 ? ratingStats.avgRating.toFixed(1) : 'New'}
-                            </span>
-                        </div>
-                        <span className="text-xs text-gray-400 dark:text-gray-500">
-                            {ratingStats.totalReviews > 0
-                                ? `(${ratingStats.totalReviews} ${ratingStats.totalReviews === 1 ? 'review' : 'reviews'})`
-                                : '(No reviews yet)'}
+                    <div className="flex items-center gap-1.5 bg-primary/10 dark:bg-primary/20 px-3 py-1.5 rounded-lg">
+                        <Star className="h-4 w-4 text-primary fill-primary" />
+                        <span className="font-bold text-sm text-primary">
+                            {ratingStats.avgRating > 0 ? ratingStats.avgRating.toFixed(1) : 'New'}
                         </span>
                     </div>
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-400">
@@ -210,24 +203,24 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
 
                 {/* Description */}
                 {merchant.description && (
-                    <p className="text-sm text-gray-600 leading-relaxed">{merchant.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{merchant.description}</p>
                 )}
 
                 {/* Quick Info */}
                 <div className="space-y-2.5">
-                    <div className="flex items-center gap-3 p-3.5 bg-gray-50/80 rounded-xl border border-gray-100/50">
-                        <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <div className="flex items-center gap-3 p-3.5 bg-gray-800/50 dark:bg-gray-800/80 rounded-xl border border-gray-700/50">
+                        <div className="h-10 w-10 bg-primary/20 rounded-lg flex items-center justify-center">
                             <MapPin className="h-5 w-5 text-primary" />
                         </div>
                         <div className="flex-1">
-                            <p className="font-medium text-sm text-gray-900">{merchant.address}</p>
-                            <p className="text-xs text-gray-500">{merchant.city}, {merchant.pinCode}</p>
+                            <p className="font-medium text-sm text-white">{merchant.address}</p>
+                            <p className="text-xs text-gray-400">{merchant.city}, {merchant.pinCode}</p>
                         </div>
                     </div>
 
                     {merchant.phone && (
-                        <a href={`tel:${merchant.phone}`} className="flex items-center gap-3 p-3.5 bg-gray-50/80 rounded-xl border border-gray-100/50">
-                            <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <a href={`tel:${merchant.phone}`} className="flex items-center gap-3 p-3.5 bg-gray-800/50 dark:bg-gray-800/80 rounded-xl border border-gray-700/50">
+                            <div className="h-10 w-10 bg-primary/20 rounded-lg flex items-center justify-center">
                                 <Phone className="h-5 w-5 text-primary" />
                             </div>
                             <p className="font-medium text-sm text-primary">{merchant.phone}</p>
@@ -238,7 +231,7 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 {/* Get Directions Button */}
                 <Button
                     onClick={handleGetDirections}
-                    className="w-full h-12 bg-gray-900 text-white font-semibold rounded-xl shadow-card hover:bg-gray-800"
+                    className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl shadow-lg shadow-primary/30"
                 >
                     <Navigation className="h-5 w-5 mr-2" />
                     Get Directions

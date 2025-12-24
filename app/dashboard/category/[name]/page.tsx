@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Wifi, MapPin, Heart, X, ShieldCheck, Loader2 } from "lucide-react";
+import { ArrowLeft, Wifi, MapPin, Heart, ShieldCheck, Loader2, Tag } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,6 +32,16 @@ const CATEGORY_DATA: Record<string, { emoji: string; color: string }> = {
     "Restaurant": { emoji: "🍽️", color: "from-orange-500 to-orange-600" },
 };
 
+// Grouped merchant with offers
+interface MerchantWithOffers {
+    merchantId: string;
+    merchantName: string;
+    merchantLogo?: string;
+    merchantCity?: string;
+    offers: Offer[];
+    bestOffer: Offer; // The offer to display (highest discount)
+}
+
 export default function CategoryPage() {
     const params = useParams();
     const router = useRouter();
@@ -41,25 +51,56 @@ export default function CategoryPage() {
     const [activeTab, setActiveTab] = useState<'online' | 'offline'>('offline');
     const [showVerifyModal, setShowVerifyModal] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [offers, setOffers] = useState<Offer[]>([]);
+    const [merchants, setMerchants] = useState<MerchantWithOffers[]>([]);
     const [isVerified, setIsVerified] = useState(false);
 
-    // Fetch offers and check auth status
+    // Fetch offers and group by merchant
     useEffect(() => {
         async function fetchData() {
             try {
                 setLoading(true);
 
-                // Check if user is a verified STUDENT (not just any session)
+                // Check if user is a verified STUDENT
                 const user = await authService.getCurrentUser();
-                // Only count as verified if user is a student with complete profile
                 const isStudentVerified = !!(user?.role === 'student' && user?.isComplete);
                 setIsVerified(isStudentVerified);
 
                 // Fetch offers by category
                 const result = await offerService.getByCategory(categoryName);
                 if (result.success && result.data) {
-                    setOffers(result.data);
+                    // Group offers by merchantId - no duplicates!
+                    const merchantMap = new Map<string, MerchantWithOffers>();
+
+                    result.data.forEach((offer) => {
+                        const merchantId = offer.merchantId;
+
+                        if (merchantMap.has(merchantId)) {
+                            // Add to existing merchant's offers
+                            const existing = merchantMap.get(merchantId)!;
+                            existing.offers.push(offer);
+
+                            // Update best offer if this one is better
+                            if (offer.discountValue > existing.bestOffer.discountValue) {
+                                existing.bestOffer = offer;
+                            }
+                        } else {
+                            // Create new merchant entry
+                            merchantMap.set(merchantId, {
+                                merchantId,
+                                merchantName: offer.merchantName || offer.title,
+                                merchantLogo: offer.merchantLogo,
+                                merchantCity: offer.merchantCity,
+                                offers: [offer],
+                                bestOffer: offer
+                            });
+                        }
+                    });
+
+                    // Convert to array and sort by offer count
+                    const groupedMerchants = Array.from(merchantMap.values())
+                        .sort((a, b) => b.offers.length - a.offers.length);
+
+                    setMerchants(groupedMerchants);
                 }
             } catch (error) {
                 console.error('Error fetching category offers:', error);
@@ -70,19 +111,18 @@ export default function CategoryPage() {
         fetchData();
     }, [categoryName]);
 
-    // Filter offers by type (online = no physical location, offline = physical store)
-    // For now, we consider all merchant offers as "offline" since they're physical stores
-    const offlineOffers = offers;
-    const onlineOffers: Offer[] = []; // Online would be e-commerce deals which we don't have yet
+    // For now, all are offline (physical stores)
+    const offlineMerchants = merchants;
+    const onlineMerchants: MerchantWithOffers[] = [];
 
-    const currentOffers = activeTab === 'online' ? onlineOffers : offlineOffers;
+    const currentMerchants = activeTab === 'online' ? onlineMerchants : offlineMerchants;
 
-    const handleOfferClick = (offer: Offer) => {
+    const handleMerchantClick = (merchant: MerchantWithOffers) => {
         if (!isVerified) {
             setShowVerifyModal(true);
         } else {
-            // Navigate to offer detail or store
-            router.push(`/store/${offer.merchantId}`);
+            // Navigate to merchant store page
+            router.push(`/store/${merchant.merchantId}`);
         }
     };
 
@@ -96,7 +136,7 @@ export default function CategoryPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white pb-24">
+        <div className="min-h-screen bg-white dark:bg-gray-950 pb-24">
             {/* Get Verified Modal */}
             <AnimatePresence>
                 {showVerifyModal && (
@@ -112,20 +152,20 @@ export default function CategoryPage() {
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl"
+                            className="bg-white dark:bg-gray-900 rounded-3xl p-8 w-full max-w-sm shadow-2xl"
                         >
                             <div className="text-center mb-6">
                                 <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                     <ShieldCheck className="h-8 w-8 text-primary" />
                                 </div>
-                                <h2 className="text-xl font-bold mb-2">Unlock This Offer</h2>
-                                <p className="text-gray-500 text-sm">
+                                <h2 className="text-xl font-bold dark:text-white mb-2">Unlock This Offer</h2>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm">
                                     Verify your student status to claim exclusive discounts.
                                 </p>
                             </div>
 
                             <Link href="/signup" className="block">
-                                <Button className="w-full h-12 bg-black text-white font-bold rounded-xl">
+                                <Button className="w-full h-12 bg-black dark:bg-white dark:text-black text-white font-bold rounded-xl">
                                     Get Verified - Free
                                 </Button>
                             </Link>
@@ -164,7 +204,7 @@ export default function CategoryPage() {
                             }`}
                     >
                         <Wifi className="h-4 w-4" />
-                        Online ({onlineOffers.length})
+                        Online ({onlineMerchants.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('offline')}
@@ -172,12 +212,12 @@ export default function CategoryPage() {
                             }`}
                     >
                         <MapPin className="h-4 w-4" />
-                        Nearby ({offlineOffers.length})
+                        Nearby ({offlineMerchants.length})
                     </button>
                 </div>
             </div>
 
-            {/* Offers */}
+            {/* Merchants (grouped - no duplicates) */}
             <div className="px-4 pt-4 space-y-3">
                 {loading ? (
                     <div className="flex justify-center py-16">
@@ -192,41 +232,48 @@ export default function CategoryPage() {
                             exit={{ opacity: 0, y: -10 }}
                             className="space-y-3"
                         >
-                            {currentOffers.map((offer, index) => (
+                            {currentMerchants.map((merchant, index) => (
                                 <motion.div
-                                    key={offer.id}
+                                    key={merchant.merchantId}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.05 }}
                                     whileTap={{ scale: 0.98 }}
-                                    onClick={() => handleOfferClick(offer)}
-                                    className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-4 cursor-pointer active:bg-gray-50"
+                                    onClick={() => handleMerchantClick(merchant)}
+                                    className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-4 flex items-center gap-4 cursor-pointer active:bg-gray-50 dark:active:bg-gray-800"
                                 >
+                                    {/* Merchant Logo */}
                                     <div className={`h-14 w-14 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center text-white font-bold text-lg overflow-hidden`}>
-                                        {offer.merchantLogo ? (
-                                            <img src={offer.merchantLogo} alt="" className="w-full h-full object-cover" />
+                                        {merchant.merchantLogo ? (
+                                            <img src={merchant.merchantLogo} alt="" className="w-full h-full object-cover" />
                                         ) : (
-                                            offer.merchantName?.[0] || offer.title[0]
+                                            merchant.merchantName[0]
                                         )}
                                     </div>
 
+                                    {/* Merchant Info */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                            <h4 className="font-bold text-sm truncate">{offer.merchantName || offer.title}</h4>
-                                            {new Date(offer.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
-                                                <span className="bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shrink-0">NEW</span>
+                                            <h4 className="font-bold text-sm dark:text-white truncate">{merchant.merchantName}</h4>
+                                            {/* Offer count badge */}
+                                            {merchant.offers.length > 1 && (
+                                                <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1">
+                                                    <Tag className="h-2.5 w-2.5" />
+                                                    {merchant.offers.length} offers
+                                                </span>
                                             )}
                                         </div>
-                                        <p className="text-sm text-purple-600 font-semibold">{getDiscountText(offer)}</p>
-                                        {offer.merchantCity && (
-                                            <p className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5">
+                                        <p className="text-sm text-primary font-semibold">{getDiscountText(merchant.bestOffer)}</p>
+                                        {merchant.merchantCity && (
+                                            <p className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
                                                 <MapPin className="h-3 w-3" />
-                                                {offer.merchantCity}
+                                                {merchant.merchantCity}
                                             </p>
                                         )}
                                     </div>
 
-                                    <button className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
+                                    {/* Favorite button */}
+                                    <button className="h-10 w-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0">
                                         <Heart className="h-4 w-4 text-gray-400" />
                                     </button>
                                 </motion.div>
@@ -235,11 +282,11 @@ export default function CategoryPage() {
                     </AnimatePresence>
                 )}
 
-                {!loading && currentOffers.length === 0 && (
+                {!loading && currentMerchants.length === 0 && (
                     <div className="text-center py-16 text-gray-400">
                         <p className="text-4xl mb-2">🔍</p>
-                        <p className="text-sm">No {activeTab} offers yet</p>
-                        <p className="text-xs mt-2">Check back soon for new deals!</p>
+                        <p className="text-sm dark:text-gray-500">No {activeTab} merchants yet</p>
+                        <p className="text-xs mt-2 dark:text-gray-600">Check back soon for new deals!</p>
                     </div>
                 )}
             </div>
