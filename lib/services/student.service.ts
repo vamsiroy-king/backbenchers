@@ -309,17 +309,39 @@ export const studentService = {
     // Update student status (admin only)
     async updateStatus(id: string, status: 'verified' | 'pending' | 'suspended'): Promise<ApiResponse<void>> {
         try {
-            const { error } = await supabase
+            console.log('Attempting to update student:', id, 'to status:', status);
+
+            // Use .select() to verify the update actually happened
+            const { data, error, count } = await supabase
                 .from('students')
                 .update({ status })
-                .eq('id', id);
+                .eq('id', id)
+                .select('id, status');
+
+            console.log('Update result - data:', data, 'error:', error, 'count:', count);
 
             if (error) {
                 console.error('Error updating student status:', error);
                 return { success: false, data: undefined, error: error.message };
             }
 
-            console.log('Student status updated to:', status);
+            // Check if any rows were actually updated
+            if (!data || data.length === 0) {
+                console.error('Update returned no rows - RLS policy may be blocking update');
+                return {
+                    success: false,
+                    data: undefined,
+                    error: 'Update failed - you may not have permission to update this student. Check if you are logged in as admin.'
+                };
+            }
+
+            // Verify the status was actually changed
+            if (data[0].status !== status) {
+                console.error('Status not updated correctly. Expected:', status, 'Got:', data[0].status);
+                return { success: false, data: undefined, error: 'Status was not updated correctly' };
+            }
+
+            console.log('Student status successfully updated to:', status);
             return { success: true, data: undefined, error: null };
         } catch (error: any) {
             console.error('Exception updating student status:', error);
