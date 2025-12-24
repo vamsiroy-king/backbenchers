@@ -219,7 +219,8 @@ export default function MerchantReviewPage() {
                 minOrderValue: actualPrice || 100,
                 freeItemName: offerData.freeItemName || undefined,
                 terms: termsArray,
-                status: 'active'
+                status: 'active',
+                validUntil: offerData.expiryDate || undefined
             });
 
             if (!offerResult.success) {
@@ -314,7 +315,8 @@ export default function MerchantReviewPage() {
                 minOrderValue: originalPrice,
                 freeItemName: offerData.type === 'freebie' ? offerData.freeItemName : undefined,
                 terms: ["Valid student ID required", "Cannot be combined with other offers"],
-                status: 'active'
+                status: 'active',
+                validUntil: offerData.expiryDate || undefined
             });
 
             if (!offerResult.success) {

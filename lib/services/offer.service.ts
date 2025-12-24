@@ -365,6 +365,7 @@ export const offerService = {
         freeItemName?: string;
         terms?: string[];
         status?: string;
+        validUntil?: string;
     }): Promise<ApiResponse<Offer>> {
         try {
             // Calculate prices if not provided
@@ -397,7 +398,8 @@ export const offerService = {
                     min_order_value: offerData.minOrderValue || originalPrice,
                     terms: offerData.terms || [],
                     free_item_name: offerData.freeItemName,
-                    status: offerData.status || 'pending'
+                    status: offerData.status || 'pending',
+                    valid_until: offerData.validUntil || null
                 })
                 .select()
                 .single();
