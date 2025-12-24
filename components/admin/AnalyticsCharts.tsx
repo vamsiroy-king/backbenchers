@@ -47,7 +47,7 @@ export function RevenueTrendChart({ data, title = "Revenue Trend" }: ChartProps)
                                 borderRadius: '12px',
                                 color: '#fff'
                             }}
-                            formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Revenue']}
+                            formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Revenue']}
                         />
                         <Area
                             type="monotone"
