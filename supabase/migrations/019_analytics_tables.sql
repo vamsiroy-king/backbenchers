@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS daily_analytics (
     avg_transaction_value DECIMAL(10,2) DEFAULT 0,
     
     -- User metrics
-    new_students INTEGER DEFAULT 0,
+    new_students INTEGER DEFAULT 0,yesi r
     new_merchants INTEGER DEFAULT 0,
     active_students INTEGER DEFAULT 0,
     active_merchants INTEGER DEFAULT 0,
