@@ -73,7 +73,7 @@ export default function NotificationsPage() {
             case 'offer':
                 // Go to explore with merchant filter if available
                 if (data.merchantId) {
-                    router.push(`/dashboard/explore?merchant=${data.merchantId}`);
+                    router.push(`/store/${data.merchantId}`);
                 } else if (data.offerId) {
                     router.push(`/dashboard/explore?offer=${data.offerId}`);
                 } else {
@@ -101,7 +101,7 @@ export default function NotificationsPage() {
                 if (data.route) {
                     router.push(data.route);
                 } else if (data.merchantId) {
-                    router.push(`/dashboard/explore?merchant=${data.merchantId}`);
+                    router.push(`/store/${data.merchantId}`);
                 } else {
                     router.push('/dashboard/explore');
                 }

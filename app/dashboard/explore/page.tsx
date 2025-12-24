@@ -25,16 +25,16 @@ const SEARCH_PLACEHOLDERS = [
 ];
 
 // Calculate days until expiry and return urgency info
-function getExpiryUrgency(validTo: string | null | undefined): {
+function getExpiryUrgency(validUntil: string | null | undefined): {
     daysLeft: number;
     label: string;
     color: string;
     bgColor: string;
     show: boolean;
 } | null {
-    if (!validTo) return null;
+    if (!validUntil) return null;
 
-    const expiryDate = new Date(validTo);
+    const expiryDate = new Date(validUntil);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     expiryDate.setHours(0, 0, 0, 0);
@@ -98,7 +98,7 @@ export default function ExplorePage() {
 
                 // Fetch active offers (filter by merchant if specified)
                 if (merchantFilter) {
-                    const offersResult = await offerService.getMerchantOffers(merchantFilter);
+                    const offersResult = await offerService.getAll({ merchantId: merchantFilter });
                     if (offersResult.success && offersResult.data) {
                         setOffers(offersResult.data);
                     }
@@ -209,7 +209,7 @@ export default function ExplorePage() {
                         </div>
                         <div className="space-y-3">
                             {filteredOffers.map((offer) => {
-                                const urgency = getExpiryUrgency(offer.validTo);
+                                const urgency = getExpiryUrgency(offer.validUntil);
 
                                 return (
                                     <Link key={offer.id} href={`/store/${offer.merchantId}`}>

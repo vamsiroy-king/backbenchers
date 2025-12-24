@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MapPin, Clock, Phone, Globe, Instagram, Star, Tag, Navigation, ExternalLink, X, Heart, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Phone, Globe, Instagram, Star, Tag, Navigation, ExternalLink, X, Heart, Loader2, Flame } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -108,6 +108,33 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
         if (offer.type === 'bogo') return 'Buy 1 Get 1';
         if (offer.type === 'freebie') return 'Free Gift';
         return `${offer.discountValue}% OFF`;
+    };
+
+    // Calculate days until expiry and return urgency info
+    const getExpiryUrgency = (validTo: string | null | undefined) => {
+        if (!validTo) return null;
+
+        const expiryDate = new Date(validTo);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        expiryDate.setHours(0, 0, 0, 0);
+
+        const diffTime = expiryDate.getTime() - today.getTime();
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (daysLeft < 0) return null; // Already expired
+
+        if (daysLeft === 0) {
+            return { daysLeft, label: "Ends Today!", color: "text-red-600", bgColor: "bg-red-100" };
+        } else if (daysLeft === 1) {
+            return { daysLeft, label: "Ends Tomorrow", color: "text-orange-600", bgColor: "bg-orange-100" };
+        } else if (daysLeft <= 3) {
+            return { daysLeft, label: `${daysLeft} days left`, color: "text-amber-600", bgColor: "bg-amber-100" };
+        } else if (daysLeft <= 7) {
+            return { daysLeft, label: `${daysLeft} days left`, color: "text-green-600", bgColor: "bg-green-50" };
+        }
+
+        return null; // More than 7 days, no badge
     };
 
     if (initialLoading) {
@@ -268,6 +295,17 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                             {new Date(offer.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
                                                 <span className="flex-shrink-0 text-[9px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded">NEW</span>
                                             )}
+                                            {/* Expiry Urgency Badge */}
+                                            {(() => {
+                                                const urgency = getExpiryUrgency(offer.validUntil);
+                                                if (!urgency) return null;
+                                                return (
+                                                    <span className={`flex-shrink-0 text-[9px] font-bold ${urgency.bgColor} ${urgency.color} px-1.5 py-0.5 rounded flex items-center gap-0.5`}>
+                                                        {urgency.daysLeft <= 1 && <Flame className="w-2.5 h-2.5" />}
+                                                        {urgency.label}
+                                                    </span>
+                                                );
+                                            })()}
                                         </div>
                                         <div className="flex items-baseline gap-2">
                                             <span className="text-gray-400 text-sm line-through">₹{offer.originalPrice}</span>
