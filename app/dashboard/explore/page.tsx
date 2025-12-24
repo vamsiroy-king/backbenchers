@@ -9,13 +9,6 @@ import { merchantService } from "@/lib/services/merchant.service";
 import { offerService } from "@/lib/services/offer.service";
 import { Merchant, Offer } from "@/lib/types";
 
-// F3 Categories - Food, Fashion, Fitness
-const CATEGORIES = [
-    { name: "Food", emoji: "🍕", color: "bg-gradient-to-br from-orange-400 to-red-500" },
-    { name: "Fashion", emoji: "👗", color: "bg-gradient-to-br from-pink-400 to-rose-500" },
-    { name: "Fitness", emoji: "💪", color: "bg-gradient-to-br from-blue-500 to-indigo-600" },
-];
-
 // Animated search placeholders
 const SEARCH_PLACEHOLDERS = [
     "restaurants near you...",
@@ -175,29 +168,6 @@ export default function ExplorePage() {
             </header>
 
             <main className="px-5 pt-6 space-y-8">
-                {/* F3 Categories Grid - Hide when merchant filter is active */}
-                {!merchantFilter && (
-                    <section>
-                        <div className="flex items-center gap-2.5 mb-4">
-                            <Sparkles className="h-5 w-5 text-yellow-500" />
-                            <h2 className="text-lg font-bold text-gray-900">Categories</h2>
-                        </div>
-                        <div className="grid grid-cols-3 gap-3">
-                            {CATEGORIES.map((cat) => (
-                                <Link key={cat.name} href={`/dashboard/category/${cat.name}`}>
-                                    <motion.div
-                                        whileTap={{ scale: 0.97 }}
-                                        className={`${cat.color} w-full aspect-[4/3] rounded-2xl flex flex-col items-center justify-center`}
-                                    >
-                                        <span className="text-3xl mb-1">{cat.emoji}</span>
-                                        <span className="text-white text-xs font-semibold">{cat.name}</span>
-                                    </motion.div>
-                                </Link>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
                 {/* Offers Section - Always show when merchant filter or search active */}
                 {(merchantFilter || searchQuery) && filteredOffers.length > 0 && (
                     <section>

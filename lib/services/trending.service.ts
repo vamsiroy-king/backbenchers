@@ -212,4 +212,72 @@ export const trendingService = {
             return { success: false, data: null, error: error.message };
         }
     },
+
+    // Get merged trending: admin picks FIRST, then fill with top redemptions (up to 10)
+    async getMergedTrending(section: 'online' | 'offline', maxTotal: number = 10): Promise<{
+        id: string;
+        title: string;
+        discountValue: number;
+        type: string;
+        merchantName?: string;
+        merchantId: string;
+        merchantCity?: string;
+        isAdminPick: boolean;
+    }[]> {
+        try {
+            // 1. Get admin picks first
+            const adminResult = await this.getBySection(section);
+            const adminOffers = (adminResult.data || [])
+                .filter(t => t.offer)
+                .map(t => ({
+                    id: t.offer!.id,
+                    title: t.offer!.title,
+                    discountValue: t.offer!.discountValue,
+                    type: t.offer!.type,
+                    merchantName: t.offer!.merchantName,
+                    merchantId: t.offer!.merchantId,
+                    merchantCity: t.offer!.merchantCity,
+                    isAdminPick: true,
+                }));
+
+            // If admin picks already fill the limit, return them
+            if (adminOffers.length >= maxTotal) {
+                return adminOffers.slice(0, maxTotal);
+            }
+
+            // 2. Get top offers by redemption count (algorithm)
+            const { data: algoData } = await supabase
+                .from('offers')
+                .select(`
+                    id, title, discount_value, type, merchant_id,
+                    merchants!inner (business_name, city, online_store, status)
+                `)
+                .eq('status', 'active')
+                .eq('merchants.status', 'approved')
+                .eq('merchants.online_store', section === 'online')
+                .order('total_redemptions', { ascending: false })
+                .limit(maxTotal);
+
+            const adminOfferIds = new Set(adminOffers.map(o => o.id));
+            const algoOffers = (algoData || [])
+                .filter((o: any) => !adminOfferIds.has(o.id)) // Exclude duplicates
+                .map((o: any) => ({
+                    id: o.id,
+                    title: o.title,
+                    discountValue: o.discount_value,
+                    type: o.type,
+                    merchantName: o.merchants?.business_name,
+                    merchantId: o.merchant_id,
+                    merchantCity: o.merchants?.city,
+                    isAdminPick: false,
+                }));
+
+            // 3. Merge: admin first, then algorithm to fill remaining slots
+            const merged = [...adminOffers, ...algoOffers].slice(0, maxTotal);
+            return merged;
+        } catch (error) {
+            console.error('[Trending] getMergedTrending error:', error);
+            return [];
+        }
+    },
 };

@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { merchantService } from "@/lib/services/merchant.service";
 import { offerService } from "@/lib/services/offer.service";
 import { ratingService, MerchantRatingStats } from "@/lib/services/rating.service";
+import { favoritesService } from "@/lib/services/favorites.service";
 import { Merchant, Offer } from "@/lib/types";
 
 export default function StorePage({ params }: { params: Promise<{ id: string }> }) {
@@ -23,6 +24,8 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
     const [expandedOfferId, setExpandedOfferId] = useState<string | null>(null);
     const [hasFetched, setHasFetched] = useState(false);
     const [ratingStats, setRatingStats] = useState<MerchantRatingStats>({ avgRating: 0, totalReviews: 0 });
+    const [savingFavorite, setSavingFavorite] = useState(false);
+    const [savedOfferIds, setSavedOfferIds] = useState<string[]>([]);
 
     // Fetch real merchant data and offers - only once
     useEffect(() => {
@@ -56,6 +59,14 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 if (offersResult.success && offersResult.data) {
                     setOffers(offersResult.data);
                 }
+
+                // Check if merchant is saved
+                const isSaved = await favoritesService.isMerchantSaved(id);
+                setIsFavorite(isSaved);
+
+                // Get saved offer IDs
+                const savedIds = await favoritesService.getSavedOfferIds();
+                setSavedOfferIds(savedIds);
 
                 setHasFetched(true);
             } catch (error) {
@@ -177,10 +188,23 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                         </button>
                     </Link>
                     <button
-                        onClick={() => setIsFavorite(!isFavorite)}
+                        onClick={async () => {
+                            if (savingFavorite) return;
+                            setSavingFavorite(true);
+                            const result = await favoritesService.toggleMerchant(id);
+                            if (result.success && typeof result.data === 'boolean') {
+                                setIsFavorite(result.data);
+                            }
+                            setSavingFavorite(false);
+                        }}
+                        disabled={savingFavorite}
                         className="h-10 w-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center"
                     >
-                        <Heart className={`h-5 w-5 ${isFavorite ? 'text-red-500 fill-red-500' : 'text-white'}`} />
+                        {savingFavorite ? (
+                            <Loader2 className="h-5 w-5 text-white animate-spin" />
+                        ) : (
+                            <Heart className={`h-5 w-5 ${isFavorite ? 'text-red-500 fill-red-500' : 'text-white'}`} />
+                        )}
                     </button>
                 </div>
 

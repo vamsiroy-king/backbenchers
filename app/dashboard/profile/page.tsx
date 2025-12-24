@@ -622,7 +622,7 @@ export default function ProfilePage() {
 
 
             {/* Savings Section */}
-            <div className="bg-white dark:bg-transparent rounded-2xl p-5 mb-6 shadow-card dark:shadow-none border border-gray-100/50 dark:border-transparent">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 mb-6 shadow-card dark:shadow-none border border-gray-100/50 dark:border-gray-800">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2.5">
                         <div className="h-9 w-9 bg-primary/10 rounded-lg flex items-center justify-center">

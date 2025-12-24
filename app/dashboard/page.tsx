@@ -218,34 +218,13 @@ export default function DashboardPage() {
                     setRealOffers(result.data);
                 }
 
-                // Fetch trending offers from admin dashboard
-                const trendingResult = await trendingService.getAll();
-                if (trendingResult.success && trendingResult.data) {
-                    const offline = trendingResult.data
-                        .filter(t => t.section === 'offline' && t.offer)
-                        .map(t => ({
-                            id: t.offer!.id,
-                            title: t.offer!.title,
-                            discountValue: t.offer!.discountValue,
-                            type: t.offer!.type,
-                            merchantName: t.offer!.merchantName,
-                            merchantId: t.offer!.merchantId,
-                            merchantCity: t.offer!.merchantCity,
-                        } as Offer));
-                    const online = trendingResult.data
-                        .filter(t => t.section === 'online' && t.offer)
-                        .map(t => ({
-                            id: t.offer!.id,
-                            title: t.offer!.title,
-                            discountValue: t.offer!.discountValue,
-                            type: t.offer!.type,
-                            merchantName: t.offer!.merchantName,
-                            merchantId: t.offer!.merchantId,
-                            merchantCity: t.offer!.merchantCity,
-                        } as Offer));
-                    setTrendingOffline(offline);
-                    setTrendingOnline(online);
-                }
+                // Fetch trending offers: admin picks FIRST, then fill with top redemptions
+                const [offlineTrending, onlineTrending] = await Promise.all([
+                    trendingService.getMergedTrending('offline', 10),
+                    trendingService.getMergedTrending('online', 10)
+                ]);
+                setTrendingOffline(offlineTrending as any);
+                setTrendingOnline(onlineTrending as any);
 
                 // Fetch top brands from admin dashboard
                 const brandsResult = await topBrandsService.getAll();
