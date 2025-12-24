@@ -705,6 +705,17 @@ export default function ProfilePage() {
 
             {/* Actions */}
             <div className="space-y-3">
+                {/* Saved Items */}
+                <Link href="/dashboard/saved">
+                    <button className="w-full h-14 flex items-center justify-between px-4 rounded-xl bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-800 font-medium shadow-subtle dark:shadow-none">
+                        <div className="flex items-center gap-3">
+                            <span className="text-lg">❤️</span>
+                            <span className="dark:text-white">Saved</span>
+                        </div>
+                        <span className="text-gray-400">→</span>
+                    </button>
+                </Link>
+
                 {/* Dark Mode Toggle */}
                 <button
                     onClick={() => {
