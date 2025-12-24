@@ -55,12 +55,6 @@ const OFFLINE_OFFERS = [
     { id: 2, brand: "Pizza Hut", discount: "20% Off Dine-In", locations: "8+", isNew: false },
 ];
 
-// Notifications data
-const NOTIFICATIONS = [
-    { id: 1, title: "🔥 Flash Deal!", message: "50% off at Nike - ends in 2 hours", time: "2m ago", isNew: true },
-    { id: 2, title: "New Drop", message: "Spotify Student Plan now available", time: "1h ago", isNew: true },
-    { id: 3, title: "Nearby Offer", message: "Starbucks 2 km away - Free upgrade", time: "3h ago", isNew: false },
-];
 
 // All searchable items
 const ALL_ITEMS = [
@@ -137,18 +131,8 @@ export default function DashboardPage() {
     // Real notifications from database
     const [realNotifications, setRealNotifications] = useState<Notification[]>([]);
 
-    // Use real notifications count if available, otherwise mock
-    const notificationsToShow = realNotifications.length > 0 ? realNotifications : NOTIFICATIONS.map(n => ({
-        id: String(n.id),
-        userId: '',
-        userType: 'student' as const,
-        type: 'general',
-        title: n.title,
-        body: n.message,
-        isRead: !n.isNew,
-        createdAt: new Date().toISOString()
-    }));
-    const unreadCount = notificationsToShow.filter(n => !n.isRead).length;
+    // Only use real notifications count (no mock data)
+    const unreadCount = realNotifications.filter(n => !n.isRead).length;
 
     // Load content visibility settings
     useEffect(() => {
@@ -480,67 +464,7 @@ export default function DashboardPage() {
                 )}
             </AnimatePresence>
 
-            {/* Notifications Panel */}
-            <AnimatePresence>
-                {showNotifications && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm"
-                        onClick={() => setShowNotifications(false)}
-                    >
-                        <motion.div
-                            initial={{ y: -20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: -20, opacity: 0 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="absolute top-16 right-4 left-4 bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden max-h-[70vh]"
-                        >
-                            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                                <h3 className="font-bold text-lg dark:text-white">Notifications</h3>
-                                <button
-                                    onClick={async () => {
-                                        await notificationService.markAllAsRead();
-                                        setRealNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-                                    }}
-                                    className="text-xs text-primary font-semibold"
-                                >
-                                    Mark all read
-                                </button>
-                            </div>
-                            <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[50vh] overflow-y-auto">
-                                {notificationsToShow.length === 0 ? (
-                                    <div className="p-8 text-center text-gray-400">
-                                        <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                        <p className="text-sm">No notifications yet</p>
-                                    </div>
-                                ) : (
-                                    notificationsToShow.map((notif) => (
-                                        <div key={notif.id} className={`p-4 flex gap-3 ${!notif.isRead ? 'bg-primary/5' : ''}`}>
-                                            <div className={`h-10 w-10 rounded-full flex items-center justify-center text-lg ${!notif.isRead ? 'bg-primary/10' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                                                {notif.type === 'offer_expiring' ? '⏰' :
-                                                    notif.type === 'new_deal' ? '🎁' :
-                                                        notif.type === 'redemption' ? '✅' : '🔔'}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <p className="font-semibold text-sm truncate dark:text-white">{notif.title}</p>
-                                                    {!notif.isRead && <span className="h-2 w-2 bg-primary rounded-full" />}
-                                                </div>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{notif.body}</p>
-                                                <p className="text-[10px] text-gray-400 mt-1">
-                                                    {new Date(notif.createdAt).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
 
             {/* Search Panel */}
             <AnimatePresence>

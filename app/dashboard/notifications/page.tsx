@@ -3,13 +3,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    ArrowLeft, Bell, BellOff, Check, CheckCheck, Trash2,
+    ArrowLeft, Bell, BellOff,
     Sparkles, Tag, Store, ShieldCheck, TrendingUp, Gift,
     ChevronRight, Clock, Loader2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { notificationService, Notification } from "@/lib/services/notification.service";
-import { toast } from "@/lib/stores/app.store";
 
 // Icon mapping based on notification type
 const getNotificationIcon = (type: string) => {
@@ -43,42 +42,30 @@ export default function NotificationsPage() {
     const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
-    const [markingAllRead, setMarkingAllRead] = useState(false);
 
-    // Fetch notifications
+    // Fetch notifications and auto-mark all as read when page opens
     useEffect(() => {
-        async function fetchNotifications() {
+        async function fetchAndMarkRead() {
             setLoading(true);
             const result = await notificationService.getMyNotifications();
             if (result.success && result.data) {
                 setNotifications(result.data);
+
+                // Auto-mark all as read when opening the page
+                const hasUnread = result.data.some(n => !n.isRead);
+                if (hasUnread) {
+                    await notificationService.markAllAsRead();
+                    // Update local state to show all as read
+                    setNotifications(result.data.map(n => ({ ...n, isRead: true })));
+                }
             }
             setLoading(false);
         }
-        fetchNotifications();
+        fetchAndMarkRead();
     }, []);
-
-    // Mark all as read
-    const handleMarkAllRead = async () => {
-        setMarkingAllRead(true);
-        const result = await notificationService.markAllAsRead();
-        if (result.success) {
-            setNotifications(notifications.map(n => ({ ...n, isRead: true })));
-            toast.success('All notifications marked as read');
-        }
-        setMarkingAllRead(false);
-    };
 
     // Handle notification click
     const handleNotificationClick = async (notification: Notification) => {
-        // Mark as read
-        if (!notification.isRead) {
-            await notificationService.markAsRead(notification.id);
-            setNotifications(notifications.map(n =>
-                n.id === notification.id ? { ...n, isRead: true } : n
-            ));
-        }
-
         // Navigate based on notification data
         if (notification.data?.route) {
             router.push(notification.data.route);
@@ -88,8 +75,6 @@ export default function NotificationsPage() {
             router.push(`/dashboard/explore?merchant=${notification.data.merchantId}`);
         }
     };
-
-    const unreadCount = notifications.filter(n => !n.isRead).length;
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20">
@@ -103,30 +88,8 @@ export default function NotificationsPage() {
                         >
                             <ArrowLeft className="h-5 w-5 text-gray-700 dark:text-gray-300" />
                         </button>
-                        <div>
-                            <h1 className="font-bold text-lg text-gray-900 dark:text-white">Notifications</h1>
-                            {unreadCount > 0 && (
-                                <p className="text-xs text-gray-500">{unreadCount} unread</p>
-                            )}
-                        </div>
+                        <h1 className="font-bold text-lg text-gray-900 dark:text-white">Notifications</h1>
                     </div>
-
-                    {/* Mark all read button */}
-                    {unreadCount > 0 && (
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={handleMarkAllRead}
-                            disabled={markingAllRead}
-                            className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium active:bg-primary/20 transition-colors disabled:opacity-50"
-                        >
-                            {markingAllRead ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <CheckCheck className="h-4 w-4" />
-                            )}
-                            Mark all read
-                        </motion.button>
-                    )}
                 </div>
             </header>
 
@@ -170,19 +133,8 @@ export default function NotificationsPage() {
                                         exit={{ opacity: 0, x: 20 }}
                                         transition={{ delay: index * 0.05 }}
                                         onClick={() => handleNotificationClick(notification)}
-                                        className={`
-                                            relative p-4 rounded-2xl cursor-pointer active:scale-[0.98] transition-all
-                                            ${notification.isRead
-                                                ? 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800'
-                                                : 'bg-gradient-to-r from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5 border border-primary/20'
-                                            }
-                                        `}
+                                        className="relative p-4 rounded-2xl cursor-pointer active:scale-[0.98] transition-all bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800"
                                     >
-                                        {/* Unread indicator */}
-                                        {!notification.isRead && (
-                                            <div className="absolute top-4 right-4 h-2.5 w-2.5 rounded-full bg-primary animate-pulse" />
-                                        )}
-
                                         <div className="flex gap-4">
                                             {/* Icon */}
                                             <div className={`h-12 w-12 rounded-2xl ${bg} flex items-center justify-center flex-shrink-0`}>
@@ -191,7 +143,7 @@ export default function NotificationsPage() {
 
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
-                                                <h3 className={`font-semibold text-gray-900 dark:text-white mb-0.5 ${!notification.isRead ? 'text-primary' : ''}`}>
+                                                <h3 className="font-semibold text-gray-900 dark:text-white mb-0.5">
                                                     {notification.title}
                                                 </h3>
                                                 {notification.body && (
