@@ -272,7 +272,7 @@ export default function ProfilePage() {
 
     // Verified User View - Full Profile with ID Card
     return (
-        <div className="min-h-screen bg-gray-50/50 pb-24 px-5">
+        <div className="min-h-screen bg-gray-50/50 dark:bg-gray-950 pb-24 px-5">
             {/* Camera Modal */}
             <AnimatePresence>
                 {showCameraModal && (

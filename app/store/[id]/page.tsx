@@ -182,7 +182,7 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
 
                 {/* Back & Favorite Buttons */}
                 <div className="absolute top-4 md:top-14 left-4 right-4 flex items-center justify-between">
-                    <Link href="/dashboard/explore">
+                    <Link href="/dashboard">
                         <button className="h-10 w-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
                             <ArrowLeft className="h-5 w-5 text-white" />
                         </button>

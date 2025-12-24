@@ -665,52 +665,6 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* F³ Categories - Dark Theme Compatible */}
-                <div className="py-6 -mx-5">
-                    {/* Background adapts to dark mode - NO border in dark mode for seamless blend */}
-                    <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-gray-950 dark:via-gray-950 dark:to-gray-950 px-5 py-8 rounded-3xl mx-5">
-                        {/* Triangle Layout Container */}
-                        <div className="relative flex flex-col items-center gap-3">
-                            {/* Top Row - Food Category */}
-                            <Link href="/dashboard/category/Food">
-                                <div className="flex flex-col items-center gap-1.5 cursor-pointer group">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                                        <span className="text-2xl">🍕</span>
-                                    </div>
-                                    <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-300">Food</span>
-                                </div>
-                            </Link>
-
-                            {/* Middle Row - F³ Center */}
-                            <div className="flex items-center justify-center my-1">
-                                <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-sm">
-                                    <span className="text-white text-lg font-black">F³</span>
-                                </div>
-                            </div>
-
-                            {/* Bottom Row - Fashion & Fitness */}
-                            <div className="flex items-center justify-center gap-10">
-                                <Link href="/dashboard/category/Fashion">
-                                    <div className="flex flex-col items-center gap-1.5 cursor-pointer group">
-                                        <div className="w-14 h-14 bg-gradient-to-br from-pink-400 to-rose-500 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                                            <span className="text-2xl">👗</span>
-                                        </div>
-                                        <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-300">Fashion</span>
-                                    </div>
-                                </Link>
-                                <Link href="/dashboard/category/Fitness">
-                                    <div className="flex flex-col items-center gap-1.5 cursor-pointer group">
-                                        <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                                            <span className="text-2xl">💪</span>
-                                        </div>
-                                        <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-300">Fitness</span>
-                                    </div>
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 {/* New on BackBenchers Section */}
                 {newMerchants.length > 0 && (
                     <div className="py-6">
