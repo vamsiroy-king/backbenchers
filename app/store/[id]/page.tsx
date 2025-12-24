@@ -26,6 +26,7 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
     const [ratingStats, setRatingStats] = useState<MerchantRatingStats>({ avgRating: 0, totalReviews: 0 });
     const [savingFavorite, setSavingFavorite] = useState(false);
     const [savedOfferIds, setSavedOfferIds] = useState<string[]>([]);
+    const [savingOfferId, setSavingOfferId] = useState<string | null>(null);
 
     // Fetch real merchant data and offers - only once
     useEffect(() => {
@@ -337,6 +338,32 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                             <span className="text-xs text-green-600 font-medium">Save ₹{offer.discountAmount}</span>
                                         </div>
                                     </div>
+
+                                    {/* Save Offer Heart Button */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (savingOfferId === offer.id) return;
+                                            setSavingOfferId(offer.id);
+                                            favoritesService.toggleOffer(offer.id).then(result => {
+                                                if (result.success && typeof result.data === 'boolean') {
+                                                    setSavedOfferIds(prev =>
+                                                        result.data
+                                                            ? [...prev, offer.id]
+                                                            : prev.filter(id => id !== offer.id)
+                                                    );
+                                                }
+                                                setSavingOfferId(null);
+                                            });
+                                        }}
+                                        className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center"
+                                    >
+                                        {savingOfferId === offer.id ? (
+                                            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                                        ) : (
+                                            <Heart className={`h-4 w-4 ${savedOfferIds.includes(offer.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+                                        )}
+                                    </button>
 
                                     {/* Chevron - Rotates when expanded */}
                                     <motion.div

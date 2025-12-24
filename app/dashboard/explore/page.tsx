@@ -309,35 +309,42 @@ export default function ExplorePage() {
                     </section>
                 )}
 
-                {/* All Available Offers */}
+                {/* Trending Offers - Horizontal Scroll Grid */}
                 {!merchantFilter && !searchQuery && offers.length > 0 && (
                     <section>
-                        <div className="flex items-center gap-2.5 mb-4">
-                            <TrendingUp className="h-5 w-5 text-primary" />
-                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">All Offers</h2>
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2.5">
+                                <TrendingUp className="h-5 w-5 text-primary" />
+                                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Trending Now</h2>
+                            </div>
+                            <span className="text-xs text-gray-400">{offers.length} deals</span>
                         </div>
-                        <div className="space-y-3">
-                            {offers.slice(0, 10).map((offer) => (
+                        <div className="grid grid-cols-2 gap-3">
+                            {offers.slice(0, 6).map((offer, index) => (
                                 <Link key={offer.id} href={`/store/${offer.merchantId}`}>
                                     <motion.div
-                                        whileTap={{ scale: 0.98 }}
-                                        className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        whileTap={{ scale: 0.97 }}
+                                        className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 relative overflow-hidden"
                                     >
-                                        <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                                        {/* Discount Badge */}
+                                        <div className="absolute top-2 right-2">
+                                            <span className="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                                                {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
+                                            </span>
+                                        </div>
+
+                                        <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-3">
                                             {offer.merchantLogo ? (
-                                                <img src={offer.merchantLogo} alt="" className="w-8 h-8 object-contain rounded-lg" />
+                                                <img src={offer.merchantLogo} alt="" className="w-7 h-7 object-contain rounded-lg" />
                                             ) : (
-                                                <Store className="w-5 h-5 text-primary" />
+                                                <Store className="w-4 h-4 text-primary" />
                                             )}
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-bold text-sm text-gray-900 dark:text-white truncate">{offer.merchantName || offer.title}</h3>
-                                            <p className="text-xs text-primary font-semibold">
-                                                {offer.type === 'percentage' ? `${offer.discountValue}% OFF` :
-                                                    offer.type === 'flat' ? `₹${offer.discountValue} OFF` :
-                                                        offer.title}
-                                            </p>
-                                        </div>
+                                        <h3 className="font-bold text-sm text-gray-900 dark:text-white truncate">{offer.merchantName || 'Store'}</h3>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{offer.title}</p>
                                     </motion.div>
                                 </Link>
                             ))}

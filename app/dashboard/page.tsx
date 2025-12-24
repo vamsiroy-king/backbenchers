@@ -673,9 +673,9 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex gap-3 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
                         {[
-                            { name: "Food", emoji: "🍕", gradient: "from-orange-500 to-red-500", count: "45+" },
-                            { name: "Fashion", emoji: "👗", gradient: "from-pink-500 to-rose-500", count: "28+" },
-                            { name: "Fitness", emoji: "💪", gradient: "from-blue-500 to-indigo-600", count: "15+" }
+                            { name: "Food", emoji: "🍕", gradient: "from-orange-500 to-red-500" },
+                            { name: "Fashion", emoji: "👗", gradient: "from-pink-500 to-rose-500" },
+                            { name: "Fitness", emoji: "💪", gradient: "from-blue-500 to-indigo-600" }
                         ].map((cat) => (
                             <Link key={cat.name} href={`/dashboard/category/${cat.name}`}>
                                 <motion.div
@@ -686,7 +686,6 @@ export default function DashboardPage() {
                                         <span className="text-2xl">{cat.emoji}</span>
                                     </div>
                                     <p className="text-sm font-semibold text-gray-900 dark:text-white">{cat.name}</p>
-                                    <p className="text-xs text-gray-400">{cat.count} offers</p>
                                 </motion.div>
                             </Link>
                         ))}
@@ -798,6 +797,14 @@ export default function DashboardPage() {
                                             </span>
                                         </div>
 
+                                        {/* Heart Button - Bottom Right */}
+                                        <button
+                                            onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
+                                            className="absolute bottom-3 right-3 z-10 h-8 w-8 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center"
+                                        >
+                                            <Heart className={`h-4 w-4 ${isFav ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+                                        </button>
+
                                         {/* Content Row */}
                                         <div className="flex items-start gap-4">
                                             {/* Merchant Logo */}
@@ -830,14 +837,6 @@ export default function DashboardPage() {
                                                     </span>
                                                 )}
                                             </div>
-
-                                            {/* Favorite */}
-                                            <button
-                                                onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
-                                                className="p-1"
-                                            >
-                                                <Heart className={`h-5 w-5 ${isFav ? 'fill-red-500 text-red-500' : 'text-gray-200 hover:text-gray-400'}`} />
-                                            </button>
                                         </div>
                                     </div>
                                 </motion.div>

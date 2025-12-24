@@ -622,7 +622,7 @@ export default function ProfilePage() {
 
 
             {/* Savings Section */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 mb-6 shadow-card dark:shadow-none border border-gray-100/50 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-950 rounded-2xl p-5 mb-6 shadow-card dark:shadow-none border border-gray-100/50 dark:border-gray-800">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2.5">
                         <div className="h-9 w-9 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -711,7 +711,7 @@ export default function ProfilePage() {
                         const isDark = document.documentElement.classList.toggle('dark');
                         localStorage.setItem('bb-theme', isDark ? 'dark' : 'light');
                     }}
-                    className="w-full h-14 flex items-center justify-between px-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 font-medium shadow-subtle"
+                    className="w-full h-14 flex items-center justify-between px-4 rounded-xl bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-800 font-medium shadow-subtle dark:shadow-none"
                 >
                     <div className="flex items-center gap-3">
                         <span className="text-lg">🌙</span>
@@ -724,7 +724,7 @@ export default function ProfilePage() {
 
                 <button
                     onClick={handleSignOut}
-                    className="w-full h-14 flex items-center justify-center gap-3 rounded-xl bg-white dark:bg-gray-800 border border-red-100 dark:border-red-900 text-red-500 font-medium shadow-subtle hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    className="w-full h-14 flex items-center justify-center gap-3 rounded-xl bg-white dark:bg-gray-950 border border-red-100 dark:border-red-900/50 text-red-500 font-medium shadow-subtle dark:shadow-none hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 >
                     <LogOut className="h-5 w-5" />
                     Sign Out
@@ -735,10 +735,10 @@ export default function ProfilePage() {
             <div className="pt-8 border-t border-gray-100/80 dark:border-gray-800 mt-6">
                 <p className="text-xs text-gray-400 dark:text-gray-500 text-center mb-3">Switch to</p>
                 <div className="flex justify-center gap-2.5">
-                    <Link href="/merchant" className="px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700 shadow-subtle dark:shadow-none">
+                    <Link href="/merchant" className="px-4 py-2.5 bg-white dark:bg-gray-950 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-800 shadow-subtle dark:shadow-none">
                         Merchant App
                     </Link>
-                    <Link href="/admin/dashboard" className="px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700 shadow-subtle dark:shadow-none">
+                    <Link href="/admin/dashboard" className="px-4 py-2.5 bg-white dark:bg-gray-950 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-800 shadow-subtle dark:shadow-none">
                         Admin Panel
                     </Link>
                 </div>
