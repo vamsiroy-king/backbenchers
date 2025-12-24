@@ -92,8 +92,52 @@ export const ratingService = {
         }
     },
 
-    // Get average rating and total count for a merchant
+    // Get average rating and total count for a merchant (now reads from cached columns!)
     async getMerchantRatingStats(merchantId: string): Promise<MerchantRatingStats> {
+        try {
+            // First try to get from merchants table (fast - cached values)
+            const { data: merchant, error } = await supabase
+                .from('merchants')
+                .select('average_rating, total_ratings')
+                .eq('id', merchantId)
+                .single();
+
+            if (!error && merchant) {
+                return {
+                    avgRating: merchant.average_rating || 0,
+                    totalReviews: merchant.total_ratings || 0
+                };
+            }
+
+            // Fallback: calculate from ratings table
+            const { data } = await supabase
+                .from('ratings')
+                .select('stars')
+                .eq('merchant_id', merchantId);
+
+            if (!data || data.length === 0) {
+                return { avgRating: 0, totalReviews: 0 };
+            }
+
+            const total = data.length;
+            const sum = data.reduce((acc, r) => acc + r.stars, 0);
+            const avg = Math.round((sum / total) * 10) / 10;
+
+            return { avgRating: avg, totalReviews: total };
+        } catch (error) {
+            console.error('Error getting rating stats:', error);
+            return { avgRating: 0, totalReviews: 0 };
+        }
+    },
+
+    // Get rating breakdown percentages (5★, 4★, 3★, 2★, 1★)
+    async getRatingBreakdown(merchantId: string): Promise<{
+        star5: number;
+        star4: number;
+        star3: number;
+        star2: number;
+        star1: number;
+    }> {
         try {
             const { data, error } = await supabase
                 .from('ratings')
@@ -101,17 +145,28 @@ export const ratingService = {
                 .eq('merchant_id', merchantId);
 
             if (error || !data || data.length === 0) {
-                return { avgRating: 0, totalReviews: 0 };
+                return { star5: 0, star4: 0, star3: 0, star2: 0, star1: 0 };
             }
 
             const total = data.length;
-            const sum = data.reduce((acc, r) => acc + r.stars, 0);
-            const avg = Math.round((sum / total) * 10) / 10; // Round to 1 decimal
+            const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
-            return { avgRating: avg, totalReviews: total };
+            data.forEach(r => {
+                if (r.stars >= 1 && r.stars <= 5) {
+                    counts[r.stars as keyof typeof counts]++;
+                }
+            });
+
+            return {
+                star5: Math.round((counts[5] / total) * 100),
+                star4: Math.round((counts[4] / total) * 100),
+                star3: Math.round((counts[3] / total) * 100),
+                star2: Math.round((counts[2] / total) * 100),
+                star1: Math.round((counts[1] / total) * 100),
+            };
         } catch (error) {
-            console.error('Error getting rating stats:', error);
-            return { avgRating: 0, totalReviews: 0 };
+            console.error('Error getting rating breakdown:', error);
+            return { star5: 0, star4: 0, star3: 0, star2: 0, star1: 0 };
         }
     },
 
@@ -152,3 +207,4 @@ export const ratingService = {
         }
     }
 };
+

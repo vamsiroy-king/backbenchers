@@ -7,6 +7,7 @@ import { useState, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { merchantService } from "@/lib/services/merchant.service";
 import { offerService } from "@/lib/services/offer.service";
+import { ratingService, MerchantRatingStats } from "@/lib/services/rating.service";
 import { Merchant, Offer } from "@/lib/types";
 
 export default function StorePage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,6 +22,7 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
     const [offers, setOffers] = useState<Offer[]>([]);
     const [expandedOfferId, setExpandedOfferId] = useState<string | null>(null);
     const [hasFetched, setHasFetched] = useState(false);
+    const [ratingStats, setRatingStats] = useState<MerchantRatingStats>({ avgRating: 0, totalReviews: 0 });
 
     // Fetch real merchant data and offers - only once
     useEffect(() => {
@@ -45,6 +47,11 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 // Fetch offers for this merchant
                 const offersResult = await offerService.getByMerchantId(id);
                 console.log('Offers result:', offersResult);
+
+                // Fetch rating stats for this merchant
+                const stats = await ratingService.getMerchantRatingStats(id);
+                setRatingStats(stats);
+                console.log('Rating stats:', stats);
 
                 if (offersResult.success && offersResult.data) {
                     setOffers(offersResult.data);
@@ -168,13 +175,19 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 {/* Rating & Status */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1.5 bg-primary/10 px-2.5 py-1 rounded-lg">
+                        <div className="flex items-center gap-1.5 bg-primary/10 dark:bg-primary/20 px-2.5 py-1 rounded-lg">
                             <Star className="h-4 w-4 text-primary fill-primary" />
-                            <span className="font-semibold text-sm text-primary">4.5</span>
+                            <span className="font-semibold text-sm text-primary">
+                                {ratingStats.avgRating > 0 ? ratingStats.avgRating.toFixed(1) : 'New'}
+                            </span>
                         </div>
-                        <span className="text-xs text-gray-400">(New)</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                            {ratingStats.totalReviews > 0
+                                ? `(${ratingStats.totalReviews} ${ratingStats.totalReviews === 1 ? 'review' : 'reviews'})`
+                                : '(No reviews yet)'}
+                        </span>
                     </div>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-green-50 text-green-600">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-400">
                         <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
                         Open
                     </div>
