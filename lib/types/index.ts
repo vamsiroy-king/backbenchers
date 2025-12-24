@@ -117,6 +117,7 @@ export interface AuthUser {
     bbId?: string; // For students
     bbmId?: string; // For merchants
     isComplete?: boolean; // True if user completed full verification
+    isSuspended?: boolean; // True if account is suspended by admin
 }
 
 export interface LoginCredentials {

@@ -102,7 +102,8 @@ export const authService = {
                 name: student.name,
                 role: 'student',
                 bbId: student.bb_id,
-                isComplete: student.status !== 'pending' // Check if verification complete
+                isComplete: student.status !== 'pending', // Check if verification complete
+                isSuspended: student.status === 'suspended' // Check if suspended by admin
             };
         }
 
@@ -120,7 +121,8 @@ export const authService = {
                 name: merchant.business_name,
                 role: 'merchant',
                 bbmId: merchant.bbm_id,
-                isComplete: merchant.status === 'approved'
+                isComplete: merchant.status === 'approved',
+                isSuspended: merchant.status === 'suspended' // Check if suspended by admin
             };
         }
 

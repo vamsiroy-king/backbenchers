@@ -1,4 +1,5 @@
 import { MobileNav } from "@/components/ui/mobile-nav";
+import { SuspendedCheck } from "@/components/SuspendedCheck";
 
 export default function DashboardLayout({
     children,
@@ -6,15 +7,18 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-950 flex justify-center">
-            {/* Mobile-sized container centered on all screens */}
-            <div className="w-full max-w-[430px] min-h-screen bg-white dark:bg-gray-950 relative shadow-xl dark:shadow-none">
-                {/* Safe area padding for notch/dynamic island */}
-                <div className="h-full w-full overflow-y-auto overflow-x-hidden pb-20 pt-[env(safe-area-inset-top)]">
-                    {children}
+        <SuspendedCheck>
+            <div className="min-h-screen bg-gray-100 dark:bg-gray-950 flex justify-center">
+                {/* Mobile-sized container centered on all screens */}
+                <div className="w-full max-w-[430px] min-h-screen bg-white dark:bg-gray-950 relative shadow-xl dark:shadow-none">
+                    {/* Safe area padding for notch/dynamic island */}
+                    <div className="h-full w-full overflow-y-auto overflow-x-hidden pb-20 pt-[env(safe-area-inset-top)]">
+                        {children}
+                    </div>
+                    <MobileNav />
                 </div>
-                <MobileNav />
             </div>
-        </div>
+        </SuspendedCheck>
     );
 }
+
