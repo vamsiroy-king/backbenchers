@@ -64,15 +64,47 @@ export default function NotificationsPage() {
         fetchAndMarkRead();
     }, []);
 
-    // Handle notification click
+    // Handle notification click - Smart redirects based on type
     const handleNotificationClick = async (notification: Notification) => {
-        // Navigate based on notification data
-        if (notification.data?.route) {
-            router.push(notification.data.route);
-        } else if (notification.data?.offerId) {
-            router.push(`/dashboard/explore?offer=${notification.data.offerId}`);
-        } else if (notification.data?.merchantId) {
-            router.push(`/dashboard/explore?merchant=${notification.data.merchantId}`);
+        // Navigate based on notification type and data
+        const data = notification.data || {};
+
+        switch (notification.type) {
+            case 'offer':
+                // Go to explore with merchant filter if available
+                if (data.merchantId) {
+                    router.push(`/dashboard/explore?merchant=${data.merchantId}`);
+                } else if (data.offerId) {
+                    router.push(`/dashboard/explore?offer=${data.offerId}`);
+                } else {
+                    router.push('/dashboard/explore');
+                }
+                break;
+            case 'redemption':
+                // Go to profile/transactions
+                router.push('/dashboard/profile');
+                break;
+            case 'welcome':
+                // Go to explore to start browsing
+                router.push('/dashboard/explore');
+                break;
+            case 'approval':
+                // Merchant approved - go to merchant dashboard
+                router.push('/merchant/dashboard');
+                break;
+            case 'alert':
+                // Stay on current page or go home
+                router.push('/');
+                break;
+            default:
+                // Use route from data if available, otherwise explore
+                if (data.route) {
+                    router.push(data.route);
+                } else if (data.merchantId) {
+                    router.push(`/dashboard/explore?merchant=${data.merchantId}`);
+                } else {
+                    router.push('/dashboard/explore');
+                }
         }
     };
 
