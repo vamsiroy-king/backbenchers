@@ -672,7 +672,7 @@ export default function DashboardPage() {
                         </button>
                         {/* Notifications */}
                         <button
-                            onClick={() => setShowNotifications(true)}
+                            onClick={() => router.push('/dashboard/notifications')}
                             className="h-10 w-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center relative active:scale-95 transition-transform border border-gray-100 dark:border-gray-700"
                         >
                             <Bell className="h-5 w-5 text-gray-600 dark:text-gray-300" />
