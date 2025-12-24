@@ -309,7 +309,6 @@ export const studentService = {
     // Update student status (admin only)
     async updateStatus(id: string, status: 'verified' | 'pending' | 'suspended'): Promise<ApiResponse<void>> {
         try {
-            console.log('Attempting to update student:', id, 'to status:', status);
 
             // Use .select() to verify the update actually happened
             const { data, error, count } = await supabase
@@ -317,8 +316,6 @@ export const studentService = {
                 .update({ status })
                 .eq('id', id)
                 .select('id, status');
-
-            console.log('Update result - data:', data, 'error:', error, 'count:', count);
 
             if (error) {
                 console.error('Error updating student status:', error);
@@ -341,7 +338,6 @@ export const studentService = {
                 return { success: false, data: undefined, error: 'Status was not updated correctly' };
             }
 
-            console.log('Student status successfully updated to:', status);
             return { success: true, data: undefined, error: null };
         } catch (error: any) {
             console.error('Exception updating student status:', error);
