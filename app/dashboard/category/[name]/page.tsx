@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { offerService } from "@/lib/services/offer.service";
 import { authService } from "@/lib/services/auth.service";
+import { favoritesService } from "@/lib/services/favorites.service";
 import { Offer } from "@/lib/types";
 
 // Category data
@@ -53,6 +54,8 @@ export default function CategoryPage() {
     const [loading, setLoading] = useState(true);
     const [merchants, setMerchants] = useState<MerchantWithOffers[]>([]);
     const [isVerified, setIsVerified] = useState(false);
+    const [savedMerchantIds, setSavedMerchantIds] = useState<Set<string>>(new Set());
+    const [savingId, setSavingId] = useState<string | null>(null);
 
     // Fetch offers and group by merchant
     useEffect(() => {
@@ -101,6 +104,13 @@ export default function CategoryPage() {
                         .sort((a, b) => b.offers.length - a.offers.length);
 
                     setMerchants(groupedMerchants);
+                }
+
+                // Fetch saved merchant IDs
+                const savedResult = await favoritesService.getSavedMerchants();
+                if (savedResult.success && savedResult.data) {
+                    const ids = new Set(savedResult.data.map(f => f.merchantId).filter(Boolean) as string[]);
+                    setSavedMerchantIds(ids);
                 }
             } catch (error) {
                 console.error('Error fetching category offers:', error);
@@ -273,8 +283,33 @@ export default function CategoryPage() {
                                     </div>
 
                                     {/* Favorite button */}
-                                    <button className="h-10 w-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0">
-                                        <Heart className="h-4 w-4 text-gray-400" />
+                                    <button
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            if (savingId === merchant.merchantId) return;
+                                            setSavingId(merchant.merchantId);
+                                            const result = await favoritesService.toggleMerchant(merchant.merchantId);
+                                            if (result.success && typeof result.data === 'boolean') {
+                                                setSavedMerchantIds(prev => {
+                                                    const newSet = new Set(prev);
+                                                    if (result.data) {
+                                                        newSet.add(merchant.merchantId);
+                                                    } else {
+                                                        newSet.delete(merchant.merchantId);
+                                                    }
+                                                    return newSet;
+                                                });
+                                            }
+                                            setSavingId(null);
+                                        }}
+                                        disabled={savingId === merchant.merchantId}
+                                        className="h-10 w-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0"
+                                    >
+                                        {savingId === merchant.merchantId ? (
+                                            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                                        ) : (
+                                            <Heart className={`h-4 w-4 ${savedMerchantIds.has(merchant.merchantId) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                                        )}
                                     </button>
                                 </motion.div>
                             ))}

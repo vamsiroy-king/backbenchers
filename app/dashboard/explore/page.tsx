@@ -280,14 +280,79 @@ export default function ExplorePage() {
                     </section>
                 )}
 
-                {/* Coming Soon Message */}
-                {!searchQuery && !merchantFilter && (
+                {/* Categories */}
+                {!merchantFilter && !searchQuery && (
+                    <section>
+                        <div className="flex items-center gap-2.5 mb-4">
+                            <Sparkles className="h-5 w-5 text-primary" />
+                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Browse Categories</h2>
+                        </div>
+                        <div className="flex gap-3 overflow-x-auto pb-2 -mx-5 px-5 hide-scrollbar">
+                            {[
+                                { name: "Food", emoji: "🍕", color: "from-orange-500 to-red-500" },
+                                { name: "Fashion", emoji: "👗", color: "from-pink-500 to-rose-500" },
+                                { name: "Fitness", emoji: "💪", color: "from-blue-500 to-indigo-600" }
+                            ].map((cat) => (
+                                <Link key={cat.name} href={`/dashboard/category/${cat.name}`}>
+                                    <motion.div
+                                        whileTap={{ scale: 0.97 }}
+                                        className="flex-shrink-0 w-28 bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm"
+                                    >
+                                        <div className={`w-12 h-12 bg-gradient-to-br ${cat.color} rounded-xl flex items-center justify-center mb-2`}>
+                                            <span className="text-2xl">{cat.emoji}</span>
+                                        </div>
+                                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{cat.name}</p>
+                                    </motion.div>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* All Available Offers */}
+                {!merchantFilter && !searchQuery && offers.length > 0 && (
+                    <section>
+                        <div className="flex items-center gap-2.5 mb-4">
+                            <TrendingUp className="h-5 w-5 text-primary" />
+                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">All Offers</h2>
+                        </div>
+                        <div className="space-y-3">
+                            {offers.slice(0, 10).map((offer) => (
+                                <Link key={offer.id} href={`/store/${offer.merchantId}`}>
+                                    <motion.div
+                                        whileTap={{ scale: 0.98 }}
+                                        className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700"
+                                    >
+                                        <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                                            {offer.merchantLogo ? (
+                                                <img src={offer.merchantLogo} alt="" className="w-8 h-8 object-contain rounded-lg" />
+                                            ) : (
+                                                <Store className="w-5 h-5 text-primary" />
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-sm text-gray-900 dark:text-white truncate">{offer.merchantName || offer.title}</h3>
+                                            <p className="text-xs text-primary font-semibold">
+                                                {offer.type === 'percentage' ? `${offer.discountValue}% OFF` :
+                                                    offer.type === 'flat' ? `₹${offer.discountValue} OFF` :
+                                                        offer.title}
+                                            </p>
+                                        </div>
+                                    </motion.div>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Coming Soon - Only if no content */}
+                {!searchQuery && !merchantFilter && offers.length === 0 && filteredBrands.length === 0 && (
                     <section className="text-center py-6">
                         <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
                             <span className="text-2xl">🚀</span>
                         </div>
-                        <h3 className="font-bold text-gray-900">More Coming Soon!</h3>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <h3 className="font-bold text-gray-900 dark:text-white">More Coming Soon!</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             We're onboarding amazing brands in Food, Fashion & Fitness.
                         </p>
                     </section>

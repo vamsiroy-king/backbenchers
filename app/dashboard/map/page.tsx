@@ -8,7 +8,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { merchantService } from "@/lib/services/merchant.service";
 import { offerService } from "@/lib/services/offer.service";
+import { authService } from "@/lib/services/auth.service";
 import { Merchant, Offer } from "@/lib/types";
+import { useRouter } from "next/navigation";
 
 // Dynamically import LeafletMap (client-side only)
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
@@ -67,6 +69,17 @@ export default function MapPage() {
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<string[]>(["All"]);
+    const [isVerified, setIsVerified] = useState(false);
+    const router = useRouter();
+
+    // Check if user is verified
+    useEffect(() => {
+        async function checkVerification() {
+            const user = await authService.getCurrentUser();
+            setIsVerified(!!(user?.role === 'student' && user?.isComplete));
+        }
+        checkVerification();
+    }, []);
 
     // Fetch real merchants with offers and coordinates
     const fetchMerchants = async () => {
@@ -410,11 +423,18 @@ export default function MapPage() {
                                 </Button>
                             </div>
                             <div className="flex gap-3 mt-4">
-                                <Link href={`/store/${selectedOffer.id}`} className="flex-1">
-                                    <Button className="w-full bg-primary text-white font-bold h-12 rounded-xl">
-                                        <Store className="mr-2 h-4 w-4" /> View Store
-                                    </Button>
-                                </Link>
+                                <Button
+                                    className="flex-1 bg-primary text-white font-bold h-12 rounded-xl"
+                                    onClick={() => {
+                                        if (isVerified) {
+                                            router.push(`/store/${selectedOffer.id}`);
+                                        } else {
+                                            router.push('/signup');
+                                        }
+                                    }}
+                                >
+                                    <Store className="mr-2 h-4 w-4" /> View Store
+                                </Button>
                                 <Button className="flex-1 bg-gray-900 text-white font-bold h-12 rounded-xl" onClick={openGoogleMaps}>
                                     <Navigation className="mr-2 h-4 w-4" /> Directions
                                 </Button>

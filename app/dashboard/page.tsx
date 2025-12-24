@@ -665,6 +665,34 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
+                {/* Premium Categories - Horizontal Scroll */}
+                <div className="py-4">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Store className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Categories</h3>
+                    </div>
+                    <div className="flex gap-3 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
+                        {[
+                            { name: "Food", emoji: "🍕", gradient: "from-orange-500 to-red-500", count: "45+" },
+                            { name: "Fashion", emoji: "👗", gradient: "from-pink-500 to-rose-500", count: "28+" },
+                            { name: "Fitness", emoji: "💪", gradient: "from-blue-500 to-indigo-600", count: "15+" }
+                        ].map((cat) => (
+                            <Link key={cat.name} href={`/dashboard/category/${cat.name}`}>
+                                <motion.div
+                                    whileTap={{ scale: 0.97 }}
+                                    className="flex-shrink-0 w-28 bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all"
+                                >
+                                    <div className={`w-12 h-12 bg-gradient-to-br ${cat.gradient} rounded-xl flex items-center justify-center mb-3 shadow-sm`}>
+                                        <span className="text-2xl">{cat.emoji}</span>
+                                    </div>
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{cat.name}</p>
+                                    <p className="text-xs text-gray-400">{cat.count} offers</p>
+                                </motion.div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
                 {/* New on BackBenchers Section */}
                 {newMerchants.length > 0 && (
                     <div className="py-6">
@@ -677,7 +705,17 @@ export default function DashboardPage() {
                         </div>
                         <div className="flex gap-3 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
                             {newMerchants.map((merchant, i) => (
-                                <Link key={merchant.id} href={`/store/${merchant.id}`}>
+                                <div
+                                    key={merchant.id}
+                                    onClick={() => {
+                                        if (isVerified) {
+                                            router.push(`/store/${merchant.id}`);
+                                        } else {
+                                            router.push('/signup');
+                                        }
+                                    }}
+                                    className="cursor-pointer"
+                                >
                                     <motion.div
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
@@ -698,7 +736,7 @@ export default function DashboardPage() {
                                             {merchant.daysOld <= 3 && <span className="text-[9px] text-gray-400">🔥</span>}
                                         </div>
                                     </motion.div>
-                                </Link>
+                                </div>
                             ))}
                         </div>
                     </div>
