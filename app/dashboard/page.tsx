@@ -14,6 +14,7 @@ import { heroBannerService, HeroBanner } from "@/lib/services/heroBanner.service
 import { favoriteService } from "@/lib/services/favorite.service";
 import { newMerchantService, NewMerchant } from "@/lib/services/newMerchant.service";
 import { notificationService, Notification } from "@/lib/services/notification.service";
+import { useNotifications } from "@/lib/hooks/useNotifications";
 import { getNextPendingRatingFromDB, dismissPendingRating, deletePendingRating } from "@/lib/services/pendingRatings";
 import { CitySelector } from "@/components/CitySelector";
 import { RatingModal } from "@/components/RatingModal";
@@ -128,11 +129,8 @@ export default function DashboardPage() {
         merchantName: string;
     } | null>(null);
 
-    // Real notifications from database
-    const [realNotifications, setRealNotifications] = useState<Notification[]>([]);
-
-    // Only use real notifications count (no mock data)
-    const unreadCount = realNotifications.filter(n => !n.isRead).length;
+    // Real-time notifications with Supabase realtime subscription
+    const { unreadCount, markAllAsRead } = useNotifications();
 
     // Load content visibility settings
     useEffect(() => {
@@ -281,31 +279,7 @@ export default function DashboardPage() {
                     const favIds = await favoriteService.getFavoriteIds();
                     setFavoriteIds(favIds);
 
-                    // Fetch real notifications
-                    const notifResult = await notificationService.getMyNotifications(10);
-                    if (notifResult.success && notifResult.data) {
-                        setRealNotifications(notifResult.data);
-
-                        // Check for unread rate_merchant notification to auto-show rating modal
-                        const rateNotif = notifResult.data.find(n =>
-                            n.type === 'rate_merchant' && !n.isRead && n.data
-                        );
-                        if (rateNotif && rateNotif.data) {
-                            const data = typeof rateNotif.data === 'string'
-                                ? JSON.parse(rateNotif.data)
-                                : rateNotif.data;
-                            if (data.merchantId && data.merchantName) {
-                                setRatingModalData({
-                                    isOpen: true,
-                                    transactionId: data.transactionId || rateNotif.id,
-                                    merchantId: data.merchantId,
-                                    merchantName: data.merchantName,
-                                });
-                                // Mark as read to prevent showing again
-                                await notificationService.markAsRead(rateNotif.id);
-                            }
-                        }
-                    }
+                    // Notifications are now handled by useNotifications hook with real-time updates
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
