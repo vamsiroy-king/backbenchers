@@ -1,11 +1,12 @@
 // Favorites/Saved Service - Real-time save/unsave for merchants and offers
+// Uses student_id to work with existing RLS policies
 
 import { supabase } from '@/lib/supabase';
 import { ApiResponse } from '@/lib/types';
 
 export interface Favorite {
     id: string;
-    userId: string;
+    studentId: string;
     merchantId?: string;
     offerId?: string;
     createdAt: string;
@@ -29,7 +30,7 @@ export interface Favorite {
 
 const transformFavorite = (row: any): Favorite => ({
     id: row.id,
-    userId: row.user_id,
+    studentId: row.student_id,
     merchantId: row.merchant_id,
     offerId: row.offer_id,
     createdAt: row.created_at,
@@ -50,12 +51,30 @@ const transformFavorite = (row: any): Favorite => ({
     } : undefined,
 });
 
+// Helper to get current student's ID
+async function getStudentId(): Promise<string | null> {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return null;
+
+        const { data: student } = await supabase
+            .from('students')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+
+        return student?.id || null;
+    } catch {
+        return null;
+    }
+}
+
 export const favoritesService = {
-    // Get all saved items for current user
+    // Get all saved items for current student
     async getAll(): Promise<ApiResponse<Favorite[]>> {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
+            const studentId = await getStudentId();
+            if (!studentId) {
                 return { success: false, data: null, error: 'Not authenticated' };
             }
 
@@ -69,7 +88,7 @@ export const favoritesService = {
                         merchants (business_name)
                     )
                 `)
-                .eq('user_id', user.id)
+                .eq('student_id', studentId)
                 .order('created_at', { ascending: false });
 
             if (error) {
@@ -85,15 +104,15 @@ export const favoritesService = {
     // Check if merchant is saved
     async isMerchantSaved(merchantId: string): Promise<boolean> {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return false;
+            const studentId = await getStudentId();
+            if (!studentId) return false;
 
             const { data } = await supabase
                 .from('favorites')
                 .select('id')
-                .eq('user_id', user.id)
+                .eq('student_id', studentId)
                 .eq('merchant_id', merchantId)
-                .single();
+                .maybeSingle();
 
             return !!data;
         } catch {
@@ -104,15 +123,15 @@ export const favoritesService = {
     // Check if offer is saved
     async isOfferSaved(offerId: string): Promise<boolean> {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return false;
+            const studentId = await getStudentId();
+            if (!studentId) return false;
 
             const { data } = await supabase
                 .from('favorites')
                 .select('id')
-                .eq('user_id', user.id)
+                .eq('student_id', studentId)
                 .eq('offer_id', offerId)
-                .single();
+                .maybeSingle();
 
             return !!data;
         } catch {
@@ -123,13 +142,13 @@ export const favoritesService = {
     // Get saved status for multiple offers (for list views)
     async getSavedOfferIds(): Promise<string[]> {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return [];
+            const studentId = await getStudentId();
+            if (!studentId) return [];
 
             const { data } = await supabase
                 .from('favorites')
                 .select('offer_id')
-                .eq('user_id', user.id)
+                .eq('student_id', studentId)
                 .not('offer_id', 'is', null);
 
             return (data || []).map(f => f.offer_id).filter(Boolean);
@@ -141,32 +160,35 @@ export const favoritesService = {
     // Toggle save merchant
     async toggleMerchant(merchantId: string): Promise<ApiResponse<boolean>> {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                return { success: false, data: null, error: 'Not authenticated' };
+            const studentId = await getStudentId();
+            if (!studentId) {
+                return { success: false, data: null, error: 'Not authenticated as student' };
             }
 
             // Check if already saved
             const { data: existing } = await supabase
                 .from('favorites')
                 .select('id')
-                .eq('user_id', user.id)
+                .eq('student_id', studentId)
                 .eq('merchant_id', merchantId)
-                .single();
+                .maybeSingle();
 
             if (existing) {
                 // Unsave
-                await supabase.from('favorites').delete().eq('id', existing.id);
+                const { error } = await supabase.from('favorites').delete().eq('id', existing.id);
+                if (error) throw error;
                 return { success: true, data: false, error: null }; // false = unsaved
             } else {
                 // Save
-                await supabase.from('favorites').insert({
-                    user_id: user.id,
+                const { error } = await supabase.from('favorites').insert({
+                    student_id: studentId,
                     merchant_id: merchantId,
                 });
+                if (error) throw error;
                 return { success: true, data: true, error: null }; // true = saved
             }
         } catch (error: any) {
+            console.error('[Favorites] Toggle merchant error:', error);
             return { success: false, data: null, error: error.message };
         }
     },
@@ -174,32 +196,35 @@ export const favoritesService = {
     // Toggle save offer
     async toggleOffer(offerId: string): Promise<ApiResponse<boolean>> {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                return { success: false, data: null, error: 'Not authenticated' };
+            const studentId = await getStudentId();
+            if (!studentId) {
+                return { success: false, data: null, error: 'Not authenticated as student' };
             }
 
             // Check if already saved
             const { data: existing } = await supabase
                 .from('favorites')
                 .select('id')
-                .eq('user_id', user.id)
+                .eq('student_id', studentId)
                 .eq('offer_id', offerId)
-                .single();
+                .maybeSingle();
 
             if (existing) {
                 // Unsave
-                await supabase.from('favorites').delete().eq('id', existing.id);
+                const { error } = await supabase.from('favorites').delete().eq('id', existing.id);
+                if (error) throw error;
                 return { success: true, data: false, error: null };
             } else {
                 // Save
-                await supabase.from('favorites').insert({
-                    user_id: user.id,
+                const { error } = await supabase.from('favorites').insert({
+                    student_id: studentId,
                     offer_id: offerId,
                 });
+                if (error) throw error;
                 return { success: true, data: true, error: null };
             }
         } catch (error: any) {
+            console.error('[Favorites] Toggle offer error:', error);
             return { success: false, data: null, error: error.message };
         }
     },
@@ -225,8 +250,8 @@ export const favoritesService = {
     // Get saved merchants only
     async getSavedMerchants(): Promise<ApiResponse<Favorite[]>> {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
+            const studentId = await getStudentId();
+            if (!studentId) {
                 return { success: false, data: null, error: 'Not authenticated' };
             }
 
@@ -236,7 +261,7 @@ export const favoritesService = {
                     *,
                     merchants (id, business_name, logo_url, category, city)
                 `)
-                .eq('user_id', user.id)
+                .eq('student_id', studentId)
                 .not('merchant_id', 'is', null)
                 .order('created_at', { ascending: false });
 
@@ -253,8 +278,8 @@ export const favoritesService = {
     // Get saved offers only
     async getSavedOffers(): Promise<ApiResponse<Favorite[]>> {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
+            const studentId = await getStudentId();
+            if (!studentId) {
                 return { success: false, data: null, error: 'Not authenticated' };
             }
 
@@ -267,7 +292,7 @@ export const favoritesService = {
                         merchants (business_name, logo_url)
                     )
                 `)
-                .eq('user_id', user.id)
+                .eq('student_id', studentId)
                 .not('offer_id', 'is', null)
                 .order('created_at', { ascending: false });
 
