@@ -4,9 +4,10 @@ import {
     Users, Store, Tag, TrendingUp, ChevronRight, Clock, Check,
     Loader2, ArrowUpRight, ArrowDownRight, Eye, Image, DollarSign,
     PiggyBank, Activity, MapPin, BarChart3, PieChart, Wallet,
-    UserCheck, Award, AlertTriangle, Star
+    UserCheck, Award, AlertTriangle, Star, LogOut
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { studentService } from "@/lib/services/student.service";
@@ -17,7 +18,9 @@ import { analyticsService, TopMerchant, CityDistribution, CategoryPerformance } 
 import { Merchant } from "@/lib/types";
 
 export default function AdminDashboardPage() {
+    const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [signingOut, setSigningOut] = useState(false);
     const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'merchants'>('overview');
     const [stats, setStats] = useState({
         students: { total: 0, verified: 0, pending: 0, suspended: 0 },
@@ -30,6 +33,19 @@ export default function AdminDashboardPage() {
     const [cityDistribution, setCityDistribution] = useState<CityDistribution[]>([]);
     const [categoryPerformance, setCategoryPerformance] = useState<CategoryPerformance[]>([]);
     const [dateRange, setDateRange] = useState('7');
+
+    // Sign out handler
+    const handleSignOut = async () => {
+        setSigningOut(true);
+        try {
+            await fetch('/api/admin/signout', { method: 'POST' });
+            // Redirect to auth page
+            window.location.href = '/admin-auth';
+        } catch (error) {
+            console.error('Sign out failed:', error);
+            setSigningOut(false);
+        }
+    };
 
     useEffect(() => {
         async function fetchData() {
@@ -112,6 +128,18 @@ export default function AdminDashboardPage() {
                         <option value="90">Last 90 days</option>
                         <option value="365">This Year</option>
                     </select>
+                    <button
+                        onClick={handleSignOut}
+                        disabled={signingOut}
+                        className="h-10 px-4 bg-red-500 hover:bg-red-600 disabled:bg-red-400 text-white rounded-xl text-sm font-medium flex items-center gap-2 transition-colors"
+                    >
+                        {signingOut ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <LogOut className="h-4 w-4" />
+                        )}
+                        Sign Out
+                    </button>
                 </div>
             </div>
 
@@ -126,8 +154,8 @@ export default function AdminDashboardPage() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id
-                                ? 'bg-purple-100 text-purple-700'
-                                : 'text-gray-500 hover:bg-gray-50'
+                            ? 'bg-purple-100 text-purple-700'
+                            : 'text-gray-500 hover:bg-gray-50'
                             }`}
                     >
                         <tab.icon className="h-4 w-4" />
@@ -606,9 +634,9 @@ export default function AdminDashboardPage() {
                                             <tr key={merchant.merchantId} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-5 py-4">
                                                     <span className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700' :
-                                                            index === 1 ? 'bg-gray-100 text-gray-600' :
-                                                                index === 2 ? 'bg-orange-100 text-orange-700' :
-                                                                    'bg-gray-50 text-gray-500'
+                                                        index === 1 ? 'bg-gray-100 text-gray-600' :
+                                                            index === 2 ? 'bg-orange-100 text-orange-700' :
+                                                                'bg-gray-50 text-gray-500'
                                                         }`}>
                                                         {index + 1}
                                                     </span>
