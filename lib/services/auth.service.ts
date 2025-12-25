@@ -209,7 +209,7 @@ export const authService = {
     },
 
     // Send OTP to college email for verification
-    // Uses signUp which sends 6-digit OTP code (Confirm Signup template)
+    // Uses signInWithOtp which sends 6-digit OTP code
     async sendCollegeEmailOTP(collegeEmail: string): Promise<ApiResponse<void>> {
         const email = collegeEmail.toLowerCase().trim();
 
@@ -230,26 +230,17 @@ export const authService = {
             };
         }
 
-        // Use signUp to send OTP code (Confirm Signup template in Supabase)
-        const { error } = await supabase.auth.signUp({
+        // Use signInWithOtp to send OTP code (this is the correct method for OTP)
+        const { error } = await supabase.auth.signInWithOtp({
             email: email,
-            password: crypto.randomUUID(), // Random password since user won't use password login
+            options: {
+                shouldCreateUser: true  // Creates user if doesn't exist
+            }
         });
 
         if (error) {
-            // If user already exists in Supabase Auth (but not in students table), resend OTP
-            if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-                const { error: resendError } = await supabase.auth.resend({
-                    type: 'signup',
-                    email: email,
-                });
-
-                if (resendError) {
-                    return { success: false, error: resendError.message };
-                }
-            } else {
-                return { success: false, error: error.message };
-            }
+            console.error('OTP send error:', error);
+            return { success: false, error: error.message };
         }
 
         return {
@@ -277,11 +268,11 @@ export const authService = {
         try {
             const email = collegeEmail.toLowerCase().trim();
 
-            // Verify OTP (type must match how it was sent - 'signup' for signUp flow)
+            // Verify OTP (type must match how it was sent - 'email' for signInWithOtp)
             const { data, error } = await supabase.auth.verifyOtp({
                 email: email,
                 token: otp,
-                type: 'signup'
+                type: 'email'  // Changed from 'signup' to 'email' to match signInWithOtp
             });
 
             if (error) {
