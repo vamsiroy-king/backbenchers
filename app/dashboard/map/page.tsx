@@ -284,8 +284,8 @@ export default function MapPage() {
     }
 
     return (
-        // Crucial: Fixed height container to ensure MapGL renders
-        <div className="absolute inset-0 w-full h-full bg-gray-100 overflow-hidden text-black">
+        // Fixed height container to ensure MapGL renders and bottom nav is visible
+        <div className="relative w-full h-[calc(100vh-80px)] bg-gray-100 overflow-hidden text-black">
 
             {/* Top Status (Light) */}
             <div className="absolute top-12 left-0 right-0 z-30 flex justify-center pointer-events-none">

@@ -11,7 +11,7 @@ import { trendingService } from "@/lib/services/trending.service";
 import { topBrandsService } from "@/lib/services/topBrands.service";
 import { cityService } from "@/lib/services/city.service";
 import { heroBannerService, HeroBanner } from "@/lib/services/heroBanner.service";
-import { favoriteService } from "@/lib/services/favorite.service";
+import { favoritesService } from "@/lib/services/favorites.service";
 import { newMerchantService, NewMerchant } from "@/lib/services/newMerchant.service";
 import { notificationService, Notification } from "@/lib/services/notification.service";
 import { useNotifications } from "@/lib/hooks/useNotifications";
@@ -254,9 +254,9 @@ export default function DashboardPage() {
                         setSelectedCity(profileResult.data.selectedCity);
                     }
 
-                    // Fetch favorite IDs
-                    const favIds = await favoriteService.getFavoriteIds();
-                    setFavoriteIds(favIds);
+                    // Fetch favorite IDs (saved offers)
+                    const savedOfferIds = await favoritesService.getSavedOfferIds();
+                    setFavoriteIds(savedOfferIds);
 
                     // Notifications are now handled by useNotifications hook with real-time updates
                 }
@@ -307,7 +307,7 @@ export default function DashboardPage() {
         }
 
         // Actual API call
-        const result = await favoriteService.toggleFavorite(offerId);
+        const result = await favoritesService.toggleOffer(offerId);
         if (!result.success) {
             // Revert on failure
             if (isFav) {
@@ -665,13 +665,13 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* Premium Categories - Horizontal Scroll */}
+                {/* Categories - Perfect Mobile Grid */}
                 <div className="py-4">
                     <div className="flex items-center gap-2 mb-4">
                         <Store className="h-5 w-5 text-primary" />
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white">Categories</h3>
                     </div>
-                    <div className="flex gap-3 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
+                    <div className="grid grid-cols-3 gap-3">
                         {[
                             { name: "Food", emoji: "🍕", gradient: "from-orange-500 to-red-500" },
                             { name: "Fashion", emoji: "👗", gradient: "from-pink-500 to-rose-500" },
@@ -680,12 +680,12 @@ export default function DashboardPage() {
                             <Link key={cat.name} href={`/dashboard/category/${cat.name}`}>
                                 <motion.div
                                     whileTap={{ scale: 0.97 }}
-                                    className="flex-shrink-0 w-28 bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all"
+                                    className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all flex flex-col items-center"
                                 >
-                                    <div className={`w-12 h-12 bg-gradient-to-br ${cat.gradient} rounded-xl flex items-center justify-center mb-3 shadow-sm`}>
+                                    <div className={`w-12 h-12 bg-gradient-to-br ${cat.gradient} rounded-xl flex items-center justify-center mb-2 shadow-sm`}>
                                         <span className="text-2xl">{cat.emoji}</span>
                                     </div>
-                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{cat.name}</p>
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white text-center">{cat.name}</p>
                                 </motion.div>
                             </Link>
                         ))}
