@@ -345,37 +345,35 @@ export const studentService = {
         }
     },
 
-    // Delete student (admin only) - Deletes from database AND Supabase Auth
+    // Delete student (admin only) - Uses RLS policies for authorization
     async delete(id: string): Promise<ApiResponse<void>> {
         try {
-            // First get the student to find their user_id and college_email
-            const { data: student } = await supabase
+            // Delete related transactions first (RLS allows admin delete)
+            await supabase
+                .from('transactions')
+                .delete()
+                .eq('student_id', id);
+
+            // Delete favorites
+            await supabase
+                .from('favorites')
+                .delete()
+                .eq('student_id', id);
+
+            // Delete the student (RLS policy allows admin delete)
+            const { error } = await supabase
                 .from('students')
-                .select('user_id, email, college_email')
-                .eq('id', id)
-                .single();
+                .delete()
+                .eq('id', id);
 
-            // Call API route which handles full deletion including Supabase Auth
-            const response = await fetch('/api/admin/delete-student', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    studentId: id,
-                    userId: student?.user_id,
-                    collegeEmail: student?.college_email
-                })
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                return { success: false, data: undefined, error: result.error || 'Failed to delete student' };
+            if (error) {
+                console.error('Delete student error:', error);
+                return { success: false, data: undefined, error: error.message };
             }
 
             return { success: true, data: undefined, error: null };
         } catch (error: any) {
+            console.error('Delete student exception:', error);
             return { success: false, data: undefined, error: error.message };
         }
     },
