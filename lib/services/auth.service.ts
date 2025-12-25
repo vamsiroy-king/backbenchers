@@ -203,7 +203,7 @@ export const authService = {
             .from('students')
             .select('id')
             .eq('college_email', collegeEmail.toLowerCase())
-            .single();
+            .maybeSingle();  // Use maybeSingle instead of single to avoid 406 when no row found
 
         return !!data;
     },
