@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, Search, GraduationCap, MapPin, Loader2, Building2, Ban, Check, Eye, Download, Mail } from "lucide-react";
+import { Users, Search, GraduationCap, MapPin, Loader2, Building2, Ban, Check, Eye, Download, Mail, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -115,6 +115,28 @@ export default function StudentsListPage() {
                 suspended: Math.max(0, prev.suspended - 1),
                 verified: prev.verified + 1
             }));
+        }
+        setActionLoading(null);
+    };
+
+    const handleDelete = async (id: string, name: string) => {
+        if (!confirm(`Are you sure you want to permanently delete ${name}? This will also delete all their transactions and data. This cannot be undone.`)) {
+            return;
+        }
+
+        setActionLoading(id);
+        const result = await studentService.delete(id);
+        if (result.success) {
+            // Remove from local state immediately
+            setStudents(prev => prev.filter(s => s.id !== id));
+            // Update stats
+            setStats(prev => ({
+                ...prev,
+                total: Math.max(0, prev.total - 1),
+                verified: Math.max(0, prev.verified - 1)
+            }));
+        } else {
+            alert('Failed to delete student: ' + result.error);
         }
         setActionLoading(null);
     };
@@ -329,12 +351,13 @@ export default function StudentsListPage() {
                                                 <button
                                                     onClick={() => handleSuspend(student.id)}
                                                     disabled={actionLoading === student.id}
-                                                    className="h-8 w-8 rounded-lg bg-red-100 flex items-center justify-center hover:bg-red-200 transition-colors disabled:opacity-50"
+                                                    className="h-8 w-8 rounded-lg bg-yellow-100 flex items-center justify-center hover:bg-yellow-200 transition-colors disabled:opacity-50"
+                                                    title="Suspend"
                                                 >
                                                     {actionLoading === student.id ? (
-                                                        <Loader2 className="h-4 w-4 animate-spin text-red-600" />
+                                                        <Loader2 className="h-4 w-4 animate-spin text-yellow-600" />
                                                     ) : (
-                                                        <Ban className="h-4 w-4 text-red-600" />
+                                                        <Ban className="h-4 w-4 text-yellow-600" />
                                                     )}
                                                 </button>
                                             ) : (
@@ -342,10 +365,24 @@ export default function StudentsListPage() {
                                                     onClick={() => handleUnsuspend(student.id)}
                                                     disabled={actionLoading === student.id}
                                                     className="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center hover:bg-green-200 transition-colors disabled:opacity-50"
+                                                    title="Reinstate"
                                                 >
                                                     <Check className="h-4 w-4 text-green-600" />
                                                 </button>
                                             )}
+                                            {/* Delete Button */}
+                                            <button
+                                                onClick={() => handleDelete(student.id, student.name || 'this student')}
+                                                disabled={actionLoading === student.id}
+                                                className="h-8 w-8 rounded-lg bg-red-100 flex items-center justify-center hover:bg-red-200 transition-colors disabled:opacity-50"
+                                                title="Delete permanently"
+                                            >
+                                                {actionLoading === student.id ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin text-red-600" />
+                                                ) : (
+                                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                                )}
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

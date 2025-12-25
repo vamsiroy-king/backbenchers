@@ -345,9 +345,43 @@ export const studentService = {
         }
     },
 
-    // Delete student (admin only)
+    // Delete student (admin only) - Handles foreign key constraints
     async delete(id: string): Promise<ApiResponse<void>> {
         try {
+            // First get the student to find their user_id and email
+            const { data: student } = await supabase
+                .from('students')
+                .select('user_id, email')
+                .eq('id', id)
+                .single();
+
+            // Delete related transactions first
+            await supabase
+                .from('transactions')
+                .delete()
+                .eq('student_id', id);
+
+            // Delete favorites
+            await supabase
+                .from('favorites')
+                .delete()
+                .eq('student_id', id);
+
+            // Delete from google_signups if exists (by user_id or email)
+            if (student?.user_id) {
+                await supabase
+                    .from('google_signups')
+                    .delete()
+                    .eq('user_id', student.user_id);
+            }
+            if (student?.email) {
+                await supabase
+                    .from('google_signups')
+                    .delete()
+                    .eq('email', student.email);
+            }
+
+            // Now delete the student
             const { error } = await supabase
                 .from('students')
                 .delete()
