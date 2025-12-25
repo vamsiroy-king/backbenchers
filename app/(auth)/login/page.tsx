@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { authService } from "@/lib/services/auth.service";
+import AuthFooter from "@/components/AuthFooter";
 
 export default function StudentLoginPage() {
     const router = useRouter();
@@ -54,7 +55,7 @@ export default function StudentLoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
             {/* Header */}
             <div className="px-6 pt-16 text-center">
                 <div className="flex items-center justify-center gap-2 mb-6">
@@ -62,8 +63,8 @@ export default function StudentLoginPage() {
                         <span className="text-white font-bold text-2xl">B</span>
                     </div>
                 </div>
-                <h1 className="text-2xl font-extrabold mb-2">Welcome Back!</h1>
-                <p className="text-gray-500 text-sm">
+                <h1 className="text-2xl font-extrabold mb-2 dark:text-white">Welcome Back!</h1>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">
                     Sign in to access student perks
                 </p>
             </div>
@@ -96,15 +97,15 @@ export default function StudentLoginPage() {
                         )}
                     </Button>
 
-                    <div className="bg-blue-50 rounded-2xl p-4">
-                        <p className="text-xs text-blue-700">
+                    <div className="bg-blue-50 dark:bg-blue-950/30 rounded-2xl p-4">
+                        <p className="text-xs text-blue-700 dark:text-blue-400">
                             💡 Your session stays active! Once logged in, you won't need to sign in again.
                         </p>
                     </div>
                 </motion.div>
 
                 {/* Signup Link */}
-                <p className="text-center text-sm text-gray-500 mt-10">
+                <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-10">
                     Don't have an account?{" "}
                     <Link href="/signup" className="text-primary font-semibold">
                         Sign up
@@ -112,12 +113,16 @@ export default function StudentLoginPage() {
                 </p>
 
                 {/* Security Info */}
-                <div className="mt-8 bg-gray-50 rounded-2xl p-4">
+                <div className="mt-8 bg-gray-50 dark:bg-gray-900 rounded-2xl p-4">
                     <p className="text-[10px] text-gray-400 text-center">
                         🔒 Secure login with Google. Your session is encrypted and safe.
                     </p>
                 </div>
             </div>
+
+            {/* Professional Footer */}
+            <AuthFooter />
         </div>
     );
 }
+

@@ -347,19 +347,6 @@ export default function MerchantSignupPage() {
                         Login
                     </Link>
                 </p>
-
-                {/* App Switcher */}
-                <div className="mt-8 pt-6 border-t border-gray-100">
-                    <p className="text-xs text-gray-400 text-center mb-3">Switch to</p>
-                    <div className="flex justify-center gap-3">
-                        <Link href="/signup" className="px-4 py-2 bg-gray-100 rounded-xl text-xs font-semibold">
-                            Student App
-                        </Link>
-                        <Link href="/admin/dashboard" className="px-4 py-2 bg-gray-100 rounded-xl text-xs font-semibold">
-                            Admin Panel
-                        </Link>
-                    </div>
-                </div>
             </div>
         </div>
     );

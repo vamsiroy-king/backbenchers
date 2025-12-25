@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { authService } from "@/lib/services/auth.service";
+import AuthFooter from "@/components/AuthFooter";
 
 export default function SignupPage() {
     const router = useRouter();
