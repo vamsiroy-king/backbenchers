@@ -59,7 +59,7 @@ export function middleware(request: NextRequest) {
 
         // If secret is provided in URL, set cookie and redirect
         if (secretParam === ADMIN_SECRET) {
-            const response = NextResponse.redirect(new URL('/admin', request.url));
+            const response = NextResponse.redirect(new URL('/admin/dashboard', request.url));
             response.cookies.set(ADMIN_SESSION_COOKIE, 'authenticated', {
                 httpOnly: true,
                 secure: true,
@@ -78,13 +78,13 @@ export function middleware(request: NextRequest) {
 
         // Only allow admin routes
         if (!pathname.startsWith('/admin') && pathname !== '/') {
-            url.pathname = '/admin';
+            url.pathname = '/admin/dashboard';
             return NextResponse.redirect(url);
         }
 
         // Redirect root to admin dashboard
         if (pathname === '/') {
-            url.pathname = '/admin';
+            url.pathname = '/admin/dashboard';
             return NextResponse.redirect(url);
         }
 
