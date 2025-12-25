@@ -4,44 +4,58 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Create admin client with service role key
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!, // This is the secret service role key
-    {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false
-        }
-    }
-);
-
 export async function DELETE(request: NextRequest) {
     try {
+        // Create admin client inside function to ensure env vars are loaded
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        console.log('Delete API called');
+        console.log('Supabase URL:', supabaseUrl ? 'SET' : 'NOT SET');
+        console.log('Service Role Key:', serviceRoleKey ? 'SET' : 'NOT SET');
+
+        if (!supabaseUrl || !serviceRoleKey) {
+            console.error('Missing environment variables');
+            return NextResponse.json({
+                error: 'Server configuration error - missing credentials'
+            }, { status: 500 });
+        }
+
+        const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false
+            }
+        });
+
         const { studentId, userId, collegeEmail } = await request.json();
+        console.log('Deleting student:', { studentId, userId, collegeEmail });
 
         if (!studentId) {
             return NextResponse.json({ error: 'Student ID required' }, { status: 400 });
         }
 
         // 1. Delete related transactions
-        await supabaseAdmin
+        const { error: txError } = await supabaseAdmin
             .from('transactions')
             .delete()
             .eq('student_id', studentId);
+        console.log('Transactions delete:', txError ? txError.message : 'OK');
 
         // 2. Delete favorites
-        await supabaseAdmin
+        const { error: favError } = await supabaseAdmin
             .from('favorites')
             .delete()
             .eq('student_id', studentId);
+        console.log('Favorites delete:', favError ? favError.message : 'OK');
 
         // 3. Delete from google_signups if exists
         if (userId) {
-            await supabaseAdmin
+            const { error: gsError } = await supabaseAdmin
                 .from('google_signups')
                 .delete()
                 .eq('user_id', userId);
+            console.log('Google signups delete:', gsError ? gsError.message : 'OK');
         }
 
         // 4. Delete from students table
@@ -50,25 +64,16 @@ export async function DELETE(request: NextRequest) {
             .delete()
             .eq('id', studentId);
 
+        console.log('Students delete:', deleteError ? deleteError.message : 'OK');
+
         if (deleteError) {
+            console.error('Failed to delete student:', deleteError);
             return NextResponse.json({ error: deleteError.message }, { status: 500 });
         }
 
-        // 5. Delete from Supabase Auth (both Google account and college email if exists)
-        if (userId) {
-            try {
-                await supabaseAdmin.auth.admin.deleteUser(userId);
-                console.log('Deleted Google auth user:', userId);
-            } catch (authError) {
-                console.error('Error deleting Google auth user:', authError);
-                // Continue even if this fails
-            }
-        }
-
-        // 6. Also delete college email from Auth if it exists as separate user
+        // 5. Delete from Supabase Auth (college email user)
         if (collegeEmail) {
             try {
-                // Find user by college email
                 const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers();
                 const collegeAuthUser = authUsers?.users?.find(
                     u => u.email?.toLowerCase() === collegeEmail.toLowerCase()
@@ -78,12 +83,12 @@ export async function DELETE(request: NextRequest) {
                     await supabaseAdmin.auth.admin.deleteUser(collegeAuthUser.id);
                     console.log('Deleted college email auth user:', collegeEmail);
                 }
-            } catch (authError) {
-                console.error('Error deleting college email auth user:', authError);
-                // Continue even if this fails
+            } catch (authError: any) {
+                console.error('Error deleting college email auth user:', authError?.message);
             }
         }
 
+        console.log('Student deleted successfully');
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error('Delete student API error:', error);
