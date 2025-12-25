@@ -119,8 +119,60 @@ export default function StoreTimingsPage() {
                 localStorage.setItem('merchant_documents', JSON.stringify(documentsData));
             }
 
-            // Skip offer step - Admin creates offers after approval
-            router.push('/merchant/onboarding/passcode');
+            // Get all onboarding data
+            const locationData = JSON.parse(localStorage.getItem('merchant_location') || '{}');
+            const documentsData = JSON.parse(localStorage.getItem('merchant_documents') || '{}');
+            const mapsData = JSON.parse(localStorage.getItem('merchant_maps') || '{}');
+
+            if (!businessData.businessName) {
+                setUploading(false);
+                return;
+            }
+
+            // Import auth service and complete onboarding directly (skip passcode)
+            const { authService } = await import('@/lib/services/auth.service');
+
+            const result = await authService.completeMerchantOnboarding({
+                businessName: businessData.businessName,
+                category: businessData.category || 'General',
+                subCategory: businessData.subCategory,
+                description: businessData.description || '',
+                address: locationData.address || businessData.address || '',
+                city: locationData.city || businessData.city || '',
+                state: locationData.state || businessData.state || '',
+                pincode: locationData.pincode || businessData.pincode || '',
+                phone: businessData.phone || businessData.businessPhone || '',
+                ownerPhone: businessData.ownerPhone || '',
+                ownerName: businessData.ownerName || '',
+                gstNumber: businessData.gstNumber,
+                panNumber: businessData.panNumber,
+                logoUrl: documentsData.logo?.url,
+                coverPhotoUrl: documentsData.coverPhoto?.url,
+                storeImageUrls: documentsData.storeImages?.map((img: any) => img.url).filter(Boolean) || [],
+                latitude: locationData.latitude || mapsData.latitude || businessData.latitude,
+                longitude: locationData.longitude || mapsData.longitude || businessData.longitude,
+                googleMapsLink: locationData.googleMapsLink || mapsData.googleMapsLink || businessData.googleMapsLink,
+                googleMapsEmbed: mapsData.googleMapsEmbed,
+                operatingHours: businessData.operatingHours,
+                paymentQrUrl: documentsData.paymentQr?.url,
+            });
+
+            if (result.success) {
+                // Clear onboarding data
+                localStorage.removeItem('merchant_business');
+                localStorage.removeItem('merchant_location');
+                localStorage.removeItem('merchant_documents');
+                localStorage.removeItem('merchant_pending_email');
+                localStorage.removeItem('merchant_pending_password');
+                localStorage.removeItem('merchant_first_offer');
+                localStorage.removeItem('merchant_maps');
+
+                // Redirect to pending page (waiting for admin approval)
+                router.push('/merchant/onboarding/pending');
+            } else {
+                console.error('Merchant onboarding error:', result.error);
+                setUploading(false);
+            }
         } catch (error) {
             console.error('Error:', error);
             setUploading(false);
@@ -262,11 +314,11 @@ export default function StoreTimingsPage() {
                     {uploading ? (
                         <>
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Saving...
+                            Creating Your Account...
                         </>
                     ) : (
                         <>
-                            Continue to Create Offer
+                            Complete Registration
                             <ArrowRight className="ml-2 h-5 w-5" />
                         </>
                     )}
