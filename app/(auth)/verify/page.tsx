@@ -9,14 +9,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { authService, isValidStudentEmail, getInvalidDomainError, ALLOWED_COLLEGE_DOMAINS } from "@/lib/services/auth.service";
 import { universityService, University } from "@/lib/services/university.service";
 import { INDIAN_STATES, getCitiesForState } from "@/lib/data/locations";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 export default function VerifyPage() {
     const router = useRouter();
-    const [step, setStep] = useState<"details" | "location" | "university" | "email" | "otp">("details");
+    const [step, setStep] = useState<"details" | "location" | "university" | "email" | "otp" | "success">("details");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [googleEmail, setGoogleEmail] = useState("");
+    const [showPWAPrompt, setShowPWAPrompt] = useState(false);
 
     // Form data
     const [formData, setFormData] = useState({
@@ -335,8 +337,9 @@ export default function VerifyPage() {
                 return;
             }
 
-            // Success - navigate to passcode setup
-            router.push(`/auth/passcode?studentId=${result.data?.studentId}`);
+            // Success - show success screen with PWA prompt
+            setStep("success");
+            setShowPWAPrompt(true);
         } catch (error: any) {
             setOtpError(error.message);
             setOtp(["", "", "", "", "", ""]);
@@ -760,6 +763,48 @@ export default function VerifyPage() {
                                 <div className="flex justify-center">
                                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                                 </div>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {/* Step 6: Success + PWA Prompt */}
+                    {step === "success" && (
+                        <motion.div
+                            key="success"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="text-center py-8"
+                        >
+                            {/* PWA Install Prompt */}
+                            {showPWAPrompt && (
+                                <PWAInstallPrompt
+                                    onComplete={() => {
+                                        setShowPWAPrompt(false);
+                                        router.push('/dashboard');
+                                    }}
+                                />
+                            )}
+
+                            {!showPWAPrompt && (
+                                <>
+                                    <motion.div
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ type: "spring", duration: 0.6 }}
+                                        className="h-20 w-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-6"
+                                    >
+                                        <Check className="h-10 w-10 text-white" strokeWidth={3} />
+                                    </motion.div>
+                                    <h2 className="text-2xl font-extrabold mb-2">You're Verified! 🎉</h2>
+                                    <p className="text-gray-500 mb-6">
+                                        Welcome to BackBenchers!
+                                    </p>
+                                    <div className="bg-primary/10 border border-primary/20 rounded-2xl px-6 py-4 inline-block">
+                                        <p className="text-sm text-gray-500 mb-1">Your BB-ID will be generated</p>
+                                        <p className="text-sm text-primary font-semibold">after admin verification</p>
+                                    </div>
+                                    <p className="mt-6 text-sm text-gray-400">Redirecting...</p>
+                                </>
                             )}
                         </motion.div>
                     )}
