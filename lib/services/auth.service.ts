@@ -510,6 +510,7 @@ export const authService = {
     },
 
     // Complete merchant onboarding (called after all steps)
+    // NOW INSERTS INTO pending_merchants - Admin approval moves to merchants table
     async completeMerchantOnboarding(merchantData: {
         businessName: string;
         category: string;
@@ -543,91 +544,62 @@ export const authService = {
                 return { success: false, error: 'Please sign in first.' };
             }
 
-            // Check if merchant already exists
-            const { data: existing } = await supabase
+            // Check if already submitted an application
+            const { data: existingApplication } = await supabase
+                .from('pending_merchants')
+                .select('id, status')
+                .eq('user_id', user.id)
+                .single();
+
+            if (existingApplication) {
+                return {
+                    success: false,
+                    error: existingApplication.status === 'pending'
+                        ? 'You already have a pending application.'
+                        : 'Application already processed.'
+                };
+            }
+
+            // Check if already approved merchant
+            const { data: existingMerchant } = await supabase
                 .from('merchants')
                 .select('id')
                 .eq('user_id', user.id)
                 .single();
 
-            if (existing) {
-                // Update existing
-                const { error } = await supabase
-                    .from('merchants')
-                    .update({
-                        business_name: merchantData.businessName,
-                        category: merchantData.category,
-                        description: merchantData.description,
-                        address: merchantData.address,
-                        city: merchantData.city,
-                        state: merchantData.state,
-                        pin_code: merchantData.pincode,
-                        phone: merchantData.phone,
-                        owner_phone: merchantData.ownerPhone, // Owner's personal phone
-                        owner_name: merchantData.ownerName,
-                        gst_number: merchantData.gstNumber,
-                        pan_number: merchantData.panNumber,
-                        logo_url: merchantData.logoUrl,
-                        cover_photo_url: merchantData.coverPhotoUrl,
-                        // Google Maps data
-                        latitude: merchantData.latitude,
-                        longitude: merchantData.longitude,
-                        google_maps_link: merchantData.googleMapsLink,
-                        google_maps_embed: merchantData.googleMapsEmbed,
-                        // Sub-category and operating hours
-                        sub_category: merchantData.subCategory,
-                        operating_hours: merchantData.operatingHours,
-                        // Payment QR
-                        payment_qr_url: merchantData.paymentQrUrl,
-                    })
-                    .eq('id', existing.id);
-
-                if (error) {
-                    return { success: false, error: error.message };
-                }
-
-                // Save store images
-                if (merchantData.storeImageUrls && merchantData.storeImageUrls.length > 0) {
-                    await this.saveStoreImages(existing.id, merchantData.storeImageUrls);
-                }
-
-                return { success: true, data: { merchantId: existing.id } };
+            if (existingMerchant) {
+                return { success: false, error: 'You already have a merchant account.' };
             }
 
-            // Create new merchant
-            const { data: merchant, error } = await supabase
-                .from('merchants')
+            // Submit to pending_merchants table (NOT main merchants table)
+            const { data: application, error } = await supabase
+                .from('pending_merchants')
                 .insert({
                     user_id: user.id,
                     email: user.email,
                     business_name: merchantData.businessName,
                     category: merchantData.category,
+                    sub_category: merchantData.subCategory,
                     description: merchantData.description,
                     address: merchantData.address,
                     city: merchantData.city,
                     state: merchantData.state,
-                    pin_code: merchantData.pincode,
+                    pincode: merchantData.pincode,
                     phone: merchantData.phone,
-                    owner_phone: merchantData.ownerPhone, // Owner's personal phone
+                    owner_phone: merchantData.ownerPhone,
                     owner_name: merchantData.ownerName,
                     gst_number: merchantData.gstNumber,
                     pan_number: merchantData.panNumber,
                     logo_url: merchantData.logoUrl,
                     cover_photo_url: merchantData.coverPhotoUrl,
-                    // Google Maps data
+                    store_images: merchantData.storeImageUrls || [],
                     latitude: merchantData.latitude,
                     longitude: merchantData.longitude,
                     google_maps_link: merchantData.googleMapsLink,
                     google_maps_embed: merchantData.googleMapsEmbed,
-                    // Sub-category and operating hours
-                    sub_category: merchantData.subCategory,
                     operating_hours: merchantData.operatingHours,
-                    // Payment QR
                     payment_qr_url: merchantData.paymentQrUrl,
-                    status: 'pending',
-                    total_offers: 0,
-                    total_redemptions: 0,
-                    total_revenue: 0
+                    status: 'pending'
                 })
                 .select()
                 .single();
@@ -636,15 +608,10 @@ export const authService = {
                 return { success: false, error: error.message };
             }
 
-            // Save store images
-            if (merchantData.storeImageUrls && merchantData.storeImageUrls.length > 0) {
-                await this.saveStoreImages(merchant.id, merchantData.storeImageUrls);
-            }
-
             return {
                 success: true,
-                data: { merchantId: merchant.id },
-                message: 'Business profile created! Pending admin approval.'
+                data: { merchantId: application.id },
+                message: 'Application submitted! Pending admin approval.'
             };
         } catch (error: any) {
             return { success: false, error: error.message };
