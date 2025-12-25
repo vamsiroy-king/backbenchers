@@ -6,6 +6,7 @@ import { useState, useRef, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authService } from "@/lib/services/auth.service";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 function StudentPasscodeContent() {
     const router = useRouter();
@@ -17,6 +18,7 @@ function StudentPasscodeContent() {
     const [confirmPasscode, setConfirmPasscode] = useState(["", "", "", "", "", ""]);
     const [error, setError] = useState("");
     const [isSuccess, setIsSuccess] = useState(false);
+    const [showPWAPrompt, setShowPWAPrompt] = useState(false);
     const [saving, setSaving] = useState(false);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const confirmRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -82,9 +84,8 @@ function StudentPasscodeContent() {
             }
 
             setIsSuccess(true);
-            setTimeout(() => {
-                router.push('/dashboard');
-            }, 2500);
+            // Show PWA prompt after success
+            setShowPWAPrompt(true);
         } catch (error: any) {
             setError(error.message);
             setSaving(false);
@@ -100,58 +101,72 @@ function StudentPasscodeContent() {
         }
     };
 
-    // Success Animation
+    // Success Animation + PWA Prompt
     if (isSuccess) {
         return (
-            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
-                <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", duration: 0.6 }}
-                    className="h-24 w-24 bg-primary rounded-full flex items-center justify-center mb-6"
-                >
-                    <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        <Check className="h-12 w-12 text-white" strokeWidth={3} />
-                    </motion.div>
-                </motion.div>
-                <motion.h1
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="text-2xl font-extrabold text-center mb-2"
-                >
-                    You're All Set! 🎉
-                </motion.h1>
-                <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="text-gray-500 text-center"
-                >
-                    Your account is ready!
-                </motion.p>
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.7 }}
-                    className="mt-6 bg-primary/10 border border-primary/20 rounded-2xl px-6 py-4"
-                >
-                    <p className="text-sm text-gray-500 text-center mb-1">Your BB-ID will be generated</p>
-                    <p className="text-sm text-primary text-center">after admin verification</p>
-                </motion.div>
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1 }}
-                    className="mt-6 text-sm text-gray-400"
-                >
-                    Redirecting to your dashboard...
-                </motion.p>
-            </div>
+            <>
+                {/* PWA Install Prompt */}
+                {showPWAPrompt && (
+                    <PWAInstallPrompt
+                        onComplete={() => {
+                            setShowPWAPrompt(false);
+                            router.push('/dashboard');
+                        }}
+                    />
+                )}
+
+                {!showPWAPrompt && (
+                    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", duration: 0.6 }}
+                            className="h-24 w-24 bg-primary rounded-full flex items-center justify-center mb-6"
+                        >
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.3 }}
+                            >
+                                <Check className="h-12 w-12 text-white" strokeWidth={3} />
+                            </motion.div>
+                        </motion.div>
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                            className="text-2xl font-extrabold text-center mb-2"
+                        >
+                            You're All Set! 🎉
+                        </motion.h1>
+                        <motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="text-gray-500 text-center"
+                        >
+                            Your account is ready!
+                        </motion.p>
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.7 }}
+                            className="mt-6 bg-primary/10 border border-primary/20 rounded-2xl px-6 py-4"
+                        >
+                            <p className="text-sm text-gray-500 text-center mb-1">Your BB-ID will be generated</p>
+                            <p className="text-sm text-primary text-center">after admin verification</p>
+                        </motion.div>
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 1 }}
+                            className="mt-6 text-sm text-gray-400"
+                        >
+                            Redirecting to your dashboard...
+                        </motion.p>
+                    </div>
+                )}
+            </>
         );
     }
 
