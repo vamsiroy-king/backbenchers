@@ -131,25 +131,6 @@ export default function AuthCallbackPage() {
                         router.replace("/dashboard");
                     } else {
                         addDebug("No student record found - new user");
-
-                        // Add to google_signups table (tracks Google-only users who haven't verified college email)
-                        try {
-                            await supabase
-                                .from('google_signups')
-                                .upsert({
-                                    user_id: session.user.id,
-                                    email: session.user.email?.toLowerCase() || '',
-                                    name: session.user.user_metadata?.full_name || '',
-                                    last_seen_at: new Date().toISOString()
-                                }, {
-                                    onConflict: 'user_id'
-                                });
-                            addDebug("Added to google_signups table");
-                        } catch (insertError: any) {
-                            addDebug(`google_signups insert error: ${insertError.message}`);
-                            // Continue even if insert fails
-                        }
-
                         setStatus("Completing setup...");
                         router.replace("/verify");
                     }
