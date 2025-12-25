@@ -1,34 +1,109 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// COMING SOON MODE: Set to true to redirect all traffic to /coming-soon
-// Set to false to launch the full app
-const COMING_SOON_MODE = false; // DISABLED - Full app is now live!
+// Admin authentication secret - Change this to a strong secret!
+// Set via environment variable for security
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'backbenchers-admin-2024-secret';
 
-// Pages that are allowed even in coming soon mode
-const ALLOWED_PATHS = [
-    '/coming-soon',
-    '/api/waitlist',
-    '/_next',
-    '/favicon.ico',
-];
+// Cookie name for admin session
+const ADMIN_SESSION_COOKIE = 'bb_admin_session';
 
 export function middleware(request: NextRequest) {
-    // Skip if coming soon mode is disabled
-    if (!COMING_SOON_MODE) {
-        return NextResponse.next();
-    }
-
+    const hostname = request.headers.get('host') || '';
     const { pathname } = request.nextUrl;
+    const url = request.nextUrl.clone();
 
-    // Allow certain paths
-    const isAllowed = ALLOWED_PATHS.some(path => pathname.startsWith(path));
-    if (isAllowed) {
+    // Skip static files and API routes that need to work everywhere
+    if (
+        pathname.startsWith('/_next') ||
+        pathname.startsWith('/favicon.ico') ||
+        pathname.includes('.') // static files
+    ) {
         return NextResponse.next();
     }
 
-    // Redirect everything else to coming-soon
-    return NextResponse.redirect(new URL('/coming-soon', request.url));
+    // === LOCAL DEVELOPMENT ===
+    // Allow all routes in localhost for testing
+    if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+        return NextResponse.next();
+    }
+
+    // === SUBDOMAIN DETECTION ===
+
+    // MERCHANT SUBDOMAIN: merchant.backbenchers.app
+    if (hostname.startsWith('merchant.')) {
+        // Only allow merchant routes and shared API
+        if (pathname.startsWith('/admin') || pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
+            url.pathname = '/merchant/dashboard';
+            return NextResponse.redirect(url);
+        }
+        // Redirect root to merchant dashboard
+        if (pathname === '/') {
+            url.pathname = '/merchant/auth/login';
+            return NextResponse.redirect(url);
+        }
+        return NextResponse.next();
+    }
+
+    // ADMIN SUBDOMAIN: admin.backbenchers.app
+    if (hostname.startsWith('admin.')) {
+        // === ADMIN AUTHENTICATION ===
+        // Check for admin auth cookie or secret in URL
+        const adminSession = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+        const secretParam = url.searchParams.get('secret');
+
+        // Allow the admin-auth page (login page)
+        if (pathname === '/admin-auth') {
+            return NextResponse.next();
+        }
+
+        // If secret is provided in URL, set cookie and redirect
+        if (secretParam === ADMIN_SECRET) {
+            const response = NextResponse.redirect(new URL('/admin', request.url));
+            response.cookies.set(ADMIN_SESSION_COOKIE, 'authenticated', {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict',
+                maxAge: 60 * 60 * 24 * 7, // 7 days
+            });
+            return response;
+        }
+
+        // Check if authenticated
+        if (adminSession !== 'authenticated') {
+            // Redirect to admin auth page
+            url.pathname = '/admin-auth';
+            return NextResponse.redirect(url);
+        }
+
+        // Only allow admin routes
+        if (!pathname.startsWith('/admin') && pathname !== '/') {
+            url.pathname = '/admin';
+            return NextResponse.redirect(url);
+        }
+
+        // Redirect root to admin dashboard
+        if (pathname === '/') {
+            url.pathname = '/admin';
+            return NextResponse.redirect(url);
+        }
+
+        return NextResponse.next();
+    }
+
+    // MAIN DOMAIN: backbenchers.app (Student App)
+    // Block access to admin and merchant routes
+    if (pathname.startsWith('/admin')) {
+        url.pathname = '/dashboard';
+        return NextResponse.redirect(url);
+    }
+    if (pathname.startsWith('/merchant')) {
+        url.pathname = '/dashboard';
+        return NextResponse.redirect(url);
+    }
+
+    // Allow all other routes for student app
+    return NextResponse.next();
 }
 
 export const config = {
@@ -37,8 +112,7 @@ export const config = {
          * Match all request paths except:
          * - _next/static (static files)
          * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
          */
-        '/((?!_next/static|_next/image|favicon.ico).*)',
+        '/((?!_next/static|_next/image).*)',
     ],
 };

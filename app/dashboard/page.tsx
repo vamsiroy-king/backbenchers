@@ -894,19 +894,6 @@ export default function DashboardPage() {
                         </div>
                     )
                 }
-
-                {/* App Switcher */}
-                < div className="pt-8 border-t border-gray-100/80 dark:border-gray-800 mt-4" >
-                    <p className="text-xs text-gray-400 text-center mb-3">Switch to</p>
-                    <div className="flex justify-center gap-2.5">
-                        <Link href="/merchant" className="px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700">
-                            Merchant App
-                        </Link>
-                        <Link href="/admin/dashboard" className="px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700">
-                            Admin Panel
-                        </Link>
-                    </div>
-                </div>
             </main>
 
             {/* Rating Modal - Shows after successful redemption */}

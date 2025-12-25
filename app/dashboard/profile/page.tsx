@@ -741,19 +741,7 @@ export default function ProfilePage() {
                     Sign Out
                 </button>
             </div>
-
-            {/* App Switcher */}
-            <div className="pt-8 border-t border-gray-100/80 dark:border-gray-800 mt-6">
-                <p className="text-xs text-gray-400 dark:text-gray-500 text-center mb-3">Switch to</p>
-                <div className="flex justify-center gap-2.5">
-                    <Link href="/merchant" className="px-4 py-2.5 bg-white dark:bg-gray-950 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-800 shadow-subtle dark:shadow-none">
-                        Merchant App
-                    </Link>
-                    <Link href="/admin/dashboard" className="px-4 py-2.5 bg-white dark:bg-gray-950 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-800 shadow-subtle dark:shadow-none">
-                        Admin Panel
-                    </Link>
-                </div>
-            </div>
         </div>
     );
 }
+
