@@ -103,6 +103,14 @@ export default function MerchantDashboardPage() {
                         <h1 className="font-bold text-lg text-gray-900 dark:text-white">{merchant?.businessName || 'Merchant'} 👋</h1>
                     </div>
                     <div className="flex items-center gap-2">
+                        {merchant?.status === 'approved' && (
+                            <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/30 px-2.5 py-1 rounded-lg">
+                                <span className="text-yellow-500">★</span>
+                                <span className="text-[10px] font-bold text-yellow-700 dark:text-yellow-400">
+                                    {(merchant as any)?.rating?.toFixed(1) || '5.0'}
+                                </span>
+                            </div>
+                        )}
                         {merchant?.status === 'pending' && (
                             <span className="text-[10px] bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 px-2.5 py-1 rounded-lg font-semibold">
                                 Pending

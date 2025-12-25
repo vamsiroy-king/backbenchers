@@ -631,10 +631,10 @@ export default function DashboardPage() {
                             index === currentBannerIndex && (
                                 <motion.div
                                     key={banner.id}
-                                    initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+                                    initial={{ opacity: 0, x: swipeDirection === 'left' ? 300 : -300 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
-                                    transition={{ duration: 0.35, ease: "easeOut" }}
+                                    exit={{ opacity: 0, x: swipeDirection === 'left' ? -300 : 300 }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                     className={`mx-5 h-44 rounded-3xl bg-gradient-to-br ${banner.backgroundGradient} p-6 flex flex-col justify-between relative overflow-hidden cursor-grab active:cursor-grabbing`}
                                 >
                                     {/* Shine overlay */}
