@@ -127,21 +127,26 @@ export const authService = {
             };
         }
 
-        // Check if admin
-        const { data: admin } = await supabase
-            .from('admins')
-            .select('*')
-            .eq('user_id', user.id)
-            .maybeSingle();
+        // Check if admin (wrapped in try-catch for dev environments where table may not exist)
+        try {
+            const { data: admin } = await supabase
+                .from('admins')
+                .select('*')
+                .eq('user_id', user.id)
+                .maybeSingle();
 
-        if (admin) {
-            return {
-                id: admin.id,
-                email: admin.email,
-                name: admin.name,
-                role: 'admin',
-                isComplete: true
-            };
+            if (admin) {
+                return {
+                    id: admin.id,
+                    email: admin.email,
+                    name: admin.name,
+                    role: 'admin',
+                    isComplete: true
+                };
+            }
+        } catch (e) {
+            // Ignore admin check errors (table may not exist in dev)
+            console.log('Admin check skipped (table may not exist)');
         }
 
         // User exists in Supabase Auth but no profile yet (needs to complete signup)
