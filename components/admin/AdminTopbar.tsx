@@ -149,7 +149,13 @@ export function AdminTopbar({ sidebarCollapsed = false }: AdminTopbarProps) {
                                             Settings
                                         </button>
                                     </Link>
-                                    <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-xl">
+                                    <button
+                                        onClick={async () => {
+                                            await fetch('/api/admin/signout', { method: 'POST' });
+                                            window.location.href = '/admin-auth';
+                                        }}
+                                        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-xl"
+                                    >
                                         <LogOut className="h-4 w-4" />
                                         Sign out
                                     </button>

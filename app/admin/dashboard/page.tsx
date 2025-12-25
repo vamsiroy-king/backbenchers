@@ -128,18 +128,6 @@ export default function AdminDashboardPage() {
                         <option value="90">Last 90 days</option>
                         <option value="365">This Year</option>
                     </select>
-                    <button
-                        onClick={handleSignOut}
-                        disabled={signingOut}
-                        className="h-10 px-4 bg-red-500 hover:bg-red-600 disabled:bg-red-400 text-white rounded-xl text-sm font-medium flex items-center gap-2 transition-colors"
-                    >
-                        {signingOut ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <LogOut className="h-4 w-4" />
-                        )}
-                        Sign Out
-                    </button>
                 </div>
             </div>
 
