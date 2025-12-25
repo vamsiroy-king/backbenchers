@@ -15,12 +15,22 @@ if (!supabaseUrl || !supabaseAnonKey) {
     );
 }
 
-// Create Supabase client (using any for flexibility until types are auto-generated)
+// Custom storage for PWA compatibility (uses localStorage explicitly)
+const customStorage = typeof window !== 'undefined' ? {
+    getItem: (key: string) => localStorage.getItem(key),
+    setItem: (key: string, value: string) => localStorage.setItem(key, value),
+    removeItem: (key: string) => localStorage.removeItem(key),
+} : undefined;
+
+// Create Supabase client with explicit localStorage for PWA session persistence
 export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
     auth: {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
+        storage: customStorage,
+        storageKey: 'backbenchers-auth', // Custom key to avoid conflicts
+        flowType: 'pkce', // More secure for mobile/PWA
     },
 });
 
