@@ -345,50 +345,33 @@ export const studentService = {
         }
     },
 
-    // Delete student (admin only) - Handles foreign key constraints
+    // Delete student (admin only) - Deletes from database AND Supabase Auth
     async delete(id: string): Promise<ApiResponse<void>> {
         try {
-            // First get the student to find their user_id and email
+            // First get the student to find their user_id and college_email
             const { data: student } = await supabase
                 .from('students')
-                .select('user_id, email')
+                .select('user_id, email, college_email')
                 .eq('id', id)
                 .single();
 
-            // Delete related transactions first
-            await supabase
-                .from('transactions')
-                .delete()
-                .eq('student_id', id);
+            // Call API route which handles full deletion including Supabase Auth
+            const response = await fetch('/api/admin/delete-student', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    studentId: id,
+                    userId: student?.user_id,
+                    collegeEmail: student?.college_email
+                })
+            });
 
-            // Delete favorites
-            await supabase
-                .from('favorites')
-                .delete()
-                .eq('student_id', id);
+            const result = await response.json();
 
-            // Delete from google_signups if exists (by user_id or email)
-            if (student?.user_id) {
-                await supabase
-                    .from('google_signups')
-                    .delete()
-                    .eq('user_id', student.user_id);
-            }
-            if (student?.email) {
-                await supabase
-                    .from('google_signups')
-                    .delete()
-                    .eq('email', student.email);
-            }
-
-            // Now delete the student
-            const { error } = await supabase
-                .from('students')
-                .delete()
-                .eq('id', id);
-
-            if (error) {
-                return { success: false, data: undefined, error: error.message };
+            if (!response.ok) {
+                return { success: false, data: undefined, error: result.error || 'Failed to delete student' };
             }
 
             return { success: true, data: undefined, error: null };
