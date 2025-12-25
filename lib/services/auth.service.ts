@@ -209,7 +209,7 @@ export const authService = {
     },
 
     // Send OTP to college email for verification
-    // Uses signInWithOtp which sends 6-digit OTP code
+    // Uses signUp which sends 6-digit OTP code (Confirm Signup template in Supabase)
     async sendCollegeEmailOTP(collegeEmail: string): Promise<ApiResponse<void>> {
         const email = collegeEmail.toLowerCase().trim();
 
@@ -230,23 +230,43 @@ export const authService = {
             };
         }
 
-        // Use signInWithOtp to send OTP code (this is the correct method for OTP)
-        const { error } = await supabase.auth.signInWithOtp({
-            email: email,
-            options: {
-                shouldCreateUser: true  // Creates user if doesn't exist
+        try {
+            // Use signUp to send OTP code (Confirm Signup template in Supabase)
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: crypto.randomUUID(), // Random password since user won't use password login
+            });
+
+            console.log('SignUp response:', { data, error });
+
+            if (error) {
+                console.error('SignUp error:', error);
+                // If user already exists in Supabase Auth (but not in students table), resend OTP
+                if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+                    console.log('User exists in auth, resending OTP...');
+                    const { error: resendError } = await supabase.auth.resend({
+                        type: 'signup',
+                        email: email,
+                    });
+
+                    if (resendError) {
+                        console.error('Resend error:', resendError);
+                        return { success: false, error: resendError.message };
+                    }
+                    console.log('OTP resent successfully');
+                } else {
+                    return { success: false, error: error.message };
+                }
             }
-        });
 
-        if (error) {
-            console.error('OTP send error:', error);
-            return { success: false, error: error.message };
+            return {
+                success: true,
+                message: `OTP sent to ${email}. Please check your inbox.`
+            };
+        } catch (err: any) {
+            console.error('sendCollegeEmailOTP exception:', err);
+            return { success: false, error: err.message };
         }
-
-        return {
-            success: true,
-            message: `OTP sent to ${email}. Please check your inbox.`
-        };
     },
 
     // Verify OTP and link college email to Google account
@@ -268,11 +288,11 @@ export const authService = {
         try {
             const email = collegeEmail.toLowerCase().trim();
 
-            // Verify OTP (type must match how it was sent - 'email' for signInWithOtp)
+            // Verify OTP (type must match how it was sent - 'signup' for signUp flow)
             const { data, error } = await supabase.auth.verifyOtp({
                 email: email,
                 token: otp,
-                type: 'email'  // Changed from 'signup' to 'email' to match signInWithOtp
+                type: 'signup'  // Must be 'signup' to match signUp method
             });
 
             if (error) {
