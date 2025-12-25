@@ -196,23 +196,47 @@ export default function DashboardPage() {
 
     // Fetch real offers and check verification status
     useEffect(() => {
-        // Load saved city from localStorage
-        const savedCity = cityService.getSelectedCity();
-        if (savedCity) {
-            setSelectedCity(savedCity);
-        }
-
         async function fetchData() {
             try {
+                // STEP 1: Determine the city (localStorage first, then profile)
+                let cityToUse = cityService.getSelectedCity();
+
+                // STEP 2: Check if student is verified and get city from profile
+                const { studentService } = await import('@/lib/services/student.service');
+                const profileResult = await studentService.getMyProfile();
+                if (profileResult.success && profileResult.data) {
+                    setIsVerified(true);
+                    setStudentId(profileResult.data.id);
+
+                    // If no city in localStorage, use student's city from profile
+                    if (!cityToUse) {
+                        const userCity = profileResult.data.selectedCity || profileResult.data.city;
+                        if (userCity) {
+                            cityToUse = userCity;
+                            cityService.setSelectedCity(userCity); // Save to localStorage
+                        }
+                    }
+
+                    // Fetch favorite IDs (saved offers)
+                    const savedOfferIds = await favoritesService.getSavedOfferIds();
+                    setFavoriteIds(savedOfferIds);
+                }
+
+                // Set the city in state
+                if (cityToUse) {
+                    setSelectedCity(cityToUse);
+                }
+
+                // STEP 3: Fetch data with proper city filtering
                 // Fetch hero banners from database
-                const bannerResult = await heroBannerService.getActiveForCity(savedCity || 'All');
+                const bannerResult = await heroBannerService.getActiveForCity(cityToUse || 'All');
                 if (bannerResult.success && bannerResult.data && bannerResult.data.length > 0) {
                     setHeroBanners(bannerResult.data);
                 }
 
                 // Fetch offers filtered by city (if selected)
-                const result = savedCity
-                    ? await offerService.getOffersByCity(savedCity)
+                const result = cityToUse
+                    ? await offerService.getOffersByCity(cityToUse)
                     : await offerService.getActiveOffers();
                 if (result.success && result.data) {
                     setRealOffers(result.data);
@@ -238,27 +262,9 @@ export default function DashboardPage() {
                 }
 
                 // Fetch new merchants for "New on BackBenchers" (filtered by city!)
-                const newMerchantsResult = await newMerchantService.getNewMerchants(7, 10, savedCity || undefined);
+                const newMerchantsResult = await newMerchantService.getNewMerchants(7, 10, cityToUse || undefined);
                 if (newMerchantsResult.success && newMerchantsResult.data) {
                     setNewMerchants(newMerchantsResult.data);
-                }
-
-                // Check if student is verified
-                const { studentService } = await import('@/lib/services/student.service');
-                const profileResult = await studentService.getMyProfile();
-                if (profileResult.success && profileResult.data) {
-                    setIsVerified(true);
-                    setStudentId(profileResult.data.id);
-                    // Load student's saved city from database if available
-                    if (profileResult.data.selectedCity) {
-                        setSelectedCity(profileResult.data.selectedCity);
-                    }
-
-                    // Fetch favorite IDs (saved offers)
-                    const savedOfferIds = await favoritesService.getSavedOfferIds();
-                    setFavoriteIds(savedOfferIds);
-
-                    // Notifications are now handled by useNotifications hook with real-time updates
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
