@@ -3,6 +3,7 @@
 
 import { supabase } from '../supabase';
 import { AuthUser, ApiResponse } from '../types';
+import { rateLimiter } from './rateLimiter.service';
 
 // Session storage keys
 const PASSCODE_KEY = 'bb_passcode_hash';
@@ -213,6 +214,15 @@ export const authService = {
     async sendCollegeEmailOTP(collegeEmail: string): Promise<ApiResponse<void>> {
         const email = collegeEmail.toLowerCase().trim();
 
+        // Rate limiting check
+        const rateCheck = rateLimiter.check('otp_send', email);
+        if (!rateCheck.allowed) {
+            return {
+                success: false,
+                error: rateCheck.message || 'Too many OTP requests. Please wait and try again.'
+            };
+        }
+
         // STRICT validation - only allowed college domains
         if (!isValidStudentEmail(email)) {
             return {
@@ -258,6 +268,9 @@ export const authService = {
                     return { success: false, error: error.message };
                 }
             }
+
+            // Record successful OTP send for rate limiting
+            rateLimiter.record('otp_send', email);
 
             return {
                 success: true,

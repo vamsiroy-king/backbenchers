@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Providers } from "@/components/providers";
 import { JsonLd } from "@/components/JsonLd";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans", weight: ["400", "500", "600", "700", "800"] });
 
@@ -111,9 +112,12 @@ export default function RootLayout({
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased overscroll-none", plusJakarta.variable)} suppressHydrationWarning>
         <Providers>
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </Providers>
       </body>
     </html>
   );
 }
+
