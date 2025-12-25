@@ -321,36 +321,51 @@ export default function OffersPage() {
                                     </div>
                                 )}
 
-                                {/* Action Buttons */}
-                                <div className="space-y-3">
-                                    {selectedOffer.isActive ? (
-                                        <Button
-                                            onClick={() => canTakeAction(selectedOffer) ? setConfirmAction("pause") : null}
-                                            disabled={!canTakeAction(selectedOffer)}
-                                            className="w-full h-14 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-2xl disabled:opacity-50"
-                                            variant="ghost"
-                                        >
-                                            <Pause className="h-5 w-5 mr-2" /> Pause Offer
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            onClick={() => canTakeAction(selectedOffer) ? setConfirmAction("resume") : null}
-                                            disabled={!canTakeAction(selectedOffer)}
-                                            className="w-full h-14 bg-primary text-white font-semibold rounded-2xl disabled:opacity-50"
-                                        >
-                                            <Play className="h-5 w-5 mr-2" /> Resume Offer
-                                        </Button>
-                                    )}
+                                {/* Admin Offer Notice */}
+                                {selectedOffer.createdByType === 'admin' && (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 flex items-start gap-3">
+                                        <Shield className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="font-semibold text-blue-800 text-sm">Admin-Created Offer</p>
+                                            <p className="text-xs text-blue-700 mt-1">
+                                                This offer was created by Backbenchers admin. Only admin can pause, resume, or delete this offer.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
 
-                                    <Button
-                                        onClick={() => canTakeAction(selectedOffer) ? setConfirmAction("delete") : null}
-                                        disabled={!canTakeAction(selectedOffer)}
-                                        variant="outline"
-                                        className="w-full h-14 border-red-200 text-red-500 hover:bg-red-50 font-semibold rounded-2xl disabled:opacity-50"
-                                    >
-                                        <Trash2 className="h-5 w-5 mr-2" /> Delete Offer
-                                    </Button>
-                                </div>
+                                {/* Action Buttons - Only show for merchant-created offers */}
+                                {selectedOffer.createdByType !== 'admin' && (
+                                    <div className="space-y-3">
+                                        {selectedOffer.isActive ? (
+                                            <Button
+                                                onClick={() => canTakeAction(selectedOffer) ? setConfirmAction("pause") : null}
+                                                disabled={!canTakeAction(selectedOffer)}
+                                                className="w-full h-14 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-2xl disabled:opacity-50"
+                                                variant="ghost"
+                                            >
+                                                <Pause className="h-5 w-5 mr-2" /> Pause Offer
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                onClick={() => canTakeAction(selectedOffer) ? setConfirmAction("resume") : null}
+                                                disabled={!canTakeAction(selectedOffer)}
+                                                className="w-full h-14 bg-primary text-white font-semibold rounded-2xl disabled:opacity-50"
+                                            >
+                                                <Play className="h-5 w-5 mr-2" /> Resume Offer
+                                            </Button>
+                                        )}
+
+                                        <Button
+                                            onClick={() => canTakeAction(selectedOffer) ? setConfirmAction("delete") : null}
+                                            disabled={!canTakeAction(selectedOffer)}
+                                            variant="outline"
+                                            className="w-full h-14 border-red-200 text-red-500 hover:bg-red-50 font-semibold rounded-2xl disabled:opacity-50"
+                                        >
+                                            <Trash2 className="h-5 w-5 mr-2" /> Delete Offer
+                                        </Button>
+                                    </div>
+                                )}
 
                                 {/* Terms Link */}
                                 <button onClick={() => setShowTerms(true)} className="flex items-center gap-2 text-gray-400 text-xs mt-4 mx-auto">

@@ -505,19 +505,6 @@ export default function MerchantProfilePage() {
                     <LogOut className="h-5 w-5" />
                     <span className="font-semibold">Sign Out</span>
                 </button>
-
-                {/* App Switcher */}
-                <div className="pt-4 border-t border-gray-100">
-                    <p className="text-xs text-gray-400 text-center mb-3">Switch to</p>
-                    <div className="flex justify-center gap-3">
-                        <Link href="/dashboard" className="px-4 py-2 bg-gray-100 rounded-xl text-xs font-semibold">
-                            Student App
-                        </Link>
-                        <Link href="/admin/dashboard" className="px-4 py-2 bg-gray-100 rounded-xl text-xs font-semibold">
-                            Admin Panel
-                        </Link>
-                    </div>
-                </div>
             </main>
         </div>
     );
