@@ -50,9 +50,35 @@ export const notificationService = {
                 return { success: false, data: null, error: error.message };
             }
 
+            // Deduplicate notifications with same title+type within 24 hours
+            // This prevents duplicate "New Deal" notifications for same offer
+            const notifications = data?.map(mapDbToNotification) || [];
+            const seen = new Map<string, Date>();
+            const dedupedNotifications = notifications.filter(notif => {
+                // Create a unique key based on title + type + offer/merchant ID
+                const offerId = notif.data?.offerId || '';
+                const merchantId = notif.data?.merchantId || '';
+                const key = `${notif.title}-${notif.type}-${offerId}-${merchantId}`;
+                const notifDate = new Date(notif.createdAt);
+
+                // Check if we've seen this before
+                const lastSeen = seen.get(key);
+                if (lastSeen) {
+                    // If within 24 hours, it's a duplicate
+                    const diffHours = (notifDate.getTime() - lastSeen.getTime()) / (1000 * 60 * 60);
+                    if (Math.abs(diffHours) < 24) {
+                        return false; // Skip this duplicate
+                    }
+                }
+
+                // Mark as seen
+                seen.set(key, notifDate);
+                return true;
+            });
+
             return {
                 success: true,
-                data: data?.map(mapDbToNotification) || [],
+                data: dedupedNotifications,
                 error: null
             };
         } catch (error: any) {

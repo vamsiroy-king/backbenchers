@@ -486,10 +486,24 @@ export const authService = {
     // Merchant signup with Google - redirects to merchant auth callback
     async merchantSignupWithGoogle(): Promise<ApiResponse<void>> {
         try {
+            // Determine the correct redirect URL
+            // On production, we're already on merchant.backbenchers.app
+            // The origin will be correct since we're ON the merchant subdomain
+            let redirectUrl = `${window.location.origin}/merchant/auth/callback`;
+
+            // If we detect we're on the main domain (shouldn't happen but safety check)
+            // and not localhost, redirect to merchant subdomain
+            const hostname = window.location.hostname;
+            if (!hostname.includes('localhost') &&
+                !hostname.startsWith('merchant.') &&
+                hostname.includes('backbenchers')) {
+                redirectUrl = `https://merchant.backbenchers.app/merchant/auth/callback`;
+            }
+
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.origin}/merchant/auth/callback`,
+                    redirectTo: redirectUrl,
                     queryParams: {
                         prompt: 'select_account', // Always show account picker
                     }
