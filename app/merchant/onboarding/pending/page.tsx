@@ -21,10 +21,24 @@ export default function VerificationPendingPage() {
     const [merchant, setMerchant] = useState<MerchantStatus | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Fetch merchant status and subscribe to changes
+    // Fetch merchant status - check pending_merchants first, then merchants
     useEffect(() => {
         async function fetchMerchant() {
             try {
+                // First, check pending_merchants table (for newly submitted applications)
+                const pendingResult = await merchantService.getMyPendingApplication();
+                if (pendingResult.success && pendingResult.data) {
+                    setMerchant({
+                        id: pendingResult.data.id,
+                        businessName: pendingResult.data.businessName,
+                        status: pendingResult.data.status as any,
+                        bbmId: undefined,
+                    });
+                    setLoading(false);
+                    return;
+                }
+
+                // If not in pending_merchants, check merchants table (for already processed)
                 const result = await merchantService.getMyProfile();
                 if (result.success && result.data) {
                     setMerchant({
@@ -40,7 +54,7 @@ export default function VerificationPendingPage() {
                         return;
                     }
                 } else {
-                    // No merchant record - redirect to signup
+                    // No record in either table - redirect to signup
                     router.push('/merchant/auth/signup');
                 }
             } catch (error) {

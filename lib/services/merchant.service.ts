@@ -243,6 +243,46 @@ export const merchantService = {
         }
     },
 
+    // Get current user's pending application (from pending_merchants table)
+    async getMyPendingApplication(): Promise<ApiResponse<{
+        id: string;
+        businessName: string;
+        status: 'pending' | 'rejected';
+        createdAt: string;
+    }>> {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                return { success: false, data: null, error: 'Not authenticated' };
+            }
+
+            const { data, error } = await supabase
+                .from('pending_merchants')
+                .select('id, business_name, status, created_at')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+
+            if (error) {
+                return { success: false, data: null, error: error.message };
+            }
+
+            return {
+                success: true,
+                data: {
+                    id: data.id,
+                    businessName: data.business_name,
+                    status: data.status as 'pending' | 'rejected',
+                    createdAt: data.created_at
+                },
+                error: null
+            };
+        } catch (error: any) {
+            return { success: false, data: null, error: error.message };
+        }
+    },
+
     // Approve merchant - generates BBM-ID (admin only)
     async approve(id: string): Promise<ApiResponse<Merchant>> {
         try {
