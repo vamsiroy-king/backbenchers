@@ -248,7 +248,7 @@ export const merchantService = {
         id: string;
         businessName: string;
         status: 'pending' | 'rejected';
-        createdAt: string;
+        submittedAt: string;
     }>> {
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -258,9 +258,9 @@ export const merchantService = {
 
             const { data, error } = await supabase
                 .from('pending_merchants')
-                .select('id, business_name, status, created_at')
+                .select('id, business_name, status, submitted_at')
                 .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
+                .order('submitted_at', { ascending: false })
                 .limit(1)
                 .single();
 
@@ -274,7 +274,7 @@ export const merchantService = {
                     id: data.id,
                     businessName: data.business_name,
                     status: data.status as 'pending' | 'rejected',
-                    createdAt: data.created_at
+                    submittedAt: data.submitted_at
                 },
                 error: null
             };
