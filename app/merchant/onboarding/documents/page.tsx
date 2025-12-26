@@ -342,7 +342,7 @@ export default function DocumentsPage() {
                                         animate={{ opacity: 1, scale: 1 }}
                                         className="relative rounded-2xl overflow-hidden w-28 h-28"
                                     >
-                                        <img src={logo.preview} alt="Logo" className="w-full h-full object-cover" />
+                                        <img src={logo.url || logo.preview} alt="Logo" className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                                             <Check className="h-6 w-6 text-white" />
                                         </div>
@@ -384,7 +384,7 @@ export default function DocumentsPage() {
                                         animate={{ opacity: 1, scale: 1 }}
                                         className="relative rounded-2xl overflow-hidden aspect-[16/9]"
                                     >
-                                        <img src={coverPhoto.preview} alt="Cover" className="w-full h-full object-cover" />
+                                        <img src={coverPhoto.url || coverPhoto.preview} alt="Cover" className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                                             <Check className="h-8 w-8 text-white" />
                                         </div>
@@ -434,7 +434,7 @@ export default function DocumentsPage() {
                                                 'aspect-square'
                                             }`}
                                     >
-                                        <img src={img.preview} alt="Store" className="w-full h-full object-cover" />
+                                        <img src={img.url || img.preview} alt="Store" className="w-full h-full object-cover" />
                                         <button
                                             onClick={() => removeStoreImage(img.id)}
                                             className="absolute top-2 right-2 h-6 w-6 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center"

@@ -592,7 +592,7 @@ export const authService = {
                 .from('pending_merchants')
                 .select('id, status')
                 .eq('user_id', user.id)
-                .single();
+                .maybeSingle();
 
             if (existingApplication) {
                 return {
@@ -608,7 +608,7 @@ export const authService = {
                 .from('merchants')
                 .select('id')
                 .eq('user_id', user.id)
-                .single();
+                .maybeSingle();
 
             if (existingMerchant) {
                 return { success: false, error: 'You already have a merchant account.' };
