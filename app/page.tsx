@@ -65,7 +65,7 @@ function LandingContent() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
-      <div className="flex-1 flex flex-col justify-center px-8 pt-12 pb-8">
+      <div className="flex-1 flex flex-col justify-center px-8 pt-6 pb-8">
 
         {/* Logo */}
         <motion.div

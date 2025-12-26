@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from '../supabase';
 
 // Social link type
 export interface SocialLink {
@@ -27,7 +27,6 @@ export const settingsService = {
     // Get social links from database (with fallback)
     async getSocialLinks(): Promise<SocialLinks> {
         try {
-            const supabase = createClient();
             const { data, error } = await supabase
                 .from("site_settings")
                 .select("value")
@@ -49,8 +48,6 @@ export const settingsService = {
     // Update social links (admin only)
     async updateSocialLinks(links: SocialLinks): Promise<{ success: boolean; error?: string }> {
         try {
-            const supabase = createClient();
-
             const { error } = await supabase
                 .from("site_settings")
                 .upsert({
