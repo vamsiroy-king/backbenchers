@@ -378,7 +378,7 @@ export default function DashboardPage() {
         : [];
 
     return (
-        <div className="min-h-screen bg-white pb-32 pt-12">
+        <div className="min-h-screen bg-white pb-32">
             {/* Get Verified Modal */}
             <AnimatePresence>
                 {showVerifyModal && (
