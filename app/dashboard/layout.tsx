@@ -1,5 +1,6 @@
 import { MobileNav } from "@/components/ui/mobile-nav";
 import { SuspendedCheck } from "@/components/SuspendedCheck";
+import { AddToHomescreen } from "@/components/AddToHomescreen";
 
 export default function DashboardLayout({
     children,
@@ -16,6 +17,7 @@ export default function DashboardLayout({
                         {children}
                     </div>
                     <MobileNav />
+                    <AddToHomescreen />
                 </div>
             </div>
         </SuspendedCheck>

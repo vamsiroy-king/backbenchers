@@ -13,22 +13,58 @@ export default function Home() {
   const router = useRouter();
 
   // Handle OAuth redirect - in case Supabase redirects here with tokens
+  // Also check if user is already logged in and redirect to dashboard
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hash && window.location.hash.includes('access_token')) {
-      console.log('OAuth tokens detected on landing page - redirecting to callback');
+    async function checkAuthAndRedirect() {
+      if (typeof window === 'undefined') return;
 
-      const authFlow = localStorage.getItem('auth_flow') || sessionStorage.getItem('auth_flow');
-      const wasMerchantFlow = authFlow === 'merchant' || document.referrer.includes('/merchant/');
+      // Handle OAuth tokens in URL
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        console.log('OAuth tokens detected on landing page - redirecting to callback');
 
-      localStorage.removeItem('auth_flow');
-      sessionStorage.removeItem('auth_flow');
+        const authFlow = localStorage.getItem('auth_flow') || sessionStorage.getItem('auth_flow');
+        const wasMerchantFlow = authFlow === 'merchant' || document.referrer.includes('/merchant/');
 
-      if (wasMerchantFlow) {
-        router.replace('/merchant/auth/callback' + window.location.hash);
-      } else {
-        router.replace('/auth/callback' + window.location.hash);
+        localStorage.removeItem('auth_flow');
+        sessionStorage.removeItem('auth_flow');
+
+        if (wasMerchantFlow) {
+          router.replace('/merchant/auth/callback' + window.location.hash);
+        } else {
+          router.replace('/auth/callback' + window.location.hash);
+        }
+        return;
+      }
+
+      // Check if user is already authenticated - redirect to dashboard
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session) {
+          // User is already logged in - check if they have a student record
+          const { data: student } = await supabase
+            .from('students')
+            .select('id, status')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (student && student.status !== 'suspended') {
+            console.log('Already authenticated - redirecting to dashboard');
+            router.replace('/dashboard');
+          }
+        }
+      } catch (e) {
+        // Ignore errors - let user stay on landing page
+        console.log('Auth check error:', e);
       }
     }
+
+    checkAuthAndRedirect();
   }, [router]);
 
   return (
