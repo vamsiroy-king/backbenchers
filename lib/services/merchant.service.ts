@@ -361,6 +361,8 @@ export const merchantService = {
             }
 
             // 2. Prepare merchant data for insertion
+            // Note: We only include fields that exist in the 'merchants' table
+            // 'gst_number', 'pan_number', 'sub_category' are not in merchants schema
             const merchantData = {
                 id: pendingData.id,
                 user_id: pendingData.user_id,
@@ -372,7 +374,7 @@ export const merchantService = {
                 owner_phone: pendingData.owner_phone,
                 description: pendingData.description,
                 category: pendingData.category,
-                sub_category: pendingData.sub_category, // Assuming column exists
+                // sub_category: pendingData.sub_category, // Column doesn't exist in merchants
                 address: pendingData.address,
                 city: pendingData.city,
                 state: pendingData.state,
@@ -384,8 +386,8 @@ export const merchantService = {
                 logo_url: pendingData.logo_url,
                 cover_photo_url: pendingData.cover_photo_url,
                 payment_qr_url: pendingData.payment_qr_url,
-                gst_number: pendingData.gst_number,
-                pan_number: pendingData.pan_number,
+                // gst_number: pendingData.gst_number, // Column doesn't exist in merchants
+                // pan_number: pendingData.pan_number, // Column doesn't exist in merchants
                 status: 'approved',
                 created_at: pendingData.submitted_at,
                 approved_at: new Date().toISOString()
