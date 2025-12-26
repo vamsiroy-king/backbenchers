@@ -22,6 +22,8 @@ const DEFAULT_HOURS = { open: "09:00", close: "21:00", closed: false };
 
 export default function StoreTimingsPage() {
     const router = useRouter();
+    const [sameForAllDays, setSameForAllDays] = useState(true);
+    const [commonHours, setCommonHours] = useState({ open: "09:00", close: "21:00" });
     const [operatingHours, setOperatingHours] = useState<Record<string, typeof DEFAULT_HOURS>>({
         monday: { ...DEFAULT_HOURS },
         tuesday: { ...DEFAULT_HOURS },
@@ -35,6 +37,23 @@ export default function StoreTimingsPage() {
     const [paymentQr, setPaymentQr] = useState<{ url: string; file: File | null } | null>(null);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Apply common hours to all days when sameForAllDays is true
+    useEffect(() => {
+        if (sameForAllDays) {
+            setOperatingHours(prev => {
+                const updated: Record<string, typeof DEFAULT_HOURS> = {};
+                DAYS.forEach(day => {
+                    updated[day.id] = {
+                        open: commonHours.open,
+                        close: commonHours.close,
+                        closed: prev[day.id]?.closed || false
+                    };
+                });
+                return updated;
+            });
+        }
+    }, [sameForAllDays, commonHours]);
 
     // Check if we have previous onboarding data
     useEffect(() => {
@@ -127,7 +146,16 @@ export default function StoreTimingsPage() {
             const mapsData = JSON.parse(localStorage.getItem('merchant_maps') || '{}');
 
             if (!businessData.businessName) {
+                setError('Missing business details. Please go back and fill all required fields.');
                 setUploading(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            if (!locationData.city && !businessData.city) {
+                setError('Please select your city in Business Details.');
+                setUploading(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 return;
             }
 
@@ -175,11 +203,13 @@ export default function StoreTimingsPage() {
                 console.error('Merchant onboarding error:', result.error);
                 setError(result.error || 'Failed to submit application. Please try again.');
                 setUploading(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         } catch (err: any) {
             console.error('Error:', err);
             setError(err?.message || 'Something went wrong. Please try again.');
             setUploading(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
@@ -234,43 +264,80 @@ export default function StoreTimingsPage() {
                         <h2 className="font-bold text-gray-900">Operating Hours</h2>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
-                        {DAYS.map((day) => (
-                            <div key={day.id} className="p-4 flex items-center gap-3">
-                                <span className="w-10 text-sm font-semibold text-gray-700">{day.label}</span>
-
-                                {operatingHours[day.id].closed ? (
-                                    <span className="flex-1 text-sm text-gray-400 italic">Closed</span>
-                                ) : (
-                                    <div className="flex-1 flex items-center gap-2">
-                                        <input
-                                            type="time"
-                                            value={operatingHours[day.id].open}
-                                            onChange={(e) => updateTime(day.id, 'open', e.target.value)}
-                                            className="h-10 px-3 border border-gray-200 rounded-xl text-sm bg-gray-50"
-                                        />
-                                        <span className="text-gray-400">to</span>
-                                        <input
-                                            type="time"
-                                            value={operatingHours[day.id].close}
-                                            onChange={(e) => updateTime(day.id, 'close', e.target.value)}
-                                            className="h-10 px-3 border border-gray-200 rounded-xl text-sm bg-gray-50"
-                                        />
-                                    </div>
-                                )}
-
-                                <button
-                                    onClick={() => toggleDayClosed(day.id)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${operatingHours[day.id].closed
-                                        ? 'bg-gray-100 text-gray-500'
-                                        : 'bg-red-50 text-red-500'
-                                        }`}
-                                >
-                                    {operatingHours[day.id].closed ? 'Open' : 'Close'}
-                                </button>
+                    {/* Same for all days toggle */}
+                    <div className="bg-gray-50 rounded-2xl p-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="font-semibold text-sm text-gray-900">Same for all days?</p>
+                                <p className="text-xs text-gray-500 mt-0.5">Quick setup with one timing</p>
                             </div>
-                        ))}
+                            <button
+                                onClick={() => setSameForAllDays(!sameForAllDays)}
+                                className={`h-7 w-12 rounded-full transition-colors ${sameForAllDays ? 'bg-primary' : 'bg-gray-300'}`}
+                            >
+                                <div className={`h-5 w-5 bg-white rounded-full shadow transition-transform ${sameForAllDays ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
+                        </div>
+
+                        {sameForAllDays && (
+                            <div className="mt-4 flex items-center gap-3 bg-white rounded-xl p-3">
+                                <input
+                                    type="time"
+                                    value={commonHours.open}
+                                    onChange={(e) => setCommonHours({ ...commonHours, open: e.target.value })}
+                                    className="flex-1 h-11 px-3 border border-gray-200 rounded-xl text-sm font-medium"
+                                />
+                                <span className="text-gray-400 font-medium">to</span>
+                                <input
+                                    type="time"
+                                    value={commonHours.close}
+                                    onChange={(e) => setCommonHours({ ...commonHours, close: e.target.value })}
+                                    className="flex-1 h-11 px-3 border border-gray-200 rounded-xl text-sm font-medium"
+                                />
+                            </div>
+                        )}
                     </div>
+
+                    {/* Day-by-day timings (only shown if not same for all) */}
+                    {!sameForAllDays && (
+                        <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
+                            {DAYS.map((day) => (
+                                <div key={day.id} className="p-4 flex items-center gap-3">
+                                    <span className="w-10 text-sm font-semibold text-gray-700">{day.label}</span>
+
+                                    {operatingHours[day.id].closed ? (
+                                        <span className="flex-1 text-sm text-gray-400 italic">Closed</span>
+                                    ) : (
+                                        <div className="flex-1 flex items-center gap-2">
+                                            <input
+                                                type="time"
+                                                value={operatingHours[day.id].open}
+                                                onChange={(e) => updateTime(day.id, 'open', e.target.value)}
+                                                className="h-10 px-3 border border-gray-200 rounded-xl text-sm bg-gray-50"
+                                            />
+                                            <span className="text-gray-400">to</span>
+                                            <input
+                                                type="time"
+                                                value={operatingHours[day.id].close}
+                                                onChange={(e) => updateTime(day.id, 'close', e.target.value)}
+                                                className="h-10 px-3 border border-gray-200 rounded-xl text-sm bg-gray-50"
+                                            />
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={() => toggleDayClosed(day.id)}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${operatingHours[day.id].closed
+                                            ? 'bg-gray-100 text-gray-500'
+                                            : 'bg-red-50 text-red-500'
+                                            }`}
+                                    >
+                                        {operatingHours[day.id].closed ? 'Open' : 'Close'}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Payment QR Section (Optional) */}
