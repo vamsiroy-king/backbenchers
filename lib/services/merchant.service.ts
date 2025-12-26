@@ -41,6 +41,51 @@ export const merchantService = {
     // Get all merchants with filters
     async getAll(filters?: MerchantFilters): Promise<ApiResponse<Merchant[]>> {
         try {
+            // If filtering for pending, fetch from pending_merchants table
+            if (filters?.status === 'pending') {
+                const { data, error } = await supabase
+                    .from('pending_merchants')
+                    .select('*')
+                    .eq('status', 'pending')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    return { success: false, data: null, error: error.message };
+                }
+
+                // Map pending_merchants to Merchant type
+                const merchants: Merchant[] = data.map((row: any) => ({
+                    id: row.id,
+                    bbmId: null,
+                    businessName: row.business_name,
+                    ownerName: row.owner_name,
+                    ownerPhone: row.owner_phone,
+                    email: row.email,
+                    phone: row.phone,
+                    category: row.category,
+                    description: row.description,
+                    address: row.address,
+                    city: row.city,
+                    state: row.state,
+                    pinCode: row.pincode,
+                    logo: row.logo_url,
+                    coverPhoto: row.cover_photo_url,
+                    storeImages: row.store_images || [],
+                    operatingHours: row.operating_hours,
+                    status: 'pending',
+                    totalOffers: 0,
+                    totalRedemptions: 0,
+                    createdAt: row.created_at,
+                    latitude: row.latitude,
+                    longitude: row.longitude,
+                    googleMapsLink: row.google_maps_link,
+                    paymentQrUrl: row.payment_qr_url
+                }));
+
+                return { success: true, data: merchants, error: null };
+            }
+
+            // For all other filters, use merchants table
             let query = supabase
                 .from('merchants')
                 .select('*')
@@ -457,8 +502,9 @@ export const merchantService = {
                 .select('*', { count: 'exact', head: true })
                 .eq('status', 'approved');
 
+            // Pending merchants are in pending_merchants table!
             const { count: pending } = await supabase
-                .from('merchants')
+                .from('pending_merchants')
                 .select('*', { count: 'exact', head: true })
                 .eq('status', 'pending');
 
@@ -468,7 +514,7 @@ export const merchantService = {
                 .eq('status', 'rejected');
 
             return {
-                total: total || 0,
+                total: (total || 0) + (pending || 0), // Include pending in total
                 approved: approved || 0,
                 pending: pending || 0,
                 rejected: rejected || 0
