@@ -362,6 +362,7 @@ export const offerService = {
         finalPrice?: number;
         discountAmount?: number;
         minOrderValue?: number;
+        maxDiscount?: number;
         freeItemName?: string;
         terms?: string[];
         status?: string;
@@ -396,6 +397,7 @@ export const offerService = {
                     final_price: finalPrice,
                     discount_amount: discountAmount,
                     min_order_value: offerData.minOrderValue || originalPrice,
+                    max_discount: offerData.maxDiscount,
                     terms: offerData.terms || [],
                     free_item_name: offerData.freeItemName,
                     status: offerData.status || 'pending',

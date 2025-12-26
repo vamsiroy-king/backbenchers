@@ -112,7 +112,9 @@ export default function MerchantReviewPage() {
         name: '',
         freeItemName: '',
         terms: '',
-        expiryDate: ''
+        expiryDate: '',
+        maxDiscount: '',
+        minOrderValue: ''
     });
 
     // Offers Management State
@@ -235,7 +237,9 @@ export default function MerchantReviewPage() {
                     name: '',
                     freeItemName: '',
                     terms: '',
-                    expiryDate: ''
+                    expiryDate: '',
+                    maxDiscount: '',
+                    minOrderValue: ''
                 });
                 await refreshOffers();
             }
@@ -289,9 +293,15 @@ export default function MerchantReviewPage() {
             let discountAmount = 0;
             let finalPrice = 0;
             const originalPrice = actualPrice || 100;
+            const maxDisc = offerData.maxDiscount ? parseFloat(offerData.maxDiscount) : undefined;
+            const minOrder = offerData.minOrderValue ? parseFloat(offerData.minOrderValue) : originalPrice;
 
             if (offerData.type === 'percentage') {
-                discountAmount = (originalPrice * discountVal) / 100;
+                let calcDiscount = (originalPrice * discountVal) / 100;
+                if (maxDisc && calcDiscount > maxDisc) {
+                    calcDiscount = maxDisc;
+                }
+                discountAmount = calcDiscount;
                 finalPrice = originalPrice - discountAmount;
             } else if (offerData.type === 'flat') {
                 discountAmount = discountVal;
@@ -312,9 +322,10 @@ export default function MerchantReviewPage() {
                 originalPrice: originalPrice,
                 finalPrice: finalPrice,
                 discountAmount: discountAmount,
-                minOrderValue: originalPrice,
+                minOrderValue: minOrder,
+                maxDiscount: maxDisc,
                 freeItemName: offerData.type === 'freebie' ? offerData.freeItemName : undefined,
-                terms: ["Valid student ID required", "Cannot be combined with other offers"],
+                terms: offerData.terms ? offerData.terms.split('\n').filter(t => t.trim()) : ["Valid student ID required"],
                 status: 'active',
                 validUntil: offerData.expiryDate || undefined
             });
@@ -546,6 +557,44 @@ export default function MerchantReviewPage() {
                                             value={offerData.actualPrice}
                                             onChange={(e) => setOfferData({ ...offerData, actualPrice: e.target.value })}
                                             placeholder="200"
+                                            className="w-full h-12 bg-gray-100 rounded-xl pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Max Discount (Percentage only) */}
+                            {offerData.type === 'percentage' && (
+                                <div>
+                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                        Max Discount Limit (₹)
+                                    </label>
+                                    <div className="relative mt-1">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                        <input
+                                            type="number"
+                                            value={offerData.maxDiscount}
+                                            onChange={(e) => setOfferData({ ...offerData, maxDiscount: e.target.value })}
+                                            placeholder="e.g. 500"
+                                            className="w-full h-12 bg-gray-100 rounded-xl pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Min Order Value */}
+                            {(offerData.type === 'flat' || offerData.type === 'percentage') && (
+                                <div>
+                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                        Min Order Value (₹)
+                                    </label>
+                                    <div className="relative mt-1">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                        <input
+                                            type="number"
+                                            value={offerData.minOrderValue}
+                                            onChange={(e) => setOfferData({ ...offerData, minOrderValue: e.target.value })}
+                                            placeholder={`Defaults to ${offerData.actualPrice || 'Article Price'}`}
                                             className="w-full h-12 bg-gray-100 rounded-xl pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
                                         />
                                     </div>
@@ -812,32 +861,7 @@ export default function MerchantReviewPage() {
                                         exit={{ opacity: 0, x: -20 }}
                                         className="space-y-4"
                                     >
-                                        {/* Offer Type */}
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Offer Type</label>
-                                            <div className="grid grid-cols-2 gap-2 mt-2">
-                                                {[
-                                                    { id: 'flat', label: '₹ Flat OFF', icon: IndianRupee },
-                                                    { id: 'percentage', label: '% OFF', icon: Percent },
-                                                    { id: 'bogo', label: 'Buy 1 Get 1', icon: Tag },
-                                                    { id: 'freebie', label: 'Free Item', icon: Tag }
-                                                ].map(type => (
-                                                    <button
-                                                        key={type.id}
-                                                        onClick={() => setOfferData({ ...offerData, type: type.id as any })}
-                                                        className={`p-3 rounded-xl border-2 flex items-center gap-2 text-sm font-medium transition-all ${offerData.type === type.id
-                                                            ? 'border-primary bg-primary/5 text-primary'
-                                                            : 'border-gray-200 hover:border-gray-300'
-                                                            }`}
-                                                    >
-                                                        <type.icon className="h-4 w-4" />
-                                                        {type.label}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Premade Templates */}
+                                        {/* Quick Templates */}
                                         <div>
                                             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Quick Templates</label>
                                             <div className="grid grid-cols-2 gap-2 mt-2">
@@ -863,14 +887,38 @@ export default function MerchantReviewPage() {
                                             </div>
                                         </div>
 
-                                        {/* Offer Name with Auto-Capitalize */}
+                                        {/* Offer Type */}
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Offer Type</label>
+                                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                                {[
+                                                    { id: 'flat', label: '₹ Flat OFF', icon: IndianRupee },
+                                                    { id: 'percentage', label: '% OFF', icon: Percent },
+                                                    { id: 'bogo', label: 'Buy 1 Get 1', icon: Tag },
+                                                    { id: 'freebie', label: 'Free Item', icon: Tag }
+                                                ].map(type => (
+                                                    <button
+                                                        key={type.id}
+                                                        onClick={() => setOfferData({ ...offerData, type: type.id as any })}
+                                                        className={`p-3 rounded-xl border-2 flex items-center gap-2 text-sm font-medium transition-all ${offerData.type === type.id
+                                                            ? 'border-primary bg-primary/5 text-primary'
+                                                            : 'border-gray-200 hover:border-gray-300'
+                                                            }`}
+                                                    >
+                                                        <type.icon className="h-4 w-4" />
+                                                        {type.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Offer Name */}
                                         <div>
                                             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Offer Name</label>
                                             <input
                                                 type="text"
                                                 value={offerData.name}
                                                 onChange={(e) => {
-                                                    // Auto Title Case: Capitalize first letter of each word
                                                     const titleCase = e.target.value
                                                         .split(' ')
                                                         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -901,11 +949,11 @@ export default function MerchantReviewPage() {
                                             </div>
                                         </div>
 
-                                        {/* Actual Price (for flat/percentage) */}
+                                        {/* Actual Price */}
                                         {(offerData.type === 'flat' || offerData.type === 'percentage') && (
                                             <div>
                                                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                    Actual Item Price (₹) <span className="text-gray-400 normal-case">- auto-sets min order</span>
+                                                    Actual Item Price (₹)
                                                 </label>
                                                 <div className="relative mt-1">
                                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
@@ -914,6 +962,44 @@ export default function MerchantReviewPage() {
                                                         value={offerData.actualPrice}
                                                         onChange={(e) => setOfferData({ ...offerData, actualPrice: e.target.value })}
                                                         placeholder="200"
+                                                        className="w-full h-12 bg-gray-100 rounded-xl pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Max Discount (Percentage only) */}
+                                        {offerData.type === 'percentage' && (
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                    Max Discount Limit (₹)
+                                                </label>
+                                                <div className="relative mt-1">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                                    <input
+                                                        type="number"
+                                                        value={offerData.maxDiscount}
+                                                        onChange={(e) => setOfferData({ ...offerData, maxDiscount: e.target.value })}
+                                                        placeholder="e.g. 500"
+                                                        className="w-full h-12 bg-gray-100 rounded-xl pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Min Order Value */}
+                                        {(offerData.type === 'flat' || offerData.type === 'percentage') && (
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                    Min Order Value (₹)
+                                                </label>
+                                                <div className="relative mt-1">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                                    <input
+                                                        type="number"
+                                                        value={offerData.minOrderValue}
+                                                        onChange={(e) => setOfferData({ ...offerData, minOrderValue: e.target.value })}
+                                                        placeholder={`Defaults to ${offerData.actualPrice || 'Article Price'}`}
                                                         className="w-full h-12 bg-gray-100 rounded-xl pl-10 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
                                                     />
                                                 </div>
@@ -934,41 +1020,148 @@ export default function MerchantReviewPage() {
                                             </div>
                                         )}
 
-                                        {/* Enhanced Preview with Price Calculation */}
-                                        {offerData.name && (offerData.discountValue || offerData.type === 'bogo') && (
-                                            <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl p-5 border border-green-200">
-                                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Live Preview</p>
-                                                <p className="font-bold text-lg text-gray-900">{offerData.name}</p>
+                                        {/* Terms & Conditions - Templates + Custom */}
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Terms & Conditions</label>
 
-                                                {/* Price Display */}
-                                                {(offerData.type === 'flat' || offerData.type === 'percentage') && offerData.actualPrice && (
-                                                    <div className="mt-3 flex items-center gap-3">
-                                                        <span className="line-through text-gray-400 text-lg">₹{offerData.actualPrice}</span>
-                                                        <span className="text-2xl font-black text-green-600">
-                                                            ₹{offerData.type === 'flat'
-                                                                ? Math.max(0, parseFloat(offerData.actualPrice) - parseFloat(offerData.discountValue || '0'))
-                                                                : Math.round(parseFloat(offerData.actualPrice) * (1 - parseFloat(offerData.discountValue || '0') / 100))
-                                                            }
+                                            {/* Quick Templates based on category */}
+                                            {merchant?.category && (
+                                                <div className="mt-2 mb-3">
+                                                    <p className="text-[10px] text-gray-400 mb-2">Quick select ({merchant.category}):</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {(TERMS_TEMPLATES[merchant.category] || TERMS_TEMPLATES['General']).map((template, idx) => {
+                                                            const currentTerms = offerData.terms ? offerData.terms.split('\n').filter(t => t.trim()) : [];
+                                                            const isSelected = currentTerms.includes(template);
+                                                            return (
+                                                                <button
+                                                                    key={idx}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        if (isSelected) {
+                                                                            // Remove template
+                                                                            const newTerms = currentTerms.filter(t => t !== template);
+                                                                            setOfferData({ ...offerData, terms: newTerms.join('\n') });
+                                                                        } else {
+                                                                            // Add template
+                                                                            const newTerms = [...currentTerms, template];
+                                                                            setOfferData({ ...offerData, terms: newTerms.join('\n') });
+                                                                        }
+                                                                    }}
+                                                                    className={`text-xs px-3 py-1.5 rounded-full border transition-all ${isSelected
+                                                                        ? 'bg-primary text-white border-primary'
+                                                                        : 'bg-white text-gray-600 border-gray-300 hover:border-primary'
+                                                                        }`}
+                                                                >
+                                                                    {isSelected ? '✓ ' : '+ '}{template}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Selected Terms (editable) */}
+                                            <div className="space-y-2">
+                                                {(offerData.terms ? offerData.terms.split('\n').filter(t => t.trim()) : []).map((term, index) => (
+                                                    <div key={index} className="flex items-center gap-2">
+                                                        <span className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-semibold">{index + 1}</span>
+                                                        <input
+                                                            type="text"
+                                                            value={term}
+                                                            onChange={(e) => {
+                                                                const terms = offerData.terms.split('\n').filter(t => t.trim());
+                                                                terms[index] = e.target.value;
+                                                                setOfferData({ ...offerData, terms: terms.join('\n') });
+                                                            }}
+                                                            className="flex-1 h-10 bg-gray-100 rounded-lg px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const terms = offerData.terms.split('\n').filter((t, i) => t.trim() && i !== index);
+                                                                setOfferData({ ...offerData, terms: terms.join('\n') });
+                                                            }}
+                                                            className="flex-shrink-0 h-8 w-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200"
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const currentTerms = offerData.terms ? offerData.terms.split('\n').filter(t => t.trim()) : [];
+                                                        setOfferData({ ...offerData, terms: [...currentTerms, ''].join('\n') });
+                                                    }}
+                                                    className="w-full h-10 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                    Add Custom Term
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Expiry Date */}
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Offer Valid Until</label>
+                                            <input
+                                                type="date"
+                                                value={offerData.expiryDate}
+                                                onChange={(e) => setOfferData({ ...offerData, expiryDate: e.target.value })}
+                                                min={new Date().toISOString().split('T')[0]}
+                                                className="w-full h-12 bg-gray-100 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                            />
+                                        </div>
+
+                                        {/* Enhanced Live Preview */}
+                                        {offerData.name && (offerData.discountValue || offerData.type === 'bogo') && (
+                                            <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
+                                                <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-3">Live Preview</p>
+
+                                                {/* Offer Card Preview */}
+                                                <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+                                                    <div className="flex-shrink-0 h-12 w-12 bg-gradient-to-br from-primary to-emerald-500 rounded-xl flex flex-col items-center justify-center text-white">
+                                                        <span className="text-sm font-black leading-none">
+                                                            {offerData.type === 'percentage' ? `${offerData.discountValue}%` : `₹${offerData.discountValue}`}
                                                         </span>
+                                                        <span className="text-[8px] font-medium opacity-80">OFF</span>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <p className="font-semibold text-gray-900">{offerData.name}</p>
+                                                        <div className="flex items-baseline gap-2">
+                                                            {offerData.actualPrice && (
+                                                                <>
+                                                                    <span className="text-gray-400 text-sm line-through">₹{offerData.actualPrice}</span>
+                                                                    <span className="text-primary font-bold">
+                                                                        ₹{offerData.type === 'flat'
+                                                                            ? Math.max(0, parseFloat(offerData.actualPrice) - parseFloat(offerData.discountValue || '0'))
+                                                                            : Math.round(parseFloat(offerData.actualPrice) * (1 - parseFloat(offerData.discountValue || '0') / 100))
+                                                                        }
+                                                                    </span>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Terms Preview */}
+                                                {offerData.terms && offerData.terms.trim() && (
+                                                    <div className="pt-3">
+                                                        <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Terms</p>
+                                                        {offerData.terms.split('\n').filter(t => t.trim()).map((term, i) => (
+                                                            <p key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+                                                                <span className="text-gray-400">•</span>
+                                                                {term}
+                                                            </p>
+                                                        ))}
                                                     </div>
                                                 )}
 
-                                                {/* Savings Badge */}
-                                                <div className="mt-3 inline-flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold">
-                                                    {offerData.type === 'percentage' ? (
-                                                        <span>🎉 {offerData.discountValue}% OFF</span>
-                                                    ) : offerData.type === 'flat' ? (
-                                                        <span>🎉 Save ₹{offerData.discountValue}</span>
-                                                    ) : offerData.type === 'bogo' ? (
-                                                        <span>🎁 Buy 1 Get 1 FREE</span>
-                                                    ) : (
-                                                        <span>🎁 Free: {offerData.freeItemName || 'Item'}</span>
-                                                    )}
-                                                </div>
-
-                                                {/* Min Order Notice */}
-                                                {offerData.actualPrice && (
-                                                    <p className="text-xs text-gray-500 mt-2">Min. order: ₹{offerData.actualPrice}</p>
+                                                {/* Expiry Preview */}
+                                                {offerData.expiryDate && (
+                                                    <p className="text-[10px] text-gray-400 mt-2">
+                                                        Valid until {new Date(offerData.expiryDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    </p>
                                                 )}
                                             </div>
                                         )}

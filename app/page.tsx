@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { authService } from "@/lib/services/auth.service";
 
 // Curiosity-inducing words (not revealing F³)
 const HOOK_WORDS = ["Student", "Exclusive", "Insider", "Premium"];
@@ -38,25 +39,10 @@ export default function Home() {
 
       // Check if user is already authenticated - redirect to dashboard
       try {
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (session) {
-          // User is already logged in - check if they have a student record
-          const { data: student } = await supabase
-            .from('students')
-            .select('id, status')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-
-          if (student && student.status !== 'suspended') {
-            console.log('Already authenticated - redirecting to dashboard');
-            router.replace('/dashboard');
-          }
+        const user = await authService.getCurrentUser();
+        if (user && user.role === 'student' && !user.isSuspended) {
+          console.log('Already authenticated - redirecting to dashboard');
+          router.replace('/dashboard');
         }
       } catch (e) {
         // Ignore errors - let user stay on landing page
