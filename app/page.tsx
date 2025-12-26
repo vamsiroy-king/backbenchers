@@ -99,7 +99,7 @@ function LandingContent() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.1 }}
           className="mb-6"
         >
           <h1 className="text-5xl font-black tracking-tight leading-[1.1] text-gray-900">
@@ -125,7 +125,7 @@ function LandingContent() {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.15 }}
           className="text-lg text-gray-500 mb-10"
         >
           Backbenchers. Born to Save.
@@ -135,7 +135,7 @@ function LandingContent() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.2 }}
           className="space-y-4"
         >
           <Link href="/signup" className="block">
@@ -162,7 +162,7 @@ function LandingContent() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
+        transition={{ delay: 0.25 }}
         className="px-6 pb-6"
       >
         <div className="bg-gray-50 rounded-2xl p-5">
@@ -177,7 +177,7 @@ function LandingContent() {
                 key={i}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.8 + i * 0.1 }}
+                transition={{ delay: 0.3 + i * 0.05 }}
                 className="flex items-center gap-3"
               >
                 <div className={`h-10 w-10 ${feature.bg} rounded-xl flex items-center justify-center`}>
