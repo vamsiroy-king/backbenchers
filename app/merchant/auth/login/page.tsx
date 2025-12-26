@@ -271,7 +271,7 @@ export default function MerchantLoginPage() {
                 {/* Register Link */}
                 <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-10">
                     New partner?{" "}
-                    <Link href="/merchant/onboarding" className="text-primary font-semibold hover:underline">
+                    <Link href="/merchant/auth/signup" className="text-primary font-semibold hover:underline">
                         Register Business
                     </Link>
                 </p>

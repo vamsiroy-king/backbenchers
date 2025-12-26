@@ -94,7 +94,7 @@ export default function MerchantDashboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50/50 dark:bg-gray-950 pb-32 pt-12">
+        <div className="min-h-screen bg-gray-50/50 dark:bg-gray-950 pb-32">
             {/* Header */}
             <header className="sticky top-0 z-40 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border-b border-gray-100/80 dark:border-gray-800">
                 <div className="px-5 h-16 flex items-center justify-between">

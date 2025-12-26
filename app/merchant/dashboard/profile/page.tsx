@@ -152,7 +152,7 @@ export default function MerchantProfilePage() {
     const storeImages = merchant.storeImages || [];
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950 pb-32 pt-12">
+        <div className="min-h-screen bg-white dark:bg-gray-950 pb-32">
             {/* Image Gallery Modal - Google Maps Style */}
             <AnimatePresence>
                 {showImageGallery && storeImages.length > 0 && (

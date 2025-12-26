@@ -70,7 +70,7 @@ export default function AnalyticsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black pb-32 pt-12">
+        <div className="min-h-screen bg-white dark:bg-black pb-32">
             {/* Header */}
             <header className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800">
                 <div className="px-4 h-14 flex items-center justify-between">

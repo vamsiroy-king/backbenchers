@@ -286,7 +286,7 @@ export default function ScanPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950 pb-32 pt-12">\n            <AnimatePresence mode="wait">
+        <div className="min-h-screen bg-white dark:bg-gray-950 pb-32">\n            <AnimatePresence mode="wait">
             {/* Step 1: Scanning Student's QR */}
             {step === "scanning" && (
                 <motion.div

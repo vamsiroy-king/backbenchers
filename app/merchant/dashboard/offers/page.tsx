@@ -116,7 +116,7 @@ export default function OffersPage() {
     const totalRevenue = offers.reduce((sum, o) => sum + (o.revenue || 0), 0);
 
     return (
-        <div className="min-h-screen bg-[#FAFAFA] pb-32 pt-12">
+        <div className="min-h-screen bg-[#FAFAFA] pb-32">
             {/* Header */}
             <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 px-5 py-4">
                 <div className="flex items-center justify-between">

@@ -124,7 +124,7 @@ export default function CreateOfferPage() {
     const currentType = OFFER_TYPES.find(t => t.id === offerType);
 
     return (
-        <div className="min-h-screen bg-[#FAFAFA] pb-32 pt-12">
+        <div className="min-h-screen bg-[#FAFAFA] pb-32">
             {/* TEMPORARY LOCK - Admin creates offers for now */}
             <div className="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center px-6 text-center">
                 <div className="h-20 w-20 bg-primary/10 rounded-3xl flex items-center justify-center mb-6">
