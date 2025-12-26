@@ -378,7 +378,7 @@ export const merchantService = {
                 address: pendingData.address,
                 city: pendingData.city,
                 state: pendingData.state,
-                pincode: pendingData.pincode,
+                pin_code: pendingData.pincode, // Map pincode to pin_code (db schema)
                 latitude: pendingData.latitude,
                 longitude: pendingData.longitude,
                 google_maps_link: pendingData.google_maps_link,
