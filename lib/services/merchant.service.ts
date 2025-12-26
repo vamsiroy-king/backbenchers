@@ -183,6 +183,7 @@ export const merchantService = {
     // Get single merchant with store images
     async getById(id: string): Promise<ApiResponse<Merchant>> {
         try {
+            // First try merchants table
             const { data, error } = await supabase
                 .from('merchants')
                 .select('*')
@@ -190,10 +191,53 @@ export const merchantService = {
                 .single();
 
             if (error) {
+                // If not found in merchants table, try pending_merchants table
+                if (error.code === 'PGRST116') { // Postgres code for no rows returned
+                    const { data: pendingData, error: pendingError } = await supabase
+                        .from('pending_merchants')
+                        .select('*')
+                        .eq('id', id)
+                        .single();
+
+                    if (pendingError) {
+                        return { success: false, data: null, error: 'Merchant not found' };
+                    }
+
+                    // Map pending merchant data
+                    const merchant: Merchant = {
+                        id: pendingData.id,
+                        bbmId: null,
+                        businessName: pendingData.business_name,
+                        ownerName: pendingData.owner_name,
+                        ownerPhone: pendingData.owner_phone,
+                        email: pendingData.email,
+                        phone: pendingData.phone,
+                        category: pendingData.category,
+                        description: pendingData.description,
+                        address: pendingData.address,
+                        city: pendingData.city,
+                        state: pendingData.state,
+                        pinCode: pendingData.pincode,
+                        logo: pendingData.logo_url,
+                        coverPhoto: pendingData.cover_photo_url,
+                        storeImages: pendingData.store_images || [],
+                        operatingHours: pendingData.operating_hours,
+                        status: 'pending',
+                        totalOffers: 0,
+                        totalRedemptions: 0,
+                        createdAt: pendingData.submitted_at, // Use submitted_at for pending
+                        latitude: pendingData.latitude,
+                        longitude: pendingData.longitude,
+                        googleMapsLink: pendingData.google_maps_link,
+                        paymentQrUrl: pendingData.payment_qr_url
+                    };
+                    return { success: true, data: merchant, error: null };
+                }
+
                 return { success: false, data: null, error: error.message };
             }
 
-            // Fetch store images
+            // Fetch store images for approved merchants
             const { data: images } = await supabase
                 .from('merchant_store_images')
                 .select('image_url')
