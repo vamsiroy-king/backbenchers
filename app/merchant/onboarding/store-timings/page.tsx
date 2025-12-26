@@ -37,6 +37,8 @@ export default function StoreTimingsPage() {
     const [paymentQr, setPaymentQr] = useState<{ url: string; file: File | null } | null>(null);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
 
     // Apply common hours to all days when sameForAllDays is true
     useEffect(() => {
@@ -117,9 +119,45 @@ export default function StoreTimingsPage() {
         }
     };
 
-    const handleContinue = async () => {
+    // Step 1: Validate data and show confirmation modal
+    const handleShowConfirmation = async () => {
+        setError(null);
+
+        // Get all onboarding data for validation
+        const businessData = JSON.parse(localStorage.getItem('merchant_business') || '{}');
+        const locationData = JSON.parse(localStorage.getItem('merchant_location') || '{}');
+
+        if (!businessData.businessName) {
+            setError('Missing business details. Please go back and fill all required fields.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        if (!locationData.city && !businessData.city) {
+            setError('Please select your city in Business Details.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        // Save operating hours to business data before showing confirmation
+        businessData.operatingHours = operatingHours;
+        localStorage.setItem('merchant_business', JSON.stringify(businessData));
+
+        // All validations passed - show confirmation modal
+        setAgreedToTerms(false);
+        setShowConfirmation(true);
+    };
+
+    // Step 2: Actually submit to pending_merchants after user confirms T&C
+    const handleConfirmSubmit = async () => {
+        if (!agreedToTerms) {
+            setError('Please accept the Terms & Conditions to proceed.');
+            return;
+        }
+
         setUploading(true);
         setError(null);
+        setShowConfirmation(false);
 
         try {
             // Upload QR if present
@@ -128,38 +166,19 @@ export default function StoreTimingsPage() {
                 qrUrl = await uploadQrToStorage(paymentQr.file);
             }
 
-            // Get existing business data and add operating hours
-            const businessData = JSON.parse(localStorage.getItem('merchant_business') || '{}');
-            businessData.operatingHours = operatingHours;
-            localStorage.setItem('merchant_business', JSON.stringify(businessData));
-
-            // Save QR to documents data
-            if (qrUrl) {
-                const documentsData = JSON.parse(localStorage.getItem('merchant_documents') || '{}');
-                documentsData.paymentQr = { url: qrUrl };
-                localStorage.setItem('merchant_documents', JSON.stringify(documentsData));
-            }
-
             // Get all onboarding data
+            const businessData = JSON.parse(localStorage.getItem('merchant_business') || '{}');
             const locationData = JSON.parse(localStorage.getItem('merchant_location') || '{}');
             const documentsData = JSON.parse(localStorage.getItem('merchant_documents') || '{}');
             const mapsData = JSON.parse(localStorage.getItem('merchant_maps') || '{}');
 
-            if (!businessData.businessName) {
-                setError('Missing business details. Please go back and fill all required fields.');
-                setUploading(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                return;
+            // Save QR to documents data
+            if (qrUrl) {
+                documentsData.paymentQr = { url: qrUrl };
+                localStorage.setItem('merchant_documents', JSON.stringify(documentsData));
             }
 
-            if (!locationData.city && !businessData.city) {
-                setError('Please select your city in Business Details.');
-                setUploading(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                return;
-            }
-
-            // Import auth service and complete onboarding directly (skip passcode)
+            // Import auth service and complete onboarding
             const { authService } = await import('@/lib/services/auth.service');
 
             const result = await authService.completeMerchantOnboarding({
@@ -390,7 +409,7 @@ export default function StoreTimingsPage() {
             {/* Bottom CTA */}
             <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/95 backdrop-blur-xl border-t border-gray-100">
                 <Button
-                    onClick={handleContinue}
+                    onClick={handleShowConfirmation}
                     disabled={uploading}
                     className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-semibold rounded-2xl shadow-lg shadow-primary/30"
                 >
@@ -410,6 +429,77 @@ export default function StoreTimingsPage() {
                     You can update these later in settings
                 </p>
             </div>
+
+            {/* Confirmation Modal with Terms & Conditions */}
+            {showConfirmation && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-5">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl"
+                    >
+                        {/* Header */}
+                        <div className="text-center mb-6">
+                            <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h2 className="text-xl font-bold text-gray-900">Submit Application</h2>
+                            <p className="text-sm text-gray-500 mt-2">You're about to submit your merchant application for review</p>
+                        </div>
+
+                        {/* Terms & Conditions */}
+                        <div className="bg-gray-50 rounded-2xl p-4 mb-6">
+                            <label className="flex gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={agreedToTerms}
+                                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                                    className="h-5 w-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
+                                />
+                                <span className="text-sm text-gray-700">
+                                    I agree to the{' '}
+                                    <a href="/terms" target="_blank" className="text-primary font-semibold underline">
+                                        Terms of Service
+                                    </a>{' '}
+                                    and{' '}
+                                    <a href="/privacy" target="_blank" className="text-primary font-semibold underline">
+                                        Privacy Policy
+                                    </a>
+                                    . I consent to share my business information with Backbenchers for verification purposes.
+                                </span>
+                            </label>
+                        </div>
+
+                        {/* Error */}
+                        {error && (
+                            <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowConfirmation(false)}
+                                className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-700 font-semibold"
+                            >
+                                Cancel
+                            </button>
+                            <Button
+                                onClick={handleConfirmSubmit}
+                                disabled={!agreedToTerms || uploading}
+                                className="flex-1 h-12 bg-primary text-white font-semibold rounded-xl disabled:opacity-50"
+                            >
+                                {uploading ? (
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                ) : (
+                                    'Confirm & Submit'
+                                )}
+                            </Button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 }
