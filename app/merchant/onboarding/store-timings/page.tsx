@@ -34,6 +34,7 @@ export default function StoreTimingsPage() {
 
     const [paymentQr, setPaymentQr] = useState<{ url: string; file: File | null } | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Check if we have previous onboarding data
     useEffect(() => {
@@ -99,6 +100,7 @@ export default function StoreTimingsPage() {
 
     const handleContinue = async () => {
         setUploading(true);
+        setError(null);
 
         try {
             // Upload QR if present
@@ -171,10 +173,12 @@ export default function StoreTimingsPage() {
                 router.push('/merchant/onboarding/pending');
             } else {
                 console.error('Merchant onboarding error:', result.error);
+                setError(result.error || 'Failed to submit application. Please try again.');
                 setUploading(false);
             }
-        } catch (error) {
-            console.error('Error:', error);
+        } catch (err: any) {
+            console.error('Error:', err);
+            setError(err?.message || 'Something went wrong. Please try again.');
             setUploading(false);
         }
     };
@@ -194,21 +198,33 @@ export default function StoreTimingsPage() {
                     </Link>
                     <div className="flex-1">
                         <h1 className="font-bold text-[17px] text-gray-900 tracking-tight">Store Timings</h1>
-                        <p className="text-[11px] text-gray-400 font-medium">Step 5 of 7 • Almost there!</p>
+                        <p className="text-[11px] text-gray-400 font-medium">Step 3 of 3 • Final Step!</p>
                     </div>
                 </div>
 
                 {/* Progress */}
                 <div className="px-5 pb-4 flex gap-2">
-                    {[1, 2, 3, 4, 5, 6, 7].map(s => (
+                    {[1, 2, 3].map(s => (
                         <div
                             key={s}
-                            className={`h-1.5 flex-1 rounded-full transition-colors ${s <= 5 ? "bg-primary" : "bg-gray-200"
-                                }`}
+                            className="h-1.5 flex-1 rounded-full bg-primary"
                         />
                     ))}
                 </div>
             </header>
+
+            {/* Error Banner */}
+            {error && (
+                <div className="mx-5 mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <p className="text-red-600 text-sm font-medium">{error}</p>
+                    <button
+                        onClick={() => setError(null)}
+                        className="text-red-500 text-xs mt-1 underline"
+                    >
+                        Dismiss
+                    </button>
+                </div>
+            )}
 
             <main className="px-5 pt-6 pb-32 space-y-6">
                 {/* Store Hours Section */}

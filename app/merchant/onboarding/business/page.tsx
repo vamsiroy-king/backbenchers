@@ -197,12 +197,8 @@ export default function BusinessDetailsPage() {
                 longitude: extractedCoords?.lng || null,
             }));
 
-            // If offline, go to location. If online, skip to documents
-            if (formData.businessType === 'offline') {
-                router.push("/merchant/onboarding/location");
-            } else {
-                router.push("/merchant/onboarding/documents");
-            }
+            // All stores go directly to documents (timings collected in final step)
+            router.push("/merchant/onboarding/documents");
         }
     };
 

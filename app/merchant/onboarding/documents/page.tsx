@@ -286,22 +286,21 @@ export default function DocumentsPage() {
                 <div className="min-h-screen overflow-y-auto pt-6 pb-8 px-5 scrollbar-hide">
                     {/* Header */}
                     <div className="flex items-center gap-4 mb-6">
-                        <Link href="/merchant/onboarding/location">
+                        <Link href="/merchant/onboarding/business">
                             <button className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
                                 <ArrowLeft className="h-5 w-5" />
                             </button>
                         </Link>
                         <div>
                             <h1 className="text-xl font-extrabold">Photos & Documents</h1>
-                            <p className="text-xs text-gray-500">Step 3 of 3</p>
+                            <p className="text-xs text-gray-500">Step 2 of 3</p>
                         </div>
                     </div>
 
-                    {/* Progress Bar */}
                     <div className="flex gap-2 mb-8">
                         <div className="h-1.5 flex-1 bg-primary rounded-full" />
                         <div className="h-1.5 flex-1 bg-primary rounded-full" />
-                        <div className="h-1.5 flex-1 bg-primary rounded-full" />
+                        <div className="h-1.5 flex-1 bg-gray-200 rounded-full" />
                     </div>
 
                     {/* Error message */}
