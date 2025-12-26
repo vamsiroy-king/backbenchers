@@ -188,66 +188,63 @@ export const merchantService = {
                 .from('merchants')
                 .select('*')
                 .eq('id', id)
-                .single();
+                .maybeSingle();
 
-            if (error) {
-                // If not found in merchants table, try pending_merchants table
-                if (error.code === 'PGRST116') { // Postgres code for no rows returned
-                    const { data: pendingData, error: pendingError } = await supabase
-                        .from('pending_merchants')
-                        .select('*')
-                        .eq('id', id)
-                        .single();
+            if (data) {
+                // Fetch store images for approved merchants
+                const { data: images } = await supabase
+                    .from('merchant_store_images')
+                    .select('image_url')
+                    .eq('merchant_id', id)
+                    .order('display_order');
 
-                    if (pendingError) {
-                        return { success: false, data: null, error: 'Merchant not found' };
-                    }
+                const merchant = mapDbToMerchant(data);
+                merchant.storeImages = images?.map(img => img.image_url) || [];
 
-                    // Map pending merchant data
-                    const merchant: Merchant = {
-                        id: pendingData.id,
-                        bbmId: null,
-                        businessName: pendingData.business_name,
-                        ownerName: pendingData.owner_name,
-                        ownerPhone: pendingData.owner_phone,
-                        email: pendingData.email,
-                        phone: pendingData.phone,
-                        category: pendingData.category,
-                        description: pendingData.description,
-                        address: pendingData.address,
-                        city: pendingData.city,
-                        state: pendingData.state,
-                        pinCode: pendingData.pincode,
-                        logo: pendingData.logo_url,
-                        coverPhoto: pendingData.cover_photo_url,
-                        storeImages: pendingData.store_images || [],
-                        operatingHours: pendingData.operating_hours,
-                        status: 'pending',
-                        totalOffers: 0,
-                        totalRedemptions: 0,
-                        createdAt: pendingData.submitted_at, // Use submitted_at for pending
-                        latitude: pendingData.latitude,
-                        longitude: pendingData.longitude,
-                        googleMapsLink: pendingData.google_maps_link,
-                        paymentQrUrl: pendingData.payment_qr_url
-                    };
-                    return { success: true, data: merchant, error: null };
-                }
-
-                return { success: false, data: null, error: error.message };
+                return { success: true, data: merchant, error: null };
             }
 
-            // Fetch store images for approved merchants
-            const { data: images } = await supabase
-                .from('merchant_store_images')
-                .select('image_url')
-                .eq('merchant_id', id)
-                .order('display_order');
+            // If not found in merchants table, try pending_merchants table
+            // We use maybeSingle() to avoid errors if no rows found
+            const { data: pendingData, error: pendingError } = await supabase
+                .from('pending_merchants')
+                .select('*')
+                .eq('id', id)
+                .maybeSingle();
 
-            const merchant = mapDbToMerchant(data);
-            merchant.storeImages = images?.map(img => img.image_url) || [];
+            if (pendingData) {
+                // Map pending merchant data
+                const merchant: Merchant = {
+                    id: pendingData.id,
+                    bbmId: null,
+                    businessName: pendingData.business_name,
+                    ownerName: pendingData.owner_name,
+                    ownerPhone: pendingData.owner_phone,
+                    email: pendingData.email,
+                    phone: pendingData.phone,
+                    category: pendingData.category,
+                    description: pendingData.description,
+                    address: pendingData.address,
+                    city: pendingData.city,
+                    state: pendingData.state,
+                    pinCode: pendingData.pincode,
+                    logo: pendingData.logo_url,
+                    coverPhoto: pendingData.cover_photo_url,
+                    storeImages: pendingData.store_images || [],
+                    operatingHours: pendingData.operating_hours,
+                    status: 'pending',
+                    totalOffers: 0,
+                    totalRedemptions: 0,
+                    createdAt: pendingData.submitted_at, // Use submitted_at for pending
+                    latitude: pendingData.latitude,
+                    longitude: pendingData.longitude,
+                    googleMapsLink: pendingData.google_maps_link,
+                    paymentQrUrl: pendingData.payment_qr_url
+                };
+                return { success: true, data: merchant, error: null };
+            }
 
-            return { success: true, data: merchant, error: null };
+            return { success: false, data: null, error: 'Merchant not found' };
         } catch (error: any) {
             return { success: false, data: null, error: error.message };
         }
@@ -352,30 +349,88 @@ export const merchantService = {
 
             const bbmId = await generateUniqueBbmId();
 
-
-            const { data, error } = await supabase
-                .from('merchants')
-                .update({
-                    status: 'approved',
-                    bbm_id: bbmId,
-                    approved_at: new Date().toISOString()
-                })
+            // 1. Get the pending application
+            const { data: pendingData, error: fetchError } = await supabase
+                .from('pending_merchants')
+                .select('*')
                 .eq('id', id)
+                .single();
+
+            if (fetchError || !pendingData) {
+                return { success: false, data: null, error: 'Pending application not found' };
+            }
+
+            // 2. Prepare merchant data for insertion
+            const merchantData = {
+                id: pendingData.id,
+                user_id: pendingData.user_id,
+                bbm_id: bbmId,
+                business_name: pendingData.business_name,
+                email: pendingData.email,
+                phone: pendingData.phone,
+                owner_name: pendingData.owner_name,
+                owner_phone: pendingData.owner_phone,
+                description: pendingData.description,
+                category: pendingData.category,
+                sub_category: pendingData.sub_category, // Assuming column exists
+                address: pendingData.address,
+                city: pendingData.city,
+                state: pendingData.state,
+                pincode: pendingData.pincode,
+                latitude: pendingData.latitude,
+                longitude: pendingData.longitude,
+                google_maps_link: pendingData.google_maps_link,
+                google_maps_embed: pendingData.google_maps_embed,
+                logo_url: pendingData.logo_url,
+                cover_photo_url: pendingData.cover_photo_url,
+                payment_qr_url: pendingData.payment_qr_url,
+                gst_number: pendingData.gst_number,
+                pan_number: pendingData.pan_number,
+                status: 'approved',
+                created_at: pendingData.submitted_at,
+                approved_at: new Date().toISOString()
+            };
+
+            // 3. Insert into merchants table
+            const { data: newMerchant, error: insertError } = await supabase
+                .from('merchants')
+                .insert([merchantData])
                 .select()
                 .single();
 
-            if (error) {
-                return { success: false, data: null, error: error.message };
+            if (insertError) {
+                return { success: false, data: null, error: insertError.message };
             }
 
-            // Activate any pending offers for this merchant
-            await supabase
-                .from('offers')
-                .update({ status: 'active' })
-                .eq('merchant_id', id)
-                .eq('status', 'pending');
+            // 4. Handle store images (move from JSON in pending to merchant_store_images table)
+            if (pendingData.store_images) {
+                // Check if it's string or array
+                let imagesArray: string[] = [];
+                if (typeof pendingData.store_images === 'string') {
+                    try {
+                        imagesArray = JSON.parse(pendingData.store_images);
+                    } catch (e) { }
+                } else if (Array.isArray(pendingData.store_images)) {
+                    imagesArray = pendingData.store_images;
+                }
 
-            return { success: true, data: mapDbToMerchant(data), error: null };
+                if (imagesArray.length > 0) {
+                    const imageInserts = imagesArray.map((url, index) => ({
+                        merchant_id: id,
+                        image_url: url,
+                        display_order: index
+                    }));
+
+                    await supabase.from('merchant_store_images').insert(imageInserts);
+                }
+            }
+
+            // 5. Delete from pending_merchants
+            await supabase.from('pending_merchants').delete().eq('id', id);
+
+            // 6. Return mapped merchant
+            return { success: true, data: mapDbToMerchant(newMerchant), error: null };
+
         } catch (error: any) {
             return { success: false, data: null, error: error.message };
         }
@@ -384,16 +439,36 @@ export const merchantService = {
     // Reject merchant (admin only)
     async reject(id: string, reason: string): Promise<ApiResponse<void>> {
         try {
-            const { error } = await supabase
-                .from('merchants')
-                .update({
-                    status: 'rejected',
-                    rejected_reason: reason
-                })
-                .eq('id', id);
+            // Check if it's in pending_merchants first
+            const { data: pendingData } = await supabase
+                .from('pending_merchants')
+                .select('id')
+                .eq('id', id)
+                .maybeSingle();
 
-            if (error) {
-                return { success: false, data: undefined, error: error.message };
+            if (pendingData) {
+                // Update pending_merchants status
+                const { error } = await supabase
+                    .from('pending_merchants')
+                    .update({
+                        status: 'rejected',
+                        rejection_reason: reason,
+                        reviewed_at: new Date().toISOString()
+                    })
+                    .eq('id', id);
+
+                if (error) return { success: false, data: undefined, error: error.message };
+            } else {
+                // Try merchants table (if revoking approval)
+                const { error } = await supabase
+                    .from('merchants')
+                    .update({
+                        status: 'rejected',
+                        rejected_reason: reason
+                    })
+                    .eq('id', id);
+
+                if (error) return { success: false, data: undefined, error: error.message };
             }
 
             return { success: true, data: undefined, error: null };
