@@ -38,13 +38,13 @@ function getExpiryUrgency(validUntil: string | null | undefined): {
     if (daysLeft < 0) return null; // Already expired
 
     if (daysLeft === 0) {
-        return { daysLeft, label: "Ends Today!", color: "text-red-600", bgColor: "bg-red-100", show: true };
+        return { daysLeft, label: "Ends Today!", color: "text-red-400", bgColor: "bg-red-500/15", show: true };
     } else if (daysLeft === 1) {
-        return { daysLeft, label: "Ends Tomorrow", color: "text-orange-600", bgColor: "bg-orange-100", show: true };
+        return { daysLeft, label: "Ends Tomorrow", color: "text-orange-400", bgColor: "bg-orange-500/15", show: true };
     } else if (daysLeft <= 3) {
-        return { daysLeft, label: `${daysLeft} days left`, color: "text-amber-600", bgColor: "bg-amber-100", show: true };
+        return { daysLeft, label: `${daysLeft} days left`, color: "text-amber-400", bgColor: "bg-amber-500/15", show: true };
     } else if (daysLeft <= 7) {
-        return { daysLeft, label: `${daysLeft} days left`, color: "text-green-600", bgColor: "bg-green-50", show: true };
+        return { daysLeft, label: `${daysLeft} days left`, color: "text-green-400", bgColor: "bg-green-500/10", show: true };
     }
 
     return { daysLeft, label: "", color: "", bgColor: "", show: false };
@@ -126,30 +126,30 @@ export default function ExplorePage() {
     const hasResults = filteredBrands.length > 0 || filteredOffers.length > 0;
 
     return (
-        <div className="min-h-screen bg-white pb-28">
+        <div className="min-h-screen bg-[#0a0a0b] pb-28">
             {/* Header with Animated Search */}
-            <header className="sticky top-0 z-40 bg-white px-5 py-4">
-                <h1 className="text-xl font-bold mb-4 text-gray-900">
+            <header className="sticky top-0 z-40 bg-[#0a0a0b]/95 backdrop-blur-xl px-5 py-4 border-b border-white/[0.06]">
+                <h1 className="text-xl font-bold mb-4 text-white">
                     {selectedMerchant ? selectedMerchant.businessName : "Explore"}
                 </h1>
                 {selectedMerchant && (
-                    <Link href="/dashboard/explore" className="text-sm text-primary mb-3 inline-block">
+                    <Link href="/dashboard/explore" className="text-sm text-green-400 mb-3 inline-block">
                         ← View all offers
                     </Link>
                 )}
                 <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-12 bg-gray-100 rounded-2xl pl-12 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+                        className="w-full h-12 bg-white/[0.05] rounded-2xl pl-12 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-green-500/30 text-white placeholder:text-white/40 border border-white/[0.06] transition-all"
                         placeholder=""
                     />
                     {/* Animated placeholder when empty */}
                     {!searchQuery && (
                         <div className="absolute left-12 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-1">
-                            <span className="text-sm text-gray-400">Search</span>
+                            <span className="text-sm text-white/40">Search</span>
                             <AnimatePresence mode="wait">
                                 <motion.span
                                     key={placeholderIndex}
@@ -157,7 +157,7 @@ export default function ExplorePage() {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -8 }}
                                     transition={{ duration: 0.25 }}
-                                    className="text-sm text-gray-300"
+                                    className="text-sm text-white/25"
                                 >
                                     {SEARCH_PLACEHOLDERS[placeholderIndex]}
                                 </motion.span>
@@ -172,8 +172,8 @@ export default function ExplorePage() {
                 {(merchantFilter || searchQuery) && filteredOffers.length > 0 && (
                     <section>
                         <div className="flex items-center gap-2.5 mb-4">
-                            <TrendingUp className="h-5 w-5 text-primary" />
-                            <h2 className="text-lg font-bold text-gray-900">
+                            <TrendingUp className="h-5 w-5 text-green-400" />
+                            <h2 className="text-lg font-bold text-white">
                                 {merchantFilter ? "Available Offers" : "Offers"}
                             </h2>
                         </div>
@@ -185,7 +185,7 @@ export default function ExplorePage() {
                                     <Link key={offer.id} href={`/store/${offer.merchantId}`}>
                                         <motion.div
                                             whileTap={{ scale: 0.98 }}
-                                            className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl relative overflow-hidden"
+                                            className="flex items-center gap-4 p-4 bg-white/[0.04] rounded-2xl relative overflow-hidden border border-white/[0.06] hover:bg-white/[0.06] transition-colors"
                                         >
                                             {/* Urgency Badge */}
                                             {urgency?.show && (
@@ -195,20 +195,20 @@ export default function ExplorePage() {
                                                 </div>
                                             )}
 
-                                            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                                            <div className="w-12 h-12 bg-green-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
                                                 {offer.merchantLogo ? (
                                                     <img src={offer.merchantLogo} alt="" className="w-8 h-8 object-contain rounded-lg" />
                                                 ) : (
-                                                    <Store className="w-5 h-5 text-primary" />
+                                                    <Store className="w-5 h-5 text-green-400" />
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-semibold text-sm text-gray-900 truncate">
+                                                <p className="font-semibold text-sm text-white truncate">
                                                     {offer.merchantName || 'Special Offer'}
                                                 </p>
-                                                <p className="text-xs text-gray-500 truncate">{offer.title}</p>
+                                                <p className="text-xs text-white/50 truncate">{offer.title}</p>
                                             </div>
-                                            <span className="text-sm font-bold text-primary flex-shrink-0">
+                                            <span className="text-sm font-bold text-green-400 flex-shrink-0">
                                                 {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
                                             </span>
                                         </motion.div>
@@ -223,25 +223,25 @@ export default function ExplorePage() {
                 {!loading && !merchantFilter && filteredBrands.length > 0 && (
                     <section>
                         <div className="flex items-center gap-2.5 mb-4">
-                            <TrendingUp className="h-5 w-5 text-primary" />
-                            <h2 className="text-lg font-bold text-gray-900">Featured Brands</h2>
+                            <TrendingUp className="h-5 w-5 text-green-400" />
+                            <h2 className="text-lg font-bold text-white">Featured Brands</h2>
                         </div>
                         <div className="flex gap-3 overflow-x-auto pb-2 -mx-5 px-5 hide-scrollbar">
                             {filteredBrands.map((brand) => (
                                 <Link key={brand.id} href={`/store/${brand.id}`}>
                                     <motion.div
                                         whileTap={{ scale: 0.97 }}
-                                        className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center gap-2 min-w-[100px]"
+                                        className="bg-white/[0.04] rounded-2xl p-4 flex flex-col items-center justify-center gap-2 min-w-[100px] border border-white/[0.06] hover:bg-white/[0.08] transition-colors"
                                     >
                                         {brand.logo ? (
                                             <img src={brand.logo} alt={brand.businessName} className="w-12 h-12 rounded-xl object-cover" />
                                         ) : (
-                                            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                                                <Store className="w-5 h-5 text-primary" />
+                                            <div className="w-12 h-12 rounded-xl bg-green-500/15 flex items-center justify-center">
+                                                <Store className="w-5 h-5 text-green-400" />
                                             </div>
                                         )}
-                                        <span className="text-xs font-semibold text-gray-900 text-center line-clamp-1">{brand.businessName}</span>
-                                        <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                                        <span className="text-xs font-semibold text-white text-center line-clamp-1">{brand.businessName}</span>
+                                        <span className="text-[10px] font-medium text-green-400 bg-green-500/15 px-2 py-0.5 rounded-full">
                                             {brand.category}
                                         </span>
                                     </motion.div>
@@ -254,11 +254,11 @@ export default function ExplorePage() {
                 {/* No Results */}
                 {searchQuery && !hasResults && !loading && (
                     <section className="text-center py-8">
-                        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <Search className="w-6 h-6 text-gray-400" />
+                        <div className="w-16 h-16 bg-white/[0.05] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <Search className="w-6 h-6 text-white/40" />
                         </div>
-                        <h3 className="font-bold text-gray-900 text-lg">No results found</h3>
-                        <p className="text-sm text-gray-500 mt-2">
+                        <h3 className="font-bold text-white text-lg">No results found</h3>
+                        <p className="text-sm text-white/50 mt-2">
                             Try searching for something else
                         </p>
                     </section>
@@ -267,14 +267,14 @@ export default function ExplorePage() {
                 {/* No offers for this merchant */}
                 {merchantFilter && filteredOffers.length === 0 && !loading && (
                     <section className="text-center py-8">
-                        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <Store className="w-6 h-6 text-gray-400" />
+                        <div className="w-16 h-16 bg-white/[0.05] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <Store className="w-6 h-6 text-white/40" />
                         </div>
-                        <h3 className="font-bold text-gray-900 text-lg">No offers available</h3>
-                        <p className="text-sm text-gray-500 mt-2">
+                        <h3 className="font-bold text-white text-lg">No offers available</h3>
+                        <p className="text-sm text-white/50 mt-2">
                             This merchant has no active offers right now
                         </p>
-                        <Link href="/dashboard/explore" className="text-sm text-primary font-semibold mt-4 inline-block">
+                        <Link href="/dashboard/explore" className="text-sm text-green-400 font-semibold mt-4 inline-block">
                             ← Browse all offers
                         </Link>
                     </section>
@@ -284,8 +284,8 @@ export default function ExplorePage() {
                 {!merchantFilter && !searchQuery && (
                     <section>
                         <div className="flex items-center gap-2.5 mb-4">
-                            <Sparkles className="h-5 w-5 text-primary" />
-                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Browse Categories</h2>
+                            <Sparkles className="h-5 w-5 text-green-400" />
+                            <h2 className="text-lg font-bold text-white">Browse Categories</h2>
                         </div>
                         <div className="flex gap-3 overflow-x-auto pb-2 -mx-5 px-5 hide-scrollbar">
                             {[
@@ -296,12 +296,12 @@ export default function ExplorePage() {
                                 <Link key={cat.name} href={`/dashboard/category/${cat.name}`}>
                                     <motion.div
                                         whileTap={{ scale: 0.97 }}
-                                        className="flex-shrink-0 w-28 bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm"
+                                        className="flex-shrink-0 w-28 bg-white/[0.04] rounded-2xl p-4 border border-white/[0.06] hover:bg-white/[0.08] transition-colors"
                                     >
-                                        <div className={`w-12 h-12 bg-gradient-to-br ${cat.color} rounded-xl flex items-center justify-center mb-2`}>
+                                        <div className={`w-12 h-12 bg-gradient-to-br ${cat.color} rounded-xl flex items-center justify-center mb-2 shadow-lg`}>
                                             <span className="text-2xl">{cat.emoji}</span>
                                         </div>
-                                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{cat.name}</p>
+                                        <p className="text-sm font-semibold text-white">{cat.name}</p>
                                     </motion.div>
                                 </Link>
                             ))}
@@ -314,10 +314,10 @@ export default function ExplorePage() {
                     <section>
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2.5">
-                                <TrendingUp className="h-5 w-5 text-primary" />
-                                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Trending Now</h2>
+                                <TrendingUp className="h-5 w-5 text-green-400" />
+                                <h2 className="text-lg font-bold text-white">Trending Now</h2>
                             </div>
-                            <span className="text-xs text-gray-400">{offers.length} deals</span>
+                            <span className="text-xs text-white/40">{offers.length} deals</span>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             {offers.slice(0, 6).map((offer, index) => (
@@ -327,24 +327,24 @@ export default function ExplorePage() {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.05 }}
                                         whileTap={{ scale: 0.97 }}
-                                        className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 relative overflow-hidden"
+                                        className="bg-white/[0.04] rounded-2xl p-4 border border-white/[0.06] relative overflow-hidden hover:bg-white/[0.08] transition-colors"
                                     >
                                         {/* Discount Badge */}
                                         <div className="absolute top-2 right-2">
-                                            <span className="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                                            <span className="bg-gradient-to-r from-green-500 to-green-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg shadow-green-500/25">
                                                 {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
                                             </span>
                                         </div>
 
-                                        <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-3">
+                                        <div className="w-10 h-10 bg-green-500/15 rounded-xl flex items-center justify-center mb-3">
                                             {offer.merchantLogo ? (
                                                 <img src={offer.merchantLogo} alt="" className="w-7 h-7 object-contain rounded-lg" />
                                             ) : (
-                                                <Store className="w-4 h-4 text-primary" />
+                                                <Store className="w-4 h-4 text-green-400" />
                                             )}
                                         </div>
-                                        <h3 className="font-bold text-sm text-gray-900 dark:text-white truncate">{offer.merchantName || 'Store'}</h3>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{offer.title}</p>
+                                        <h3 className="font-bold text-sm text-white truncate">{offer.merchantName || 'Store'}</h3>
+                                        <p className="text-xs text-white/50 truncate">{offer.title}</p>
                                     </motion.div>
                                 </Link>
                             ))}
@@ -355,11 +355,11 @@ export default function ExplorePage() {
                 {/* Coming Soon - Only if no content */}
                 {!searchQuery && !merchantFilter && offers.length === 0 && filteredBrands.length === 0 && (
                     <section className="text-center py-6">
-                        <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                        <div className="w-14 h-14 bg-green-500/15 rounded-2xl flex items-center justify-center mx-auto mb-3">
                             <span className="text-2xl">🚀</span>
                         </div>
-                        <h3 className="font-bold text-gray-900 dark:text-white">More Coming Soon!</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        <h3 className="font-bold text-white">More Coming Soon!</h3>
+                        <p className="text-sm text-white/50 mt-1">
                             We're onboarding amazing brands in Food, Fashion & Fitness.
                         </p>
                     </section>

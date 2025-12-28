@@ -82,31 +82,32 @@ export default function SignupPage() {
 
     if (checkingAuth) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="min-h-screen flex items-center justify-center bg-[#0a0a0b]">
+                <Loader2 className="h-8 w-8 animate-spin text-green-400" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-[#0a0a0b] flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background Decor */}
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[100px] -z-10 translate-x-1/3 -translate-y-1/3" />
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-green-500/10 rounded-full blur-[100px] -z-10 translate-x-1/3 -translate-y-1/3" />
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[80px] -z-10 -translate-x-1/3 translate-y-1/3" />
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md space-y-8 bg-white/50 backdrop-blur-xl p-8 rounded-3xl border border-white/60 shadow-xl"
+                className="w-full max-w-md space-y-8 bg-white/[0.04] backdrop-blur-xl p-8 rounded-3xl border border-white/[0.08] shadow-2xl"
             >
                 <div className="text-center space-y-2">
-                    <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
+                    <Link href="/" className="inline-flex items-center text-sm text-white/50 hover:text-white mb-4 transition-colors">
                         <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
                     </Link>
-                    <div className="mx-auto h-16 w-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+                    <div className="mx-auto h-16 w-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
                         <span className="text-3xl">🎓</span>
                     </div>
-                    <h1 className="text-3xl font-bold tracking-tight">Get Verified</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-3xl font-bold tracking-tight text-white">Get Verified</h1>
+                    <p className="text-white/50">
                         Sign in with Google to start your verification
                     </p>
                 </div>
@@ -116,7 +117,7 @@ export default function SignupPage() {
                     <Button
                         onClick={handleGoogleSignIn}
                         disabled={loading}
-                        className="w-full h-14 text-base font-semibold bg-black hover:bg-gray-900 text-white"
+                        className="w-full h-14 text-base font-semibold bg-white hover:bg-gray-100 text-black"
                     >
                         {loading ? (
                             <Loader2 className="h-5 w-5 animate-spin" />
@@ -133,9 +134,9 @@ export default function SignupPage() {
                         )}
                     </Button>
 
-                    <div className="bg-blue-50 rounded-2xl p-4">
-                        <h3 className="font-semibold text-blue-900 text-sm mb-2">How it works:</h3>
-                        <ol className="text-blue-700 text-xs space-y-1">
+                    <div className="bg-green-500/10 rounded-2xl p-4 border border-green-500/20">
+                        <h3 className="font-semibold text-green-300 text-sm mb-2">How it works:</h3>
+                        <ol className="text-green-400/80 text-xs space-y-1">
                             <li>1. Sign in with your Google account</li>
                             <li>2. Enter your college email (.edu.in only)</li>
                             <li>3. Verify with OTP sent to college email</li>
@@ -143,9 +144,9 @@ export default function SignupPage() {
                         </ol>
                     </div>
 
-                    <p className="text-center text-xs text-gray-500">
+                    <p className="text-center text-xs text-white/40">
                         Already verified?{" "}
-                        <Link href="/login" className="text-primary font-semibold hover:underline">
+                        <Link href="/login" className="text-green-400 font-semibold hover:underline">
                             Sign In
                         </Link>
                     </p>

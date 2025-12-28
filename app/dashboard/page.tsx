@@ -378,7 +378,7 @@ export default function DashboardPage() {
         : [];
 
     return (
-        <div className="min-h-screen bg-white pb-32">
+        <div className="min-h-screen bg-[#0a0a0b] pb-32">
             {/* Get Verified Modal */}
             <AnimatePresence>
                 {showVerifyModal && (
@@ -386,7 +386,7 @@ export default function DashboardPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6"
+                        className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6"
                         onClick={() => setShowVerifyModal(false)}
                     >
                         <motion.div
@@ -394,27 +394,27 @@ export default function DashboardPage() {
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl relative"
+                            className="bg-[#121212] rounded-3xl p-8 w-full max-w-sm shadow-2xl relative border border-white/[0.08]"
                         >
                             <button
                                 onClick={() => setShowVerifyModal(false)}
-                                className="absolute top-4 right-4 h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center"
+                                className="absolute top-4 right-4 h-8 w-8 rounded-full bg-white/[0.05] flex items-center justify-center hover:bg-white/[0.1] transition-colors"
                             >
-                                <X className="h-4 w-4" />
+                                <X className="h-4 w-4 text-white/60" />
                             </button>
 
                             <div className="text-center mb-6">
-                                <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                    <ShieldCheck className="h-8 w-8 text-primary" />
+                                <div className="h-16 w-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <ShieldCheck className="h-8 w-8 text-green-400" />
                                 </div>
-                                <h2 className="text-2xl font-bold mb-2">Get Verified</h2>
-                                <p className="text-gray-500 text-sm">
+                                <h2 className="text-2xl font-bold mb-2 text-white">Get Verified</h2>
+                                <p className="text-white/50 text-sm">
                                     Verify your student status to unlock this offer.
                                 </p>
                             </div>
 
                             <Link href="/signup" className="block">
-                                <Button className="w-full h-14 bg-black text-white font-bold rounded-2xl text-base">
+                                <Button className="w-full h-14 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-2xl text-base shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all">
                                     Verify Now - Free
                                 </Button>
                             </Link>
@@ -432,22 +432,22 @@ export default function DashboardPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[90] bg-white dark:bg-gray-950"
+                        className="fixed inset-0 z-[90] bg-[#0a0a0b]"
                     >
                         <div className="p-4 pt-12">
                             <div className="flex items-center gap-3 mb-6">
-                                <button onClick={() => { setShowSearch(false); setSearchQuery(""); }} className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                                    <X className="h-5 w-5 dark:text-white" />
+                                <button onClick={() => { setShowSearch(false); setSearchQuery(""); }} className="h-10 w-10 rounded-full bg-white/[0.05] flex items-center justify-center hover:bg-white/[0.1] transition-colors">
+                                    <X className="h-5 w-5 text-white/60" />
                                 </button>
                                 <div className="flex-1 relative">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
                                     <input
                                         autoFocus
                                         type="text"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         placeholder="Search brands, categories..."
-                                        className="w-full h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl pl-12 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30 dark:text-white dark:placeholder:text-gray-500"
+                                        className="w-full h-12 bg-white/[0.05] rounded-2xl pl-12 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-green-500/30 text-white placeholder:text-white/40 border border-white/[0.06]"
                                     />
                                 </div>
                             </div>
@@ -455,23 +455,23 @@ export default function DashboardPage() {
                             {searchQuery.length === 0 ? (
                                 <div className="space-y-6">
                                     <div>
-                                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Recent Searches</h4>
+                                        <h4 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Recent Searches</h4>
                                         <div className="flex flex-wrap gap-2">
                                             {['Nike', 'Starbucks', 'Netflix'].map((term) => (
-                                                <button key={term} onClick={() => setSearchQuery(term)} className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-medium dark:text-white">
+                                                <button key={term} onClick={() => setSearchQuery(term)} className="px-4 py-2 bg-white/[0.05] rounded-full text-sm font-medium text-white hover:bg-white/[0.1] transition-colors">
                                                     {term}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
                                     <div>
-                                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Trending</h4>
+                                        <h4 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Trending</h4>
                                         <div className="space-y-2">
                                             {['Spotify Student', 'Apple Education', 'Uber'].map((term, i) => (
-                                                <button key={term} onClick={() => setSearchQuery(term)} className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800">
+                                                <button key={term} onClick={() => setSearchQuery(term)} className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-white/[0.05] transition-colors">
                                                     <span className="text-lg">🔥</span>
-                                                    <span className="font-medium text-sm dark:text-white">{term}</span>
-                                                    <span className="text-xs text-gray-400 ml-auto">#{i + 1}</span>
+                                                    <span className="font-medium text-sm text-white">{term}</span>
+                                                    <span className="text-xs text-white/40 ml-auto">#{i + 1}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -480,7 +480,7 @@ export default function DashboardPage() {
                             ) : (
                                 <div className="space-y-2">
                                     {filteredItems.length === 0 ? (
-                                        <div className="text-center py-12 text-gray-400">
+                                        <div className="text-center py-12 text-white/40">
                                             <p className="text-4xl mb-2">🔍</p>
                                             <p className="text-sm">No results for "{searchQuery}"</p>
                                         </div>
@@ -492,15 +492,15 @@ export default function DashboardPage() {
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: i * 0.05 }}
                                                 onClick={() => { setShowSearch(false); setSearchQuery(""); }}
-                                                className="flex items-center gap-4 w-full p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                className="flex items-center gap-4 w-full p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] transition-colors border border-white/[0.06]"
                                             >
                                                 <span className="text-2xl">{item.emoji}</span>
                                                 <div className="text-left">
-                                                    <p className="font-bold text-sm dark:text-white">{item.name}</p>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{item.type}</p>
+                                                    <p className="font-bold text-sm text-white">{item.name}</p>
+                                                    <p className="text-xs text-white/50 capitalize">{item.type}</p>
                                                 </div>
                                                 {'discount' in item && (
-                                                    <span className="ml-auto text-xs font-semibold text-purple-600 dark:text-purple-400">{item.discount}</span>
+                                                    <span className="ml-auto text-xs font-semibold text-green-400">{item.discount}</span>
                                                 )}
                                             </motion.button>
                                         ))
@@ -534,33 +534,32 @@ export default function DashboardPage() {
                 }}
             />
 
-            {/* Header with City & Bell */}
-            <header className="sticky top-0 z-40 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border-b border-gray-100/80 dark:border-gray-800">
-                <div className="px-5 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 bg-gradient-to-br from-primary to-emerald-600 rounded-xl flex items-center justify-center shadow-sm">
-                            <span className="text-white font-bold text-base">B</span>
+            {/* Header - Minimal Premium */}
+            <header className="sticky top-0 z-40 bg-[#0a0a0b]/90 backdrop-blur-xl">
+                <div className="px-5 h-14 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                        <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
+                            <span className="text-black font-bold text-sm">B</span>
                         </div>
-                        <span className="font-extrabold text-xl tracking-tight dark:text-white">Backbenchers</span>
+                        <span className="font-semibold text-lg text-white tracking-tight">Backbenchers</span>
                     </div>
                     <div className="flex items-center gap-2">
                         {/* City Selector */}
                         <button
                             onClick={() => setShowCitySelector(true)}
-                            className="flex items-center gap-1.5 px-3.5 h-10 rounded-full bg-gray-50 dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 active:scale-95 transition-transform border border-gray-100 dark:border-gray-700"
+                            className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-white/[0.04] text-xs font-medium text-white/70 transition-all border border-white/[0.06] hover:bg-white/[0.06]"
                         >
-                            <MapPin className="h-4 w-4 text-primary" />
-                            <span className="max-w-24 truncate">{selectedCity || 'Select City'}</span>
-                            <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+                            <MapPin className="h-3.5 w-3.5 text-white/50" />
+                            <span className="max-w-20 truncate">{selectedCity || 'City'}</span>
                         </button>
                         {/* Notifications */}
                         <button
                             onClick={() => router.push('/dashboard/notifications')}
-                            className="h-10 w-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center relative active:scale-95 transition-transform border border-gray-100 dark:border-gray-700"
+                            className="h-8 w-8 rounded-full bg-white/[0.04] flex items-center justify-center relative transition-all border border-white/[0.06] hover:bg-white/[0.06]"
                         >
-                            <Bell className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                            <Bell className="h-4 w-4 text-white/50" />
                             {unreadCount > 0 && (
-                                <span className="absolute -top-0.5 -right-0.5 h-5 w-5 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
+                                <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-green-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center">
                                     {unreadCount}
                                 </span>
                             )}
@@ -569,31 +568,28 @@ export default function DashboardPage() {
                 </div>
             </header>
 
-            <main className="space-y-8 px-5 pt-6 pb-4">
-                {/* Animated Search Bar Trigger - "Search" stays stable, only placeholder animates */}
+            <main className="space-y-2 px-5 pt-4 pb-4">
+                {/* Minimal Search Bar */}
                 <motion.button
                     onClick={() => setShowSearch(true)}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full h-14 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center gap-3 px-5 relative overflow-hidden group hover:bg-gray-200/80 dark:hover:bg-gray-700 transition-colors"
+                    whileTap={{ scale: 0.99 }}
+                    className="w-full h-12 bg-white/[0.03] rounded-xl flex items-center gap-3 px-4 hover:bg-white/[0.05] transition-colors border border-white/[0.04]"
                 >
-                    <Search className="h-5 w-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                    <div className="flex-1 text-left flex items-center gap-1 overflow-hidden">
-                        <span className="text-sm text-gray-400 dark:text-gray-500 font-medium">Search</span>
+                    <Search className="h-4 w-4 text-white/30 flex-shrink-0" />
+                    <div className="flex-1 text-left flex items-center gap-1.5 overflow-hidden">
+                        <span className="text-sm text-white/30">Search</span>
                         <AnimatePresence mode="wait">
                             <motion.span
                                 key={searchPlaceholderIndex}
-                                initial={{ opacity: 0, y: 8 }}
+                                initial={{ opacity: 0, y: 6 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -8 }}
-                                transition={{ duration: 0.25 }}
-                                className="text-sm text-gray-300 dark:text-gray-600 font-medium"
+                                exit={{ opacity: 0, y: -6 }}
+                                transition={{ duration: 0.2 }}
+                                className="text-sm text-white/20"
                             >
                                 {SEARCH_PLACEHOLDERS[searchPlaceholderIndex].replace('Search ', '')}
                             </motion.span>
                         </AnimatePresence>
-                    </div>
-                    <div className="text-xs font-bold text-gray-300 dark:text-gray-600 px-2 py-1 bg-gray-200/50 dark:bg-gray-700 rounded-lg">
-                        ⌘K
                     </div>
                 </motion.button>
 
@@ -660,58 +656,65 @@ export default function DashboardPage() {
 
                     {/* Swipe hint + Active dot indicators */}
                     <div className="flex items-center justify-center gap-2 mt-4">
-                        <span className="text-[10px] text-gray-400 mr-2">← Swipe →</span>
+                        <span className="text-[10px] text-white/30 mr-2">← Swipe →</span>
                         {(heroBanners.length > 0 ? heroBanners : [1, 2, 3]).map((_, i) => (
                             <button
                                 key={i}
                                 onClick={() => setCurrentBannerIndex(i)}
-                                className={`h-2 rounded-full transition-all duration-300 ${currentBannerIndex === i ? 'w-8 bg-gray-900 dark:bg-white' : 'w-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400'}`}
+                                className={`h-2 rounded-full transition-all duration-300 ${currentBannerIndex === i ? 'w-8 bg-green-400' : 'w-2 bg-white/20 hover:bg-white/30'}`}
                             />
                         ))}
                     </div>
                 </div>
 
-                {/* Categories - Perfect Mobile Grid */}
-                <div className="py-4">
-                    <div className="flex items-center gap-2 mb-4">
-                        <Store className="h-5 w-5 text-primary" />
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Categories</h3>
+                {/* Categories - Minimal Grid */}
+                <section className="py-6">
+                    <div className="flex items-center gap-3 mb-5">
+                        <div className="h-8 w-8 rounded-lg bg-white/[0.04] flex items-center justify-center">
+                            <Store className="h-4 w-4 text-white/50" />
+                        </div>
+                        <h2 className="text-lg font-semibold text-white tracking-tight">Categories</h2>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 gap-2">
                         {[
-                            { name: "Food", emoji: "🍕", gradient: "from-orange-500 to-red-500" },
-                            { name: "Fashion", emoji: "👗", gradient: "from-pink-500 to-rose-500" },
-                            { name: "Fitness", emoji: "💪", gradient: "from-blue-500 to-indigo-600" }
+                            { name: "Food", emoji: "🍕", color: "bg-orange-500/10 text-orange-400" },
+                            { name: "Fashion", emoji: "👗", color: "bg-pink-500/10 text-pink-400" },
+                            { name: "Fitness", emoji: "💪", color: "bg-blue-500/10 text-blue-400" }
                         ].map((cat) => (
                             <Link key={cat.name} href={`/dashboard/category/${cat.name}`}>
                                 <motion.div
                                     whileTap={{ scale: 0.97 }}
-                                    className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all flex flex-col items-center"
+                                    className="bg-white/[0.02] rounded-xl p-4 border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all flex flex-col items-center gap-2"
                                 >
-                                    <div className={`w-12 h-12 bg-gradient-to-br ${cat.gradient} rounded-xl flex items-center justify-center mb-2 shadow-sm`}>
-                                        <span className="text-2xl">{cat.emoji}</span>
+                                    <div className={`w-10 h-10 ${cat.color} rounded-xl flex items-center justify-center`}>
+                                        <span className="text-xl">{cat.emoji}</span>
                                     </div>
-                                    <p className="text-sm font-semibold text-gray-900 dark:text-white text-center">{cat.name}</p>
+                                    <span className="text-sm font-medium text-white/80">{cat.name}</span>
                                 </motion.div>
                             </Link>
                         ))}
                     </div>
-                </div>
+                </section>
 
-                {/* New on BackBenchers Section */}
+                {/* New on BackBenchers - Minimal Horizontal Scroll */}
                 {newMerchants.length > 0 && (
-                    <div className="py-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <Sparkles className="h-5 w-5 text-primary" />
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">New on BackBenchers</h3>
+                    <section className="py-6">
+                        <div className="flex items-center justify-between mb-5">
+                            <div className="flex items-center gap-3">
+                                <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                    <Sparkles className="h-4 w-4 text-green-400" />
+                                </div>
+                                <h2 className="text-lg font-semibold text-white tracking-tight">New Stores</h2>
                             </div>
-                            <span className="text-xs text-gray-400">Recently joined</span>
+                            <span className="text-xs text-white/30">Recently joined</span>
                         </div>
                         <div className="flex gap-3 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
                             {newMerchants.map((merchant, i) => (
-                                <div
+                                <motion.div
                                     key={merchant.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.05 }}
                                     onClick={() => {
                                         if (isVerified) {
                                             router.push(`/store/${merchant.id}`);
@@ -719,53 +722,50 @@ export default function DashboardPage() {
                                             router.push('/signup');
                                         }
                                     }}
-                                    className="cursor-pointer"
+                                    className="flex-shrink-0 w-28 bg-white/[0.02] rounded-2xl p-3 border border-white/[0.04] cursor-pointer hover:bg-white/[0.04] hover:border-white/[0.08] transition-all text-center"
                                 >
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: i * 0.05 }}
-                                        className="flex-shrink-0 w-36 bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-card border border-gray-100 dark:border-gray-700 cursor-pointer hover:shadow-lg transition-shadow"
-                                    >
-                                        <div className="h-16 w-16 mx-auto bg-gradient-to-br from-primary/10 to-emerald-100 dark:from-primary/20 dark:to-emerald-800 rounded-xl flex items-center justify-center mb-2 overflow-hidden">
-                                            {merchant.logoUrl ? (
-                                                <img src={merchant.logoUrl} alt={merchant.businessName} className="w-full h-full object-cover rounded-xl" />
-                                            ) : (
-                                                <Store className="h-7 w-7 text-primary" />
-                                            )}
-                                        </div>
-                                        <p className="font-semibold text-sm text-center truncate dark:text-white">{merchant.businessName}</p>
-                                        <p className="text-[10px] text-gray-500 dark:text-gray-400 text-center truncate">{merchant.category}</p>
-                                        <div className="flex items-center justify-center gap-1 mt-1">
-                                            <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-full text-[9px] font-semibold">NEW</span>
-                                            {merchant.daysOld <= 3 && <span className="text-[9px] text-gray-400">🔥</span>}
-                                        </div>
-                                    </motion.div>
-                                </div>
+                                    <div className="h-12 w-12 mx-auto bg-white/[0.04] rounded-xl flex items-center justify-center mb-2 overflow-hidden">
+                                        {merchant.logoUrl ? (
+                                            <img src={merchant.logoUrl} alt={merchant.businessName} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Store className="h-5 w-5 text-white/30" />
+                                        )}
+                                    </div>
+                                    <p className="font-medium text-xs text-white truncate">{merchant.businessName}</p>
+                                    <p className="text-[10px] text-white/30 truncate mt-0.5">{merchant.category}</p>
+                                </motion.div>
                             ))}
                         </div>
-                    </div>
+                    </section>
                 )}
 
-                {/* Trending Offers - Premium Horizontal Scroll */}
-                <div className="py-6">
-                    <div className="flex items-center justify-between mb-5">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Trending</h3>
-                        <div className="flex gap-1">
+                {/* Trending Offers - Ultra Minimal Premium Design */}
+                <section className="py-8">
+                    {/* Section Header */}
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/10 flex items-center justify-center">
+                                <TrendingUp className="h-4 w-4 text-green-400" />
+                            </div>
+                            <h2 className="text-lg font-semibold text-white tracking-tight">Trending</h2>
+                        </div>
+
+                        {/* Premium Tab Switcher */}
+                        <div className="flex gap-1 p-1 bg-white/[0.03] rounded-full border border-white/[0.04]">
                             <button
                                 onClick={() => setTrendingTab('offline')}
-                                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${trendingTab === 'offline'
-                                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${trendingTab === 'offline'
+                                    ? 'bg-white text-black'
+                                    : 'text-white/40 hover:text-white/60'
                                     }`}
                             >
                                 In-Store
                             </button>
                             <button
                                 onClick={() => setTrendingTab('online')}
-                                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${trendingTab === 'online'
-                                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${trendingTab === 'online'
+                                    ? 'bg-white text-black'
+                                    : 'text-white/40 hover:text-white/60'
                                     }`}
                             >
                                 Online
@@ -773,9 +773,9 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* Horizontal Scroll Cards */}
-                    <div className="flex gap-4 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2 pt-1">
-                        {currentOffers.map((offer: any) => {
+                    {/* Offers Grid - Clean Minimal Cards */}
+                    <div className="space-y-3">
+                        {currentOffers.slice(0, 5).map((offer: any, index: number) => {
                             const isFav = offer.id && favoriteIds.includes(offer.id);
                             const expiryText = getExpiryText(offer.validUntil);
                             const isExpired = expiryText === 'Expired';
@@ -783,7 +783,10 @@ export default function DashboardPage() {
                             return (
                                 <motion.div
                                     key={offer.id}
-                                    whileTap={{ scale: 0.98 }}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    whileTap={{ scale: 0.99 }}
                                     onClick={() => {
                                         if (!isVerified) {
                                             setShowVerifyModal(true);
@@ -791,109 +794,114 @@ export default function DashboardPage() {
                                             router.push(`/store/${offer.merchantId}`);
                                         }
                                     }}
-                                    className={`flex-none w-[280px] cursor-pointer ${isExpired ? 'opacity-40 grayscale' : ''}`}
+                                    className={`group flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] cursor-pointer
+                                        hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-200
+                                        ${isExpired ? 'opacity-40' : ''}`}
                                 >
-                                    <div className="bg-white dark:bg-gray-800 rounded-3xl p-5 relative">
-                                        {/* Discount Badge - Top Right Inside */}
-                                        <div className="absolute top-3 right-3 z-10">
-                                            <span className="bg-primary text-white px-3 py-1 rounded-full text-xs font-bold">
-                                                {offer.discountValue
-                                                    ? `${offer.type === 'percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue}`
-                                                    : (offer.discount || 'Deal')}
-                                            </span>
-                                        </div>
-
-                                        {/* Heart Button - Bottom Right */}
-                                        <button
-                                            onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
-                                            className="absolute bottom-3 right-3 z-10 h-8 w-8 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center"
-                                        >
-                                            <Heart className={`h-4 w-4 ${isFav ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
-                                        </button>
-
-                                        {/* Content Row */}
-                                        <div className="flex items-start gap-4">
-                                            {/* Merchant Logo */}
-                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${trendingTab === 'online'
-                                                ? 'bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30'
-                                                : 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30'
-                                                }`}>
-                                                {offer.merchantLogo ? (
-                                                    <img src={offer.merchantLogo} alt="" className="w-10 h-10 object-contain rounded-xl" />
-                                                ) : (
-                                                    <span className="text-2xl">{trendingTab === 'online' ? '🌐' : '🏪'}</span>
-                                                )}
-                                            </div>
-
-                                            {/* Text Content */}
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className={`font-bold text-base text-gray-900 dark:text-white ${isExpired ? 'line-through' : ''}`}>
-                                                    {offer.merchantName || offer.brand || 'Special Offer'}
-                                                </h4>
-                                                <p className={`text-sm text-gray-500 dark:text-gray-400 mt-0.5 ${isExpired ? 'line-through' : ''}`}>
-                                                    {offer.title || 'Limited time offer'}
-                                                </p>
-
-                                                {expiryText && !isExpired && (
-                                                    <span className={`inline-block text-[10px] font-medium mt-2 px-2 py-0.5 rounded-full ${expiryText.includes('h')
-                                                        ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                                                        }`}>
-                                                        {expiryText}
-                                                    </span>
-                                                )}
-                                            </div>
+                                    {/* Logo Container */}
+                                    <div className="relative flex-shrink-0">
+                                        <div className="h-14 w-14 rounded-xl bg-white/[0.04] flex items-center justify-center overflow-hidden">
+                                            {offer.merchantLogo ? (
+                                                <img src={offer.merchantLogo} alt="" className="h-10 w-10 object-contain" />
+                                            ) : (
+                                                <Store className="h-6 w-6 text-white/30" />
+                                            )}
                                         </div>
                                     </div>
+
+                                    {/* Content */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <h3 className="text-[15px] font-medium text-white truncate">
+                                                    {offer.merchantName || offer.brand || 'Special Offer'}
+                                                </h3>
+                                                <p className="text-sm text-white/40 truncate mt-0.5">
+                                                    {offer.title || 'Limited time offer'}
+                                                </p>
+                                            </div>
+
+                                            {/* Discount Badge - Minimal */}
+                                            <div className="flex-shrink-0">
+                                                <span className="inline-flex items-center justify-center h-8 px-3 rounded-lg bg-green-500/10 text-green-400 text-sm font-semibold">
+                                                    {offer.discountValue
+                                                        ? `${offer.type === 'percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue}`
+                                                        : (offer.discount || 'Deal')}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Expiry Tag */}
+                                        {expiryText && !isExpired && (
+                                            <span className={`inline-block text-[11px] font-medium mt-2 ${expiryText.includes('h') || expiryText.includes('Ends')
+                                                ? 'text-orange-400'
+                                                : 'text-white/30'
+                                                }`}>
+                                                {expiryText}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Favorite Button */}
+                                    <button
+                                        onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
+                                        className="flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/[0.06]"
+                                    >
+                                        <Heart className={`h-4 w-4 ${isFav ? 'fill-red-500 text-red-500' : 'text-white/30'}`} />
+                                    </button>
                                 </motion.div>
                             );
                         })}
                     </div>
 
-                    <Link href="/dashboard/explore" className="block text-center mt-5">
-                        <span className="text-sm text-gray-400">See all offers →</span>
-                    </Link>
-                </div>
-
-                {/* Top Brands - Conditionally rendered based on admin settings */}
-                {
-                    contentSettings.showTopBrands && (
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2.5">
-                                <Sparkles className="h-5 w-5 text-yellow-500" />
-                                <h3 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Top Brands</h3>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-2.5">
-                                {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
-                                    <motion.button
-                                        key={brand.id}
-                                        whileTap={{ scale: 0.97 }}
-                                        onClick={(e) => {
-                                            if (!isVerified) {
-                                                e.preventDefault();
-                                                setShowVerifyModal(true);
-                                            } else {
-                                                router.push(`/store/${brand.id}`);
-                                            }
-                                        }}
-                                        className="bg-white dark:bg-gray-800 rounded-xl p-3.5 flex flex-col items-center gap-2 shadow-card border border-gray-100/50 dark:border-gray-700 hover:shadow-soft transition-shadow"
-                                    >
-                                        <div className="h-12 w-12 rounded-lg bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-                                            {brand.logo ? (
-                                                <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <Store className="h-5 w-5 text-gray-400" />
-                                            )}
-                                        </div>
-                                        <span className="text-xs font-semibold text-gray-900 dark:text-white text-center line-clamp-1">{brand.name}</span>
-                                        <span className="text-[10px] font-medium text-primary">{brand.discount || brand.category}</span>
-                                    </motion.button>
-                                ))}
-                            </div>
+                    {/* See All Link */}
+                    <Link href="/dashboard/explore" className="block mt-6">
+                        <div className="flex items-center justify-center gap-2 py-3 text-white/30 hover:text-white/50 transition-colors">
+                            <span className="text-sm">View all offers</span>
+                            <ChevronRight className="h-4 w-4" />
                         </div>
-                    )
-                }
+                    </Link>
+                </section>
+
+                {/* Top Brands - Minimal Grid */}
+                {contentSettings.showTopBrands && (
+                    <section className="py-6">
+                        <div className="flex items-center gap-3 mb-5">
+                            <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                                <Sparkles className="h-4 w-4 text-amber-400" />
+                            </div>
+                            <h2 className="text-lg font-semibold text-white tracking-tight">Top Brands</h2>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2">
+                            {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
+                                <motion.button
+                                    key={brand.id}
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={(e) => {
+                                        if (!isVerified) {
+                                            e.preventDefault();
+                                            setShowVerifyModal(true);
+                                        } else {
+                                            router.push(`/store/${brand.id}`);
+                                        }
+                                    }}
+                                    className="bg-white/[0.02] rounded-xl p-3 flex flex-col items-center gap-2 border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all"
+                                >
+                                    <div className="h-10 w-10 rounded-lg bg-white/[0.04] flex items-center justify-center overflow-hidden">
+                                        {brand.logo ? (
+                                            <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Store className="h-4 w-4 text-white/30" />
+                                        )}
+                                    </div>
+                                    <span className="text-xs font-medium text-white/80 text-center line-clamp-1">{brand.name}</span>
+                                    <span className="text-[10px] text-green-400/80">{brand.discount || brand.category}</span>
+                                </motion.button>
+                            ))}
+                        </div>
+                    </section>
+                )}
             </main>
 
             {/* Rating Modal - Shows after successful redemption */}

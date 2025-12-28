@@ -9,9 +9,9 @@ export default function DashboardLayout({
 }) {
     return (
         <SuspendedCheck>
-            <div className="min-h-screen bg-gray-100 dark:bg-gray-950 flex justify-center">
+            <div className="min-h-screen bg-[#0a0a0b] flex justify-center">
                 {/* Mobile-sized container centered on all screens */}
-                <div className="w-full max-w-[430px] min-h-screen bg-white dark:bg-gray-950 relative shadow-xl dark:shadow-none">
+                <div className="w-full max-w-[430px] min-h-screen bg-[#0a0a0b] relative">
                     {/* Safe area padding for notch/dynamic island */}
                     <div className="h-full w-full overflow-y-auto overflow-x-hidden pb-20 pt-[env(safe-area-inset-top)]">
                         {children}

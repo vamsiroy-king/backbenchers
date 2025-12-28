@@ -24,8 +24,8 @@ export function MobileNav() {
             className="fixed bottom-0 left-0 right-0 z-50"
             style={{ transform: 'translateZ(0)', willChange: 'transform' }}
         >
-            {/* Glass effect nav bar */}
-            <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-100/80 dark:border-gray-800 px-2 pt-2 pb-[max(env(safe-area-inset-bottom),8px)]">
+            {/* Whop-style glass effect nav bar */}
+            <div className="bg-[#0a0a0b]/90 backdrop-blur-2xl border-t border-white/[0.06] px-2 pt-2 pb-[max(env(safe-area-inset-bottom),8px)]">
                 <div className="flex items-center justify-around max-w-md mx-auto">
                     {TABS.map((tab) => {
                         const isActive = pathname === tab.href;
@@ -43,16 +43,16 @@ export function MobileNav() {
                                     style={{ transform: 'translateZ(0)' }}
                                 >
                                     <div
-                                        className={`p-2 rounded-xl transition-colors duration-100 ${isActive ? 'bg-primary' : 'bg-transparent'}`}
+                                        className={`p-2 rounded-xl transition-all duration-150 ${isActive ? 'bg-green-500 shadow-lg shadow-green-500/25' : 'bg-transparent'}`}
                                     >
                                         <Icon
-                                            className={`h-5 w-5 transition-colors duration-100 ${isActive ? 'text-white' : 'text-gray-400 dark:text-gray-500'}`}
+                                            className={`h-5 w-5 transition-colors duration-150 ${isActive ? 'text-white' : 'text-white/40'}`}
                                             strokeWidth={isActive ? 2.5 : 1.8}
                                         />
                                     </div>
 
                                     <span
-                                        className={`text-[10px] mt-0.5 font-medium transition-colors duration-100 ${isActive ? 'text-primary' : 'text-gray-400 dark:text-gray-500'}`}
+                                        className={`text-[10px] mt-0.5 font-medium transition-colors duration-150 ${isActive ? 'text-green-400' : 'text-white/40'}`}
                                     >
                                         {tab.name}
                                     </span>

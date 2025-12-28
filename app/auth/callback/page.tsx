@@ -3,11 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
-
-// Create a fresh client to ensure we get the latest auth state
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import { supabase } from "@/lib/supabase";
 
 export default function AuthCallbackPage() {
     const router = useRouter();
@@ -23,21 +19,33 @@ export default function AuthCallbackPage() {
         async function handleCallback() {
             try {
                 // Check if user was in merchant signup flow but landed on student callback
-                // This can happen if Supabase redirects to default URL
                 const authFlow = localStorage.getItem('auth_flow');
                 if (authFlow === 'merchant') {
                     console.log('Detected merchant flow - redirecting to merchant callback');
                     localStorage.removeItem('auth_flow');
-                    router.replace('/merchant/auth/callback');
+                    router.replace('/merchant/auth/callback' + window.location.search);
                     return;
                 }
 
-                // Create fresh supabase client
-                const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-                // Wait for auth state to be ready
                 setStatus("Authenticating...");
                 addDebug("Starting auth callback...");
+
+                // Check for code parameter (PKCE flow)
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+
+                if (code) {
+                    addDebug(`Found auth code, exchanging for session...`);
+                    // Use the shared Supabase client which has the code verifier
+                    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                    if (error) {
+                        addDebug(`Code exchange error: ${error.message}`);
+                        // Don't redirect on error, just continue to try getting session
+                        console.error('Code exchange failed:', error);
+                    } else {
+                        addDebug(`Code exchange successful!`);
+                    }
+                }
 
                 // Get session with retries
                 let attempts = 0;

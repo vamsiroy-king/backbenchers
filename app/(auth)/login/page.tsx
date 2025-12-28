@@ -48,23 +48,23 @@ export default function StudentLoginPage() {
 
     if (checkingAuth) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="min-h-screen flex items-center justify-center bg-[#0a0a0b]">
+                <Loader2 className="h-8 w-8 animate-spin text-green-400" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
+        <div className="min-h-screen bg-[#0a0a0b] flex flex-col">
             {/* Header */}
             <div className="px-6 pt-16 text-center">
                 <div className="flex items-center justify-center gap-2 mb-6">
-                    <div className="h-14 w-14 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+                    <div className="h-14 w-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/25">
                         <span className="text-white font-bold text-2xl">B</span>
                     </div>
                 </div>
-                <h1 className="text-2xl font-extrabold mb-2 dark:text-white">Welcome Back!</h1>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                <h1 className="text-2xl font-extrabold mb-2 text-white">Welcome Back!</h1>
+                <p className="text-white/50 text-sm">
                     Sign in to access student perks
                 </p>
             </div>
@@ -79,7 +79,7 @@ export default function StudentLoginPage() {
                     <Button
                         onClick={handleGoogleLogin}
                         disabled={isLoading}
-                        className="w-full h-14 bg-black hover:bg-gray-900 text-white font-semibold rounded-2xl text-base"
+                        className="w-full h-14 bg-white hover:bg-gray-100 text-black font-semibold rounded-2xl text-base"
                     >
                         {isLoading ? (
                             <Loader2 className="h-5 w-5 animate-spin" />
@@ -97,24 +97,24 @@ export default function StudentLoginPage() {
                         )}
                     </Button>
 
-                    <div className="bg-blue-50 dark:bg-blue-950/30 rounded-2xl p-4">
-                        <p className="text-xs text-blue-700 dark:text-blue-400">
+                    <div className="bg-green-500/10 rounded-2xl p-4 border border-green-500/20">
+                        <p className="text-xs text-green-400">
                             💡 Your session stays active! Once logged in, you won't need to sign in again.
                         </p>
                     </div>
                 </motion.div>
 
                 {/* Signup Link */}
-                <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-10">
+                <p className="text-center text-sm text-white/50 mt-10">
                     Don't have an account?{" "}
-                    <Link href="/signup" className="text-primary font-semibold">
+                    <Link href="/signup" className="text-green-400 font-semibold">
                         Sign up
                     </Link>
                 </p>
 
                 {/* Security Info */}
-                <div className="mt-8 bg-gray-50 dark:bg-gray-900 rounded-2xl p-4">
-                    <p className="text-[10px] text-gray-400 text-center">
+                <div className="mt-8 bg-white/[0.04] rounded-2xl p-4 border border-white/[0.06]">
+                    <p className="text-[10px] text-white/40 text-center">
                         🔒 Secure login with Google. Your session is encrypted and safe.
                     </p>
                 </div>

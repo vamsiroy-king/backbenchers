@@ -204,8 +204,8 @@ export default function ProfilePage() {
     // Loading state
     if (loading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="min-h-screen bg-[#0a0a0b] flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-green-400" />
             </div>
         );
     }
@@ -213,28 +213,28 @@ export default function ProfilePage() {
     // Guest View - Get Verified CTA (only if no student record found)
     if (!isVerified || !student) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-950 pb-28 px-4">
+            <div className="min-h-screen bg-[#0a0a0b] pb-28 px-4">
                 <header className="py-6">
-                    <h1 className="text-2xl font-bold">Profile</h1>
+                    <h1 className="text-2xl font-bold text-white">Profile</h1>
                 </header>
 
-                <div className="bg-gradient-to-br from-gray-900 to-black rounded-3xl p-6 text-white shadow-2xl mb-8">
+                <div className="bg-gradient-to-br from-[#121212] to-[#0a0a0b] rounded-3xl p-6 text-white shadow-2xl mb-8 border border-white/[0.06]">
                     <div className="flex items-center gap-4 mb-6">
-                        <div className="h-16 w-16 rounded-2xl bg-gray-800 flex items-center justify-center">
-                            <Lock className="h-8 w-8 text-gray-500" />
+                        <div className="h-16 w-16 rounded-2xl bg-white/[0.05] flex items-center justify-center">
+                            <Lock className="h-8 w-8 text-white/30" />
                         </div>
                         <div>
                             <h2 className="text-xl font-bold">Guest User</h2>
-                            <p className="text-gray-400 text-sm">Not verified</p>
+                            <p className="text-white/50 text-sm">Not verified</p>
                         </div>
                     </div>
 
-                    <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+                    <p className="text-white/50 text-sm mb-6 leading-relaxed">
                         Verify your student status to unlock exclusive discounts and access your digital ID card.
                     </p>
 
                     <Link href="/signup">
-                        <Button className="w-full h-12 bg-white text-black font-bold rounded-xl hover:bg-gray-100 shadow-lg">
+                        <Button className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all">
                             <ShieldCheck className="mr-2 h-5 w-5" />
                             Get Verified Now
                         </Button>
@@ -242,7 +242,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-4">
-                    <h3 className="font-bold text-lg">Why Verify?</h3>
+                    <h3 className="font-bold text-lg text-white">Why Verify?</h3>
 
                     {[
                         { icon: "🎓", title: "Digital Student ID", desc: "Access your ID anywhere, anytime" },
@@ -253,16 +253,16 @@ export default function ProfilePage() {
                         <motion.div
                             key={i}
                             whileTap={{ scale: 0.98 }}
-                            className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl"
+                            className="flex items-center gap-4 p-4 bg-white/[0.04] rounded-2xl border border-white/[0.06] hover:bg-white/[0.06] transition-colors"
                         >
-                            <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm">
+                            <div className="h-12 w-12 bg-white/[0.06] rounded-xl flex items-center justify-center text-2xl">
                                 {benefit.icon}
                             </div>
                             <div className="flex-1">
-                                <h4 className="font-bold text-sm">{benefit.title}</h4>
-                                <p className="text-xs text-gray-500">{benefit.desc}</p>
+                                <h4 className="font-bold text-sm text-white">{benefit.title}</h4>
+                                <p className="text-xs text-white/50">{benefit.desc}</p>
                             </div>
-                            <ChevronRight className="h-5 w-5 text-gray-300" />
+                            <ChevronRight className="h-5 w-5 text-white/20" />
                         </motion.div>
                     ))}
                 </div>
@@ -272,7 +272,7 @@ export default function ProfilePage() {
 
     // Verified User View - Full Profile with ID Card
     return (
-        <div className="min-h-screen bg-gray-50/50 dark:bg-gray-950 pb-24 px-5">
+        <div className="min-h-screen bg-[#0a0a0b] pb-24 px-5">
             {/* Camera Modal */}
             <AnimatePresence>
                 {showCameraModal && (
@@ -412,33 +412,33 @@ export default function ProfilePage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6"
+                        className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6"
                         onClick={() => setShowInfoModal(false)}
                     >
                         <motion.div
                             initial={{ scale: 0.9, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-3xl p-6 w-full max-w-sm"
+                            className="bg-[#121212] rounded-3xl p-6 w-full max-w-sm border border-white/[0.08]"
                         >
-                            <h3 className="font-bold text-lg mb-4">Why Profile Photo?</h3>
-                            <div className="space-y-4 text-sm text-gray-600">
+                            <h3 className="font-bold text-lg mb-4 text-white">Why Profile Photo?</h3>
+                            <div className="space-y-4 text-sm text-white/60">
                                 <div className="flex items-start gap-3">
-                                    <ShieldCheck className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                                    <ShieldCheck className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
                                     <p>Used for offline verification at stores. Merchants verify your face matches your profile.</p>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <Lock className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                                    <Lock className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
                                     <p>Once added, the photo cannot be changed to prevent misuse of student discounts.</p>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <Camera className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                                    <Camera className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
                                     <p>Only selfie capture is allowed - no gallery uploads.</p>
                                 </div>
                             </div>
                             <Button
                                 onClick={() => setShowInfoModal(false)}
-                                className="w-full h-12 bg-primary text-white font-bold rounded-xl mt-6"
+                                className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl mt-6 shadow-lg shadow-green-500/25"
                             >
                                 Got it!
                             </Button>
@@ -448,9 +448,9 @@ export default function ProfilePage() {
             </AnimatePresence>
 
             <header className="py-6 flex justify-between items-center">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">My ID</h1>
-                <button className="h-10 w-10 rounded-xl bg-white dark:bg-gray-800 shadow-subtle border border-gray-100/50 dark:border-gray-700 flex items-center justify-center">
-                    <Settings className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <h1 className="text-xl font-bold text-white">My ID</h1>
+                <button className="h-10 w-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.08] transition-colors">
+                    <Settings className="h-5 w-5 text-white/50" />
                 </button>
             </header>
 
@@ -459,19 +459,19 @@ export default function ProfilePage() {
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-orange-100 rounded-2xl p-4 mb-4 flex items-start gap-3"
+                    className="bg-orange-500/10 rounded-2xl p-4 mb-4 flex items-start gap-3 border border-orange-500/20"
                 >
-                    <AlertCircle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
-                        <p className="text-sm font-semibold text-orange-800">Profile Photo Required</p>
-                        <p className="text-xs text-orange-700 mt-1">
+                        <p className="text-sm font-semibold text-orange-300">Profile Photo Required</p>
+                        <p className="text-xs text-orange-400/80 mt-1">
                             Add a selfie to use offline discounts. Without it, merchants cannot verify you.
                         </p>
                         <div className="flex gap-2 mt-3">
                             <Button
                                 onClick={openCameraModal}
                                 size="sm"
-                                className="h-8 bg-orange-600 text-white text-xs font-semibold rounded-lg"
+                                className="h-8 bg-orange-500 text-white text-xs font-semibold rounded-lg hover:bg-orange-600"
                             >
                                 <Camera className="h-3 w-3 mr-1" /> Add Selfie
                             </Button>
@@ -479,7 +479,7 @@ export default function ProfilePage() {
                                 onClick={() => setShowInfoModal(true)}
                                 size="sm"
                                 variant="outline"
-                                className="h-8 text-xs font-semibold rounded-lg"
+                                className="h-8 text-xs font-semibold rounded-lg border-white/20 text-white/70 hover:bg-white/[0.05]"
                             >
                                 <Info className="h-3 w-3 mr-1" /> Why?
                             </Button>
@@ -612,23 +612,23 @@ export default function ProfilePage() {
 
             {/* Tap Hint */}
             <motion.p
-                className="text-[11px] text-gray-400 dark:text-gray-500 text-center mb-6 flex items-center justify-center gap-2"
+                className="text-[11px] text-white/40 text-center mb-6 flex items-center justify-center gap-2"
                 animate={{ opacity: [0.5, 1, 0.5] }}
                 transition={{ repeat: Infinity, duration: 2 }}
             >
-                <span className="inline-block h-4 w-4 border border-gray-300 dark:border-gray-600 rounded flex items-center justify-center text-[8px]">↻</span>
+                <span className="inline-block h-4 w-4 border border-white/20 rounded flex items-center justify-center text-[8px]">↻</span>
                 Tap the card to flip
             </motion.p>
 
 
             {/* Savings Section */}
-            <div className="bg-white dark:bg-gray-950 rounded-2xl p-5 mb-6 shadow-card dark:shadow-none border border-gray-100/50 dark:border-gray-800">
+            <div className="bg-white/[0.04] rounded-2xl p-5 mb-6 border border-white/[0.06]">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2.5">
-                        <div className="h-9 w-9 bg-primary/10 rounded-lg flex items-center justify-center">
-                            <Wallet className="h-5 w-5 text-primary" />
+                        <div className="h-9 w-9 bg-green-500/15 rounded-lg flex items-center justify-center">
+                            <Wallet className="h-5 w-5 text-green-400" />
                         </div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white">Your Savings</h3>
+                        <h3 className="font-semibold text-white">Your Savings</h3>
                     </div>
                     <button
                         onClick={async () => {
@@ -649,47 +649,47 @@ export default function ProfilePage() {
                             }
                         }}
                         disabled={isRefreshing}
-                        className="h-8 w-8 bg-white dark:bg-transparent rounded-full flex items-center justify-center shadow-sm dark:shadow-none active:scale-95 transition-transform disabled:opacity-50"
+                        className="h-8 w-8 bg-white/[0.05] rounded-full flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50 hover:bg-white/[0.1]"
                     >
-                        <RefreshCcw className={`h-4 w-4 text-gray-500 dark:text-gray-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+                        <RefreshCcw className={`h-4 w-4 text-white/50 ${isRefreshing ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
 
                 <div className="text-center mb-4">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Total Saved</p>
-                    <p className="text-4xl font-extrabold text-primary">₹{savingsStats.total}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">from {totalRedemptions} redemptions</p>
+                    <p className="text-xs text-white/50">Total Saved</p>
+                    <p className="text-4xl font-extrabold text-green-400">₹{savingsStats.total}</p>
+                    <p className="text-xs text-white/50 mt-1">from {totalRedemptions} redemptions</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 text-center border border-transparent dark:border-gray-800">
+                    <div className="bg-white/[0.04] rounded-xl p-3 text-center border border-white/[0.06]">
                         <div className="flex items-center justify-center gap-1 mb-1">
-                            <Store className="h-4 w-4 text-orange-500" />
-                            <span className="text-xs text-gray-500 dark:text-gray-400">Offline</span>
+                            <Store className="h-4 w-4 text-orange-400" />
+                            <span className="text-xs text-white/50">Offline</span>
                         </div>
-                        <p className="font-bold text-lg dark:text-white">₹{savingsStats.offline}</p>
+                        <p className="font-bold text-lg text-white">₹{savingsStats.offline}</p>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 text-center border border-transparent dark:border-gray-800">
+                    <div className="bg-white/[0.04] rounded-xl p-3 text-center border border-white/[0.06]">
                         <div className="flex items-center justify-center gap-1 mb-1">
-                            <Globe className="h-4 w-4 text-blue-500" />
-                            <span className="text-xs text-gray-500 dark:text-gray-400">Online</span>
+                            <Globe className="h-4 w-4 text-blue-400" />
+                            <span className="text-xs text-white/50">Online</span>
                         </div>
-                        <p className="font-bold text-lg dark:text-white">₹{savingsStats.online}</p>
+                        <p className="font-bold text-lg text-white">₹{savingsStats.online}</p>
                     </div>
                 </div>
 
                 {/* Recent Transactions */}
                 {transactions.length > 0 && (
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 border border-transparent dark:border-gray-800">
+                    <div className="bg-white/[0.04] rounded-xl p-3 border border-white/[0.06]">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-gray-500 dark:text-gray-400">Recent Activity</span>
-                            <TrendingUp className="h-4 w-4 text-primary" />
+                            <span className="text-xs text-white/50">Recent Activity</span>
+                            <TrendingUp className="h-4 w-4 text-green-400" />
                         </div>
                         <div className="space-y-2">
                             {transactions.slice(0, 3).map((tx: Transaction, i: number) => (
                                 <div key={tx.id} className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-600 dark:text-gray-300 truncate max-w-[150px]">{tx.merchantName}</span>
-                                    <span className="text-primary font-semibold">₹{tx.discountAmount}</span>
+                                    <span className="text-white/70 truncate max-w-[150px]">{tx.merchantName}</span>
+                                    <span className="text-green-400 font-semibold">₹{tx.discountAmount}</span>
                                 </div>
                             ))}
                         </div>
@@ -697,7 +697,7 @@ export default function ProfilePage() {
                 )}
 
                 {transactions.length > 0 && (
-                    <p className="text-xs text-gray-500 text-center mt-3">
+                    <p className="text-xs text-white/40 text-center mt-3">
                         Last: {transactions[0]?.merchantName}
                     </p>
                 )}
@@ -707,12 +707,12 @@ export default function ProfilePage() {
             <div className="space-y-3">
                 {/* Saved Items */}
                 <Link href="/dashboard/saved">
-                    <button className="w-full h-14 flex items-center justify-between px-4 rounded-xl bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-800 font-medium shadow-subtle dark:shadow-none">
+                    <button className="w-full h-14 flex items-center justify-between px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] font-medium hover:bg-white/[0.08] transition-colors">
                         <div className="flex items-center gap-3">
                             <span className="text-lg">❤️</span>
-                            <span className="dark:text-white">Saved</span>
+                            <span className="text-white">Saved</span>
                         </div>
-                        <span className="text-gray-400">→</span>
+                        <span className="text-white/30">→</span>
                     </button>
                 </Link>
 
@@ -722,20 +722,20 @@ export default function ProfilePage() {
                         const isDark = document.documentElement.classList.toggle('dark');
                         localStorage.setItem('bb-theme', isDark ? 'dark' : 'light');
                     }}
-                    className="w-full h-14 flex items-center justify-between px-4 rounded-xl bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-800 font-medium shadow-subtle dark:shadow-none"
+                    className="w-full h-14 flex items-center justify-between px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] font-medium hover:bg-white/[0.08] transition-colors"
                 >
                     <div className="flex items-center gap-3">
                         <span className="text-lg">🌙</span>
-                        <span className="dark:text-white">Dark Mode</span>
+                        <span className="text-white">Dark Mode</span>
                     </div>
-                    <div className="relative h-6 w-11 bg-gray-200 dark:bg-primary rounded-full transition-colors">
-                        <div className="absolute h-5 w-5 bg-white rounded-full top-0.5 left-0.5 dark:left-[22px] transition-all shadow-sm" />
+                    <div className="relative h-6 w-11 bg-green-500 rounded-full">
+                        <div className="absolute h-5 w-5 bg-white rounded-full top-0.5 left-[22px] shadow-sm" />
                     </div>
                 </button>
 
                 <button
                     onClick={handleSignOut}
-                    className="w-full h-14 flex items-center justify-center gap-3 rounded-xl bg-white dark:bg-gray-950 border border-red-100 dark:border-red-900/50 text-red-500 font-medium shadow-subtle dark:shadow-none hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    className="w-full h-14 flex items-center justify-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-medium hover:bg-red-500/20 transition-colors"
                 >
                     <LogOut className="h-5 w-5" />
                     Sign Out

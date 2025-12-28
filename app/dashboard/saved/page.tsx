@@ -53,30 +53,30 @@ export default function SavedPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950 pb-24">
+        <div className="min-h-screen bg-[#0a0a0b] pb-24">
             {/* Header */}
-            <header className="sticky top-0 z-40 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800">
+            <header className="sticky top-0 z-40 bg-[#0a0a0b]/95 backdrop-blur-xl border-b border-white/[0.06]">
                 <div className="px-5 h-16 flex items-center gap-4">
                     <button
                         onClick={() => router.back()}
-                        className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
+                        className="h-10 w-10 rounded-full bg-white/[0.05] flex items-center justify-center hover:bg-white/[0.1] transition-colors"
                     >
-                        <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                        <ArrowLeft className="h-5 w-5 text-white/60" />
                     </button>
                     <div className="flex items-center gap-2">
-                        <Bookmark className="h-5 w-5 text-primary" />
-                        <h1 className="text-lg font-bold dark:text-white">Saved</h1>
+                        <Bookmark className="h-5 w-5 text-green-400" />
+                        <h1 className="text-lg font-bold text-white">Saved</h1>
                     </div>
                 </div>
 
                 {/* Tabs */}
                 <div className="px-5 pb-4">
-                    <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+                    <div className="flex bg-white/[0.04] rounded-xl p-1">
                         <button
                             onClick={() => setActiveTab('merchants')}
                             className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'merchants'
-                                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-500 dark:text-gray-400'
+                                ? 'bg-green-500 text-white shadow-lg shadow-green-500/25'
+                                : 'text-white/50 hover:text-white/70'
                                 }`}
                         >
                             Stores ({savedMerchants.length})
@@ -84,8 +84,8 @@ export default function SavedPage() {
                         <button
                             onClick={() => setActiveTab('offers')}
                             className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'offers'
-                                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-500 dark:text-gray-400'
+                                ? 'bg-green-500 text-white shadow-lg shadow-green-500/25'
+                                : 'text-white/50 hover:text-white/70'
                                 }`}
                         >
                             Offers ({savedOffers.length})
@@ -97,7 +97,7 @@ export default function SavedPage() {
             <main className="px-5 pt-4">
                 {loading ? (
                     <div className="flex justify-center py-16">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <Loader2 className="h-8 w-8 animate-spin text-green-400" />
                     </div>
                 ) : (
                     <AnimatePresence mode="wait">
@@ -111,15 +111,15 @@ export default function SavedPage() {
                             >
                                 {savedMerchants.length === 0 ? (
                                     <div className="text-center py-16">
-                                        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <Store className="w-7 h-7 text-gray-400" />
+                                        <div className="w-16 h-16 bg-white/[0.05] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                            <Store className="w-7 h-7 text-white/40" />
                                         </div>
-                                        <h3 className="font-bold text-gray-900 dark:text-white mb-1">No saved stores</h3>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        <h3 className="font-bold text-white mb-1">No saved stores</h3>
+                                        <p className="text-sm text-white/50">
                                             Tap the heart on any store to save it here
                                         </p>
                                         <Link href="/dashboard/explore" className="inline-block mt-4">
-                                            <button className="bg-primary text-white px-6 py-3 rounded-xl font-semibold">
+                                            <button className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-green-500/25">
                                                 Explore Stores
                                             </button>
                                         </Link>
@@ -132,21 +132,21 @@ export default function SavedPage() {
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, scale: 0.9 }}
-                                            className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex items-center gap-4"
+                                            className="bg-white/[0.04] rounded-2xl border border-white/[0.06] p-4 flex items-center gap-4 hover:bg-white/[0.06] transition-colors"
                                         >
                                             <Link href={`/store/${fav.merchantId}`} className="flex-1 flex items-center gap-4">
-                                                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden">
+                                                <div className="w-14 h-14 rounded-xl bg-green-500/15 flex items-center justify-center overflow-hidden">
                                                     {fav.merchant?.logo ? (
                                                         <img src={fav.merchant.logo} alt="" className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <Store className="w-6 h-6 text-primary" />
+                                                        <Store className="w-6 h-6 text-green-400" />
                                                     )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <h4 className="font-bold text-gray-900 dark:text-white truncate">
+                                                    <h4 className="font-bold text-white truncate">
                                                         {fav.merchant?.businessName || 'Store'}
                                                     </h4>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                    <p className="text-xs text-white/50">
                                                         {fav.merchant?.category} • {fav.merchant?.city}
                                                     </p>
                                                 </div>
@@ -154,10 +154,10 @@ export default function SavedPage() {
                                             <button
                                                 onClick={() => handleRemove(fav.id, 'merchant')}
                                                 disabled={removingId === fav.id}
-                                                className="h-10 w-10 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center"
+                                                className="h-10 w-10 rounded-full bg-red-500/10 flex items-center justify-center hover:bg-red-500/20 transition-colors"
                                             >
                                                 {removingId === fav.id ? (
-                                                    <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+                                                    <Loader2 className="h-4 w-4 animate-spin text-red-400" />
                                                 ) : (
                                                     <Heart className="h-5 w-5 fill-red-500 text-red-500" />
                                                 )}
@@ -176,15 +176,15 @@ export default function SavedPage() {
                             >
                                 {savedOffers.length === 0 ? (
                                     <div className="text-center py-16">
-                                        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <Tag className="w-7 h-7 text-gray-400" />
+                                        <div className="w-16 h-16 bg-white/[0.05] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                            <Tag className="w-7 h-7 text-white/40" />
                                         </div>
-                                        <h3 className="font-bold text-gray-900 dark:text-white mb-1">No saved offers</h3>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        <h3 className="font-bold text-white mb-1">No saved offers</h3>
+                                        <p className="text-sm text-white/50">
                                             Tap the heart on any offer to save it here
                                         </p>
                                         <Link href="/dashboard/explore" className="inline-block mt-4">
-                                            <button className="bg-primary text-white px-6 py-3 rounded-xl font-semibold">
+                                            <button className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-green-500/25">
                                                 Explore Offers
                                             </button>
                                         </Link>
@@ -197,10 +197,10 @@ export default function SavedPage() {
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, scale: 0.9 }}
-                                            className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex items-center gap-4"
+                                            className="bg-white/[0.04] rounded-2xl border border-white/[0.06] p-4 flex items-center gap-4 hover:bg-white/[0.06] transition-colors"
                                         >
                                             <Link href={`/store/${fav.offer?.merchantId}`} className="flex-1 flex items-center gap-4">
-                                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center text-white">
+                                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg shadow-green-500/25">
                                                     <span className="text-sm font-bold">
                                                         {fav.offer?.type === 'percentage'
                                                             ? `${fav.offer.discountValue}%`
@@ -208,10 +208,10 @@ export default function SavedPage() {
                                                     </span>
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <h4 className="font-bold text-gray-900 dark:text-white truncate">
+                                                    <h4 className="font-bold text-white truncate">
                                                         {fav.offer?.title || 'Offer'}
                                                     </h4>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                    <p className="text-xs text-white/50">
                                                         {fav.offer?.merchantName || 'Store'}
                                                     </p>
                                                 </div>
@@ -219,10 +219,10 @@ export default function SavedPage() {
                                             <button
                                                 onClick={() => handleRemove(fav.id, 'offer')}
                                                 disabled={removingId === fav.id}
-                                                className="h-10 w-10 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center"
+                                                className="h-10 w-10 rounded-full bg-red-500/10 flex items-center justify-center hover:bg-red-500/20 transition-colors"
                                             >
                                                 {removingId === fav.id ? (
-                                                    <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+                                                    <Loader2 className="h-4 w-4 animate-spin text-red-400" />
                                                 ) : (
                                                     <Heart className="h-5 w-5 fill-red-500 text-red-500" />
                                                 )}

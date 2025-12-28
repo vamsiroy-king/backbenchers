@@ -13,15 +13,18 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-    const [theme, setThemeState] = useState<Theme>("light");
+    const [theme, setThemeState] = useState<Theme>("dark");
     const [mounted, setMounted] = useState(false);
 
-    // Load theme from localStorage on mount
+    // Load theme from localStorage on mount - default to dark if not set
     useEffect(() => {
         const savedTheme = localStorage.getItem("bb-theme") as Theme;
         if (savedTheme) {
             setThemeState(savedTheme);
             document.documentElement.classList.toggle("dark", savedTheme === "dark");
+        } else {
+            // Default to dark mode for Whop-style UI
+            document.documentElement.classList.add("dark");
         }
         setMounted(true);
     }, []);

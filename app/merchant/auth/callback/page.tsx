@@ -17,6 +17,21 @@ export default function MerchantAuthCallbackPage() {
 
                 setStatus("Authenticating...");
 
+                // Check for code parameter (PKCE flow)
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+
+                if (code) {
+                    console.log("Found auth code, exchanging for session...");
+                    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                    if (error) {
+                        console.error("Code exchange error:", error.message);
+                        router.replace("/merchant/auth/signup?error=auth_failed");
+                        return;
+                    }
+                    console.log("Code exchange successful!");
+                }
+
                 // Wait for session to be established
                 let attempts = 0;
                 let session = null;
