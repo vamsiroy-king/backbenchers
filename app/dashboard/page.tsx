@@ -912,19 +912,39 @@ export default function DashboardPage() {
                                         )}
                                     </div>
 
-                                    {/* Favorite Button - Instagram Style Animation */}
+                                    {/* Favorite Button - Instagram Style with Big Pop Animation */}
                                     <motion.button
                                         onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
-                                        className="flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center hover:bg-white/[0.06]"
-                                        whileTap={{ scale: 0.75 }}
+                                        className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center hover:bg-white/[0.08] active:scale-90 transition-transform"
+                                        whileTap={{ scale: 0.7 }}
                                     >
                                         <motion.div
                                             key={isFav ? 'filled' : 'empty'}
-                                            initial={isFav ? { scale: 0.5 } : { scale: 1 }}
-                                            animate={{ scale: isFav ? [1.4, 1] : 1 }}
-                                            transition={{ duration: 0.3, type: "spring", stiffness: 400 }}
+                                            initial={false}
+                                            animate={isFav ? {
+                                                scale: [0.3, 1.8, 1.2, 1],
+                                                rotate: [0, -15, 15, 0],
+                                            } : {
+                                                scale: 1,
+                                                rotate: 0,
+                                            }}
+                                            transition={{
+                                                duration: 0.5,
+                                                ease: [0.36, 0.66, 0.04, 1],
+                                            }}
+                                            className="relative"
                                         >
-                                            <Heart className={`h-4 w-4 transition-colors duration-150 ${isFav ? 'fill-red-500 text-red-500' : 'text-white/30'}`} />
+                                            <Heart className={`h-5 w-5 transition-colors duration-100 ${isFav ? 'fill-red-500 text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.7)]' : 'text-white/40 hover:text-white/60'}`} />
+                                            {/* Pulse ring effect when favoriting */}
+                                            {isFav && (
+                                                <motion.div
+                                                    initial={{ scale: 0.5, opacity: 1 }}
+                                                    animate={{ scale: 2.5, opacity: 0 }}
+                                                    transition={{ duration: 0.6, ease: "easeOut" }}
+                                                    className="absolute inset-0 rounded-full border-2 border-red-500"
+                                                    style={{ margin: '-4px' }}
+                                                />
+                                            )}
                                         </motion.div>
                                     </motion.button>
                                 </motion.div>
