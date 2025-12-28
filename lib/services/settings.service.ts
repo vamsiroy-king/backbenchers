@@ -81,5 +81,62 @@ export const settingsService = {
         });
 
         return enabled;
+    },
+
+    // Content visibility settings
+    async getContentSettings(): Promise<ContentSettings> {
+        try {
+            const { data, error } = await supabase
+                .from("site_settings")
+                .select("value")
+                .eq("key", "content_visibility")
+                .single();
+
+            if (error || !data) {
+                console.log("Using default content settings");
+                return DEFAULT_CONTENT_SETTINGS;
+            }
+
+            return data.value as ContentSettings;
+        } catch (error) {
+            console.error("Error fetching content settings:", error);
+            return DEFAULT_CONTENT_SETTINGS;
+        }
+    },
+
+    async updateContentSettings(settings: ContentSettings): Promise<{ success: boolean; error?: string }> {
+        try {
+            const { error } = await supabase
+                .from("site_settings")
+                .upsert({
+                    key: "content_visibility",
+                    value: settings,
+                    updated_at: new Date().toISOString(),
+                }, {
+                    onConflict: "key"
+                });
+
+            if (error) {
+                console.error("Error updating content settings:", error);
+                return { success: false, error: error.message };
+            }
+
+            return { success: true };
+        } catch (error: any) {
+            return { success: false, error: error.message };
+        }
     }
+};
+
+// Content visibility settings type
+export interface ContentSettings {
+    showTopBrands: boolean;
+    showHeroBanners: boolean;
+    showTrending: boolean;
+}
+
+const DEFAULT_CONTENT_SETTINGS: ContentSettings = {
+    showTopBrands: true,
+    showHeroBanners: true,
+    showTrending: true,
 };

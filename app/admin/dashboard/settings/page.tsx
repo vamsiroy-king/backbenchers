@@ -4,6 +4,7 @@ import { Shield, Bell, Palette, Database, HelpCircle, FileText, LogOut, ChevronR
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { settingsService, ContentSettings } from "@/lib/services/settings.service";
 
 const SETTINGS = [
     { icon: Shield, label: "Security Settings", description: "Password, 2FA" },
@@ -13,13 +14,6 @@ const SETTINGS = [
     { icon: HelpCircle, label: "Help & Support", description: "FAQs, contact" },
     { icon: FileText, label: "Terms & Policies", description: "Legal docs" },
 ];
-
-// Content visibility toggles
-interface ContentSettings {
-    showTopBrands: boolean;
-    showHeroBanners: boolean;
-    showTrending: boolean;
-}
 
 export default function AdminSettingsPage() {
     const router = useRouter();
@@ -33,15 +27,21 @@ export default function AdminSettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    // Load settings from localStorage (can be replaced with Supabase later)
+    // Load settings from DATABASE (not localStorage!)
     useEffect(() => {
-        const saved = localStorage.getItem('contentSettings');
-        if (saved) {
-            setContentSettings(JSON.parse(saved));
+        async function loadSettings() {
+            try {
+                const settings = await settingsService.getContentSettings();
+                setContentSettings(settings);
+            } catch (error) {
+                console.error("Error loading settings:", error);
+            } finally {
+                setLoading(false);
+            }
+            // Check dark mode state
+            setIsDarkMode(document.documentElement.classList.contains('dark'));
         }
-        // Check dark mode state
-        setIsDarkMode(document.documentElement.classList.contains('dark'));
-        setLoading(false);
+        loadSettings();
     }, []);
 
     // Toggle dark mode
@@ -57,7 +57,7 @@ export default function AdminSettingsPage() {
         setIsDarkMode(newDark);
     };
 
-    // Save settings
+    // Save settings to DATABASE
     const toggleSetting = async (key: keyof ContentSettings) => {
         setSaving(true);
         const newSettings = {
@@ -65,10 +65,14 @@ export default function AdminSettingsPage() {
             [key]: !contentSettings[key]
         };
         setContentSettings(newSettings);
-        localStorage.setItem('contentSettings', JSON.stringify(newSettings));
 
-        // Simulate save delay
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Save to database for realtime sync!
+        const result = await settingsService.updateContentSettings(newSettings);
+        if (!result.success) {
+            console.error("Failed to save settings:", result.error);
+            // Revert on failure
+            setContentSettings(contentSettings);
+        }
         setSaving(false);
     };
 

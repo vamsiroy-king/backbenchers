@@ -141,12 +141,18 @@ export default function DashboardPage() {
     // Real-time notifications with Supabase realtime subscription
     const { unreadCount, markAllAsRead } = useNotifications();
 
-    // Load content visibility settings
+    // Load content visibility settings from DATABASE (not localStorage!)
     useEffect(() => {
-        const saved = localStorage.getItem('contentSettings');
-        if (saved) {
-            setContentSettings(JSON.parse(saved));
+        async function loadContentSettings() {
+            try {
+                const { settingsService } = await import('@/lib/services/settings.service');
+                const settings = await settingsService.getContentSettings();
+                setContentSettings(settings);
+            } catch (error) {
+                console.error('Error loading content settings:', error);
+            }
         }
+        loadContentSettings();
     }, []);
 
     // Animate search placeholder
