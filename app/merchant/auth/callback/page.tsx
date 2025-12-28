@@ -17,11 +17,37 @@ export default function MerchantAuthCallbackPage() {
 
                 setStatus("Authenticating...");
 
+                // Check for PKCE code in URL and exchange it
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+
+                if (code) {
+                    console.log("Found auth code, exchanging...");
+                    try {
+                        const { error } = await supabase.auth.exchangeCodeForSession(code);
+                        if (error) {
+                            console.error("Code exchange error:", error.message);
+                            // Don't fail hard - session might already exist
+                        } else {
+                            console.log("Code exchange successful!");
+                        }
+                    } catch (e) {
+                        console.error("Code exchange exception:", e);
+                    }
+                }
+
+                // Also check for hash fragment (implicit flow)
+                if (window.location.hash) {
+                    console.log("Found hash fragment, Supabase will handle it...");
+                    // Give Supabase time to process hash
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
                 // Wait for session to be established
                 let attempts = 0;
                 let session = null;
 
-                while (attempts < 15 && !session) {
+                while (attempts < 20 && !session) {
                     const { data } = await supabase.auth.getSession();
                     session = data.session;
                     if (!session) {
@@ -31,7 +57,7 @@ export default function MerchantAuthCallbackPage() {
                 }
 
                 if (!session) {
-                    console.log("No session - redirecting to signup");
+                    console.log("No session after all attempts - redirecting to signup");
                     router.replace("/merchant/auth/signup");
                     return;
                 }
