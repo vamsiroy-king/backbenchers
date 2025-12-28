@@ -30,8 +30,8 @@ export function middleware(request: NextRequest) {
 
     // === SUBDOMAIN DETECTION ===
 
-    // MERCHANT SUBDOMAIN: merchant.backbenchers.app
-    if (hostname.startsWith('merchant.')) {
+    // MERCHANT SUBDOMAIN: merchants.backbenchers.app
+    if (hostname.startsWith('merchants.')) {
         // Only allow merchant routes and shared API
         if (pathname.startsWith('/admin') || pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
             url.pathname = '/merchant/dashboard';

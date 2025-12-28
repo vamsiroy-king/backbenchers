@@ -492,7 +492,7 @@ export const authService = {
     async merchantSignupWithGoogle(): Promise<ApiResponse<void>> {
         try {
             // Determine the correct redirect URL
-            // On production, we're already on merchant.backbenchers.app
+            // On production, we're already on merchants.backbenchers.app
             // The origin will be correct since we're ON the merchant subdomain
             let redirectUrl = `${window.location.origin}/merchant/auth/callback`;
 
@@ -500,9 +500,9 @@ export const authService = {
             // and not localhost, redirect to merchant subdomain
             const hostname = window.location.hostname;
             if (!hostname.includes('localhost') &&
-                !hostname.startsWith('merchant.') &&
+                !hostname.startsWith('merchants.') &&
                 hostname.includes('backbenchers')) {
-                redirectUrl = `https://merchant.backbenchers.app/merchant/auth/callback`;
+                redirectUrl = `https://merchants.backbenchers.app/merchant/auth/callback`;
             }
 
             const { error } = await supabase.auth.signInWithOAuth({
