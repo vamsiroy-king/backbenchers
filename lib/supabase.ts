@@ -30,7 +30,7 @@ export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
         detectSessionInUrl: true,
         storage: customStorage,
         storageKey: 'backbenchers-auth', // Custom key to avoid conflicts
-        flowType: 'implicit', // Use implicit flow - tokens come in URL hash
+        flowType: 'pkce', // Secure PKCE flow for auth
     },
 });
 
