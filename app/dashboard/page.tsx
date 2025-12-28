@@ -900,13 +900,21 @@ export default function DashboardPage() {
                                         )}
                                     </div>
 
-                                    {/* Favorite Button */}
-                                    <button
+                                    {/* Favorite Button - Instagram Style Animation */}
+                                    <motion.button
                                         onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
                                         className="flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/[0.06]"
+                                        whileTap={{ scale: 0.75 }}
                                     >
-                                        <Heart className={`h-4 w-4 ${isFav ? 'fill-red-500 text-red-500' : 'text-white/30'}`} />
-                                    </button>
+                                        <motion.div
+                                            key={isFav ? 'filled' : 'empty'}
+                                            initial={isFav ? { scale: 0.5 } : { scale: 1 }}
+                                            animate={{ scale: isFav ? [1.4, 1] : 1 }}
+                                            transition={{ duration: 0.3, type: "spring", stiffness: 400 }}
+                                        >
+                                            <Heart className={`h-4 w-4 transition-colors duration-150 ${isFav ? 'fill-red-500 text-red-500' : 'text-white/30'}`} />
+                                        </motion.div>
+                                    </motion.button>
                                 </motion.div>
                             );
                         })}
