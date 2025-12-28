@@ -488,9 +488,9 @@ export default function ProfilePage() {
                 </motion.div>
             )}
 
-            {/* Premium 3D Flip ID Card */}
+            {/* Premium Credit-Card Style ID */}
             <div
-                className="relative w-full aspect-[1.5/1] mb-4 cursor-pointer"
+                className="relative w-full aspect-[1.586/1] mb-4 cursor-pointer"
                 style={{ perspective: "1200px" }}
                 onClick={() => setIsFlipped(!isFlipped)}
             >
@@ -502,26 +502,48 @@ export default function ProfilePage() {
                 >
                     {/* FRONT of Card */}
                     <div
-                        className="absolute inset-0 rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.25)] bg-gray-900"
+                        className="absolute inset-0 rounded-2xl overflow-hidden"
                         style={{ backfaceVisibility: "hidden" }}
                     >
+                        {/* Card Background with Shine Effect */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a1a] via-[#0d0d0d] to-[#1a1a1a]" />
+
+                        {/* Holographic Shine Overlay */}
+                        <div
+                            className="absolute inset-0 opacity-30"
+                            style={{
+                                background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 55%, transparent 60%)',
+                            }}
+                        />
+
+                        {/* Subtle Border */}
+                        <div className="absolute inset-0 rounded-2xl border border-white/10" />
+
                         {/* Card Content */}
                         <div className="relative h-full p-5 flex flex-col">
 
-                            {/* Header - Logo only */}
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
-                                    <span className="text-white font-bold text-xs">B</span>
+                            {/* Header Row */}
+                            <div className="flex items-center justify-between mb-auto">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-6 w-6 rounded-md bg-white flex items-center justify-center">
+                                        <span className="text-black font-bold text-[10px]">B</span>
+                                    </div>
+                                    <span className="text-[10px] text-white/40 font-medium tracking-[0.2em]">BACKBENCHERS</span>
                                 </div>
-                                <span className="text-[9px] text-white/40 font-medium tracking-widest">BACKBENCHERS</span>
+                                <div className="flex items-center gap-1">
+                                    <div className="h-4 w-4 rounded-full bg-green-500 flex items-center justify-center">
+                                        <Check className="h-2.5 w-2.5 text-white" />
+                                    </div>
+                                    <span className="text-[9px] text-green-400 font-medium">VERIFIED</span>
+                                </div>
                             </div>
 
-                            {/* Main Row - Photo + Details */}
-                            <div className="flex gap-4 flex-1">
+                            {/* Main Content - Photo + Info */}
+                            <div className="flex gap-4 items-start">
                                 {/* Profile Photo */}
                                 <motion.div
                                     whileHover={{ scale: 1.02 }}
-                                    className="h-20 w-20 rounded-xl bg-gray-800 border border-white/10 overflow-hidden flex-shrink-0"
+                                    className="h-16 w-16 rounded-xl bg-white/5 border border-white/10 overflow-hidden flex-shrink-0"
                                     onClick={(e) => {
                                         if (!hasProfileImage) {
                                             e.stopPropagation();
@@ -532,79 +554,82 @@ export default function ProfilePage() {
                                     {profileImage ? (
                                         <img src={profileImage} alt="User" className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full flex flex-col items-center justify-center">
-                                            <Camera className="h-5 w-5 text-gray-600" />
-                                            <span className="text-[7px] text-gray-600 mt-0.5">ADD PHOTO</span>
+                                        <div className="w-full h-full flex flex-col items-center justify-center bg-white/5">
+                                            <Camera className="h-4 w-4 text-white/30" />
+                                            <span className="text-[6px] text-white/30 mt-0.5">ADD</span>
                                         </div>
                                     )}
                                 </motion.div>
 
-                                {/* Details */}
-                                <div className="flex-1 min-w-0">
-                                    {/* Name with Verified Icon */}
-                                    <div className="flex items-center gap-1.5 mb-1">
-                                        <h2 className="text-lg font-bold text-white leading-tight truncate">{student?.name || 'Loading...'}</h2>
-                                        <div className="h-4 w-4 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                                            <Check className="h-2.5 w-2.5 text-white" />
-                                        </div>
-                                    </div>
-                                    <p className="text-[11px] text-white/60 truncate">{student?.college || 'College'}</p>
-                                    <p className="text-[10px] text-white/40">{student?.city || 'City'}</p>
-
-                                    {/* Info Row */}
-                                    <div className="flex gap-4 mt-2">
-                                        <div>
-                                            <p className="text-[8px] text-white/30 uppercase">DOB</p>
-                                            <p className="text-[10px] text-white/70">{student?.dob ? new Date(student.dob).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not set'}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-[8px] text-white/30 uppercase">Gender</p>
-                                            <p className="text-[10px] text-white/70 capitalize">{student?.gender || 'Not set'}</p>
-                                        </div>
-                                    </div>
+                                {/* Name & College */}
+                                <div className="flex-1 min-w-0 pt-1">
+                                    <h2 className="text-base font-semibold text-white truncate leading-tight">
+                                        {student?.name || 'Loading...'}
+                                    </h2>
+                                    <p className="text-[11px] text-white/50 truncate mt-0.5">
+                                        {student?.college || 'College'}
+                                    </p>
+                                    <p className="text-[10px] text-white/30 mt-0.5">
+                                        {student?.city || 'City'}
+                                    </p>
                                 </div>
                             </div>
 
-                            {/* Bottom - BB-ID & Validity */}
-                            <div className="flex items-end justify-between mt-3 pt-3 border-t border-white/10">
-                                <div>
-                                    <p className="text-[8px] text-white/30 uppercase mb-1">Student ID</p>
-                                    <p className="text-sm font-mono font-bold text-primary">{student?.bbId || 'Pending'}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[8px] text-white/30 uppercase mb-1">Valid</p>
-                                    <p className="text-[11px] text-white/60">Dec 2025</p>
+                            {/* Bottom Section - ID & Details */}
+                            <div className="mt-auto pt-3 border-t border-white/[0.06]">
+                                <div className="flex items-end justify-between">
+                                    {/* Student ID */}
+                                    <div>
+                                        <p className="text-[8px] text-white/30 uppercase tracking-wider mb-0.5">Student ID</p>
+                                        <p className="text-sm font-mono font-semibold text-green-400 tracking-wider">
+                                            {student?.bbId || 'PENDING'}
+                                        </p>
+                                    </div>
+
+                                    {/* DOB */}
+                                    <div className="text-center">
+                                        <p className="text-[8px] text-white/30 uppercase tracking-wider mb-0.5">DOB</p>
+                                        <p className="text-[10px] text-white/60 font-medium">
+                                            {student?.dob ? new Date(student.dob).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                                        </p>
+                                    </div>
+
+                                    {/* Valid */}
+                                    <div className="text-right">
+                                        <p className="text-[8px] text-white/30 uppercase tracking-wider mb-0.5">Valid</p>
+                                        <p className="text-[10px] text-white/60 font-medium">12/25</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* BACK of Card - Clean Minimal Design */}
+                    {/* BACK of Card */}
                     <div
-                        className="absolute inset-0 rounded-[24px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.3)] bg-white"
+                        className="absolute inset-0 rounded-2xl overflow-hidden"
                         style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
                     >
-                        {/* Top Accent Line */}
-                        <div className="h-1 bg-gradient-to-r from-primary to-emerald-400" />
+                        {/* Card Background */}
+                        <div className="absolute inset-0 bg-white" />
 
-                        {/* Main Content - Perfectly Centered */}
+                        {/* Top Accent */}
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-emerald-400" />
+
+                        {/* Content - Centered QR */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            {/* QR Code Container */}
-                            <div className="bg-gray-50 p-3 rounded-xl">
-                                <BBQRCode value={student?.bbId || 'PENDING'} size={120} withLogo={true} />
+                            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                <BBQRCode value={student?.bbId || 'PENDING'} size={110} withLogo={true} />
                             </div>
-
-                            {/* Text Below QR */}
-                            <p className="mt-3 font-semibold text-gray-900 text-sm">Scan to Verify</p>
-                            <p className="text-[10px] text-gray-400">Show this QR to the merchant</p>
+                            <p className="mt-3 font-semibold text-gray-800 text-sm">Scan to Verify</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">Show this QR at checkout</p>
                         </div>
 
                         {/* Bottom Branding */}
-                        <div className="absolute bottom-3 left-0 right-0 flex justify-center items-center gap-1">
-                            <div className="h-3.5 w-3.5 rounded bg-primary flex items-center justify-center">
-                                <span className="text-[7px] font-bold text-white">B</span>
+                        <div className="absolute bottom-3 left-0 right-0 flex justify-center items-center gap-1.5">
+                            <div className="h-4 w-4 rounded-md bg-black flex items-center justify-center">
+                                <span className="text-[8px] font-bold text-white">B</span>
                             </div>
-                            <span className="text-[9px] text-gray-300 font-medium">BACKBENCHERS</span>
+                            <span className="text-[10px] text-gray-300 font-medium tracking-wider">backbenchers.in</span>
                         </div>
                     </div>
                 </motion.div>
