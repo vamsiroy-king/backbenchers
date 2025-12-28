@@ -903,7 +903,7 @@ export default function DashboardPage() {
                                     {/* Favorite Button - Instagram Style Animation */}
                                     <motion.button
                                         onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
-                                        className="flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/[0.06]"
+                                        className="flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center hover:bg-white/[0.06]"
                                         whileTap={{ scale: 0.75 }}
                                     >
                                         <motion.div
