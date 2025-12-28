@@ -154,9 +154,26 @@ export default function AuthCallbackPage() {
     }, [router]);
 
     return (
-        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
-            <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-            <p className="text-gray-600 text-sm">{status}</p>
+        <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-6">
+            {/* Branded Logo */}
+            <div className="mb-6 animate-pulse">
+                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/25">
+                    <span className="text-white font-bold text-2xl">B</span>
+                </div>
+            </div>
+
+            {/* Loading dots */}
+            <div className="flex gap-1.5 mb-4">
+                {[0, 1, 2].map((i) => (
+                    <div
+                        key={i}
+                        className="w-2 h-2 rounded-full bg-green-500 animate-bounce"
+                        style={{ animationDelay: `${i * 0.15}s` }}
+                    />
+                ))}
+            </div>
+
+            <p className="text-white/50 text-sm font-medium">{status}</p>
         </div>
     );
 }

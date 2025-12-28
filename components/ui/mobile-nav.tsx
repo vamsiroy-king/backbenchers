@@ -24,8 +24,8 @@ export function MobileNav() {
             className="fixed bottom-0 left-0 right-0 z-50"
             style={{ transform: 'translateZ(0)', willChange: 'transform' }}
         >
-            {/* Whop-style glass effect nav bar */}
-            <div className="bg-[#0a0a0b]/90 backdrop-blur-2xl border-t border-white/[0.06] px-2 pt-2 pb-[max(env(safe-area-inset-bottom),8px)]">
+            {/* Premium Glass Nav Bar */}
+            <div className="bg-black/70 backdrop-blur-3xl border-t border-white/10 px-2 pt-2 pb-[max(env(safe-area-inset-bottom),8px)] shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
                 <div className="flex items-center justify-around max-w-md mx-auto">
                     {TABS.map((tab) => {
                         const isActive = pathname === tab.href;
