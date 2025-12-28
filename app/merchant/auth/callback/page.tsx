@@ -10,18 +10,36 @@ export default function MerchantAuthCallbackPage() {
     const [status, setStatus] = useState("Signing you in...");
 
     useEffect(() => {
-        // Clean up flow marker
-        localStorage.removeItem('auth_flow');
+        async function handleCallback() {
+            try {
+                // Clean up flow marker
+                localStorage.removeItem('auth_flow');
 
-        // Listen for auth state changes - Supabase will automatically handle PKCE
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log("Auth state change:", event, session?.user?.email);
+                setStatus("Authenticating...");
 
-            if (event === 'SIGNED_IN' && session) {
-                setStatus("Checking your account...");
+                // Wait for session to be established
+                let attempts = 0;
+                let session = null;
+
+                while (attempts < 15 && !session) {
+                    const { data } = await supabase.auth.getSession();
+                    session = data.session;
+                    if (!session) {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        attempts++;
+                    }
+                }
+
+                if (!session) {
+                    console.log("No session - redirecting to signup");
+                    router.replace("/merchant/auth/signup");
+                    return;
+                }
 
                 const userEmail = session.user.email?.toLowerCase() || "";
                 console.log("Merchant auth callback - User email:", userEmail);
+
+                setStatus("Checking your account...");
 
                 // Check if merchant exists by user_id
                 let { data: merchant } = await supabase
@@ -73,24 +91,13 @@ export default function MerchantAuthCallbackPage() {
                     setStatus("Setting up your account...");
                     router.replace("/merchant/onboarding/business");
                 }
+            } catch (error) {
+                console.error("Merchant auth callback error:", error);
+                router.replace("/merchant/auth/signup");
             }
-        });
+        }
 
-        // Also check for existing session on mount
-        const checkExistingSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                // Trigger the auth state change handler manually
-                supabase.auth.onAuthStateChange(() => { });
-            }
-        };
-
-        // Give Supabase time to process the URL params
-        setTimeout(checkExistingSession, 500);
-
-        return () => {
-            subscription.unsubscribe();
-        };
+        handleCallback();
     }, [router]);
 
     return (
