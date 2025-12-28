@@ -89,7 +89,13 @@ export default function DashboardPage() {
     const [showNotifications, setShowNotifications] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [showCitySelector, setShowCitySelector] = useState(false);
-    const [selectedCity, setSelectedCity] = useState<string | null>(null);
+    // Initialize city from localStorage immediately to avoid loading flash
+    const [selectedCity, setSelectedCity] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('selectedCity') || null;
+        }
+        return null;
+    });
     const [heroBanners, setHeroBanners] = useState<HeroBanner[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState(0); // For Floating Card Stack
