@@ -19,6 +19,9 @@ import { getNextPendingRatingFromDB, dismissPendingRating, deletePendingRating }
 import { CitySelector } from "@/components/CitySelector";
 import { RatingModal } from "@/components/RatingModal";
 import { Offer } from "@/lib/types";
+import { dashboardCache } from "@/lib/services/cache.service";
+import { HeartButton } from "@/components/HeartButton";
+import { BBInlineLoader, BBCardPlaceholder } from "@/components/BBLoader";
 
 // Hero Banner - Premium #India's 1st
 const HERO_CONTENT = {
@@ -201,6 +204,34 @@ export default function DashboardPage() {
                 // STEP 1: Determine the city (localStorage first, then profile)
                 let cityToUse = cityService.getSelectedCity();
 
+                // CHECK CACHE FIRST - instant load if cached
+                const cachedOffers = dashboardCache.getOffers(cityToUse || undefined);
+                const cachedTrendingOffline = dashboardCache.getTrendingOffline(cityToUse || undefined);
+                const cachedTrendingOnline = dashboardCache.getTrendingOnline();
+                const cachedTopBrands = dashboardCache.getTopBrands();
+                const cachedNewMerchants = dashboardCache.getNewMerchants(cityToUse || undefined);
+                const cachedBanners = dashboardCache.getHeroBanners(cityToUse || undefined);
+                const cachedFavorites = dashboardCache.getFavoriteIds();
+
+                // If we have cached data, use it immediately (instant render)
+                if (cachedOffers) setRealOffers(cachedOffers);
+                if (cachedTrendingOffline) setTrendingOffline(cachedTrendingOffline);
+                if (cachedTrendingOnline) setTrendingOnline(cachedTrendingOnline);
+                if (cachedTopBrands) setTopBrandsData(cachedTopBrands.map((b: any) => ({
+                    id: b.merchantId || b.id,
+                    name: b.merchant?.businessName || b.name || 'Unknown',
+                    logo: b.merchant?.logo || b.logo || null,
+                    category: b.merchant?.category || b.category || 'Store',
+                })));
+                if (cachedNewMerchants) setNewMerchants(cachedNewMerchants);
+                if (cachedBanners && cachedBanners.length > 0) setHeroBanners(cachedBanners);
+                if (cachedFavorites) setFavoriteIds(cachedFavorites);
+
+                // If all cache exists, stop loading immediately
+                if (cachedOffers && cachedTrendingOffline && cachedTopBrands) {
+                    setLoadingOffers(false);
+                }
+
                 // STEP 2: Check if student is verified and get city from profile
                 const { studentService } = await import('@/lib/services/student.service');
                 const profileResult = await studentService.getMyProfile();
@@ -217,9 +248,12 @@ export default function DashboardPage() {
                         }
                     }
 
-                    // Fetch favorite IDs (saved offers)
-                    const savedOfferIds = await favoritesService.getSavedOfferIds();
-                    setFavoriteIds(savedOfferIds);
+                    // Fetch favorite IDs (saved offers) if not cached
+                    if (!cachedFavorites) {
+                        const savedOfferIds = await favoritesService.getSavedOfferIds();
+                        setFavoriteIds(savedOfferIds);
+                        dashboardCache.setFavoriteIds(savedOfferIds);
+                    }
                 }
 
                 // Set the city in state
@@ -228,43 +262,63 @@ export default function DashboardPage() {
                 }
 
                 // STEP 3: Fetch data with proper city filtering
-                // Fetch hero banners from database
-                const bannerResult = await heroBannerService.getActiveForCity(cityToUse || 'All');
-                if (bannerResult.success && bannerResult.data && bannerResult.data.length > 0) {
-                    setHeroBanners(bannerResult.data);
+                // Fetch hero banners from database (if not cached)
+                if (!cachedBanners || cachedBanners.length === 0) {
+                    const bannerResult = await heroBannerService.getActiveForCity(cityToUse || 'All');
+                    if (bannerResult.success && bannerResult.data && bannerResult.data.length > 0) {
+                        setHeroBanners(bannerResult.data);
+                        dashboardCache.setHeroBanners(bannerResult.data, cityToUse || undefined);
+                    }
                 }
 
-                // Fetch offers filtered by city (if selected)
-                const result = cityToUse
-                    ? await offerService.getOffersByCity(cityToUse)
-                    : await offerService.getActiveOffers();
-                if (result.success && result.data) {
-                    setRealOffers(result.data);
+                // Fetch offers filtered by city (if not cached)
+                if (!cachedOffers) {
+                    const result = cityToUse
+                        ? await offerService.getOffersByCity(cityToUse)
+                        : await offerService.getActiveOffers();
+                    if (result.success && result.data) {
+                        setRealOffers(result.data);
+                        dashboardCache.setOffers(result.data, cityToUse || undefined);
+                    }
                 }
 
-                // Fetch trending offers: admin picks FIRST, then fill with top redemptions
-                const [offlineTrending, onlineTrending] = await Promise.all([
-                    trendingService.getMergedTrending('offline', 10),
-                    trendingService.getMergedTrending('online', 10)
-                ]);
-                setTrendingOffline(offlineTrending as any);
-                setTrendingOnline(onlineTrending as any);
-
-                // Fetch top brands from admin dashboard
-                const brandsResult = await topBrandsService.getAll();
-                if (brandsResult.success && brandsResult.data) {
-                    setTopBrandsData(brandsResult.data.map(b => ({
-                        id: b.merchantId,
-                        name: b.merchant?.businessName || 'Unknown',
-                        logo: b.merchant?.logo || null,
-                        category: b.merchant?.category || 'Store',
-                    })));
+                // Fetch trending offers (if not cached)
+                if (!cachedTrendingOffline || !cachedTrendingOnline) {
+                    const [offlineTrending, onlineTrending] = await Promise.all([
+                        trendingService.getMergedTrending('offline', 10),
+                        trendingService.getMergedTrending('online', 10)
+                    ]);
+                    if (!cachedTrendingOffline) {
+                        setTrendingOffline(offlineTrending as any);
+                        dashboardCache.setTrendingOffline(offlineTrending, cityToUse || undefined);
+                    }
+                    if (!cachedTrendingOnline) {
+                        setTrendingOnline(onlineTrending as any);
+                        dashboardCache.setTrendingOnline(onlineTrending);
+                    }
                 }
 
-                // Fetch new merchants for "New on BackBenchers" (filtered by city!)
-                const newMerchantsResult = await newMerchantService.getNewMerchants(7, 10, cityToUse || undefined);
-                if (newMerchantsResult.success && newMerchantsResult.data) {
-                    setNewMerchants(newMerchantsResult.data);
+                // Fetch top brands from admin dashboard (if not cached)
+                if (!cachedTopBrands) {
+                    const brandsResult = await topBrandsService.getAll();
+                    if (brandsResult.success && brandsResult.data) {
+                        dashboardCache.setTopBrands(brandsResult.data);
+                        setTopBrandsData(brandsResult.data.map(b => ({
+                            id: b.merchantId,
+                            name: b.merchant?.businessName || 'Unknown',
+                            logo: b.merchant?.logo || null,
+                            category: b.merchant?.category || 'Store',
+                        })));
+                    }
+                }
+
+                // Fetch new merchants for "New on BackBenchers" (if not cached)
+                if (!cachedNewMerchants) {
+                    const newMerchantsResult = await newMerchantService.getNewMerchants(7, 10, cityToUse || undefined);
+                    if (newMerchantsResult.success && newMerchantsResult.data) {
+                        setNewMerchants(newMerchantsResult.data);
+                        dashboardCache.setNewMerchants(newMerchantsResult.data, cityToUse || undefined);
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -305,21 +359,25 @@ export default function DashboardPage() {
         }
 
         const isFav = favoriteIds.includes(offerId);
-        // Optimistic update
+        // Optimistic update (both state and cache)
         if (isFav) {
             setFavoriteIds(prev => prev.filter(id => id !== offerId));
+            dashboardCache.updateFavoriteIds(offerId, false);
         } else {
             setFavoriteIds(prev => [...prev, offerId]);
+            dashboardCache.updateFavoriteIds(offerId, true);
         }
 
         // Actual API call
         const result = await favoritesService.toggleOffer(offerId);
         if (!result.success) {
-            // Revert on failure
+            // Revert on failure (both state and cache)
             if (isFav) {
                 setFavoriteIds(prev => [...prev, offerId]);
+                dashboardCache.updateFavoriteIds(offerId, true);
             } else {
                 setFavoriteIds(prev => prev.filter(id => id !== offerId));
+                dashboardCache.updateFavoriteIds(offerId, false);
             }
         }
     };
