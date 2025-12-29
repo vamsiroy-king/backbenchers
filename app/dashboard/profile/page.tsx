@@ -249,15 +249,8 @@ export default function ProfilePage() {
                         // Update local state with saved URL
                         setCapturedImage(result.data);
                         setHasProfileImage(true);
-
-                        // Refresh full student profile to get newly generated BB-ID
-                        const profileResult = await studentService.getMyProfile();
-                        if (profileResult.success && profileResult.data) {
-                            setStudent(profileResult.data);
-                        } else {
-                            // Fallback: just update profile image
-                            setStudent(prev => prev ? { ...prev, profileImage: result.data || undefined } : null);
-                        }
+                        // Update student object
+                        setStudent(prev => prev ? { ...prev, profileImage: result.data || undefined } : null);
                     } else {
                         console.error('Failed to save profile image:', result.error);
                         // Keep local image even if upload fails
@@ -785,33 +778,6 @@ export default function ProfilePage() {
                 Tap the card to flip
             </motion.p>
 
-            {/* Unlock BB ID Banner - Show only if no BB-ID or no profile image */}
-            {student && (!student.bbId || !hasProfileImage) && (
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-2xl p-4 mb-6 border border-amber-500/30"
-                >
-                    <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 bg-amber-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                            <Camera className="h-5 w-5 text-amber-400" />
-                        </div>
-                        <div className="flex-1">
-                            <h4 className="font-bold text-amber-300 text-sm mb-1">📸 Unlock Your BB ID</h4>
-                            <p className="text-xs text-amber-200/80 leading-relaxed">
-                                Upload your profile selfie to get your unique BB Student ID & QR code.
-                                You need this to redeem discounts at partner stores!
-                            </p>
-                            <button
-                                onClick={openCameraModal}
-                                className="mt-3 bg-amber-500 text-black text-xs font-bold px-4 py-2 rounded-lg hover:bg-amber-400 transition-colors"
-                            >
-                                Upload Selfie Now →
-                            </button>
-                        </div>
-                    </div>
-                </motion.div>
-            )}
 
             {/* Savings Section */}
             <div className="bg-white/[0.04] rounded-2xl p-5 mb-6 border border-white/[0.06]">

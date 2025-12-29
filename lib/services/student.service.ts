@@ -202,7 +202,7 @@ export const studentService = {
         }
     },
 
-    // Update profile image - ALSO generates BB-ID if student doesn't have one yet
+    // Update profile image
     async updateProfileImage(file: File): Promise<ApiResponse<string>> {
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -211,9 +211,7 @@ export const studentService = {
             }
 
             const fileExt = file.name.split('.').pop();
-            // Add timestamp to prevent caching issues
-            const timestamp = Date.now();
-            const filePath = `${user.id}/profile_${timestamp}.${fileExt}`;
+            const filePath = `${user.id}/profile.${fileExt}`;
 
             console.log('Uploading file to path:', filePath);
             // Upload to storage
@@ -226,77 +224,38 @@ export const studentService = {
                 return { success: false, data: null, error: uploadError.message };
             }
 
-            // Get public URL with cache-busting timestamp
+            // Get public URL (since bucket is public)
             const { data: urlData } = supabase.storage
                 .from('student-profiles')
                 .getPublicUrl(filePath);
 
-            const imageUrl = `${urlData.publicUrl}?t=${timestamp}`;
+            const imageUrl = urlData.publicUrl;
 
-            // First, check if student already has a BB-ID
-            const { data: currentStudent } = await supabase
+            // Update student record
+            console.log('Saving image URL to DB for user:', user.id, imageUrl);
+            const { error: updateError, count } = await supabase
                 .from('students')
-                .select('bb_id')
+                .update({ profile_image_url: imageUrl })
                 .eq('user_id', user.id)
-                .single();
-
-            // Generate BB-ID if student doesn't have one yet
-            let newBbId: string | null = null;
-            if (!currentStudent?.bb_id) {
-                // Generate unique BB-ID
-                const generateUniqueBbId = async (): Promise<string> => {
-                    for (let attempt = 0; attempt < 10; attempt++) {
-                        const num = Math.floor(100000 + Math.random() * 900000);
-                        const candidateId = `BB-${num}`;
-
-                        const { data: existing } = await supabase
-                            .from('students')
-                            .select('id')
-                            .eq('bb_id', candidateId)
-                            .single();
-
-                        if (!existing) {
-                            return candidateId;
-                        }
-                    }
-                    return `BB-${Date.now().toString().slice(-6)}`;
-                };
-
-                newBbId = await generateUniqueBbId();
-                console.log('Generated new BB-ID for student:', newBbId);
-            }
-
-            // Build update object
-            const updateData: any = { profile_image_url: imageUrl };
-            if (newBbId) {
-                updateData.bb_id = newBbId;
-            }
-
-            // Update student record with image and BB-ID
-            console.log('Saving to DB for user:', user.id, updateData);
-            const { error: updateError, data: updatedRows } = await supabase
-                .from('students')
-                .update(updateData)
-                .eq('user_id', user.id)
-                .select('id, bb_id');
+                .select('id');
 
             if (updateError) {
                 console.error('DB Update Error:', updateError);
                 return { success: false, data: null, error: updateError.message };
             }
 
-            if (!updatedRows || updatedRows.length === 0) {
+            if (count === 0) {
                 console.error('No rows updated! Possible mismatch in user_id or RLS blocking.');
                 // Fallback: Try updating by email if user_id failed
                 if (user.email) {
                     console.log('Attempting fallback update by email:', user.email);
-                    const { error: emailUpdateError, data: emailUpdatedRows } = await supabase
+                    const { error: emailUpdateError, count: emailCount } = await supabase
                         .from('students')
-                        .update(updateData)
+                        .update({ profile_image_url: imageUrl })
                         .eq('email', user.email)
-                        .select('id, bb_id');
+                        .select('id');
 
-                    if (emailUpdateError || !emailUpdatedRows || emailUpdatedRows.length === 0) {
+                    if (emailUpdateError || emailCount === 0) {
                         return { success: false, data: null, error: "Could not link image to student record. Please contact support." };
                     }
                 } else {
@@ -304,7 +263,7 @@ export const studentService = {
                 }
             }
 
-            console.log('Profile image saved successfully! BB-ID:', newBbId || 'Already had one');
+            console.log('Profile image saved successfully!');
             return { success: true, data: imageUrl, error: null };
         } catch (error: any) {
             return { success: false, data: null, error: error.message };
