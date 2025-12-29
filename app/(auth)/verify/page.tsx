@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, RefreshCw, Loader2, AlertCircle, Mail, ChevronDown, MapPin, Building2, GraduationCap } from "lucide-react";
+import { ArrowLeft, Check, RefreshCw, Loader2, AlertCircle, Mail, ChevronDown, MapPin, Building2, GraduationCap, Camera, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -13,12 +13,26 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 export default function VerifyPage() {
     const router = useRouter();
-    const [step, setStep] = useState<"details" | "location" | "university" | "email" | "otp" | "success">("details");
+    const [step, setStep] = useState<"details" | "location" | "university" | "email" | "otp" | "photo" | "success">("details");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [googleEmail, setGoogleEmail] = useState("");
     const [showPWAPrompt, setShowPWAPrompt] = useState(false);
+    const [studentId, setStudentId] = useState<string | null>(null);
+
+    // Camera and face detection state
+    const [showCamera, setShowCamera] = useState(false);
+    const [capturedImage, setCapturedImage] = useState<string | null>(null);
+    const [isSavingPhoto, setIsSavingPhoto] = useState(false);
+    const [faceCount, setFaceCount] = useState(0);
+    const [faceDetectionSupported, setFaceDetectionSupported] = useState(true);
+    const [isDetecting, setIsDetecting] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+    const faceDetectorRef = useRef<any>(null);
+    const detectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Form data
     const [formData, setFormData] = useState({
@@ -336,10 +350,10 @@ export default function VerifyPage() {
                 setLoading(false);
                 return;
             }
-
-            // Success - show success screen with PWA prompt
-            setStep("success");
-            setShowPWAPrompt(true);
+            // Success - go to photo step for optional face verification
+            setStudentId(result.data?.studentId || null);
+            setStep("photo");
+            setLoading(false);
         } catch (error: any) {
             setOtpError(error.message);
             setOtp(["", "", "", "", "", ""]);
@@ -367,6 +381,121 @@ export default function VerifyPage() {
         else if (step === "university") setStep("location");
         else if (step === "email") setStep("university");
         else if (step === "otp") setStep("email");
+        // Note: Can't go back from photo step - OTP already verified
+    };
+
+    // Camera functions for face verification
+    const startCamera = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user', width: 640, height: 640 }
+            });
+            streamRef.current = stream;
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                videoRef.current.onloadedmetadata = () => {
+                    videoRef.current?.play();
+                    startFaceDetection();
+                };
+            }
+            setShowCamera(true);
+        } catch (err) {
+            console.error('Camera error:', err);
+            setError('Could not access camera. Please grant permission.');
+        }
+    };
+
+    const stopCamera = () => {
+        if (detectionIntervalRef.current) {
+            clearInterval(detectionIntervalRef.current);
+            detectionIntervalRef.current = null;
+        }
+        setIsDetecting(false);
+        setFaceCount(0);
+
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+            streamRef.current = null;
+        }
+        setShowCamera(false);
+    };
+
+    const startFaceDetection = async () => {
+        if (!faceDetectionSupported) return;
+
+        try {
+            if ('FaceDetector' in window) {
+                faceDetectorRef.current = new (window as any).FaceDetector({ fastMode: true });
+                setIsDetecting(true);
+
+                const detectFaces = async () => {
+                    if (videoRef.current && faceDetectorRef.current && videoRef.current.readyState === 4) {
+                        try {
+                            const faces = await faceDetectorRef.current.detect(videoRef.current);
+                            setFaceCount(faces.length);
+                        } catch (e) {
+                            console.log('Face detection error:', e);
+                        }
+                    }
+                };
+
+                detectionIntervalRef.current = setInterval(detectFaces, 200);
+            } else {
+                setFaceDetectionSupported(false);
+            }
+        } catch (e) {
+            setFaceDetectionSupported(false);
+        }
+    };
+
+    const capturePhoto = async () => {
+        if (!videoRef.current || !canvasRef.current) return;
+
+        const canvas = canvasRef.current;
+        const video = videoRef.current;
+        canvas.width = 400;
+        canvas.height = 400;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const size = Math.min(video.videoWidth, video.videoHeight);
+        const x = (video.videoWidth - size) / 2;
+        const y = (video.videoHeight - size) / 2;
+        ctx.drawImage(video, x, y, size, size, 0, 0, 400, 400);
+
+        const imageData = canvas.toDataURL('image/jpeg', 0.85);
+        setCapturedImage(imageData);
+        stopCamera();
+
+        // Upload the photo and generate BB ID
+        setIsSavingPhoto(true);
+        try {
+            const blob = await (await fetch(imageData)).blob();
+            const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+
+            const { studentService } = await import('@/lib/services/student.service');
+            const result = await studentService.updateProfileImage(file);
+
+            if (result.success) {
+                // Photo uploaded successfully - BB ID should be generated
+                setStep("success");
+                setShowPWAPrompt(true);
+            } else {
+                setError(result.error || 'Failed to save photo');
+            }
+        } catch (err) {
+            console.error('Photo upload error:', err);
+            setError('Failed to save photo. You can try again from your profile.');
+        } finally {
+            setIsSavingPhoto(false);
+        }
+    };
+
+    const skipPhoto = () => {
+        // Skip photo - go to success without BB ID
+        setCapturedImage(null);
+        setStep("success");
+        setShowPWAPrompt(true);
     };
 
     if (checkingAuth) {
@@ -377,7 +506,7 @@ export default function VerifyPage() {
         );
     }
 
-    const stepIndex = ["details", "location", "university", "email", "otp"].indexOf(step);
+    const stepIndex = ["details", "location", "university", "email", "otp", "photo"].indexOf(step);
 
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -390,9 +519,9 @@ export default function VerifyPage() {
             >
                 {/* Progress */}
                 <div className="flex items-center gap-1 justify-center mb-4">
-                    {[0, 1, 2, 3, 4].map((i) => (
+                    {[0, 1, 2, 3, 4, 5].map((i) => (
                         <div key={i} className="flex items-center">
-                            <div className={`h-2 w-8 rounded-full transition-colors ${i <= stepIndex ? "bg-primary" : "bg-gray-200"
+                            <div className={`h-2 w-6 rounded-full transition-colors ${i <= stepIndex ? "bg-primary" : "bg-gray-200"
                                 }`} />
                         </div>
                     ))}
@@ -767,7 +896,102 @@ export default function VerifyPage() {
                         </motion.div>
                     )}
 
-                    {/* Step 6: Success + PWA Prompt */}
+                    {/* Step 6: Photo Verification (Optional) */}
+                    {step === "photo" && (
+                        <motion.div
+                            key="photo"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="space-y-4"
+                        >
+                            <div className="text-center mb-4">
+                                <Camera className="h-12 w-12 text-primary mx-auto mb-3" />
+                                <h2 className="text-xl font-bold">Take a Selfie</h2>
+                                <p className="text-sm text-gray-500">Optional but required for discounts</p>
+                            </div>
+
+                            {error && (
+                                <div className="bg-red-50 text-red-600 rounded-xl p-3 flex items-center gap-2 text-sm">
+                                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                    {error}
+                                </div>
+                            )}
+
+                            {!showCamera && !capturedImage && (
+                                <div className="space-y-4">
+                                    <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                                        <p className="text-sm text-amber-800">
+                                            📸 <strong>Upload a selfie to get your BB Student ID & QR code.</strong><br />
+                                            <span className="text-xs text-amber-600">You need this to redeem discounts at partner stores.</span>
+                                        </p>
+                                    </div>
+                                    <Button onClick={startCamera} className="w-full h-12 font-semibold">
+                                        <Camera className="h-5 w-5 mr-2" /> Take Selfie Now
+                                    </Button>
+                                    <button
+                                        onClick={skipPhoto}
+                                        className="w-full text-gray-500 text-sm hover:text-gray-700 py-2"
+                                    >
+                                        Skip for now (no BB ID)
+                                    </button>
+                                </div>
+                            )}
+
+                            {showCamera && (
+                                <div className="relative">
+                                    <div className={`relative rounded-2xl overflow-hidden border-4 transition-colors ${faceCount === 1 ? 'border-green-500' :
+                                            faceCount === 0 ? 'border-yellow-500' : 'border-red-500'
+                                        }`}>
+                                        <video
+                                            ref={videoRef}
+                                            autoPlay
+                                            playsInline
+                                            muted
+                                            className="w-full aspect-square object-cover"
+                                        />
+                                        <canvas ref={canvasRef} className="hidden" />
+
+                                        {/* Face detection status */}
+                                        <div className="absolute bottom-4 left-0 right-0 text-center">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${faceCount === 1 ? 'bg-green-500 text-white' :
+                                                    faceCount === 0 ? 'bg-yellow-500 text-black' : 'bg-red-500 text-white'
+                                                }`}>
+                                                {faceCount === 1 ? '✓ Face detected' :
+                                                    faceCount === 0 ? 'Position your face' : 'Only one face please'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2 mt-4">
+                                        <Button
+                                            variant="outline"
+                                            onClick={stopCamera}
+                                            className="flex-1"
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            onClick={capturePhoto}
+                                            disabled={faceDetectionSupported && faceCount !== 1}
+                                            className="flex-1"
+                                        >
+                                            Capture
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {isSavingPhoto && (
+                                <div className="flex flex-col items-center py-8">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                                    <p className="text-sm text-gray-500">Saving your photo...</p>
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {/* Step 7: Success + PWA Prompt */}
                     {step === "success" && (
                         <motion.div
                             key="success"

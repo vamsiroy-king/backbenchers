@@ -345,9 +345,10 @@ export const authService = {
                 return `BB-${Date.now().toString().slice(-6)}`;
             };
 
-            const uniqueBbId = await generateUniqueBbId();
+            // Note: BB ID is NOT generated here - it will be generated only when profile photo is uploaded
+            // const uniqueBbId = await generateUniqueBbId();
 
-            // Create student record with linked college email and auto-generated BB-ID
+            // Create student record WITHOUT BB-ID (will be generated after profile photo upload)
             const { data: student, error: insertError } = await supabase
                 .from('students')
                 .insert({
@@ -361,7 +362,7 @@ export const authService = {
                     college: studentData.college,
                     city: studentData.city,
                     state: studentData.state,
-                    bb_id: uniqueBbId, // Strictly unique BB-ID - checked against database
+                    bb_id: null, // BB-ID will be generated ONLY after profile photo is uploaded
                     status: 'verified', // Students are verified immediately after OTP (no admin approval needed)
                     total_savings: 0,
                     total_redemptions: 0
