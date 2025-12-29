@@ -59,20 +59,38 @@ export default function AdminSettingsPage() {
 
     // Save settings to DATABASE
     const toggleSetting = async (key: keyof ContentSettings) => {
+        if (saving) return; // Prevent double-click
+
         setSaving(true);
+        const oldSettings = { ...contentSettings };
         const newSettings = {
             ...contentSettings,
             [key]: !contentSettings[key]
         };
+
+        console.log('Toggling setting:', key, 'from', oldSettings[key], 'to', newSettings[key]);
+
+        // Optimistic update
         setContentSettings(newSettings);
 
         // Save to database for realtime sync!
-        const result = await settingsService.updateContentSettings(newSettings);
-        if (!result.success) {
-            console.error("Failed to save settings:", result.error);
-            // Revert on failure
-            setContentSettings(contentSettings);
+        try {
+            const result = await settingsService.updateContentSettings(newSettings);
+            console.log('Save result:', result);
+
+            if (!result.success) {
+                console.error("Failed to save settings:", result.error);
+                // Revert on failure
+                setContentSettings(oldSettings);
+                alert('Failed to save: ' + result.error);
+            } else {
+                console.log('Settings saved successfully!');
+            }
+        } catch (error) {
+            console.error("Error saving settings:", error);
+            setContentSettings(oldSettings);
         }
+
         setSaving(false);
     };
 
