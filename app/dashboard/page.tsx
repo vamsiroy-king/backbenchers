@@ -141,8 +141,10 @@ export default function DashboardPage() {
     // Real-time notifications with Supabase realtime subscription
     const { unreadCount, markAllAsRead } = useNotifications();
 
-    // Load content visibility settings from DATABASE (not localStorage!)
+    // Load content visibility settings from DATABASE with REALTIME subscription
     useEffect(() => {
+        let channel: any = null;
+
         async function loadContentSettings() {
             try {
                 const { settingsService } = await import('@/lib/services/settings.service');
@@ -152,7 +154,40 @@ export default function DashboardPage() {
                 console.error('Error loading content settings:', error);
             }
         }
+
+        // Initial load
         loadContentSettings();
+
+        // Subscribe to realtime changes for instant admin toggle updates
+        async function subscribeToRealtime() {
+            const { supabase } = await import('@/lib/supabase');
+            channel = supabase
+                .channel('site_settings_changes')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'site_settings',
+                        filter: 'key=eq.content_visibility'
+                    },
+                    (payload: any) => {
+                        console.log('Content settings changed via realtime:', payload);
+                        if (payload.new?.value) {
+                            setContentSettings(payload.new.value);
+                        }
+                    }
+                )
+                .subscribe();
+        }
+
+        subscribeToRealtime();
+
+        return () => {
+            if (channel) {
+                channel.unsubscribe();
+            }
+        };
     }, []);
 
     // Animate search placeholder
@@ -924,8 +959,8 @@ export default function DashboardPage() {
                                         >
                                             <Heart
                                                 className={`h-5 w-5 transition-all duration-200 ${isFav
-                                                        ? 'fill-red-500 text-red-500'
-                                                        : 'text-white/40 hover:text-white/60'
+                                                    ? 'fill-red-500 text-red-500'
+                                                    : 'text-white/40 hover:text-white/60'
                                                     }`}
                                             />
                                         </motion.div>
