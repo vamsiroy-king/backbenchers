@@ -51,8 +51,13 @@ export default function SignupPage() {
                         return;
                     }
 
-                    // Note: We no longer clear pending sessions here
-                    // Let users proceed to OAuth which will properly route them
+                    // User is logged in but profile is not complete - redirect to verify/onboarding
+                    if (!user.isComplete) {
+                        console.log('User logged in but profile incomplete - redirecting to /verify');
+                        window.location.href = "/verify";
+                        return;
+                    }
+
                     console.log('User role:', user.role, 'isComplete:', user.isComplete);
                 }
             } catch (error) {
