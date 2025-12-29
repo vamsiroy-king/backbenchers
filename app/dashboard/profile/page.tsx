@@ -25,6 +25,14 @@ export default function ProfilePage() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
 
+    // Face detection state
+    const [faceCount, setFaceCount] = useState<number>(0);
+    const [faceDetectionSupported, setFaceDetectionSupported] = useState<boolean>(true);
+    const [isDetecting, setIsDetecting] = useState(false);
+    const faceDetectorRef = useRef<any>(null);
+    const detectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
     // Real data from Supabase
     const [loading, setLoading] = useState(true);
     const [student, setStudent] = useState<Student | null>(null);
@@ -116,6 +124,14 @@ export default function ProfilePage() {
             streamRef.current = stream;
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
+                // Start face detection once video is playing
+                videoRef.current.onloadedmetadata = () => {
+                    videoRef.current?.play();
+                    // Small delay to ensure video is fully ready
+                    setTimeout(() => {
+                        startFaceDetection();
+                    }, 500);
+                };
             }
         } catch (err) {
             console.error("Camera error:", err);
@@ -123,10 +139,79 @@ export default function ProfilePage() {
     };
 
     const stopCamera = () => {
+        // Stop face detection
+        if (detectionIntervalRef.current) {
+            clearInterval(detectionIntervalRef.current);
+            detectionIntervalRef.current = null;
+        }
+        setIsDetecting(false);
+        setFaceCount(0);
+
+        // Stop camera stream
         if (streamRef.current) {
             streamRef.current.getTracks().forEach(track => track.stop());
             streamRef.current = null;
         }
+    };
+
+    // Initialize face detector on mount
+    useEffect(() => {
+        if (typeof window !== 'undefined' && 'FaceDetector' in window) {
+            try {
+                faceDetectorRef.current = new (window as any).FaceDetector({
+                    fastMode: true,
+                    maxDetectedFaces: 5
+                });
+                setFaceDetectionSupported(true);
+            } catch (err) {
+                console.log('FaceDetector not available:', err);
+                setFaceDetectionSupported(false);
+            }
+        } else {
+            setFaceDetectionSupported(false);
+        }
+
+        return () => {
+            if (detectionIntervalRef.current) {
+                clearInterval(detectionIntervalRef.current);
+            }
+        };
+    }, []);
+
+    // Start face detection loop when camera is active
+    const startFaceDetection = async () => {
+        if (!faceDetectorRef.current || !videoRef.current) {
+            console.log('Face detection not available or video not ready');
+            return;
+        }
+
+        setIsDetecting(true);
+
+        // Detection loop - runs every 200ms (5 times per second)
+        detectionIntervalRef.current = setInterval(async () => {
+            if (!videoRef.current || videoRef.current.readyState !== 4) return;
+
+            try {
+                const faces = await faceDetectorRef.current.detect(videoRef.current);
+                setFaceCount(faces.length);
+            } catch (err) {
+                // Silently ignore detection errors during frame processing
+            }
+        }, 200);
+    };
+
+    // Helper to get face status
+    const getFaceStatus = () => {
+        if (!faceDetectionSupported) {
+            return { color: 'emerald', message: 'Position your face in the circle', canCapture: true };
+        }
+        if (faceCount === 0) {
+            return { color: 'orange', message: 'No face detected - look at camera', canCapture: false };
+        }
+        if (faceCount === 1) {
+            return { color: 'emerald', message: '✓ Face detected - ready to capture', canCapture: true };
+        }
+        return { color: 'red', message: `${faceCount} faces detected - only 1 allowed`, canCapture: false };
     };
 
     const capturePhoto = async () => {
@@ -346,59 +431,105 @@ export default function ProfilePage() {
                                 </Button>
                             </div>
                         ) : (
-                            /* Camera Capture Screen */
+                            /* Camera Capture Screen with Face Detection */
                             <div className="flex-1 flex flex-col items-center justify-center px-6">
-                                <div className="relative mb-6">
-                                    {/* Face guide circle */}
-                                    <div className="relative">
-                                        <video
-                                            ref={videoRef}
-                                            autoPlay
-                                            playsInline
-                                            muted
-                                            className="w-72 h-72 rounded-full object-cover transform scale-x-[-1]"
-                                        />
-                                        {/* Animated border */}
-                                        <div className="absolute inset-0 rounded-full border-4 border-emerald-400 pointer-events-none"
-                                            style={{ boxShadow: '0 0 20px rgba(16, 185, 129, 0.3)' }} />
-                                        {/* Corner guides */}
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                            <div className="w-52 h-52 border-2 border-white/30 border-dashed rounded-full" />
-                                        </div>
-                                    </div>
+                                {(() => {
+                                    const faceStatus = getFaceStatus();
+                                    const borderColorClass = faceStatus.color === 'emerald'
+                                        ? 'border-emerald-400'
+                                        : faceStatus.color === 'orange'
+                                            ? 'border-orange-400'
+                                            : 'border-red-400';
+                                    const shadowColor = faceStatus.color === 'emerald'
+                                        ? 'rgba(16, 185, 129, 0.4)'
+                                        : faceStatus.color === 'orange'
+                                            ? 'rgba(251, 146, 60, 0.4)'
+                                            : 'rgba(239, 68, 68, 0.4)';
 
-                                    {/* Saving indicator */}
-                                    {isSaving && (
-                                        <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                                            <div className="text-center">
-                                                <Loader2 className="h-8 w-8 animate-spin text-white mx-auto mb-2" />
-                                                <span className="text-white text-sm">Saving...</span>
+                                    return (
+                                        <>
+                                            <div className="relative mb-6">
+                                                {/* Face guide circle */}
+                                                <div className="relative">
+                                                    <video
+                                                        ref={videoRef}
+                                                        autoPlay
+                                                        playsInline
+                                                        muted
+                                                        className="w-72 h-72 rounded-full object-cover transform scale-x-[-1] bg-black"
+                                                    />
+                                                    {/* Dynamic border based on face count */}
+                                                    <div
+                                                        className={`absolute inset-0 rounded-full border-4 ${borderColorClass} pointer-events-none transition-all duration-300`}
+                                                        style={{ boxShadow: `0 0 30px ${shadowColor}` }}
+                                                    />
+                                                    {/* Inner guide circle */}
+                                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                        <div className="w-52 h-52 border-2 border-white/20 border-dashed rounded-full" />
+                                                    </div>
+
+                                                    {/* Face count indicator */}
+                                                    {faceDetectionSupported && isDetecting && (
+                                                        <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium ${faceStatus.color === 'emerald'
+                                                            ? 'bg-emerald-500/90 text-white'
+                                                            : faceStatus.color === 'orange'
+                                                                ? 'bg-orange-500/90 text-white'
+                                                                : 'bg-red-500/90 text-white'
+                                                            }`}>
+                                                            {faceCount === 1 ? '1 Face ✓' : `${faceCount} Face${faceCount !== 1 ? 's' : ''}`}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Saving indicator */}
+                                                {isSaving && (
+                                                    <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center">
+                                                        <div className="text-center">
+                                                            <Loader2 className="h-8 w-8 animate-spin text-white mx-auto mb-2" />
+                                                            <span className="text-white text-sm font-medium">Saving...</span>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
 
-                                <p className="text-white/80 text-sm mb-6 text-center">
-                                    Position your face inside the circle<br />
-                                    <span className="text-gray-400 text-xs">Not too close, not too far</span>
-                                </p>
+                                            {/* Status message */}
+                                            <p className={`text-sm mb-6 text-center font-medium ${faceStatus.color === 'emerald'
+                                                ? 'text-emerald-400'
+                                                : faceStatus.color === 'orange'
+                                                    ? 'text-orange-400'
+                                                    : 'text-red-400'
+                                                }`}>
+                                                {faceStatus.message}
+                                            </p>
 
-                                <Button
-                                    onClick={capturePhoto}
-                                    disabled={isCapturing || isSaving}
-                                    className="h-14 px-10 bg-white text-black font-bold rounded-full text-base disabled:opacity-50"
-                                >
-                                    {isCapturing ? (
-                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                    ) : (
-                                        <Camera className="mr-2 h-5 w-5" />
-                                    )}
-                                    {isCapturing ? 'Capturing...' : 'Take Photo'}
-                                </Button>
+                                            {/* Capture button - disabled unless exactly 1 face */}
+                                            <Button
+                                                onClick={capturePhoto}
+                                                disabled={isCapturing || isSaving || !faceStatus.canCapture}
+                                                className={`h-14 px-10 font-bold rounded-full text-base transition-all ${faceStatus.canCapture
+                                                    ? 'bg-white text-black hover:bg-gray-100'
+                                                    : 'bg-white/30 text-white/50 cursor-not-allowed'
+                                                    }`}
+                                            >
+                                                {isCapturing ? (
+                                                    <>
+                                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                                        Capturing...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Camera className="mr-2 h-5 w-5" />
+                                                        {faceStatus.canCapture ? 'Take Photo' : 'Position Your Face'}
+                                                    </>
+                                                )}
+                                            </Button>
 
-                                <p className="text-orange-400 text-xs text-center mt-6 px-8">
-                                    Photo cannot be changed after capture
-                                </p>
+                                            <p className="text-orange-400 text-xs text-center mt-6 px-8">
+                                                Photo cannot be changed after capture
+                                            </p>
+                                        </>
+                                    );
+                                })()}
                             </div>
                         )}
                     </motion.div>
@@ -455,38 +586,40 @@ export default function ProfilePage() {
             </header>
 
             {/* Profile Photo Warning */}
-            {!hasProfileImage && (
-                <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-orange-500/10 rounded-2xl p-4 mb-4 flex items-start gap-3 border border-orange-500/20"
-                >
-                    <AlertCircle className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                        <p className="text-sm font-semibold text-orange-300">Profile Photo Required</p>
-                        <p className="text-xs text-orange-400/80 mt-1">
-                            Add a selfie to use offline discounts. Without it, merchants cannot verify you.
-                        </p>
-                        <div className="flex gap-2 mt-3">
-                            <Button
-                                onClick={openCameraModal}
-                                size="sm"
-                                className="h-8 bg-orange-500 text-white text-xs font-semibold rounded-lg hover:bg-orange-600"
-                            >
-                                <Camera className="h-3 w-3 mr-1" /> Add Selfie
-                            </Button>
-                            <Button
-                                onClick={() => setShowInfoModal(true)}
-                                size="sm"
-                                variant="outline"
-                                className="h-8 text-xs font-semibold rounded-lg border-white/20 text-white/70 hover:bg-white/[0.05]"
-                            >
-                                <Info className="h-3 w-3 mr-1" /> Why?
-                            </Button>
+            {
+                !hasProfileImage && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-orange-500/10 rounded-2xl p-4 mb-4 flex items-start gap-3 border border-orange-500/20"
+                    >
+                        <AlertCircle className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                            <p className="text-sm font-semibold text-orange-300">Profile Photo Required</p>
+                            <p className="text-xs text-orange-400/80 mt-1">
+                                Add a selfie to use offline discounts. Without it, merchants cannot verify you.
+                            </p>
+                            <div className="flex gap-2 mt-3">
+                                <Button
+                                    onClick={openCameraModal}
+                                    size="sm"
+                                    className="h-8 bg-orange-500 text-white text-xs font-semibold rounded-lg hover:bg-orange-600"
+                                >
+                                    <Camera className="h-3 w-3 mr-1" /> Add Selfie
+                                </Button>
+                                <Button
+                                    onClick={() => setShowInfoModal(true)}
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 text-xs font-semibold rounded-lg border-white/20 text-white/70 hover:bg-white/[0.05]"
+                                >
+                                    <Info className="h-3 w-3 mr-1" /> Why?
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                </motion.div>
-            )}
+                    </motion.div>
+                )
+            }
 
             {/* Premium Credit-Card Style ID */}
             <div
@@ -766,7 +899,7 @@ export default function ProfilePage() {
                     Sign Out
                 </button>
             </div>
-        </div>
+        </div >
     );
 }
 
