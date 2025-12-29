@@ -699,78 +699,80 @@ export default function DashboardPage() {
                 </motion.button>
 
                 {/* Hero Banner - Touch/Swipe Carousel */}
-                <div
-                    className="relative -mx-5 overflow-hidden touch-pan-y"
-                    onTouchStart={(e) => {
-                        const touch = e.touches[0];
-                        (e.currentTarget as any).startX = touch.clientX;
-                    }}
-                    onTouchEnd={(e) => {
-                        const target = e.currentTarget as any;
-                        if (!target.startX) return;
-                        const touch = e.changedTouches[0];
-                        const diff = target.startX - touch.clientX;
-                        const count = heroBanners.length > 0 ? heroBanners.length : 3;
-                        if (diff > 50) {
-                            // Swipe left on screen = go to next banner
-                            setSwipeDirection('left');
-                            setCurrentBannerIndex((prev) => (prev + 1) % count);
-                        } else if (diff < -50) {
-                            // Swipe right on screen = go to previous banner
-                            setSwipeDirection('right');
-                            setCurrentBannerIndex((prev) => (prev - 1 + count) % count);
-                        }
-                        target.startX = null;
-                    }}
-                >
-                    <AnimatePresence mode="wait">
-                        {(heroBanners.length > 0 ? heroBanners : [
-                            { id: '1', title: 'Student Discounts', subtitle: 'Up to 50% off on 100+ brands', ctaText: 'Explore', backgroundGradient: 'from-primary to-emerald-500' },
-                            { id: '2', title: 'Flash Deals', subtitle: 'Limited time offers nearby', ctaText: 'View All', backgroundGradient: 'from-orange-500 to-rose-500' },
-                            { id: '3', title: 'New Drops', subtitle: 'Fresh deals every week', ctaText: 'Check Out', backgroundGradient: 'from-blue-500 to-indigo-600' },
-                        ]).map((banner: any, index: number) =>
-                            index === currentBannerIndex && (
-                                <motion.div
-                                    key={banner.id}
-                                    initial={{ opacity: 0, x: swipeDirection === 'left' ? 300 : -300 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: swipeDirection === 'left' ? -300 : 300 }}
-                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                    className={`mx-5 h-44 rounded-3xl bg-gradient-to-br ${banner.backgroundGradient} p-6 flex flex-col justify-between relative overflow-hidden cursor-grab active:cursor-grabbing`}
-                                >
-                                    {/* Shine overlay */}
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
-                                    <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
-
-                                    <div className="relative z-10">
-                                        <h2 className="text-white text-2xl font-extrabold tracking-tight">{banner.title}</h2>
-                                        {banner.subtitle && (
-                                            <p className="text-white/80 text-sm mt-1.5 font-medium">{banner.subtitle}</p>
-                                        )}
-                                    </div>
-                                    <button
-                                        onClick={handleOfferClick}
-                                        className="relative z-10 bg-white text-gray-900 font-bold px-6 py-2.5 rounded-xl w-fit text-sm shadow-lg"
+                {contentSettings.showHeroBanners && (
+                    <div
+                        className="relative -mx-5 overflow-hidden touch-pan-y"
+                        onTouchStart={(e) => {
+                            const touch = e.touches[0];
+                            (e.currentTarget as any).startX = touch.clientX;
+                        }}
+                        onTouchEnd={(e) => {
+                            const target = e.currentTarget as any;
+                            if (!target.startX) return;
+                            const touch = e.changedTouches[0];
+                            const diff = target.startX - touch.clientX;
+                            const count = heroBanners.length > 0 ? heroBanners.length : 3;
+                            if (diff > 50) {
+                                // Swipe left on screen = go to next banner
+                                setSwipeDirection('left');
+                                setCurrentBannerIndex((prev) => (prev + 1) % count);
+                            } else if (diff < -50) {
+                                // Swipe right on screen = go to previous banner
+                                setSwipeDirection('right');
+                                setCurrentBannerIndex((prev) => (prev - 1 + count) % count);
+                            }
+                            target.startX = null;
+                        }}
+                    >
+                        <AnimatePresence mode="wait">
+                            {(heroBanners.length > 0 ? heroBanners : [
+                                { id: '1', title: 'Student Discounts', subtitle: 'Up to 50% off on 100+ brands', ctaText: 'Explore', backgroundGradient: 'from-primary to-emerald-500' },
+                                { id: '2', title: 'Flash Deals', subtitle: 'Limited time offers nearby', ctaText: 'View All', backgroundGradient: 'from-orange-500 to-rose-500' },
+                                { id: '3', title: 'New Drops', subtitle: 'Fresh deals every week', ctaText: 'Check Out', backgroundGradient: 'from-blue-500 to-indigo-600' },
+                            ]).map((banner: any, index: number) =>
+                                index === currentBannerIndex && (
+                                    <motion.div
+                                        key={banner.id}
+                                        initial={{ opacity: 0, x: swipeDirection === 'left' ? 300 : -300 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: swipeDirection === 'left' ? -300 : 300 }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                        className={`mx-5 h-44 rounded-3xl bg-gradient-to-br ${banner.backgroundGradient} p-6 flex flex-col justify-between relative overflow-hidden cursor-grab active:cursor-grabbing`}
                                     >
-                                        {banner.ctaText}
-                                    </button>
-                                </motion.div>
-                            )
-                        )}
-                    </AnimatePresence>
+                                        {/* Shine overlay */}
+                                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
+                                        <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
 
-                    {/* Swipe hint + Active dot indicators */}
-                    <div className="flex items-center justify-center gap-2 mt-4">
-                        <span className="text-[10px] text-white/30 mr-2">← Swipe →</span>
-                        {(heroBanners.length > 0 ? heroBanners : [1, 2, 3]).map((_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setCurrentBannerIndex(i)}
-                                className={`h-2 rounded-full transition-all duration-300 ${currentBannerIndex === i ? 'w-8 bg-green-400' : 'w-2 bg-white/20 hover:bg-white/30'}`}
-                            />
-                        ))}
+                                        <div className="relative z-10">
+                                            <h2 className="text-white text-2xl font-extrabold tracking-tight">{banner.title}</h2>
+                                            {banner.subtitle && (
+                                                <p className="text-white/80 text-sm mt-1.5 font-medium">{banner.subtitle}</p>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={handleOfferClick}
+                                            className="relative z-10 bg-white text-gray-900 font-bold px-6 py-2.5 rounded-xl w-fit text-sm shadow-lg"
+                                        >
+                                            {banner.ctaText}
+                                        </button>
+                                    </motion.div>
+                                )
+                            )}
+                        </AnimatePresence>
+
+                        {/* Swipe hint + Active dot indicators */}
+                        <div className="flex items-center justify-center gap-2 mt-4">
+                            <span className="text-[10px] text-white/30 mr-2">← Swipe →</span>
+                            {(heroBanners.length > 0 ? heroBanners : [1, 2, 3]).map((_, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => setCurrentBannerIndex(i)}
+                                    className={`h-2 rounded-full transition-all duration-300 ${currentBannerIndex === i ? 'w-8 bg-green-400' : 'w-2 bg-white/20 hover:bg-white/30'}`}
+                                />
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Categories - Minimal Grid */}
                 <section className="py-6">
@@ -845,139 +847,141 @@ export default function DashboardPage() {
                 )}
 
                 {/* Trending Offers - Ultra Minimal Premium Design */}
-                <section className="py-8">
-                    {/* Section Header */}
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/10 flex items-center justify-center">
-                                <TrendingUp className="h-4 w-4 text-green-400" />
+                {contentSettings.showTrending && (
+                    <section className="py-8">
+                        {/* Section Header */}
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/10 flex items-center justify-center">
+                                    <TrendingUp className="h-4 w-4 text-green-400" />
+                                </div>
+                                <h2 className="text-lg font-semibold text-white tracking-tight">Trending</h2>
                             </div>
-                            <h2 className="text-lg font-semibold text-white tracking-tight">Trending</h2>
+
+                            {/* Premium Tab Switcher */}
+                            <div className="flex gap-1 p-1 bg-white/[0.03] rounded-full border border-white/[0.04]">
+                                <button
+                                    onClick={() => setTrendingTab('offline')}
+                                    className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${trendingTab === 'offline'
+                                        ? 'bg-white text-black'
+                                        : 'text-white/40 hover:text-white/60'
+                                        }`}
+                                >
+                                    In-Store
+                                </button>
+                                <button
+                                    onClick={() => setTrendingTab('online')}
+                                    className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${trendingTab === 'online'
+                                        ? 'bg-white text-black'
+                                        : 'text-white/40 hover:text-white/60'
+                                        }`}
+                                >
+                                    Online
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Premium Tab Switcher */}
-                        <div className="flex gap-1 p-1 bg-white/[0.03] rounded-full border border-white/[0.04]">
-                            <button
-                                onClick={() => setTrendingTab('offline')}
-                                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${trendingTab === 'offline'
-                                    ? 'bg-white text-black'
-                                    : 'text-white/40 hover:text-white/60'
-                                    }`}
-                            >
-                                In-Store
-                            </button>
-                            <button
-                                onClick={() => setTrendingTab('online')}
-                                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${trendingTab === 'online'
-                                    ? 'bg-white text-black'
-                                    : 'text-white/40 hover:text-white/60'
-                                    }`}
-                            >
-                                Online
-                            </button>
-                        </div>
-                    </div>
+                        {/* Offers Grid - Clean Minimal Cards */}
+                        <div className="space-y-3">
+                            {currentOffers.slice(0, 5).map((offer: any, index: number) => {
+                                const isFav = offer.id && favoriteIds.includes(offer.id);
+                                const expiryText = getExpiryText(offer.validUntil);
+                                const isExpired = expiryText === 'Expired';
 
-                    {/* Offers Grid - Clean Minimal Cards */}
-                    <div className="space-y-3">
-                        {currentOffers.slice(0, 5).map((offer: any, index: number) => {
-                            const isFav = offer.id && favoriteIds.includes(offer.id);
-                            const expiryText = getExpiryText(offer.validUntil);
-                            const isExpired = expiryText === 'Expired';
-
-                            return (
-                                <motion.div
-                                    key={offer.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    whileTap={{ scale: 0.99 }}
-                                    onClick={() => {
-                                        if (!isVerified) {
-                                            setShowVerifyModal(true);
-                                        } else if (offer.merchantId) {
-                                            router.push(`/store/${offer.merchantId}`);
-                                        }
-                                    }}
-                                    className={`group flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] cursor-pointer
+                                return (
+                                    <motion.div
+                                        key={offer.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        whileTap={{ scale: 0.99 }}
+                                        onClick={() => {
+                                            if (!isVerified) {
+                                                setShowVerifyModal(true);
+                                            } else if (offer.merchantId) {
+                                                router.push(`/store/${offer.merchantId}`);
+                                            }
+                                        }}
+                                        className={`group flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] cursor-pointer
                                         hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-200
                                         ${isExpired ? 'opacity-40' : ''}`}
-                                >
-                                    {/* Logo Container */}
-                                    <div className="relative flex-shrink-0">
-                                        <div className="h-14 w-14 rounded-xl bg-white/[0.04] flex items-center justify-center overflow-hidden">
-                                            {offer.merchantLogo ? (
-                                                <img src={offer.merchantLogo} alt="" className="h-10 w-10 object-contain" />
-                                            ) : (
-                                                <Store className="h-6 w-6 text-white/30" />
+                                    >
+                                        {/* Logo Container */}
+                                        <div className="relative flex-shrink-0">
+                                            <div className="h-14 w-14 rounded-xl bg-white/[0.04] flex items-center justify-center overflow-hidden">
+                                                {offer.merchantLogo ? (
+                                                    <img src={offer.merchantLogo} alt="" className="h-10 w-10 object-contain" />
+                                                ) : (
+                                                    <Store className="h-6 w-6 text-white/30" />
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <h3 className="text-[15px] font-medium text-white truncate">
+                                                        {offer.merchantName || offer.brand || 'Special Offer'}
+                                                    </h3>
+                                                    <p className="text-sm text-white/40 truncate mt-0.5">
+                                                        {offer.title || 'Limited time offer'}
+                                                    </p>
+                                                </div>
+
+                                                {/* Discount Badge - Minimal */}
+                                                <div className="flex-shrink-0">
+                                                    <span className="inline-flex items-center justify-center h-8 px-3 rounded-lg bg-green-500/10 text-green-400 text-sm font-semibold">
+                                                        {offer.discountValue
+                                                            ? `${offer.type === 'percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue}`
+                                                            : (offer.discount || 'Deal')}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Expiry Tag */}
+                                            {expiryText && !isExpired && (
+                                                <span className={`inline-block text-[11px] font-medium mt-2 ${expiryText.includes('h') || expiryText.includes('Ends')
+                                                    ? 'text-orange-400'
+                                                    : 'text-white/30'
+                                                    }`}>
+                                                    {expiryText}
+                                                </span>
                                             )}
                                         </div>
-                                    </div>
 
-                                    {/* Content */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="min-w-0">
-                                                <h3 className="text-[15px] font-medium text-white truncate">
-                                                    {offer.merchantName || offer.brand || 'Special Offer'}
-                                                </h3>
-                                                <p className="text-sm text-white/40 truncate mt-0.5">
-                                                    {offer.title || 'Limited time offer'}
-                                                </p>
-                                            </div>
-
-                                            {/* Discount Badge - Minimal */}
-                                            <div className="flex-shrink-0">
-                                                <span className="inline-flex items-center justify-center h-8 px-3 rounded-lg bg-green-500/10 text-green-400 text-sm font-semibold">
-                                                    {offer.discountValue
-                                                        ? `${offer.type === 'percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue}`
-                                                        : (offer.discount || 'Deal')}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Expiry Tag */}
-                                        {expiryText && !isExpired && (
-                                            <span className={`inline-block text-[11px] font-medium mt-2 ${expiryText.includes('h') || expiryText.includes('Ends')
-                                                ? 'text-orange-400'
-                                                : 'text-white/30'
-                                                }`}>
-                                                {expiryText}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {/* Favorite Button - Clean Instagram Style */}
-                                    <motion.button
-                                        onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
-                                        className="flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center active:scale-90 transition-all"
-                                        whileTap={{ scale: 0.85 }}
-                                    >
-                                        <motion.div
-                                            animate={isFav ? { scale: [1, 1.25, 1] } : { scale: 1 }}
-                                            transition={{ duration: 0.25, ease: "easeOut" }}
+                                        {/* Favorite Button - Clean Instagram Style */}
+                                        <motion.button
+                                            onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
+                                            className="flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center active:scale-90 transition-all"
+                                            whileTap={{ scale: 0.85 }}
                                         >
-                                            <Heart
-                                                className={`h-5 w-5 transition-all duration-200 ${isFav
-                                                    ? 'fill-red-500 text-red-500'
-                                                    : 'text-white/40 hover:text-white/60'
-                                                    }`}
-                                            />
-                                        </motion.div>
-                                    </motion.button>
-                                </motion.div>
-                            );
-                        })}
-                    </div>
-
-                    {/* See All Link */}
-                    <Link href="/dashboard/explore" className="block mt-6">
-                        <div className="flex items-center justify-center gap-2 py-3 text-white/30 hover:text-white/50 transition-colors">
-                            <span className="text-sm">View all offers</span>
-                            <ChevronRight className="h-4 w-4" />
+                                            <motion.div
+                                                animate={isFav ? { scale: [1, 1.25, 1] } : { scale: 1 }}
+                                                transition={{ duration: 0.25, ease: "easeOut" }}
+                                            >
+                                                <Heart
+                                                    className={`h-5 w-5 transition-all duration-200 ${isFav
+                                                        ? 'fill-red-500 text-red-500'
+                                                        : 'text-white/40 hover:text-white/60'
+                                                        }`}
+                                                />
+                                            </motion.div>
+                                        </motion.button>
+                                    </motion.div>
+                                );
+                            })}
                         </div>
-                    </Link>
-                </section>
+
+                        {/* See All Link */}
+                        <Link href="/dashboard/explore" className="block mt-6">
+                            <div className="flex items-center justify-center gap-2 py-3 text-white/30 hover:text-white/50 transition-colors">
+                                <span className="text-sm">View all offers</span>
+                                <ChevronRight className="h-4 w-4" />
+                            </div>
+                        </Link>
+                    </section>
+                )}
 
                 {/* Top Brands - Minimal Grid */}
                 {contentSettings.showTopBrands && (
