@@ -125,7 +125,22 @@ export default function StudentsListPage() {
         }
 
         setActionLoading(id);
-        const result = await studentService.delete(id);
+
+        // Find student to get email for auth cleanup
+        const student = students.find(s => s.id === id);
+
+        // Use API route with service role key for proper deletion
+        const response = await fetch('/api/admin/delete-student', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                studentId: id,
+                userId: null,
+                collegeEmail: student?.email || null
+            })
+        });
+        const result = await response.json();
+
         if (result.success) {
             // Remove from local state immediately
             setStudents(prev => prev.filter(s => s.id !== id));

@@ -94,8 +94,19 @@ export default function StudentDetailPage() {
             console.log('Performing action:', action, 'on student:', student.id);
 
             if (action === 'delete') {
-                const result = await studentService.delete(student.id);
-                console.log('Delete result:', result);
+                // Use API route with service role key for proper deletion
+                const response = await fetch('/api/admin/delete-student', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentId: student.id,
+                        userId: (student as any).userId || null,
+                        collegeEmail: student.email
+                    })
+                });
+                const result = await response.json();
+                console.log('Delete API result:', result);
+
                 if (result.success) {
                     toast.success('Student deleted successfully');
                     router.push("/admin/dashboard/students");
