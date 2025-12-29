@@ -138,9 +138,10 @@ export default function AuthCallbackPage() {
                         setStatus("Welcome back! Loading dashboard...");
                         router.replace("/dashboard");
                     } else {
-                        addDebug("No student record found - new user");
+                        addDebug("No student record found - new user, redirecting to /verify");
                         setStatus("Completing setup...");
-                        router.replace("/verify");
+                        // Use window.location for more reliable redirect
+                        window.location.href = "/verify";
                     }
                 }
             } catch (error: any) {
