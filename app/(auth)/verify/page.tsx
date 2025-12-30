@@ -421,12 +421,16 @@ export default function VerifyPage() {
     };
 
     const startFaceDetection = async () => {
-        if (!faceDetectionSupported) return;
-
+        // Check if FaceDetector API is available (Chrome only, requires flags)
         try {
             if ('FaceDetector' in window) {
-                faceDetectorRef.current = new (window as any).FaceDetector({ fastMode: true });
+                console.log('FaceDetector API available, initializing...');
+                faceDetectorRef.current = new (window as any).FaceDetector({
+                    fastMode: true,
+                    maxDetectedFaces: 5
+                });
                 setIsDetecting(true);
+                setFaceDetectionSupported(true);
 
                 const detectFaces = async () => {
                     if (videoRef.current && faceDetectorRef.current && videoRef.current.readyState === 4) {
@@ -434,17 +438,23 @@ export default function VerifyPage() {
                             const faces = await faceDetectorRef.current.detect(videoRef.current);
                             setFaceCount(faces.length);
                         } catch (e) {
-                            console.log('Face detection error:', e);
+                            console.log('Face detection frame error:', e);
                         }
                     }
                 };
 
-                detectionIntervalRef.current = setInterval(detectFaces, 200);
+                detectionIntervalRef.current = setInterval(detectFaces, 250);
             } else {
+                // FaceDetector not available - allow capture without face detection
+                console.log('FaceDetector API not available in this browser');
                 setFaceDetectionSupported(false);
+                // Set faceCount to 1 to allow capture button to work
+                setFaceCount(1);
             }
         } catch (e) {
+            console.log('Face detection initialization error:', e);
             setFaceDetectionSupported(false);
+            setFaceCount(1); // Allow capture without detection
         }
     };
 
@@ -941,7 +951,7 @@ export default function VerifyPage() {
                             {showCamera && (
                                 <div className="relative">
                                     <div className={`relative rounded-2xl overflow-hidden border-4 transition-colors ${faceCount === 1 ? 'border-green-500' :
-                                            faceCount === 0 ? 'border-yellow-500' : 'border-red-500'
+                                        faceCount === 0 ? 'border-yellow-500' : 'border-red-500'
                                         }`}>
                                         <video
                                             ref={videoRef}
@@ -955,7 +965,7 @@ export default function VerifyPage() {
                                         {/* Face detection status */}
                                         <div className="absolute bottom-4 left-0 right-0 text-center">
                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${faceCount === 1 ? 'bg-green-500 text-white' :
-                                                    faceCount === 0 ? 'bg-yellow-500 text-black' : 'bg-red-500 text-white'
+                                                faceCount === 0 ? 'bg-yellow-500 text-black' : 'bg-red-500 text-white'
                                                 }`}>
                                                 {faceCount === 1 ? '✓ Face detected' :
                                                     faceCount === 0 ? 'Position your face' : 'Only one face please'}

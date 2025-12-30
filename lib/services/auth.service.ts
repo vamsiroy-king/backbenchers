@@ -184,7 +184,8 @@ export const authService = {
                 options: {
                     redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
                     queryParams: {
-                        prompt: 'select_account', // Always show account picker
+                        prompt: 'consent select_account', // Force account picker + consent every time
+                        access_type: 'offline', // Request offline access to get a refresh token
                     }
                 }
             });
