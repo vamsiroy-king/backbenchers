@@ -291,53 +291,67 @@ export default function FaceCamera({
     // Instructions screen
     if (showInstructions) {
         return (
-            <div className="flex-1 flex flex-col items-center justify-center p-6">
-                <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-center mb-6"
-                >
-                    <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Camera className="h-10 w-10 text-emerald-400" />
+            <div className="min-h-screen flex flex-col bg-black">
+                {/* Header */}
+                <div className="pt-12 px-4 pb-4 flex items-center justify-between">
+                    <button onClick={onCancel}>
+                        <X className="h-6 w-6 text-white" />
+                    </button>
+                    <span className="text-white text-sm font-semibold">Profile Selfie</span>
+                    <div className="w-6" />
+                </div>
+
+                {/* Scrollable content */}
+                <div className="flex-1 overflow-y-auto px-6 pb-8">
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="text-center mb-6"
+                    >
+                        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Camera className="h-10 w-10 text-emerald-400" />
+                        </div>
+                        <h2 className="text-white text-xl font-bold mb-1">Selfie Guidelines</h2>
+                        <p className="text-gray-400 text-sm">Follow these for best results</p>
+                    </motion.div>
+
+                    <div className="space-y-3 mb-6 max-w-sm mx-auto">
+                        {[
+                            { icon: "📸", text: "Take a clear selfie of your face" },
+                            { icon: "👤", text: "Only your face should be visible" },
+                            { icon: "💡", text: "Ensure good lighting on your face" },
+                            { icon: "📐", text: "Keep face centered in the circle" },
+                            { icon: "🚫", text: "No sunglasses, masks or filters" },
+                        ].map((item, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ x: -20, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ delay: i * 0.05 }}
+                                className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2.5"
+                            >
+                                <span className="text-lg">{item.icon}</span>
+                                <span className="text-white text-sm">{item.text}</span>
+                            </motion.div>
+                        ))}
                     </div>
-                    <h2 className="text-white text-xl font-bold mb-1">Selfie Guidelines</h2>
-                    <p className="text-gray-400 text-sm">Follow these for best results</p>
-                </motion.div>
 
-                <div className="space-y-3 mb-6 w-full max-w-sm">
-                    {[
-                        { icon: "📸", text: "Take a clear selfie of your face" },
-                        { icon: "👤", text: "Only your face should be visible" },
-                        { icon: "💡", text: "Ensure good lighting on your face" },
-                        { icon: "📐", text: "Keep face centered in the circle" },
-                        { icon: "🚫", text: "No sunglasses, masks or filters" },
-                    ].map((item, i) => (
-                        <motion.div
-                            key={i}
-                            initial={{ x: -20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            transition={{ delay: i * 0.05 }}
-                            className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2.5"
+                    <div className="bg-red-500/20 border border-red-500/40 rounded-xl p-3 mb-6 max-w-sm mx-auto">
+                        <p className="text-red-300 text-sm text-center font-medium">
+                            ⚠️ This photo is <strong>permanent</strong> and cannot be changed.
+                        </p>
+                    </div>
+
+                    <div className="max-w-sm mx-auto">
+                        <Button
+                            onClick={() => setShowInstructions(false)}
+                            className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl text-base"
                         >
-                            <span className="text-lg">{item.icon}</span>
-                            <span className="text-white text-sm">{item.text}</span>
-                        </motion.div>
-                    ))}
+                            <Camera className="mr-2 h-5 w-5" />
+                            I Understand, Open Camera
+                        </Button>
+                    </div>
                 </div>
-
-                <div className="bg-red-500/20 border border-red-500/40 rounded-xl p-3 mb-6 w-full max-w-sm">
-                    <p className="text-red-300 text-sm text-center font-medium">
-                        ⚠️ This photo is <strong>permanent</strong> and cannot be changed.
-                    </p>
-                </div>
-
-                <Button
-                    onClick={() => setShowInstructions(false)}
-                    className="h-14 px-8 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl text-base"
-                >
-                    <Camera className="mr-2 h-5 w-5" />
-                    I Understand, Open Camera
-                </Button>
             </div>
         );
     }
@@ -379,9 +393,9 @@ export default function FaceCamera({
 
                     {/* Status badge */}
                     <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 ${statusUI.color === "green" ? "bg-emerald-500/90 text-white" :
-                            statusUI.color === "orange" ? "bg-orange-500/90 text-white" :
-                                statusUI.color === "red" ? "bg-red-500/90 text-white" :
-                                    "bg-gray-500/90 text-white"
+                        statusUI.color === "orange" ? "bg-orange-500/90 text-white" :
+                            statusUI.color === "red" ? "bg-red-500/90 text-white" :
+                                "bg-gray-500/90 text-white"
                         }`}>
                         {statusUI.icon}
                         <span>{status === "perfect" ? "Ready" : status === "no_face" ? "No Face" :
@@ -395,8 +409,8 @@ export default function FaceCamera({
 
             {/* Status message */}
             <p className={`text-sm mb-6 text-center font-medium ${statusUI.color === "green" ? "text-emerald-400" :
-                    statusUI.color === "orange" ? "text-orange-400" :
-                        statusUI.color === "red" ? "text-red-400" : "text-gray-400"
+                statusUI.color === "orange" ? "text-orange-400" :
+                    statusUI.color === "red" ? "text-red-400" : "text-gray-400"
                 }`}>
                 {statusUI.message}
             </p>
@@ -406,8 +420,8 @@ export default function FaceCamera({
                 onClick={handleCapture}
                 disabled={!statusUI.canCapture || isCapturing}
                 className={`h-14 px-10 font-bold rounded-full text-base transition-all ${statusUI.canCapture
-                        ? "bg-white text-black hover:bg-gray-100"
-                        : "bg-white/30 text-white/50 cursor-not-allowed"
+                    ? "bg-white text-black hover:bg-gray-100"
+                    : "bg-white/30 text-white/50 cursor-not-allowed"
                     }`}
             >
                 {isCapturing ? (
