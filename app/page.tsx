@@ -44,6 +44,18 @@ export default function Home() {
         const user = await authService.getCurrentUser();
         if (user && user.role === 'student' && !user.isSuspended) {
           router.replace('/dashboard');
+          return;
+        }
+
+        // If getCurrentUser returns null BUT there's an auth session, user needs onboarding
+        // Check for auth session directly
+        const { supabase } = await import('@/lib/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && !user) {
+          // User has auth session but no student record - redirect to onboarding
+          console.log('Auth session exists but no student record - redirecting to /verify');
+          router.replace('/verify');
+          return;
         }
       } catch (e) {
         console.log('Auth check error:', e);
