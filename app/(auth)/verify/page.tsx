@@ -10,6 +10,7 @@ import { authService, isValidStudentEmail, getInvalidDomainError, ALLOWED_COLLEG
 import { universityService, University } from "@/lib/services/university.service";
 import { INDIAN_STATES, getCitiesForState } from "@/lib/data/locations";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import FaceCamera from "@/components/FaceCamera";
 
 export default function VerifyPage() {
     const router = useRouter();
@@ -939,7 +940,7 @@ export default function VerifyPage() {
                                 </div>
                             )}
 
-                            {!showCamera && !capturedImage && (
+                            {!showCamera && !isSavingPhoto && (
                                 <div className="space-y-4">
                                     <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
                                         <p className="text-sm text-amber-800">
@@ -947,7 +948,7 @@ export default function VerifyPage() {
                                             <span className="text-xs text-amber-600">You need this to redeem discounts at partner stores.</span>
                                         </p>
                                     </div>
-                                    <Button onClick={startCamera} className="w-full h-12 font-semibold">
+                                    <Button onClick={() => setShowCamera(true)} className="w-full h-12 font-semibold bg-green-500 hover:bg-green-600">
                                         <Camera className="h-5 w-5 mr-2" /> Take Selfie Now
                                     </Button>
                                     <button
@@ -959,51 +960,57 @@ export default function VerifyPage() {
                                 </div>
                             )}
 
-                            {showCamera && (
-                                <div className="relative">
-                                    <div className="relative rounded-2xl overflow-hidden border-4 border-green-500">
-                                        <video
-                                            ref={videoRef}
-                                            autoPlay
-                                            playsInline
-                                            muted
-                                            className="w-full aspect-square object-cover bg-black"
-                                            style={{ transform: 'scaleX(-1)' }}
-                                        />
-                                        <canvas ref={canvasRef} className="hidden" />
-
-                                        {/* Simple instruction */}
-                                        <div className="absolute bottom-4 left-0 right-0 text-center">
-                                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-black/50 text-white">
-                                                Position your face and tap Capture
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-2 mt-4">
-                                        <Button
-                                            variant="outline"
-                                            onClick={stopCamera}
-                                            className="flex-1"
-                                        >
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            onClick={capturePhoto}
-                                            className="flex-1 bg-green-500 hover:bg-green-600"
-                                        >
-                                            📸 Capture
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-
                             {isSavingPhoto && (
                                 <div className="flex flex-col items-center py-8">
                                     <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                                    <p className="text-sm text-gray-500">Saving your photo...</p>
+                                    <p className="text-sm text-gray-500">Saving your photo and generating BB ID...</p>
                                 </div>
                             )}
+
+                            {/* Full-screen Face Camera Modal */}
+                            <AnimatePresence>
+                                {showCamera && (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="fixed inset-0 z-50 bg-black"
+                                    >
+                                        <FaceCamera
+                                            onCapture={async (imageData) => {
+                                                setShowCamera(false);
+                                                setIsSavingPhoto(true);
+                                                setError("");
+
+                                                try {
+                                                    // Convert base64 to file and upload
+                                                    const blob = await (await fetch(imageData)).blob();
+                                                    const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+
+                                                    const { studentService } = await import('@/lib/services/student.service');
+                                                    const result = await studentService.updateProfileImage(file);
+
+                                                    if (result.success) {
+                                                        setCapturedImage(imageData);
+                                                        setStep("success");
+                                                        setShowPWAPrompt(true);
+                                                    } else {
+                                                        setError(result.error || 'Failed to save photo');
+                                                    }
+                                                } catch (err) {
+                                                    console.error('Photo upload error:', err);
+                                                    setError('Failed to save photo. Please try again.');
+                                                } finally {
+                                                    setIsSavingPhoto(false);
+                                                }
+                                            }}
+                                            onCancel={() => setShowCamera(false)}
+                                            shape="square"
+                                            instructions={true}
+                                        />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </motion.div>
                     )}
 

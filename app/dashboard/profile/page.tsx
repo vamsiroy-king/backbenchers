@@ -11,6 +11,7 @@ import { studentService } from "@/lib/services/student.service";
 import { transactionService } from "@/lib/services/transaction.service";
 import { authService } from "@/lib/services/auth.service";
 import { Student, Transaction } from "@/lib/types";
+import FaceCamera from "@/components/FaceCamera";
 
 export default function ProfilePage() {
     const router = useRouter();
@@ -358,143 +359,52 @@ export default function ProfilePage() {
     // Verified User View - Full Profile with ID Card
     return (
         <div className="min-h-screen bg-[#0a0a0b] pb-24 px-5">
-            {/* Camera Modal */}
+            {/* Camera Modal - Using Premium FaceCamera Component */}
             <AnimatePresence>
                 {showCameraModal && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-black flex flex-col"
+                        className="fixed inset-0 z-50 bg-black"
                     >
-                        {/* Header */}
-                        <div className="pt-12 px-4 pb-4 flex items-center justify-between">
-                            <button onClick={() => { setShowCameraModal(false); stopCamera(); }}>
-                                <X className="h-6 w-6 text-white" />
-                            </button>
-                            <span className="text-white text-sm font-semibold">Profile Selfie</span>
-                            <div className="w-6" />
-                        </div>
+                        <FaceCamera
+                            onCapture={async (imageData) => {
+                                setShowCameraModal(false);
+                                setIsSaving(true);
 
-                        {/* Instructions Screen */}
-                        {showInstructions ? (
-                            <div className="flex-1 px-6 overflow-y-auto pb-24">
-                                <motion.div
-                                    initial={{ scale: 0.9, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="text-center mb-6 pt-4"
-                                >
-                                    <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Camera className="h-10 w-10 text-emerald-400" />
-                                    </div>
-                                    <h2 className="text-white text-xl font-bold mb-1">Selfie Guidelines</h2>
-                                    <p className="text-gray-400 text-sm">Follow these rules for verification</p>
-                                </motion.div>
+                                try {
+                                    // Convert base64 to file and upload
+                                    const blob = await (await fetch(imageData)).blob();
+                                    const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
 
-                                <div className="space-y-3 mb-6">
-                                    {[
-                                        { icon: "📸", text: "Take a clear selfie of your face" },
-                                        { icon: "👤", text: "Only your face should be visible" },
-                                        { icon: "💡", text: "Ensure good lighting on your face" },
-                                        { icon: "📐", text: "Keep face centered in the circle" },
-                                        { icon: "🚫", text: "No sunglasses, masks or filters" },
-                                    ].map((item, i) => (
-                                        <motion.div
-                                            key={i}
-                                            initial={{ x: -20, opacity: 0 }}
-                                            animate={{ x: 0, opacity: 1 }}
-                                            transition={{ delay: i * 0.05 }}
-                                            className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2.5"
-                                        >
-                                            <span className="text-lg">{item.icon}</span>
-                                            <span className="text-white text-sm">{item.text}</span>
-                                        </motion.div>
-                                    ))}
-                                </div>
+                                    const result = await studentService.updateProfileImage(file);
 
-                                <div className="bg-red-500/20 border border-red-500/40 rounded-xl p-3 mb-6">
-                                    <p className="text-red-300 text-sm text-center font-medium">
-                                        ⚠️ This photo is <strong>permanent</strong> and cannot be changed.
-                                        <br />
-                                        <span className="text-red-400/80 text-xs">
-                                            If store staff cannot verify your identity, you won't receive discounts.
-                                        </span>
-                                    </p>
-                                </div>
-
-                                <Button
-                                    onClick={() => { setShowInstructions(false); startCamera(); }}
-                                    className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl text-base"
-                                >
-                                    <Camera className="mr-2 h-5 w-5" />
-                                    I Understand, Open Camera
-                                </Button>
-                            </div>
-                        ) : (
-                            /* Simple Camera Capture Screen */
-                            <div className="flex-1 flex flex-col items-center justify-center px-6">
-                                <div className="relative mb-6">
-                                    {/* Face guide circle */}
-                                    <div className="relative">
-                                        <video
-                                            ref={videoRef}
-                                            autoPlay
-                                            playsInline
-                                            muted
-                                            className="w-72 h-72 rounded-full object-cover bg-black"
-                                            style={{ transform: 'scaleX(-1)' }}
-                                        />
-                                        {/* Green border */}
-                                        <div
-                                            className="absolute inset-0 rounded-full border-4 border-emerald-400 pointer-events-none"
-                                            style={{ boxShadow: '0 0 30px rgba(16, 185, 129, 0.4)' }}
-                                        />
-                                        {/* Inner guide circle */}
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                            <div className="w-52 h-52 border-2 border-white/20 border-dashed rounded-full" />
-                                        </div>
-                                    </div>
-
-                                    {/* Saving indicator */}
-                                    {isSaving && (
-                                        <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center">
-                                            <div className="text-center">
-                                                <Loader2 className="h-8 w-8 animate-spin text-white mx-auto mb-2" />
-                                                <span className="text-white text-sm font-medium">Saving...</span>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Status message */}
-                                <p className="text-sm mb-6 text-center font-medium text-emerald-400">
-                                    Position your face and tap capture
-                                </p>
-
-                                {/* Capture button - always enabled */}
-                                <Button
-                                    onClick={capturePhoto}
-                                    disabled={isCapturing || isSaving}
-                                    className="h-14 px-10 font-bold rounded-full text-base bg-white text-black hover:bg-gray-100"
-                                >
-                                    {isCapturing ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                            Capturing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Camera className="mr-2 h-5 w-5" />
-                                            Take Photo
-                                        </>
-                                    )}
-                                </Button>
-
-                                <p className="text-orange-400 text-xs text-center mt-6 px-8">
-                                    Photo cannot be changed after capture
-                                </p>
-                            </div>
-                        )}
+                                    if (result.success) {
+                                        setCapturedImage(imageData);
+                                        setHasProfileImage(true);
+                                        // Refresh student data to get updated BB ID
+                                        const userData = await authService.getCurrentUser();
+                                        if (userData) {
+                                            const studentResult = await studentService.getById(userData.id);
+                                            if (studentResult.success && studentResult.data) {
+                                                setStudent(studentResult.data);
+                                            }
+                                        }
+                                    } else {
+                                        alert(result.error || 'Failed to save photo');
+                                    }
+                                } catch (err) {
+                                    console.error('Photo upload error:', err);
+                                    alert('Failed to save photo. Please try again.');
+                                } finally {
+                                    setIsSaving(false);
+                                }
+                            }}
+                            onCancel={() => setShowCameraModal(false)}
+                            shape="circle"
+                            instructions={true}
+                        />
                     </motion.div>
                 )}
             </AnimatePresence>
