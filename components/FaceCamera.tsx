@@ -302,7 +302,7 @@ export default function FaceCamera({
                 </div>
 
                 {/* Scrollable content */}
-                <div className="flex-1 overflow-y-auto px-6 pb-8">
+                <div className="flex-1 overflow-y-auto px-6 pb-32">
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -341,7 +341,13 @@ export default function FaceCamera({
                             ⚠️ This photo is <strong>permanent</strong> and cannot be changed.
                         </p>
                     </div>
+                </div>
 
+                {/* Fixed button at bottom */}
+                <div
+                    className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black to-transparent"
+                    style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+                >
                     <div className="max-w-sm mx-auto">
                         <Button
                             onClick={() => setShowInstructions(false)}
