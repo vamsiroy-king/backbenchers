@@ -246,10 +246,12 @@ export const studentService = {
             if (existingStudent && !existingStudent.bb_id) {
                 console.log('Student has no BB ID, generating one...');
 
-                // Generate unique BB ID
+                // Generate unique BB ID (numbers only, like BBM ID)
                 const generateUniqueBbId = async (): Promise<string> => {
                     for (let i = 0; i < 10; i++) {
-                        const candidateId = `BB-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+                        // Generate 6-digit number: 100000 to 999999
+                        const randomNum = Math.floor(100000 + Math.random() * 900000);
+                        const candidateId = `BB-${randomNum}`;
                         const { data: existing } = await supabase
                             .from('students')
                             .select('id')

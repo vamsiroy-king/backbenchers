@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Shield, Zap, Store, Sparkles, ChevronRight } from "lucide-react";
+import { ArrowRight, Shield, Zap, Store, Sparkles, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -19,6 +19,7 @@ const STATS = [
 
 export default function Home() {
   const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
     async function checkAuthAndRedirect() {
@@ -61,9 +62,23 @@ export default function Home() {
       } catch (e) {
         console.log('Auth check error:', e);
       }
+      // Only show landing page if no redirect
+      setCheckingAuth(false);
     }
     checkAuthAndRedirect();
   }, [router]);
+
+  // Show loading screen while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0b] flex flex-col items-center justify-center">
+        <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center mb-4">
+          <span className="text-black font-bold text-lg">B</span>
+        </div>
+        <Loader2 className="h-6 w-6 animate-spin text-green-400" />
+      </div>
+    );
+  }
 
   return (
     <>

@@ -969,7 +969,8 @@ export default function VerifyPage() {
                                             autoPlay
                                             playsInline
                                             muted
-                                            className="w-full aspect-square object-cover"
+                                            className="w-full aspect-square object-cover bg-black"
+                                            style={{ transform: 'scaleX(-1)' }}
                                         />
                                         <canvas ref={canvasRef} className="hidden" />
 
