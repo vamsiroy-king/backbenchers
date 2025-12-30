@@ -3,13 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { authService } from "@/lib/services/auth.service";
 import AuthFooter from "@/components/AuthFooter";
 
-export default function SignupPage() {
+// Inner component that uses useSearchParams
+function SignupContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
@@ -176,5 +177,18 @@ export default function SignupPage() {
                 </div>
             </motion.div>
         </div>
+    );
+}
+
+// Default export with Suspense wrapper for useSearchParams
+export default function SignupPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-[#0a0a0b]">
+                <Loader2 className="h-8 w-8 animate-spin text-green-400" />
+            </div>
+        }>
+            <SignupContent />
+        </Suspense>
     );
 }
