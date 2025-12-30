@@ -165,11 +165,11 @@ export default function FaceCamera({
                 } else if (detections.length > 1) {
                     setStatus("multiple");
                 } else {
-                    // Check face size (should be at least 4% of frame - more lenient)
+                    // Check face size (must fill at least 15% of frame - STRICT)
                     const face = detections[0].box;
                     const faceArea = (face.width * face.height) / (video.videoWidth * video.videoHeight);
 
-                    if (faceArea < 0.04) {
+                    if (faceArea < 0.15) {
                         setStatus("too_far");
                     } else {
                         setStatus("perfect");
