@@ -22,18 +22,10 @@ export default function VerifyPage() {
     const [showPWAPrompt, setShowPWAPrompt] = useState(false);
     const [studentId, setStudentId] = useState<string | null>(null);
 
-    // Camera and face detection state
+    // Camera state
     const [showCamera, setShowCamera] = useState(false);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
     const [isSavingPhoto, setIsSavingPhoto] = useState(false);
-    const [faceCount, setFaceCount] = useState(0);
-    const [faceDetectionSupported, setFaceDetectionSupported] = useState(true);
-    const [isDetecting, setIsDetecting] = useState(false);
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const streamRef = useRef<MediaStream | null>(null);
-    const faceDetectorRef = useRef<any>(null);
-    const detectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Form data
     const [formData, setFormData] = useState({
@@ -175,6 +167,49 @@ export default function VerifyPage() {
         }
         checkAuth();
     }, [router]);
+
+    // Session Persistence: Save/Load state from localStorage
+    useEffect(() => {
+        if (!googleEmail) return;
+
+        try {
+            const savedState = localStorage.getItem('onboarding_state');
+            if (savedState) {
+                const parsed = JSON.parse(savedState);
+                // Ensure the saved state belongs to the current user
+                if (parsed.googleEmail === googleEmail) {
+                    console.log('Restoring onboarding state:', parsed.step);
+
+                    // Restore step (unless it was success, which checkAuth handles)
+                    if (parsed.step && parsed.step !== 'success') {
+                        setStep(parsed.step);
+                    }
+                    if (parsed.formData) {
+                        setFormData(prev => ({ ...prev, ...parsed.formData }));
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load onboarding state:', e);
+        }
+    }, [googleEmail]);
+
+    useEffect(() => {
+        if (!googleEmail) return;
+
+        // Clear state if onboarding is complete
+        if (step === 'success') {
+            localStorage.removeItem('onboarding_state');
+            return;
+        }
+
+        // Save state
+        localStorage.setItem('onboarding_state', JSON.stringify({
+            step,
+            formData,
+            googleEmail
+        }));
+    }, [step, formData, googleEmail]);
 
     // Update cities when state changes
     useEffect(() => {
@@ -383,123 +418,6 @@ export default function VerifyPage() {
         else if (step === "email") setStep("university");
         else if (step === "otp") setStep("email");
         // Note: Can't go back from photo step - OTP already verified
-    };
-
-    // Camera functions for face verification
-    const startCamera = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'user', width: 640, height: 640 }
-            });
-            streamRef.current = stream;
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                videoRef.current.onloadedmetadata = () => {
-                    videoRef.current?.play();
-                    startFaceDetection();
-                };
-            }
-            setShowCamera(true);
-        } catch (err) {
-            console.error('Camera error:', err);
-            setError('Could not access camera. Please grant permission.');
-        }
-    };
-
-    const stopCamera = () => {
-        if (detectionIntervalRef.current) {
-            clearInterval(detectionIntervalRef.current);
-            detectionIntervalRef.current = null;
-        }
-        setIsDetecting(false);
-        setFaceCount(0);
-
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
-            streamRef.current = null;
-        }
-        setShowCamera(false);
-    };
-
-    const startFaceDetection = async () => {
-        // Check if FaceDetector API is available (Chrome only, requires flags)
-        try {
-            if ('FaceDetector' in window) {
-                console.log('FaceDetector API available, initializing...');
-                faceDetectorRef.current = new (window as any).FaceDetector({
-                    fastMode: true,
-                    maxDetectedFaces: 5
-                });
-                setIsDetecting(true);
-                setFaceDetectionSupported(true);
-
-                const detectFaces = async () => {
-                    if (videoRef.current && faceDetectorRef.current && videoRef.current.readyState === 4) {
-                        try {
-                            const faces = await faceDetectorRef.current.detect(videoRef.current);
-                            setFaceCount(faces.length);
-                        } catch (e) {
-                            console.log('Face detection frame error:', e);
-                        }
-                    }
-                };
-
-                detectionIntervalRef.current = setInterval(detectFaces, 250);
-            } else {
-                // FaceDetector not available - allow capture without face detection
-                console.log('FaceDetector API not available in this browser');
-                setFaceDetectionSupported(false);
-                // Set faceCount to 1 to allow capture button to work
-                setFaceCount(1);
-            }
-        } catch (e) {
-            console.log('Face detection initialization error:', e);
-            setFaceDetectionSupported(false);
-            setFaceCount(1); // Allow capture without detection
-        }
-    };
-
-    const capturePhoto = async () => {
-        if (!videoRef.current || !canvasRef.current) return;
-
-        const canvas = canvasRef.current;
-        const video = videoRef.current;
-        canvas.width = 400;
-        canvas.height = 400;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const size = Math.min(video.videoWidth, video.videoHeight);
-        const x = (video.videoWidth - size) / 2;
-        const y = (video.videoHeight - size) / 2;
-        ctx.drawImage(video, x, y, size, size, 0, 0, 400, 400);
-
-        const imageData = canvas.toDataURL('image/jpeg', 0.85);
-        setCapturedImage(imageData);
-        stopCamera();
-
-        // Upload the photo and generate BB ID
-        setIsSavingPhoto(true);
-        try {
-            const blob = await (await fetch(imageData)).blob();
-            const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
-
-            const { studentService } = await import('@/lib/services/student.service');
-            const result = await studentService.updateProfileImage(file);
-
-            if (result.success) {
-                // Photo uploaded successfully - BB ID should be generated
-                setStep("success");
-                setShowPWAPrompt(true);
-            } else {
-                setError(result.error || 'Failed to save photo');
-            }
-        } catch (err) {
-            console.error('Photo upload error:', err);
-            setError('Failed to save photo. You can try again from your profile.');
-        } finally {
-            setIsSavingPhoto(false);
-        }
     };
 
     const skipPhoto = () => {
