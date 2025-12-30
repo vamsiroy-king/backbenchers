@@ -165,11 +165,11 @@ export default function FaceCamera({
                 } else if (detections.length > 1) {
                     setStatus("multiple");
                 } else {
-                    // Check face size (should be at least 20% of frame)
+                    // Check face size (should be at least 4% of frame - more lenient)
                     const face = detections[0].box;
                     const faceArea = (face.width * face.height) / (video.videoWidth * video.videoHeight);
 
-                    if (faceArea < 0.08) {
+                    if (faceArea < 0.04) {
                         setStatus("too_far");
                     } else {
                         setStatus("perfect");
@@ -364,88 +364,117 @@ export default function FaceCamera({
 
     // Camera screen
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-900 to-black">
             {/* Header */}
-            <div className="absolute top-0 left-0 right-0 pt-12 px-4 pb-4 flex items-center justify-between">
-                <button onClick={() => { stopCamera(); onCancel(); }}>
-                    <X className="h-6 w-6 text-white" />
+            <div className="pt-12 px-4 pb-4 flex items-center justify-between">
+                <button
+                    onClick={() => { stopCamera(); onCancel(); }}
+                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
+                >
+                    <X className="h-5 w-5 text-white" />
                 </button>
-                <span className="text-white text-sm font-semibold">Profile Selfie</span>
-                <div className="w-6" />
+                <div className="text-center">
+                    <span className="text-white text-sm font-semibold">Profile Selfie</span>
+                    <p className="text-xs text-gray-400">Face verification</p>
+                </div>
+                <div className="w-10" />
             </div>
 
-            {/* Camera preview */}
-            <div className="relative mb-6">
-                <div className="relative">
-                    <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className={`w-72 h-72 object-cover bg-black ${shape === "circle" ? "rounded-full" : "rounded-2xl"}`}
-                        style={{ transform: "scaleX(-1)" }}
-                    />
+            {/* Main camera area */}
+            <div className="flex-1 flex flex-col items-center justify-center px-6">
+                {/* Camera preview */}
+                <motion.div
+                    className="relative mb-6"
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <div className="relative">
+                        <video
+                            ref={videoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            className={`w-80 h-80 object-cover bg-black ${shape === "circle" ? "rounded-full" : "rounded-3xl"}`}
+                            style={{ transform: "scaleX(-1)" }}
+                        />
 
-                    {/* Dynamic border */}
-                    <div
-                        className={`absolute inset-0 ${shape === "circle" ? "rounded-full" : "rounded-2xl"} border-4 ${borderColor} pointer-events-none transition-all duration-300`}
-                        style={{ boxShadow: `0 0 30px ${glowColor}` }}
-                    />
+                        {/* Animated border */}
+                        <motion.div
+                            className={`absolute inset-0 ${shape === "circle" ? "rounded-full" : "rounded-3xl"} border-4 ${borderColor} pointer-events-none`}
+                            style={{ boxShadow: `0 0 40px ${glowColor}, inset 0 0 40px ${glowColor}` }}
+                            animate={{
+                                boxShadow: status === "perfect"
+                                    ? [`0 0 40px ${glowColor}, inset 0 0 40px ${glowColor}`, `0 0 60px ${glowColor}, inset 0 0 60px ${glowColor}`]
+                                    : `0 0 40px ${glowColor}, inset 0 0 40px ${glowColor}`
+                            }}
+                            transition={{ duration: 1, repeat: status === "perfect" ? Infinity : 0, repeatType: "reverse" }}
+                        />
 
-                    {/* Face guide */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className={`w-52 h-52 border-2 border-white/20 border-dashed ${shape === "circle" ? "rounded-full" : "rounded-2xl"}`} />
+                        {/* Face guide */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className={`w-56 h-56 border-2 border-white/20 border-dashed ${shape === "circle" ? "rounded-full" : "rounded-3xl"}`} />
+                        </div>
+
+                        {/* Status badge */}
+                        <motion.div
+                            className={`absolute -bottom-3 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 shadow-lg ${statusUI.color === "green" ? "bg-emerald-500 text-white" :
+                                statusUI.color === "orange" ? "bg-orange-500 text-white" :
+                                    statusUI.color === "red" ? "bg-red-500 text-white" :
+                                        "bg-gray-600 text-white"
+                                }`}
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                        >
+                            {statusUI.icon}
+                            <span>{statusUI.message}</span>
+                        </motion.div>
                     </div>
 
-                    {/* Status badge */}
-                    <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 ${statusUI.color === "green" ? "bg-emerald-500/90 text-white" :
-                        statusUI.color === "orange" ? "bg-orange-500/90 text-white" :
-                            statusUI.color === "red" ? "bg-red-500/90 text-white" :
-                                "bg-gray-500/90 text-white"
-                        }`}>
-                        {statusUI.icon}
-                        <span>{status === "perfect" ? "Ready" : status === "no_face" ? "No Face" :
-                            status === "too_dark" ? "Dark" : status === "multiple" ? "Multiple" :
-                                status === "too_far" ? "Far" : "..."}</span>
-                    </div>
+                    <canvas ref={canvasRef} className="hidden" />
+                </motion.div>
+
+                {/* Tips */}
+                <div className="text-center mb-6">
+                    <p className="text-gray-400 text-xs">
+                        {status === "perfect" ? "Hold still and tap capture" : "Adjust your position for best results"}
+                    </p>
                 </div>
 
-                <canvas ref={canvasRef} className="hidden" />
+                {/* Capture button */}
+                <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                >
+                    <Button
+                        onClick={handleCapture}
+                        disabled={!statusUI.canCapture || isCapturing}
+                        className={`h-16 px-12 font-bold rounded-full text-lg transition-all shadow-2xl ${statusUI.canCapture
+                            ? "bg-white text-black hover:bg-gray-100"
+                            : "bg-white/20 text-white/40 cursor-not-allowed"
+                            }`}
+                    >
+                        {isCapturing ? (
+                            <>
+                                <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                                Capturing...
+                            </>
+                        ) : (
+                            <>
+                                <Camera className="mr-2 h-6 w-6" />
+                                {statusUI.canCapture ? "Capture Photo" : "Position Face"}
+                            </>
+                        )}
+                    </Button>
+                </motion.div>
             </div>
 
-            {/* Status message */}
-            <p className={`text-sm mb-6 text-center font-medium ${statusUI.color === "green" ? "text-emerald-400" :
-                statusUI.color === "orange" ? "text-orange-400" :
-                    statusUI.color === "red" ? "text-red-400" : "text-gray-400"
-                }`}>
-                {statusUI.message}
-            </p>
-
-            {/* Capture button */}
-            <Button
-                onClick={handleCapture}
-                disabled={!statusUI.canCapture || isCapturing}
-                className={`h-14 px-10 font-bold rounded-full text-base transition-all ${statusUI.canCapture
-                    ? "bg-white text-black hover:bg-gray-100"
-                    : "bg-white/30 text-white/50 cursor-not-allowed"
-                    }`}
-            >
-                {isCapturing ? (
-                    <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Capturing...
-                    </>
-                ) : (
-                    <>
-                        <Camera className="mr-2 h-5 w-5" />
-                        {statusUI.canCapture ? "Capture" : "Position Face"}
-                    </>
-                )}
-            </Button>
-
-            <p className="text-orange-400 text-xs text-center mt-6">
-                Photo cannot be changed after capture
-            </p>
+            {/* Footer warning */}
+            <div className="p-6 pb-8" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}>
+                <p className="text-orange-400/80 text-xs text-center">
+                    ⚠️ This photo is permanent and cannot be changed later
+                </p>
+            </div>
         </div>
     );
 }
