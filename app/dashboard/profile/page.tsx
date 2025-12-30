@@ -431,105 +431,68 @@ export default function ProfilePage() {
                                 </Button>
                             </div>
                         ) : (
-                            /* Camera Capture Screen with Face Detection */
+                            /* Simple Camera Capture Screen */
                             <div className="flex-1 flex flex-col items-center justify-center px-6">
-                                {(() => {
-                                    const faceStatus = getFaceStatus();
-                                    const borderColorClass = faceStatus.color === 'emerald'
-                                        ? 'border-emerald-400'
-                                        : faceStatus.color === 'orange'
-                                            ? 'border-orange-400'
-                                            : 'border-red-400';
-                                    const shadowColor = faceStatus.color === 'emerald'
-                                        ? 'rgba(16, 185, 129, 0.4)'
-                                        : faceStatus.color === 'orange'
-                                            ? 'rgba(251, 146, 60, 0.4)'
-                                            : 'rgba(239, 68, 68, 0.4)';
+                                <div className="relative mb-6">
+                                    {/* Face guide circle */}
+                                    <div className="relative">
+                                        <video
+                                            ref={videoRef}
+                                            autoPlay
+                                            playsInline
+                                            muted
+                                            className="w-72 h-72 rounded-full object-cover bg-black"
+                                            style={{ transform: 'scaleX(-1)' }}
+                                        />
+                                        {/* Green border */}
+                                        <div
+                                            className="absolute inset-0 rounded-full border-4 border-emerald-400 pointer-events-none"
+                                            style={{ boxShadow: '0 0 30px rgba(16, 185, 129, 0.4)' }}
+                                        />
+                                        {/* Inner guide circle */}
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div className="w-52 h-52 border-2 border-white/20 border-dashed rounded-full" />
+                                        </div>
+                                    </div>
 
-                                    return (
-                                        <>
-                                            <div className="relative mb-6">
-                                                {/* Face guide circle */}
-                                                <div className="relative">
-                                                    <video
-                                                        ref={videoRef}
-                                                        autoPlay
-                                                        playsInline
-                                                        muted
-                                                        className="w-72 h-72 rounded-full object-cover transform scale-x-[-1] bg-black"
-                                                    />
-                                                    {/* Dynamic border based on face count */}
-                                                    <div
-                                                        className={`absolute inset-0 rounded-full border-4 ${borderColorClass} pointer-events-none transition-all duration-300`}
-                                                        style={{ boxShadow: `0 0 30px ${shadowColor}` }}
-                                                    />
-                                                    {/* Inner guide circle */}
-                                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                        <div className="w-52 h-52 border-2 border-white/20 border-dashed rounded-full" />
-                                                    </div>
-
-                                                    {/* Face count indicator */}
-                                                    {faceDetectionSupported && isDetecting && (
-                                                        <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium ${faceStatus.color === 'emerald'
-                                                            ? 'bg-emerald-500/90 text-white'
-                                                            : faceStatus.color === 'orange'
-                                                                ? 'bg-orange-500/90 text-white'
-                                                                : 'bg-red-500/90 text-white'
-                                                            }`}>
-                                                            {faceCount === 1 ? '1 Face ✓' : `${faceCount} Face${faceCount !== 1 ? 's' : ''}`}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Saving indicator */}
-                                                {isSaving && (
-                                                    <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center">
-                                                        <div className="text-center">
-                                                            <Loader2 className="h-8 w-8 animate-spin text-white mx-auto mb-2" />
-                                                            <span className="text-white text-sm font-medium">Saving...</span>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                    {/* Saving indicator */}
+                                    {isSaving && (
+                                        <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center">
+                                            <div className="text-center">
+                                                <Loader2 className="h-8 w-8 animate-spin text-white mx-auto mb-2" />
+                                                <span className="text-white text-sm font-medium">Saving...</span>
                                             </div>
+                                        </div>
+                                    )}
+                                </div>
 
-                                            {/* Status message */}
-                                            <p className={`text-sm mb-6 text-center font-medium ${faceStatus.color === 'emerald'
-                                                ? 'text-emerald-400'
-                                                : faceStatus.color === 'orange'
-                                                    ? 'text-orange-400'
-                                                    : 'text-red-400'
-                                                }`}>
-                                                {faceStatus.message}
-                                            </p>
+                                {/* Status message */}
+                                <p className="text-sm mb-6 text-center font-medium text-emerald-400">
+                                    Position your face and tap capture
+                                </p>
 
-                                            {/* Capture button - disabled unless exactly 1 face */}
-                                            <Button
-                                                onClick={capturePhoto}
-                                                disabled={isCapturing || isSaving || !faceStatus.canCapture}
-                                                className={`h-14 px-10 font-bold rounded-full text-base transition-all ${faceStatus.canCapture
-                                                    ? 'bg-white text-black hover:bg-gray-100'
-                                                    : 'bg-white/30 text-white/50 cursor-not-allowed'
-                                                    }`}
-                                            >
-                                                {isCapturing ? (
-                                                    <>
-                                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                                        Capturing...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Camera className="mr-2 h-5 w-5" />
-                                                        {faceStatus.canCapture ? 'Take Photo' : 'Position Your Face'}
-                                                    </>
-                                                )}
-                                            </Button>
-
-                                            <p className="text-orange-400 text-xs text-center mt-6 px-8">
-                                                Photo cannot be changed after capture
-                                            </p>
+                                {/* Capture button - always enabled */}
+                                <Button
+                                    onClick={capturePhoto}
+                                    disabled={isCapturing || isSaving}
+                                    className="h-14 px-10 font-bold rounded-full text-base bg-white text-black hover:bg-gray-100"
+                                >
+                                    {isCapturing ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                            Capturing...
                                         </>
-                                    );
-                                })()}
+                                    ) : (
+                                        <>
+                                            <Camera className="mr-2 h-5 w-5" />
+                                            Take Photo
+                                        </>
+                                    )}
+                                </Button>
+
+                                <p className="text-orange-400 text-xs text-center mt-6 px-8">
+                                    Photo cannot be changed after capture
+                                </p>
                             </div>
                         )}
                     </motion.div>

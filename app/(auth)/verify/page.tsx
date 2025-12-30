@@ -961,9 +961,7 @@ export default function VerifyPage() {
 
                             {showCamera && (
                                 <div className="relative">
-                                    <div className={`relative rounded-2xl overflow-hidden border-4 transition-colors ${faceCount === 1 ? 'border-green-500' :
-                                        faceCount === 0 ? 'border-yellow-500' : 'border-red-500'
-                                        }`}>
+                                    <div className="relative rounded-2xl overflow-hidden border-4 border-green-500">
                                         <video
                                             ref={videoRef}
                                             autoPlay
@@ -974,13 +972,10 @@ export default function VerifyPage() {
                                         />
                                         <canvas ref={canvasRef} className="hidden" />
 
-                                        {/* Face detection status */}
+                                        {/* Simple instruction */}
                                         <div className="absolute bottom-4 left-0 right-0 text-center">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${faceCount === 1 ? 'bg-green-500 text-white' :
-                                                faceCount === 0 ? 'bg-yellow-500 text-black' : 'bg-red-500 text-white'
-                                                }`}>
-                                                {faceCount === 1 ? '✓ Face detected' :
-                                                    faceCount === 0 ? 'Position your face' : 'Only one face please'}
+                                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-black/50 text-white">
+                                                Position your face and tap Capture
                                             </span>
                                         </div>
                                     </div>
@@ -995,10 +990,9 @@ export default function VerifyPage() {
                                         </Button>
                                         <Button
                                             onClick={capturePhoto}
-                                            disabled={faceDetectionSupported && faceCount !== 1}
-                                            className="flex-1"
+                                            className="flex-1 bg-green-500 hover:bg-green-600"
                                         >
-                                            Capture
+                                            📸 Capture
                                         </Button>
                                     </div>
                                 </div>
