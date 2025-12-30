@@ -73,6 +73,17 @@ export default function AuthCallbackPage() {
                 addDebug(`Session found! User ID: ${session.user.id}`);
                 addDebug(`User email: ${session.user.email}`);
 
+                // IMPORTANT: Only allow @gmail.com accounts for student signup
+                const userEmail = session.user.email?.toLowerCase() || '';
+                if (!userEmail.endsWith('@gmail.com')) {
+                    addDebug(`ERROR: Non-Gmail account detected (${userEmail})`);
+                    setStatus("Only Gmail accounts allowed");
+                    // Sign out and redirect with error
+                    await supabase.auth.signOut();
+                    window.location.href = '/signup?error=gmail_only';
+                    return;
+                }
+
                 // Now check if user has a student record
                 setStatus("Checking your account...");
 

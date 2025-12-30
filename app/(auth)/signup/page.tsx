@@ -1,18 +1,28 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { authService } from "@/lib/services/auth.service";
 import AuthFooter from "@/components/AuthFooter";
 
 export default function SignupPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Check for error in URL (e.g., gmail_only)
+    useEffect(() => {
+        const errorParam = searchParams.get('error');
+        if (errorParam === 'gmail_only') {
+            setError('Only @gmail.com accounts are allowed. Please use your personal Gmail.');
+        }
+    }, [searchParams]);
 
     // Check if user is already a verified STUDENT - only then auto-login
     // Incomplete sessions (pending) are cleared so users start fresh
@@ -118,6 +128,14 @@ export default function SignupPage() {
                 </div>
 
                 <div className="space-y-6">
+                    {/* Error Message */}
+                    {error && (
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-start gap-3">
+                            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                            <p className="text-sm text-red-300">{error}</p>
+                        </div>
+                    )}
+
                     {/* Google Sign In - Primary Action */}
                     <Button
                         onClick={handleGoogleSignIn}
