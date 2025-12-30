@@ -715,7 +715,7 @@ export default function ProfilePage() {
                                     <div>
                                         <p className="text-[8px] text-white/30 uppercase tracking-wider mb-0.5">Student ID</p>
                                         <p className="text-sm font-mono font-semibold text-green-400 tracking-wider">
-                                            {student?.bbId || 'PENDING'}
+                                            {hasProfileImage && student?.bbId ? student.bbId : 'PENDING'}
                                         </p>
                                     </div>
 
@@ -748,13 +748,23 @@ export default function ProfilePage() {
                         {/* Top Accent */}
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-emerald-400" />
 
-                        {/* Content - Centered QR */}
+                        {/* Content - Centered QR or Selfie Prompt */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                <BBQRCode value={student?.bbId || 'PENDING'} size={110} withLogo={true} />
-                            </div>
-                            <p className="mt-3 font-semibold text-gray-800 text-sm">Scan to Verify</p>
-                            <p className="text-[10px] text-gray-400 mt-0.5">Show this QR at checkout</p>
+                            {hasProfileImage && student?.bbId ? (
+                                <>
+                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                        <BBQRCode value={student.bbId} size={110} withLogo={true} />
+                                    </div>
+                                    <p className="mt-3 font-semibold text-gray-800 text-sm">Scan to Verify</p>
+                                    <p className="text-[10px] text-gray-400 mt-0.5">Show this QR at checkout</p>
+                                </>
+                            ) : (
+                                <div className="text-center px-6">
+                                    <Camera className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                                    <p className="font-semibold text-gray-600 text-sm">Add Selfie to Unlock</p>
+                                    <p className="text-xs text-gray-400 mt-1">Your QR code will appear here after you add a profile photo</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Bottom Branding */}
