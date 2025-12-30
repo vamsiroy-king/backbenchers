@@ -47,15 +47,14 @@ export default function Home() {
           return;
         }
 
-        // If getCurrentUser returns null BUT there's an auth session, user needs onboarding
-        // Check for auth session directly
+        // If user has no student/merchant record OR is pending, redirect to onboarding
+        // getCurrentUser returns role:'pending' for auth users without student records
         const { supabase } = await import('@/lib/supabase');
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('Landing page auth check:', session?.user?.email, 'getCurrentUser:', user);
-        if (session && !user) {
-          // User has auth session but no student record - redirect to onboarding
-          console.log('Auth session exists but no student record - hard redirecting to /verify');
-          // Use window.location for more reliable redirect (forces full page reload)
+        console.log('Landing page auth check:', session?.user?.email, 'user role:', user?.role);
+        if (session && (!user || user.role === 'pending')) {
+          // User has auth session but no complete student record - redirect to onboarding
+          console.log('Pending user - redirecting to /verify');
           window.location.href = '/verify';
           return;
         }
