@@ -306,7 +306,7 @@ export default function FaceCamera({
     // Instructions screen - Mobile optimized with visible button
     if (showInstructions) {
         return (
-            <div className="fixed inset-0 flex flex-col bg-black" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+            <div className="fixed inset-0 z-50 flex flex-col bg-black" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
                 {/* Header - compact */}
                 <div className="flex-shrink-0 pt-3 px-4 pb-2 flex items-center justify-between" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
                     <button onClick={onCancel} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
@@ -354,7 +354,7 @@ export default function FaceCamera({
                     </div>
                 </div>
 
-                {/* Fixed button at bottom - ALWAYS visible */}
+                {/* Fixed button at bottom - ALWAYS visible above nav */}
                 <div className="flex-shrink-0 p-4 bg-black border-t border-white/10">
                     <div className="max-w-sm mx-auto">
                         <Button
@@ -372,7 +372,7 @@ export default function FaceCamera({
 
     // Camera screen - Mobile First Design
     return (
-        <div className="fixed inset-0 bg-black flex flex-col">
+        <div className="fixed inset-0 z-50 bg-black flex flex-col">
             {/* Header */}
             <div className="flex-shrink-0 pt-safe px-4 py-3 flex items-center justify-between" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
                 <button
