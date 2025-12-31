@@ -303,34 +303,30 @@ export default function FaceCamera({
             : statusUI.color === "red" ? "rgba(239, 68, 68, 0.4)"
                 : "transparent";
 
-    // Instructions screen
+    // Instructions screen - Mobile optimized with visible button
     if (showInstructions) {
         return (
-            <div className="min-h-screen flex flex-col bg-black">
-                {/* Header */}
-                <div className="pt-12 px-4 pb-4 flex items-center justify-between">
-                    <button onClick={onCancel}>
-                        <X className="h-6 w-6 text-white" />
+            <div className="fixed inset-0 flex flex-col bg-black" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+                {/* Header - compact */}
+                <div className="flex-shrink-0 pt-3 px-4 pb-2 flex items-center justify-between" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
+                    <button onClick={onCancel} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                        <X className="h-5 w-5 text-white" />
                     </button>
                     <span className="text-white text-sm font-semibold">Profile Selfie</span>
-                    <div className="w-6" />
+                    <div className="w-10" />
                 </div>
 
-                {/* Scrollable content */}
-                <div className="flex-1 overflow-y-auto px-6 pb-32">
-                    <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="text-center mb-6"
-                    >
-                        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Camera className="h-10 w-10 text-emerald-400" />
+                {/* Content - scrollable, compact */}
+                <div className="flex-1 overflow-y-auto px-4">
+                    <div className="text-center mb-4">
+                        <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <Camera className="h-8 w-8 text-emerald-400" />
                         </div>
-                        <h2 className="text-white text-xl font-bold mb-1">Selfie Guidelines</h2>
-                        <p className="text-gray-400 text-sm">Follow these for best results</p>
-                    </motion.div>
+                        <h2 className="text-white text-lg font-bold mb-1">Selfie Guidelines</h2>
+                        <p className="text-gray-400 text-xs">Follow these for best results</p>
+                    </div>
 
-                    <div className="space-y-3 mb-6 max-w-sm mx-auto">
+                    <div className="space-y-2 mb-4 max-w-sm mx-auto">
                         {[
                             { icon: "📸", text: "Take a clear selfie of your face" },
                             { icon: "👤", text: "Only your face should be visible" },
@@ -342,33 +338,30 @@ export default function FaceCamera({
                                 key={i}
                                 initial={{ x: -20, opacity: 0 }}
                                 animate={{ x: 0, opacity: 1 }}
-                                transition={{ delay: i * 0.05 }}
-                                className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2.5"
+                                transition={{ delay: i * 0.03 }}
+                                className="flex items-center gap-3 bg-white/5 rounded-xl px-3 py-2"
                             >
-                                <span className="text-lg">{item.icon}</span>
+                                <span className="text-base">{item.icon}</span>
                                 <span className="text-white text-sm">{item.text}</span>
                             </motion.div>
                         ))}
                     </div>
 
-                    <div className="bg-red-500/20 border border-red-500/40 rounded-xl p-3 mb-6 max-w-sm mx-auto">
-                        <p className="text-red-300 text-sm text-center font-medium">
+                    <div className="bg-red-500/20 border border-red-500/40 rounded-xl p-2.5 mb-4 max-w-sm mx-auto">
+                        <p className="text-red-300 text-xs text-center font-medium">
                             ⚠️ This photo is <strong>permanent</strong> and cannot be changed.
                         </p>
                     </div>
                 </div>
 
-                {/* Fixed button at bottom */}
-                <div
-                    className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black to-transparent"
-                    style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
-                >
+                {/* Fixed button at bottom - ALWAYS visible */}
+                <div className="flex-shrink-0 p-4 bg-black border-t border-white/10">
                     <div className="max-w-sm mx-auto">
                         <Button
                             onClick={() => setShowInstructions(false)}
-                            className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl text-base"
+                            className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm"
                         >
-                            <Camera className="mr-2 h-5 w-5" />
+                            <Camera className="mr-2 h-4 w-4" />
                             I Understand, Open Camera
                         </Button>
                     </div>
