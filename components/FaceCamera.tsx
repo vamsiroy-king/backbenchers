@@ -2,8 +2,8 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, Loader2, AlertCircle, CheckCircle, X, Sun, User, RotateCcw, Check, Eye } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Camera, Loader2, AlertCircle, CheckCircle, X, Sun, User } from "lucide-react";
+import { motion } from "framer-motion";
 
 // Face detection status types
 type FaceStatus =
@@ -16,9 +16,6 @@ type FaceStatus =
     | "not_centered" // Face not centered
     | "perfect";     // Ready to capture
 
-// Screen states
-type ScreenState = "instructions" | "camera" | "preview" | "uploading";
-
 interface FaceCameraProps {
     onCapture: (imageData: string) => void;
     onCancel: () => void;
@@ -27,9 +24,7 @@ interface FaceCameraProps {
 }
 
 // Constants
-const MAX_RETAKES = 3;
 const MIN_FACE_SIZE = 0.06; // 6% of frame - medium distance (half arm length)
-const MAX_FACE_SIZE = 0.45; // 45% of frame - not too close
 const BRIGHTNESS_THRESHOLD = 40;
 const DEBOUNCE_THRESHOLD = 3;
 
@@ -55,13 +50,11 @@ export default function FaceCamera({
     const detectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // States
-    const [screenState, setScreenState] = useState<ScreenState>(instructions ? "instructions" : "camera");
+    const [showInstructions, setShowInstructions] = useState(instructions);
     const [status, setStatus] = useState<FaceStatus>("loading");
     const [isCapturing, setIsCapturing] = useState(false);
     const [faceApiLoaded, setFaceApiLoaded] = useState(false);
     const [brightness, setBrightness] = useState(100);
-    const [capturedImage, setCapturedImage] = useState<string | null>(null);
-    const [retakeCount, setRetakeCount] = useState(0);
     const [pulseAnimation, setPulseAnimation] = useState(false);
     const faceApiRef = useRef<any>(null);
 
@@ -182,7 +175,7 @@ export default function FaceCamera({
                     const face = detections[0].box;
                     const faceArea = (face.width * face.height) / (video.videoWidth * video.videoHeight);
 
-                    // Check centering (face center should be within middle 40% of frame)
+                    // Check centering
                     const faceCenterX = (face.x + face.width / 2) / video.videoWidth;
                     const faceCenterY = (face.y + face.height / 2) / video.videoHeight;
                     const isCentered = faceCenterX > 0.3 && faceCenterX < 0.7 && faceCenterY > 0.25 && faceCenterY < 0.75;
@@ -198,10 +191,10 @@ export default function FaceCamera({
             } catch (err) {
                 // Silently ignore
             }
-        }, 150); // Faster detection for smoother UX
+        }, 150);
     }, [faceApiLoaded]);
 
-    // Capture photo
+    // Capture photo - directly upload, no preview
     const handleCapture = async () => {
         if (!videoRef.current || !canvasRef.current) return;
         setIsCapturing(true);
@@ -228,39 +221,18 @@ export default function FaceCamera({
             ctx.fillText(`BB-${Date.now()}`, 10, 590);
 
             const imageData = canvas.toDataURL("image/jpeg", 0.9);
-            setCapturedImage(imageData);
-            setScreenState("preview");
             stopCamera();
+            onCapture(imageData); // Direct upload - no preview
         }
         setIsCapturing(false);
     };
 
-    // Confirm and submit
-    const handleConfirm = () => {
-        if (capturedImage) {
-            setScreenState("uploading");
-            onCapture(capturedImage);
-        }
-    };
-
-    // Retake photo
-    const handleRetake = () => {
-        if (retakeCount >= MAX_RETAKES - 1) {
-            // Max retakes reached
-            return;
-        }
-        setRetakeCount(prev => prev + 1);
-        setCapturedImage(null);
-        setScreenState("camera");
-        startCamera();
-    };
-
     // Start camera when ready
     useEffect(() => {
-        if (faceApiLoaded && screenState === "camera") {
+        if (faceApiLoaded && !showInstructions) {
             startCamera();
         }
-    }, [faceApiLoaded, screenState, startCamera]);
+    }, [faceApiLoaded, showInstructions, startCamera]);
 
     // Get status UI
     const getStatusUI = () => {
@@ -297,7 +269,7 @@ export default function FaceCamera({
                 : "transparent";
 
     // ==================== INSTRUCTIONS SCREEN ====================
-    if (screenState === "instructions") {
+    if (showInstructions) {
         return (
             <div className="fixed inset-0 z-50 flex flex-col bg-black" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
                 <div className="flex-shrink-0 pt-3 px-4 pb-2 flex items-center justify-between" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
@@ -348,7 +320,7 @@ export default function FaceCamera({
                 <div className="flex-shrink-0 p-4 bg-black border-t border-white/10">
                     <div className="max-w-sm mx-auto">
                         <Button
-                            onClick={() => setScreenState("camera")}
+                            onClick={() => setShowInstructions(false)}
                             className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm"
                         >
                             <Camera className="mr-2 h-4 w-4" />
@@ -356,92 +328,6 @@ export default function FaceCamera({
                         </Button>
                     </div>
                 </div>
-            </div>
-        );
-    }
-
-    // ==================== PREVIEW SCREEN ====================
-    if (screenState === "preview" && capturedImage) {
-        const remainingRetakes = MAX_RETAKES - retakeCount - 1;
-
-        return (
-            <div className="fixed inset-0 z-50 flex flex-col bg-black" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
-                <div className="flex-shrink-0 pt-3 px-4 pb-2 flex items-center justify-between" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
-                    <button onClick={onCancel} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                        <X className="h-5 w-5 text-white" />
-                    </button>
-                    <span className="text-white text-sm font-semibold">Confirm Photo</span>
-                    <div className="w-10" />
-                </div>
-
-                <div className="flex-1 flex flex-col items-center justify-center px-4">
-                    {/* Preview image */}
-                    <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="relative"
-                    >
-                        <img
-                            src={capturedImage}
-                            alt="Captured selfie"
-                            className="w-64 h-64 object-cover rounded-full border-4 border-emerald-500"
-                        />
-                        <div className="absolute inset-0 rounded-full" style={{ boxShadow: '0 0 40px rgba(16, 185, 129, 0.4)' }} />
-                    </motion.div>
-
-                    <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="mt-6 text-center"
-                    >
-                        <p className="text-white text-lg font-semibold mb-1">Does this look good?</p>
-                        <p className="text-gray-400 text-sm">Make sure your face is clearly visible</p>
-                    </motion.div>
-                </div>
-
-                <div className="flex-shrink-0 p-4 bg-black border-t border-white/10">
-                    <div className="max-w-sm mx-auto space-y-3">
-                        <Button
-                            onClick={handleConfirm}
-                            className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm"
-                        >
-                            <Check className="mr-2 h-4 w-4" />
-                            Use This Photo
-                        </Button>
-
-                        {remainingRetakes > 0 ? (
-                            <Button
-                                onClick={handleRetake}
-                                variant="outline"
-                                className="w-full h-12 bg-transparent border-white/20 text-white hover:bg-white/10 font-semibold rounded-xl text-sm"
-                            >
-                                <RotateCcw className="mr-2 h-4 w-4" />
-                                Retake ({remainingRetakes} left)
-                            </Button>
-                        ) : (
-                            <p className="text-orange-400 text-xs text-center">
-                                No retakes remaining. Please use this photo or contact support.
-                            </p>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // ==================== UPLOADING SCREEN ====================
-    if (screenState === "uploading") {
-        return (
-            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
-                <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                >
-                    <Loader2 className="h-12 w-12 text-emerald-500" />
-                </motion.div>
-                <p className="text-white mt-4 font-semibold">Uploading your photo...</p>
-                <p className="text-gray-400 text-sm mt-1">Please wait</p>
             </div>
         );
     }
@@ -511,11 +397,6 @@ export default function FaceCamera({
                     {statusUI.icon}
                     <span>{statusUI.message}</span>
                 </motion.div>
-
-                {/* Attempt counter */}
-                <p className="text-gray-500 text-xs mt-2">
-                    Attempt {retakeCount + 1} of {MAX_RETAKES}
-                </p>
             </div>
 
             {/* Bottom section */}
@@ -543,6 +424,10 @@ export default function FaceCamera({
                         </>
                     )}
                 </Button>
+
+                <p className="text-orange-400/70 text-xs text-center mt-3">
+                    This photo is permanent and cannot be changed
+                </p>
             </div>
         </div>
     );
