@@ -34,6 +34,7 @@ export default function BusinessDetailsPage() {
     const [businessName, setBusinessName] = useState("");
     const [ownerName, setOwnerName] = useState("");
     const [ownerPhone, setOwnerPhone] = useState("");
+    const [storePhone, setStorePhone] = useState(""); // Distinct store phone
     const [category, setCategory] = useState("");
     const [subCategory, setSubCategory] = useState("");
     const [description, setDescription] = useState("");
@@ -109,6 +110,7 @@ export default function BusinessDetailsPage() {
             businessName.length > 2 &&
             ownerName.length > 1 &&
             ownerPhone.length === 10 &&
+            storePhone.length === 10 &&
             category !== "" &&
             subCategory !== ""
         );
@@ -137,7 +139,7 @@ export default function BusinessDetailsPage() {
             businessName,
             ownerName,
             ownerPhone: `+91${ownerPhone}`,
-            phone: businessPhone, // Store phone
+            phone: `+91${storePhone}`, // Store phone (distinct)
             category,
             subCategory,
             description,
@@ -290,6 +292,39 @@ export default function BusinessDetailsPage() {
                                         </div>
                                     </div>
 
+                                    {/* Store Contact Number */}
+                                    <div>
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Store Contact Number *</label>
+                                            <button
+                                                type="button"
+                                                onClick={() => setStorePhone(ownerPhone)}
+                                                className="text-[10px] font-medium text-primary hover:underline flex items-center gap-1"
+                                                disabled={!ownerPhone}
+                                            >
+                                                <Phone className="h-3 w-3" />
+                                                Same as Owner
+                                            </button>
+                                        </div>
+                                        <div className="flex gap-1 mt-1">
+                                            <div className="flex items-center px-3 bg-gray-100 rounded-l-xl text-gray-600 font-medium text-sm border-r">
+                                                +91
+                                            </div>
+                                            <input
+                                                type="tel"
+                                                inputMode="numeric"
+                                                maxLength={10}
+                                                value={storePhone}
+                                                onChange={(e) => setStorePhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                                placeholder="Store number for customers to call"
+                                                className="flex-1 h-12 bg-gray-50 rounded-r-xl px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                            />
+                                        </div>
+                                        <p className="text-[10px] text-gray-400 mt-1.5 ml-1">
+                                            This number will be displayed on your store profile for students to call.
+                                        </p>
+                                    </div>
+
                                     {/* Category */}
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
@@ -408,29 +443,17 @@ export default function BusinessDetailsPage() {
                                     </div>
 
                                     {/* Pincode & Store Phone */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pincode *</label>
-                                            <input
-                                                type="text"
-                                                inputMode="numeric"
-                                                maxLength={6}
-                                                value={pincode}
-                                                onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                                placeholder="560001"
-                                                className="w-full h-12 bg-gray-50 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Store Phone</label>
-                                            <input
-                                                type="tel"
-                                                value={businessPhone}
-                                                onChange={(e) => setBusinessPhone(e.target.value)}
-                                                placeholder="080-XXXXXXXX"
-                                                className="w-full h-12 bg-gray-50 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
-                                            />
-                                        </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pincode *</label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            maxLength={6}
+                                            value={pincode}
+                                            onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                            placeholder="560001"
+                                            className="w-full h-12 bg-gray-50 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                        />
                                     </div>
 
                                     {/* Google Maps Link */}

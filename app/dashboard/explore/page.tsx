@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { offerService } from "@/lib/services/offer.service";
+import { favoritesService } from "@/lib/services/favorites.service"; // Import favorites service
 import { Offer } from "@/lib/types";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
@@ -63,14 +64,25 @@ export default function ExplorePage() {
                 setOffers([]);
             }
         }
+
+        // Also fetch saved status
+        async function fetchSavedStatus() {
+            const savedIds = await favoritesService.getSavedOfferIds();
+            setFavorites(new Set(savedIds));
+        }
+
         fetchData();
+        fetchSavedStatus();
     }, [categoryParam]); // Re-fetch when category changes
 
-    const toggleFavorite = (e: React.MouseEvent, offerId: string) => {
+    const toggleFavorite = async (e: React.MouseEvent, offerId: string) => {
         e.preventDefault();
         e.stopPropagation();
+
+        // Optimistic update
+        const isLiked = favorites.has(offerId);
         const newFavs = new Set(favorites);
-        if (newFavs.has(offerId)) {
+        if (isLiked) {
             newFavs.delete(offerId);
             vibrate('light');
         } else {
@@ -78,6 +90,20 @@ export default function ExplorePage() {
             vibrate('success');
         }
         setFavorites(newFavs);
+
+        // API Call
+        try {
+            await favoritesService.toggleOffer(offerId);
+        } catch (error) {
+            console.error('Error toggling favorite:', error);
+            // Revert on error
+            setFavorites(prev => {
+                const reverted = new Set(prev);
+                if (isLiked) reverted.add(offerId);
+                else reverted.delete(offerId);
+                return reverted;
+            });
+        }
     };
 
     // --- VIEW 1: CATEGORY DETAILS (Matches Screenshot 1:1) ---
@@ -137,7 +163,7 @@ export default function ExplorePage() {
                 <main className="px-4 py-4 space-y-3">
                     {displayedOffers.length > 0 ? (
                         displayedOffers.map((offer) => (
-                            <Link href={`/offer/${offer.id}`} key={offer.id}>
+                            <Link href={`/store/${offer.merchantId}`} key={offer.id}>
                                 <motion.div
                                     whileTap={{ scale: 0.98 }}
                                     className="bg-[#111] border border-[#222] rounded-2xl p-4 flex items-center gap-4 group"
@@ -186,7 +212,8 @@ export default function ExplorePage() {
                             </div>
                             <p className="text-white/40 text-sm">No offers found in this category</p>
                         </div>
-                    )}
+                    )
+                    }
                 </main>
             </div>
         );
