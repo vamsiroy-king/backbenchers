@@ -67,30 +67,6 @@ export default function ScanPage() {
                     setOffers(offersResult.data.filter(o => o.status === 'active'));
                 }
 
-                // DEBUG: Probe Schema
-                try {
-                    console.log('🔍 Probing Transactions Schema...');
-                    const { supabase } = await import('@/lib/supabase');
-                    const { data: sampleTx, error: sampleError } = await supabase
-                        .from('transactions')
-                        .select('*')
-                        .limit(1);
-
-                    if (sampleTx && sampleTx.length > 0) {
-                        const cols = Object.keys(sampleTx[0]);
-                        console.log('✅ Transactions Columns:', cols);
-                        alert('DB COLUMNS: ' + cols.join(', '));
-                    } else if (sampleTx) {
-                        console.log('⚠️ Transactions table is empty.');
-                        // Try inserting a dummy to get a column error? No, risky.
-                        alert('DB Connection OK, but Table Empty. Cannot probe columns.');
-                    } else {
-                        console.error('❌ Schema Probe Error:', sampleError);
-                        alert('Schema Probe Error: ' + sampleError?.message);
-                    }
-                } catch (e) {
-                    console.error('Probe failed:', e);
-                }
 
             } catch (error) {
                 console.error('[ScanPage] ❌ Error loading merchant data:', error);
@@ -276,7 +252,7 @@ export default function ScanPage() {
 
             if (!txResult.success) {
                 console.error('❌ Transaction Failed:', txResult.error);
-                alert(`❌ TRANSACTION FAILED: ${txResult.error}`);
+                // alert(`❌ TRANSACTION FAILED: ${txResult.error}`); // Use UI error instead
                 setScanError(`Transaction Failed: ${txResult.error}`);
                 setIsProcessing(false);
                 return;
