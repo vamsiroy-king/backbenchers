@@ -276,7 +276,7 @@ export default function VerifyPage() {
                 {step === "photo" && (
                     <motion.div key="p" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} className="space-y-5">
                         <div><h1 className="text-xl font-bold text-white mb-1">Profile photo</h1><p className="text-sm text-white/40">Optional for offline verification</p></div>
-                        {showCamera ? <FaceCamera onCapture={img => { setCapturedImage(img); setShowCamera(false); }} onClose={() => setShowCamera(false)} />
+                        {showCamera ? <FaceCamera onCapture={img => { setCapturedImage(img); setShowCamera(false); }} onCancel={() => setShowCamera(false)} />
                             : capturedImage ? (
                                 <div className="space-y-4">
                                     <div className="mx-auto h-24 w-24 rounded-full overflow-hidden border-2 border-green-500/30"><img src={capturedImage} alt="" className="w-full h-full object-cover" /></div>
