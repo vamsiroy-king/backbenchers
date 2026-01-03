@@ -54,39 +54,57 @@ const transformFavorite = (row: any): Favorite => ({
     } : undefined,
 });
 
-// Helper to get current student's ID
-async function getStudentId(): Promise<string | null> {
+// Helper to get current student's ID and user_id
+interface StudentAuth {
+    studentId: string;
+    userId: string | null;
+}
+
+async function getStudentAuth(): Promise<StudentAuth | null> {
     try {
         const { data: { user } } = await supabase.auth.getUser();
 
         if (user) {
             const { data: student } = await supabase
                 .from('students')
-                .select('id')
+                .select('id, user_id')
                 .eq('user_id', user.id)
                 .single();
 
-            return student?.id || null;
+            if (student) {
+                return { studentId: student.id, userId: user.id };
+            }
         }
 
-        // DEV MODE: Use localStorage dev student ID
+        // DEV MODE: Get real student from DB (already cached by student.service)
         if (IS_DEV && typeof window !== 'undefined') {
-            let devStudentId = localStorage.getItem('dev_student_id');
-            if (!devStudentId) {
-                // Generate a new dev student ID
-                devStudentId = crypto.randomUUID();
-                localStorage.setItem('dev_student_id', devStudentId);
-                console.log('DEV MODE: Created new dev student ID:', devStudentId);
-            } else {
-                console.log('DEV MODE: Using dev student ID:', devStudentId);
+            const devStudentId = localStorage.getItem('dev_student_id');
+            if (devStudentId) {
+                // Fetch the user_id for this student from DB
+                const { data: devStudent } = await supabase
+                    .from('students')
+                    .select('id, user_id')
+                    .eq('id', devStudentId)
+                    .single();
+
+                if (devStudent) {
+                    console.log('DEV MODE: Using student auth:', devStudent.id, 'user_id:', devStudent.user_id);
+                    return { studentId: devStudent.id, userId: devStudent.user_id };
+                }
             }
-            return devStudentId;
+            console.warn('DEV MODE: No valid student found for favorites');
         }
 
         return null;
     } catch {
         return null;
     }
+}
+
+// Legacy helper for backward compatibility (read operations)
+async function getStudentId(): Promise<string | null> {
+    const auth = await getStudentAuth();
+    return auth?.studentId || null;
 }
 
 export const favoritesService = {
@@ -180,8 +198,8 @@ export const favoritesService = {
     // Toggle save merchant
     async toggleMerchant(merchantId: string): Promise<ApiResponse<boolean>> {
         try {
-            const studentId = await getStudentId();
-            if (!studentId) {
+            const auth = await getStudentAuth();
+            if (!auth) {
                 return { success: false, data: null, error: 'Not authenticated as student' };
             }
 
@@ -189,7 +207,7 @@ export const favoritesService = {
             const { data: existing } = await supabase
                 .from('favorites')
                 .select('id')
-                .eq('student_id', studentId)
+                .eq('student_id', auth.studentId)
                 .eq('merchant_id', merchantId)
                 .maybeSingle();
 
@@ -199,9 +217,10 @@ export const favoritesService = {
                 if (error) throw error;
                 return { success: true, data: false, error: null }; // false = unsaved
             } else {
-                // Save
+                // Save - include user_id for NOT NULL constraint
                 const { error } = await supabase.from('favorites').insert({
-                    student_id: studentId,
+                    student_id: auth.studentId,
+                    user_id: auth.userId,
                     merchant_id: merchantId,
                 });
                 if (error) throw error;
@@ -216,8 +235,8 @@ export const favoritesService = {
     // Toggle save offer
     async toggleOffer(offerId: string): Promise<ApiResponse<boolean>> {
         try {
-            const studentId = await getStudentId();
-            if (!studentId) {
+            const auth = await getStudentAuth();
+            if (!auth) {
                 return { success: false, data: null, error: 'Not authenticated as student' };
             }
 
@@ -225,7 +244,7 @@ export const favoritesService = {
             const { data: existing } = await supabase
                 .from('favorites')
                 .select('id')
-                .eq('student_id', studentId)
+                .eq('student_id', auth.studentId)
                 .eq('offer_id', offerId)
                 .maybeSingle();
 
@@ -235,9 +254,10 @@ export const favoritesService = {
                 if (error) throw error;
                 return { success: true, data: false, error: null };
             } else {
-                // Save
+                // Save - include user_id for NOT NULL constraint
                 const { error } = await supabase.from('favorites').insert({
-                    student_id: studentId,
+                    student_id: auth.studentId,
+                    user_id: auth.userId,
                     offer_id: offerId,
                 });
                 if (error) throw error;

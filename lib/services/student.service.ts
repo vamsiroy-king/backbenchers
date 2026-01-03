@@ -190,19 +190,45 @@ export const studentService = {
                 }
             }
 
-            // DEV MODE: Return mock student data for testing
+            // DEV MODE: Fetch first real student from DB for testing
             if (IS_DEV && typeof window !== 'undefined') {
-                let devStudentId = localStorage.getItem('dev_student_id');
-                if (!devStudentId) {
-                    devStudentId = crypto.randomUUID();
-                    localStorage.setItem('dev_student_id', devStudentId);
+                console.log('DEV MODE: Fetching first real student from DB for testing...');
+
+                // Check if we already cached a dev student
+                const cachedDevStudent = localStorage.getItem('dev_real_student');
+                if (cachedDevStudent) {
+                    try {
+                        const parsed = JSON.parse(cachedDevStudent);
+                        console.log('DEV MODE: Using cached real student:', parsed.name);
+                        return { success: true, data: parsed, error: null };
+                    } catch (e) {
+                        localStorage.removeItem('dev_real_student');
+                    }
                 }
 
-                console.log('DEV MODE: Using mock student profile');
+                // Fetch first verified student from DB
+                const { data: firstStudent, error: fetchError } = await supabase
+                    .from('students')
+                    .select('*')
+                    .eq('status', 'verified')
+                    .limit(1)
+                    .single();
+
+                if (firstStudent && !fetchError) {
+                    const mapped = mapDbToStudent(firstStudent);
+                    // Cache for future use
+                    localStorage.setItem('dev_real_student', JSON.stringify(mapped));
+                    localStorage.setItem('dev_student_id', firstStudent.id);  // For favorites.service
+                    console.log('DEV MODE: Using real student from DB:', mapped.name, 'ID:', mapped.id);
+                    return { success: true, data: mapped, error: null };
+                }
+
+                // Fallback: If no real students exist, return mock (features won't work)
+                console.warn('DEV MODE: No real students in DB. Saved items and other features will not work.');
                 const mockStudent: Student = {
-                    id: devStudentId,
-                    bbId: 'BB-123456',
-                    name: 'Test Student',
+                    id: 'mock-dev-student-id',
+                    bbId: 'BB-DEV000',
+                    name: 'Test Student (No DB)',
                     email: 'test@student.edu',
                     phone: '+91 9876543210',
                     college: 'Test University',
@@ -212,7 +238,6 @@ export const studentService = {
                     gender: 'Male',
                     profileImage: undefined,
                     status: 'verified',
-
                     totalRedemptions: 0,
                     totalSavings: 0,
                     createdAt: new Date().toISOString(),
