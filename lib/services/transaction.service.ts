@@ -96,6 +96,14 @@ export const transactionService = {
         });
 
         try {
+            // Get authenticated user for RLS policy
+            const { data: { user } } = await supabase.auth.getUser();
+            console.log('[TransactionService] 🔐 Auth user for INSERT:', user?.id, user?.email);
+
+            if (!user) {
+                console.error('[TransactionService] ❌ No authenticated user - RLS will block INSERT');
+            }
+
             // Insert transaction
             console.log('[TransactionService] 🔄 Inserting into transactions table...');
             const { data: transaction, error } = await supabase
@@ -112,7 +120,10 @@ export const transactionService = {
                     original_amount: data.originalAmount,
                     discount_amount: data.discountAmount,
                     final_amount: data.finalAmount,
-                    payment_method: data.paymentMethod
+                    payment_method: data.paymentMethod,
+                    redeemed_at: new Date().toISOString(),
+                    // Add user_id for RLS if column exists
+                    ...(user?.id ? { user_id: user.id } : {})
                 })
                 .select()
                 .single();
