@@ -121,9 +121,7 @@ export const transactionService = {
                     discount_amount: data.discountAmount,
                     final_amount: data.finalAmount,
                     payment_method: data.paymentMethod,
-                    redeemed_at: new Date().toISOString(),
-                    // Add user_id for RLS if column exists
-                    ...(user?.id ? { user_id: user.id } : {})
+                    redeemed_at: new Date().toISOString()
                 })
                 .select()
                 .single();
