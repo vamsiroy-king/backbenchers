@@ -65,16 +65,40 @@ async function getStudentAuth(): Promise<StudentAuth | null> {
         const { data: { user } } = await supabase.auth.getUser();
 
         if (user) {
-            const { data: student } = await supabase
+            // First try by user_id
+            let { data: student } = await supabase
                 .from('students')
                 .select('id, user_id')
                 .eq('user_id', user.id)
-                .single();
+                .maybeSingle();
 
             if (student) {
                 return { studentId: student.id, userId: user.id };
             }
+
+            // FALLBACK: Try by email (for Google login where user_id may not match)
+            // This handles the case where student was created with college email OTP
+            // but now logs in with Google OAuth (different user_id)
+            if (user.email) {
+                const { data: studentByEmail } = await supabase
+                    .from('students')
+                    .select('id, user_id')
+                    .eq('email', user.email.toLowerCase())
+                    .maybeSingle();
+
+                if (studentByEmail) {
+                    // Sync user_id if mismatched
+                    if (studentByEmail.user_id !== user.id) {
+                        await supabase
+                            .from('students')
+                            .update({ user_id: user.id })
+                            .eq('id', studentByEmail.id);
+                    }
+                    return { studentId: studentByEmail.id, userId: user.id };
+                }
+            }
         }
+
 
         // DEV MODE: Get real student from DB (already cached by student.service)
         if (IS_DEV && typeof window !== 'undefined') {
