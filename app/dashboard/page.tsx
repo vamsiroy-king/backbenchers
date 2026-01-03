@@ -833,8 +833,11 @@ export default function DashboardPage() {
                                             createdAt: merchant.createdAt
                                         } as any}
                                         onClick={() => {
-                                            if (isVerified) router.push(`/store/${merchant.id}`);
-                                            else router.push('/signup');
+                                            if (!isVerified) {
+                                                setShowVerifyModal(true);
+                                            } else {
+                                                router.push(`/store/${merchant.id}`);
+                                            }
                                         }}
                                         priority={false}
                                     />
