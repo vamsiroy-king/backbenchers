@@ -208,7 +208,7 @@ export const studentService = {
                     college: 'Test University',
                     city: 'Bengaluru',
                     state: 'Karnataka',
-                    dateOfBirth: '2005-06-06',
+                    dob: '2005-06-06',
                     profileImage: undefined,
                     status: 'verified',
                     validUntil: '2025-12-31',
