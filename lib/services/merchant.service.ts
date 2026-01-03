@@ -253,58 +253,47 @@ export const merchantService = {
     // Get current user's merchant profile
     async getMyProfile(): Promise<ApiResponse<Merchant>> {
         try {
-            // DEV MODE: Check for dev bypass
-            const IS_DEV = process.env.NODE_ENV === 'development';
-            let userId: string | null = null;
-
             const { data: { user } } = await supabase.auth.getUser();
-
-            if (user) {
-                userId = user.id;
-            } else if (IS_DEV && typeof window !== 'undefined') {
-                // In dev mode, use localStorage dev user ID
-                userId = localStorage.getItem('dev_merchant_user_id');
-                if (userId) {
-                    console.log('DEV MODE: Using dev user ID for profile:', userId);
-                }
-            }
-
-            if (!userId) {
+            if (!user) {
                 return { success: false, data: null, error: 'Not authenticated' };
             }
 
-            // First try by user_id
+            // Attempt 1: Fetch by user_id
             let { data, error } = await supabase
                 .from('merchants')
                 .select('*')
-                .eq('user_id', userId)
+                .eq('user_id', user.id)
                 .maybeSingle();
 
-            // FALLBACK: Try by email if user_id lookup fails
-            // This handles Google OAuth when merchant signed up with email OTP (different user_id)
-            if (!data && user?.email) {
-                const { data: merchantByEmail } = await supabase
+            // Attempt 2: Fallback to email if not found (CRITICAL FIX)
+            // This handles the case where Google Login user_id doesn't match the Email OTP user_id used during signup
+            if (!data && user.email) {
+                console.log('[MerchantService] user_id mismatch, trying email fallback:', user.email);
+                const { data: emailData } = await supabase
                     .from('merchants')
                     .select('*')
-                    .eq('email', user.email.toLowerCase())
+                    .eq('email', user.email)
                     .maybeSingle();
 
-                if (merchantByEmail) {
-                    // Sync user_id if mismatched
-                    if (merchantByEmail.user_id !== userId) {
-                        console.log('Syncing merchant user_id:', merchantByEmail.user_id, '->', userId);
-                        await supabase
-                            .from('merchants')
-                            .update({ user_id: userId })
-                            .eq('id', merchantByEmail.id);
-                    }
-                    data = merchantByEmail;
+                if (emailData) {
+                    console.log('[MerchantService] Found merchant by email, syncing user_id...');
+                    // Self-healing: Update user_id in DB to match current session
+                    await supabase
+                        .from('merchants')
+                        .update({ user_id: user.id })
+                        .eq('id', emailData.id);
+
+                    data = emailData;
                     error = null;
                 }
             }
 
-            if (error || !data) {
-                return { success: false, data: null, error: error?.message || 'Merchant not found' };
+            if (error) {
+                return { success: false, data: null, error: error.message };
+            }
+
+            if (!data) {
+                return { success: false, data: null, error: 'Merchant profile not found' };
             }
 
             // Fetch store images
@@ -331,30 +320,15 @@ export const merchantService = {
         submittedAt: string;
     }>> {
         try {
-            // DEV MODE: Check for dev bypass
-            const IS_DEV = process.env.NODE_ENV === 'development';
-            let userId: string | null = null;
-
             const { data: { user } } = await supabase.auth.getUser();
-
-            if (user) {
-                userId = user.id;
-            } else if (IS_DEV && typeof window !== 'undefined') {
-                // In dev mode, use localStorage dev user ID
-                userId = localStorage.getItem('dev_merchant_user_id');
-                if (userId) {
-                    console.log('DEV MODE: Using dev user ID for pending check:', userId);
-                }
-            }
-
-            if (!userId) {
+            if (!user) {
                 return { success: false, data: null, error: 'Not authenticated' };
             }
 
             const { data, error } = await supabase
                 .from('pending_merchants')
                 .select('id, business_name, status, submitted_at')
-                .eq('user_id', userId)
+                .eq('user_id', user.id)
                 .order('submitted_at', { ascending: false })
                 .limit(1)
                 .single();
@@ -617,25 +591,8 @@ export const merchantService = {
     // Upload merchant image
     async uploadImage(type: 'logo' | 'cover' | 'store' | 'document' | 'payment_qr', file: File): Promise<ApiResponse<string>> {
         try {
-            // DEV MODE: Check for dev bypass
-            const IS_DEV = process.env.NODE_ENV === 'development';
-            let userId: string;
-
             const { data: { user } } = await supabase.auth.getUser();
-
-            if (user) {
-                userId = user.id;
-            } else if (IS_DEV) {
-                // In dev mode without real auth, use a dev user ID from localStorage or generate one
-                const storedDevId = localStorage.getItem('dev_merchant_user_id');
-                if (storedDevId) {
-                    userId = storedDevId;
-                } else {
-                    userId = crypto.randomUUID();
-                    localStorage.setItem('dev_merchant_user_id', userId);
-                }
-                console.log('DEV MODE: Using dev user ID for upload:', userId);
-            } else {
+            if (!user) {
                 return { success: false, data: null, error: 'Not authenticated' };
             }
 
@@ -649,24 +606,24 @@ export const merchantService = {
             switch (type) {
                 case 'logo':
                     bucket = 'merchant-logos';
-                    path = `${userId}/logo.${fileExt}`;
+                    path = `${user.id}/logo.${fileExt}`;
                     break;
                 case 'cover':
                     bucket = 'merchant-covers';
-                    path = `${userId}/cover.${fileExt}`;
+                    path = `${user.id}/cover.${fileExt}`;
                     break;
                 case 'store':
                     bucket = 'merchant-stores';
-                    path = `${userId}/${fileName}`;
+                    path = `${user.id}/${fileName}`;
                     break;
                 case 'document':
                     bucket = 'merchant-documents';
-                    path = `${userId}/${fileName}`;
+                    path = `${user.id}/${fileName}`;
                     isPublic = false;
                     break;
                 case 'payment_qr':
                     bucket = 'merchant-payment-qr';
-                    path = `${userId}/payment_qr.${fileExt}`;
+                    path = `${user.id}/payment_qr.${fileExt}`;
                     isPublic = false;
                     break;
                 default:
