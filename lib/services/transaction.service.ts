@@ -53,7 +53,7 @@ export const transactionService = {
                     merchants (business_name, bbm_id),
                     offers (title)
                 `)
-                .order('created_at', { ascending: false });
+                .order('redeemed_at', { ascending: false });
 
             if (filters) {
                 if (filters.dateRange && filters.dateRange !== 'all') {
@@ -86,10 +86,11 @@ export const transactionService = {
                 console.warn('Initial transaction fetch failed, retrying with fallback...', error.message);
 
                 // Fallback: Simple Select (flat schema support)
+                // If redeemed_at fails (unlikely), try created_at (011 Schema)
                 let retryQuery = supabase
                     .from('transactions')
                     .select('*')
-                    .order('redeemed_at', { ascending: false });
+                    .order('created_at', { ascending: false });
 
                 if (filters?.dateRange && filters.dateRange !== 'all') {
                     // Re-apply date filter with redeemed_at
@@ -149,20 +150,20 @@ export const transactionService = {
             let insertError = null;
 
             // Attempt 1: Try full insert (001 Denormalized Schema)
-            // We strip undefined fields just in case
+            // We strip undefined fields and format for strict 001 Schema (NOT NULLs)
             const fullPayload = {
                 student_id: data.studentId,
-                student_bb_id: data.studentBbId,
-                student_name: data.studentName,
+                student_bb_id: data.studentBbId || 'BB-PENDING',
+                student_name: data.studentName || 'Unknown Student',
                 merchant_id: data.merchantId,
-                merchant_bbm_id: data.merchantBbmId,
-                merchant_name: data.merchantName,
+                merchant_bbm_id: data.merchantBbmId || 'BBM-PENDING',
+                merchant_name: data.merchantName || 'Unknown Merchant',
                 offer_id: data.offerId,
-                offer_title: data.offerTitle,
-                original_amount: data.originalAmount,
-                discount_amount: data.discountAmount,
-                final_amount: data.finalAmount,
-                payment_method: data.paymentMethod,
+                offer_title: data.offerTitle || 'Unknown Offer',
+                original_amount: Number(data.originalAmount) || 0,
+                discount_amount: Number(data.discountAmount) || 0,
+                final_amount: Number(data.finalAmount) || 0,
+                payment_method: data.paymentMethod || 'cash',
                 redeemed_at: new Date().toISOString()
             };
 
@@ -336,7 +337,7 @@ export const transactionService = {
                     offers (title)
                 `)
                 .eq('merchant_id', merchantId)
-                .order('created_at', { ascending: false }) // Try created_at first
+                .order('redeemed_at', { ascending: false }) // Try redeemed_at first (Schema 001)
                 .limit(limit);
 
             if (error) {
@@ -346,7 +347,7 @@ export const transactionService = {
                     .from('transactions')
                     .select('*')
                     .eq('merchant_id', merchantId)
-                    .order('redeemed_at', { ascending: false })
+                    .order('created_at', { ascending: false })
                     .limit(limit);
 
                 if (retryError) {
@@ -373,7 +374,7 @@ export const transactionService = {
                     offers (title)
                 `)
                 .eq('student_id', studentId)
-                .order('created_at', { ascending: false });
+                .order('redeemed_at', { ascending: false });
 
             if (error) {
                 // Fallback to flat schema fetch
@@ -382,7 +383,7 @@ export const transactionService = {
                     .from('transactions')
                     .select('*')
                     .eq('student_id', studentId)
-                    .order('redeemed_at', { ascending: false });
+                    .order('created_at', { ascending: false });
 
                 if (retryError) {
                     return { success: false, data: null, error: retryError.message };
