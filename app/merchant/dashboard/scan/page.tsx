@@ -66,6 +66,32 @@ export default function ScanPage() {
                 if (offersResult.success && offersResult.data) {
                     setOffers(offersResult.data.filter(o => o.status === 'active'));
                 }
+
+                // DEBUG: Probe Schema
+                try {
+                    console.log('🔍 Probing Transactions Schema...');
+                    const { supabase } = await import('@/lib/supabase');
+                    const { data: sampleTx, error: sampleError } = await supabase
+                        .from('transactions')
+                        .select('*')
+                        .limit(1);
+
+                    if (sampleTx && sampleTx.length > 0) {
+                        const cols = Object.keys(sampleTx[0]);
+                        console.log('✅ Transactions Columns:', cols);
+                        alert('DB COLUMNS: ' + cols.join(', '));
+                    } else if (sampleTx) {
+                        console.log('⚠️ Transactions table is empty.');
+                        // Try inserting a dummy to get a column error? No, risky.
+                        alert('DB Connection OK, but Table Empty. Cannot probe columns.');
+                    } else {
+                        console.error('❌ Schema Probe Error:', sampleError);
+                        alert('Schema Probe Error: ' + sampleError?.message);
+                    }
+                } catch (e) {
+                    console.error('Probe failed:', e);
+                }
+
             } catch (error) {
                 console.error('[ScanPage] ❌ Error loading merchant data:', error);
             }
@@ -173,10 +199,12 @@ export default function ScanPage() {
         if (!selectedOffer || bill <= 0) return { discount: 0, final: 0 };
 
         let discount = 0;
+        const discountValue = selectedOffer.discountValue || 0;
+
         if (selectedOffer.type === 'percentage') {
-            discount = Math.round(bill * (selectedOffer.discountValue / 100));
+            discount = Math.round(bill * (discountValue / 100));
         } else if (selectedOffer.type === 'flat') {
-            discount = selectedOffer.discountValue;
+            discount = discountValue;
         } else {
             // BOGO, freebie, custom - use the fixed discount from offer
             discount = selectedOffer.discountAmount || 0;
@@ -184,9 +212,13 @@ export default function ScanPage() {
 
         // Ensure discount doesn't exceed bill
         discount = Math.min(discount, bill);
-        const final = Math.round(bill - discount);
+        let final = bill - discount;
 
-        return { discount, final };
+        // Safety check for NaN
+        if (isNaN(discount)) discount = 0;
+        if (isNaN(final)) final = Math.max(0, bill);
+
+        return { discount: Math.round(discount), final: Math.round(final) };
     };
 
     const handleBillConfirm = () => {
@@ -241,6 +273,15 @@ export default function ScanPage() {
             });
 
             console.log('[ConfirmPayment] 📊 Transaction result:', txResult.success, txResult.error);
+
+            if (!txResult.success) {
+                console.error('❌ Transaction Failed:', txResult.error);
+                alert(`❌ TRANSACTION FAILED: ${txResult.error}`);
+                setScanError(`Transaction Failed: ${txResult.error}`);
+                setIsProcessing(false);
+                return;
+            }
+
             if (txResult.data) {
                 console.log('[ConfirmPayment] ✅ Transaction ID:', txResult.data.id);
             }
