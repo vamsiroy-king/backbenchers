@@ -209,9 +209,10 @@ export const studentService = {
                     city: 'Bengaluru',
                     state: 'Karnataka',
                     dob: '2005-06-06',
+                    gender: 'Male',
                     profileImage: undefined,
                     status: 'verified',
-                    validUntil: '2025-12-31',
+
                     totalRedemptions: 0,
                     totalSavings: 0,
                     createdAt: new Date().toISOString(),
