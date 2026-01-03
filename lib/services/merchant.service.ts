@@ -278,10 +278,17 @@ export const merchantService = {
                 if (emailData) {
                     console.log('[MerchantService] Found merchant by email, syncing user_id...');
                     // Self-healing: Update user_id in DB to match current session
-                    await supabase
-                        .from('merchants')
-                        .update({ user_id: user.id })
-                        .eq('id', emailData.id);
+                    // Use RPC to bypass RLS (since RLS prevents updating a row we don't own yet)
+                    const { error: rpcError } = await supabase.rpc('sync_merchant_user_id');
+
+                    if (rpcError) {
+                        console.error('[MerchantService] RPC Sync failed, trying direct update:', rpcError);
+                        // Fallback to direct update (will fail if RLS is strict, but worth a try)
+                        await supabase
+                            .from('merchants')
+                            .update({ user_id: user.id })
+                            .eq('id', emailData.id);
+                    }
 
                     data = emailData;
                     error = null;
