@@ -134,6 +134,7 @@ export const transactionService = {
             console.log('[TransactionService] ✅ Transaction inserted! ID:', transaction.id);
 
             // Update student's savings and redemption count
+            console.log('[TransactionService] 🔄 Updating student savings...');
             const { error: studentError } = await supabase.rpc('update_student_after_transaction', {
                 p_student_id: data.studentId,
                 p_discount_amount: data.discountAmount
@@ -141,67 +142,91 @@ export const transactionService = {
 
             // If RPC doesn't exist, do manual update
             if (studentError) {
-                await supabase
-                    .from('students')
-                    .update({
-                        total_savings: supabase.rpc('increment_savings', { amount: data.discountAmount }),
-                        total_redemptions: supabase.rpc('increment_redemptions')
-                    })
-                    .eq('id', data.studentId);
+                console.log('[TransactionService] ⚠️ RPC failed, doing manual student update:', studentError.message);
 
                 // Fallback: direct SQL-style update
-                const { data: currentStudent } = await supabase
+                const { data: currentStudent, error: fetchError } = await supabase
                     .from('students')
                     .select('total_savings, total_redemptions')
                     .eq('id', data.studentId)
                     .single();
 
-                if (currentStudent) {
-                    await supabase
+                if (fetchError) {
+                    console.error('[TransactionService] ❌ Failed to fetch student:', fetchError.message);
+                } else if (currentStudent) {
+                    const { error: updateError } = await supabase
                         .from('students')
                         .update({
                             total_savings: Number(currentStudent.total_savings) + data.discountAmount,
                             total_redemptions: currentStudent.total_redemptions + 1
                         })
                         .eq('id', data.studentId);
+
+                    if (updateError) {
+                        console.error('[TransactionService] ❌ Failed to update student:', updateError.message);
+                    } else {
+                        console.log('[TransactionService] ✅ Student savings updated manually');
+                    }
                 }
+            } else {
+                console.log('[TransactionService] ✅ Student savings updated via RPC');
             }
 
             // Update merchant's revenue and redemption count
-            const { data: currentMerchant } = await supabase
+            console.log('[TransactionService] 🔄 Updating merchant stats...');
+            const { data: currentMerchant, error: merchantFetchError } = await supabase
                 .from('merchants')
                 .select('total_redemptions, total_revenue')
                 .eq('id', data.merchantId)
                 .single();
 
-            if (currentMerchant) {
-                await supabase
+            if (merchantFetchError) {
+                console.error('[TransactionService] ❌ Failed to fetch merchant:', merchantFetchError.message);
+            } else if (currentMerchant) {
+                const { error: merchantUpdateError } = await supabase
                     .from('merchants')
                     .update({
                         total_redemptions: currentMerchant.total_redemptions + 1,
                         total_revenue: Number(currentMerchant.total_revenue) + data.finalAmount
                     })
                     .eq('id', data.merchantId);
+
+                if (merchantUpdateError) {
+                    console.error('[TransactionService] ❌ Failed to update merchant:', merchantUpdateError.message);
+                } else {
+                    console.log('[TransactionService] ✅ Merchant stats updated');
+                }
             }
 
             // Update offer redemption count
-            const { data: currentOffer } = await supabase
+            console.log('[TransactionService] 🔄 Updating offer stats...');
+            const { data: currentOffer, error: offerFetchError } = await supabase
                 .from('offers')
                 .select('total_redemptions')
                 .eq('id', data.offerId)
                 .single();
 
-            if (currentOffer) {
-                await supabase
+            if (offerFetchError) {
+                console.error('[TransactionService] ❌ Failed to fetch offer:', offerFetchError.message);
+            } else if (currentOffer) {
+                const { error: offerUpdateError } = await supabase
                     .from('offers')
                     .update({
                         total_redemptions: currentOffer.total_redemptions + 1
                     })
                     .eq('id', data.offerId);
+
+                if (offerUpdateError) {
+                    console.error('[TransactionService] ❌ Failed to update offer:', offerUpdateError.message);
+                } else {
+                    console.log('[TransactionService] ✅ Offer stats updated');
+                }
             }
 
+            console.log('[TransactionService] ✅✅✅ ALL UPDATES COMPLETE! Transaction ID:', transaction.id);
             return { success: true, data: mapDbToTransaction(transaction), error: null };
         } catch (error: any) {
+            console.error('[TransactionService] ❌❌❌ EXCEPTION:', error.message);
             return { success: false, data: null, error: error.message };
         }
     },
