@@ -50,18 +50,24 @@ export default function ScanPage() {
     // Load merchant data and offers on mount
     useEffect(() => {
         async function loadMerchantData() {
+            console.log('[ScanPage] 🔄 Loading merchant data...');
             try {
                 const profileResult = await merchantService.getMyProfile();
+                console.log('[ScanPage] 📊 Profile result:', profileResult.success, profileResult.error);
                 if (profileResult.success && profileResult.data) {
+                    console.log('[ScanPage] ✅ Merchant loaded:', profileResult.data.businessName, 'ID:', profileResult.data.id);
                     setMerchant(profileResult.data);
+                } else {
+                    console.error('[ScanPage] ❌ Failed to load merchant profile:', profileResult.error);
                 }
 
                 const offersResult = await offerService.getMyOffers();
+                console.log('[ScanPage] 📊 Offers result:', offersResult.success, offersResult.data?.length || 0, 'offers');
                 if (offersResult.success && offersResult.data) {
                     setOffers(offersResult.data.filter(o => o.status === 'active'));
                 }
             } catch (error) {
-                console.error('Error loading merchant data:', error);
+                console.error('[ScanPage] ❌ Error loading merchant data:', error);
             }
         }
         loadMerchantData();
@@ -197,7 +203,15 @@ export default function ScanPage() {
     const handleBillPaid = () => setShowConfirmation(true);
 
     const handleConfirmPayment = async () => {
-        if (!student || !merchant || !selectedOffer) return;
+        console.log('[ConfirmPayment] 🔄 Starting payment confirmation...');
+        console.log('[ConfirmPayment] Student:', student?.id, student?.name);
+        console.log('[ConfirmPayment] Merchant:', merchant?.id, merchant?.businessName);
+        console.log('[ConfirmPayment] Offer:', selectedOffer?.id, selectedOffer?.title);
+
+        if (!student || !merchant || !selectedOffer) {
+            console.error('[ConfirmPayment] ❌ MISSING DATA! student:', !!student, 'merchant:', !!merchant, 'offer:', !!selectedOffer);
+            return;
+        }
 
         setShowConfirmation(false);
         setIsProcessing(true);
@@ -206,8 +220,11 @@ export default function ScanPage() {
         const { discount, final } = calculateDiscount();
         const originalBill = parseFloat(billAmount) || 0;
 
+        console.log('[ConfirmPayment] 📊 Bill:', originalBill, 'Discount:', discount, 'Final:', final, 'Method:', paymentMethod);
+
         try {
             // Record the transaction in Supabase with actual bill amounts
+            console.log('[ConfirmPayment] 🔄 Recording transaction...');
             const txResult = await transactionService.recordTransaction({
                 studentId: student.id,
                 studentBbId: student.bbId || '',
@@ -223,11 +240,16 @@ export default function ScanPage() {
                 paymentMethod: paymentMethod || 'cash'
             });
 
+            console.log('[ConfirmPayment] 📊 Transaction result:', txResult.success, txResult.error);
+            if (txResult.data) {
+                console.log('[ConfirmPayment] ✅ Transaction ID:', txResult.data.id);
+            }
+
             // Send notification to student to rate the merchant
             if (txResult.success && txResult.data) {
                 // Store pending rating in DATABASE (works across devices!)
-                console.log('[Scan] Transaction successful, saving pending rating...');
-                console.log('[Scan] Data:', {
+                console.log('[ConfirmPayment] ✅ Transaction successful, saving pending rating...');
+                console.log('[ConfirmPayment] Rating data:', {
                     transactionId: txResult.data.id,
                     merchantId: merchant.id,
                     merchantName: merchant.businessName,
@@ -241,9 +263,9 @@ export default function ScanPage() {
                         merchantName: merchant.businessName,
                         studentId: student.id,
                     });
-                    console.log('[Scan] ✅ Pending rating saved to database, result:', result);
+                    console.log('[ConfirmPayment] ✅ Pending rating saved, result:', result);
                 } catch (e) {
-                    console.error('[Scan] ❌ Could not store pending rating:', e);
+                    console.error('[ConfirmPayment] ❌ Could not store pending rating:', e);
                 }
 
                 // Also send notification as backup
@@ -261,14 +283,18 @@ export default function ScanPage() {
                             merchantName: merchant.businessName
                         }
                     );
+                    console.log('[ConfirmPayment] ✅ Notification sent');
                 } catch (notifError) {
-                    console.log('Notification not sent (optional):', notifError);
+                    console.log('[ConfirmPayment] ⚠️ Notification not sent (optional):', notifError);
                 }
+            } else {
+                console.error('[ConfirmPayment] ❌ Transaction FAILED:', txResult.error);
             }
 
             setStep("success");
+            console.log('[ConfirmPayment] ✅ Flow complete - showing success screen');
         } catch (error) {
-            console.error('Error recording transaction:', error);
+            console.error('[ConfirmPayment] ❌ EXCEPTION in transaction:', error);
         } finally {
             setIsProcessing(false);
         }

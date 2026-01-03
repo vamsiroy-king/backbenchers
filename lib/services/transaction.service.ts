@@ -86,8 +86,18 @@ export const transactionService = {
         finalAmount: number;
         paymentMethod: 'cash' | 'online';
     }): Promise<ApiResponse<Transaction>> {
+        console.log('[TransactionService] 🔄 Recording transaction...');
+        console.log('[TransactionService] Data:', {
+            studentId: data.studentId,
+            merchantId: data.merchantId,
+            offerId: data.offerId,
+            amount: data.originalAmount,
+            discount: data.discountAmount
+        });
+
         try {
             // Insert transaction
+            console.log('[TransactionService] 🔄 Inserting into transactions table...');
             const { data: transaction, error } = await supabase
                 .from('transactions')
                 .insert({
@@ -108,8 +118,11 @@ export const transactionService = {
                 .single();
 
             if (error) {
+                console.error('[TransactionService] ❌ INSERT FAILED:', error.message, error.code, error.details);
                 return { success: false, data: null, error: error.message };
             }
+
+            console.log('[TransactionService] ✅ Transaction inserted! ID:', transaction.id);
 
             // Update student's savings and redemption count
             const { error: studentError } = await supabase.rpc('update_student_after_transaction', {
