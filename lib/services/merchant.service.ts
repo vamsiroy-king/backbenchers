@@ -273,14 +273,38 @@ export const merchantService = {
                 return { success: false, data: null, error: 'Not authenticated' };
             }
 
-            const { data, error } = await supabase
+            // First try by user_id
+            let { data, error } = await supabase
                 .from('merchants')
                 .select('*')
                 .eq('user_id', userId)
-                .single();
+                .maybeSingle();
 
-            if (error) {
-                return { success: false, data: null, error: error.message };
+            // FALLBACK: Try by email if user_id lookup fails
+            // This handles Google OAuth when merchant signed up with email OTP (different user_id)
+            if (!data && user?.email) {
+                const { data: merchantByEmail } = await supabase
+                    .from('merchants')
+                    .select('*')
+                    .eq('email', user.email.toLowerCase())
+                    .maybeSingle();
+
+                if (merchantByEmail) {
+                    // Sync user_id if mismatched
+                    if (merchantByEmail.user_id !== userId) {
+                        console.log('Syncing merchant user_id:', merchantByEmail.user_id, '->', userId);
+                        await supabase
+                            .from('merchants')
+                            .update({ user_id: userId })
+                            .eq('id', merchantByEmail.id);
+                    }
+                    data = merchantByEmail;
+                    error = null;
+                }
+            }
+
+            if (error || !data) {
+                return { success: false, data: null, error: error?.message || 'Merchant not found' };
             }
 
             // Fetch store images
