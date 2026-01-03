@@ -303,7 +303,7 @@ export default function VerifyPage() {
                 )}
             </AnimatePresence>
 
-            {showPWAPrompt && <PWAInstallPrompt onClose={() => setShowPWAPrompt(false)} />}
+            {showPWAPrompt && <PWAInstallPrompt onComplete={() => setShowPWAPrompt(false)} />}
         </div>
     );
 }
