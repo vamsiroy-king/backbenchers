@@ -132,41 +132,91 @@ export const studentService = {
     // Get current user's student profile - checks by user_id first, then by email
     async getMyProfile(): Promise<ApiResponse<Student>> {
         try {
+            // DEV MODE flag
+            const IS_DEV = process.env.NODE_ENV === 'development';
+
+            // DEV MODE: Check for dev test user in localStorage FIRST
+            if (IS_DEV && typeof window !== 'undefined') {
+                const devTestUser = localStorage.getItem('dev_test_user');
+                if (devTestUser) {
+                    try {
+                        const studentData = JSON.parse(devTestUser);
+                        console.log('DEV MODE: Using dev test user for profile:', studentData.email);
+                        return {
+                            success: true,
+                            data: mapDbToStudent(studentData),
+                            error: null
+                        };
+                    } catch (e) {
+                        console.error('Failed to parse dev test user:', e);
+                        localStorage.removeItem('dev_test_user');
+                    }
+                }
+            }
+
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                return { success: false, data: null, error: 'Not authenticated' };
-            }
 
-            // First try by user_id
-            let { data, error } = await supabase
-                .from('students')
-                .select('*')
-                .eq('user_id', user.id)
-                .maybeSingle();
-
-            if (data) {
-                return { success: true, data: mapDbToStudent(data), error: null };
-            }
-
-            // If not found by user_id, try by email (for returning users with mismatched user_id)
-            const userEmail = user.email?.toLowerCase();
-            if (userEmail) {
-                const { data: studentByEmail, error: emailError } = await supabase
+            if (user) {
+                // First try by user_id
+                let { data, error } = await supabase
                     .from('students')
                     .select('*')
-                    .eq('email', userEmail)
+                    .eq('user_id', user.id)
                     .maybeSingle();
 
-                if (studentByEmail) {
-                    // Sync the user_id
-                    if (studentByEmail.user_id !== user.id) {
-                        await supabase
-                            .from('students')
-                            .update({ user_id: user.id })
-                            .eq('id', studentByEmail.id);
-                    }
-                    return { success: true, data: mapDbToStudent(studentByEmail), error: null };
+                if (data) {
+                    return { success: true, data: mapDbToStudent(data), error: null };
                 }
+
+                // If not found by user_id, try by email (for returning users with mismatched user_id)
+                const userEmail = user.email?.toLowerCase();
+                if (userEmail) {
+                    const { data: studentByEmail, error: emailError } = await supabase
+                        .from('students')
+                        .select('*')
+                        .eq('email', userEmail)
+                        .maybeSingle();
+
+                    if (studentByEmail) {
+                        // Sync the user_id
+                        if (studentByEmail.user_id !== user.id) {
+                            await supabase
+                                .from('students')
+                                .update({ user_id: user.id })
+                                .eq('id', studentByEmail.id);
+                        }
+                        return { success: true, data: mapDbToStudent(studentByEmail), error: null };
+                    }
+                }
+            }
+
+            // DEV MODE: Return mock student data for testing
+            if (IS_DEV && typeof window !== 'undefined') {
+                let devStudentId = localStorage.getItem('dev_student_id');
+                if (!devStudentId) {
+                    devStudentId = crypto.randomUUID();
+                    localStorage.setItem('dev_student_id', devStudentId);
+                }
+
+                console.log('DEV MODE: Using mock student profile');
+                const mockStudent: Student = {
+                    id: devStudentId,
+                    bbId: 'BB-123456',
+                    name: 'Test Student',
+                    email: 'test@student.edu',
+                    phone: '+91 9876543210',
+                    college: 'Test University',
+                    city: 'Bengaluru',
+                    state: 'Karnataka',
+                    dateOfBirth: '2005-06-06',
+                    profileImage: undefined,
+                    status: 'verified',
+                    validUntil: '2025-12-31',
+                    totalRedemptions: 0,
+                    totalSavings: 0,
+                    createdAt: new Date().toISOString(),
+                };
+                return { success: true, data: mockStudent, error: null };
             }
 
             return { success: false, data: null, error: 'No student profile found' };

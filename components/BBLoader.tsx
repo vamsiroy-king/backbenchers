@@ -8,42 +8,44 @@ interface BBLoaderProps {
     fullScreen?: boolean;
 }
 
+// Premium full-screen loader with logo pulse animation
 export function BBLoader({ size = "md", text, fullScreen = false }: BBLoaderProps) {
     const sizes = {
-        sm: { logo: "h-8 w-8", text: "text-xs" },
-        md: { logo: "h-12 w-12", text: "text-sm" },
-        lg: { logo: "h-16 w-16", text: "text-base" },
+        sm: { logo: "h-10 w-10", text: "text-xs", logoText: "text-base" },
+        md: { logo: "h-14 w-14", text: "text-sm", logoText: "text-xl" },
+        lg: { logo: "h-20 w-20", text: "text-base", logoText: "text-2xl" },
     };
 
     const loader = (
-        <div className="flex flex-col items-center justify-center gap-3">
-            {/* Animated Logo */}
+        <div className="flex flex-col items-center justify-center gap-4">
+            {/* Premium Logo with pulse glow */}
             <motion.div
                 animate={{
-                    scale: [1, 1.1, 1],
-                    opacity: [0.7, 1, 0.7]
+                    scale: [1, 1.05, 1],
+                    boxShadow: [
+                        "0 0 0 0 rgba(34, 197, 94, 0)",
+                        "0 0 0 16px rgba(34, 197, 94, 0.15)",
+                        "0 0 0 0 rgba(34, 197, 94, 0)"
+                    ]
                 }}
                 transition={{
-                    duration: 1.5,
+                    duration: 1.8,
                     repeat: Infinity,
                     ease: "easeInOut"
                 }}
-                className={`${sizes[size].logo} rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/25`}
+                className={`${sizes[size].logo} rounded-2xl bg-green-500 flex items-center justify-center`}
             >
-                <span className="text-white font-bold text-lg">B</span>
+                <span className={`text-black font-bold ${sizes[size].logoText}`}>B</span>
             </motion.div>
 
             {/* Loading dots */}
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
                 {[0, 1, 2].map((i) => (
                     <motion.div
                         key={i}
-                        animate={{
-                            y: [0, -4, 0],
-                            opacity: [0.4, 1, 0.4]
-                        }}
+                        animate={{ opacity: [0.3, 1, 0.3] }}
                         transition={{
-                            duration: 0.6,
+                            duration: 0.8,
                             repeat: Infinity,
                             delay: i * 0.15,
                             ease: "easeInOut"
@@ -57,7 +59,8 @@ export function BBLoader({ size = "md", text, fullScreen = false }: BBLoaderProp
                 <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className={`${sizes[size].text} text-white/50 font-medium`}
+                    transition={{ delay: 0.3 }}
+                    className={`${sizes[size].text} text-white/40 font-medium`}
                 >
                     {text}
                 </motion.p>
@@ -76,61 +79,67 @@ export function BBLoader({ size = "md", text, fullScreen = false }: BBLoaderProp
     return loader;
 }
 
-// Inline loader for sections (minimal, no text)
+// Inline loader - small rotating logo
 export function BBInlineLoader() {
     return (
         <div className="flex items-center justify-center py-8">
             <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="h-6 w-6 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center"
+                animate={{
+                    scale: [1, 1.1, 1],
+                    opacity: [0.5, 1, 0.5]
+                }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                className="h-8 w-8 rounded-xl bg-green-500 flex items-center justify-center"
             >
-                <span className="text-white font-bold text-[10px]">B</span>
+                <span className="text-black font-bold text-sm">B</span>
             </motion.div>
         </div>
     );
 }
 
-// Card placeholder for offer/merchant cards
+// Premium shimmer card placeholder
 export function BBCardPlaceholder() {
     return (
-        <motion.div
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="flex-none w-[280px] rounded-3xl bg-white/[0.04] border border-white/[0.06] overflow-hidden"
-        >
-            <div className="p-5">
-                {/* Logo placeholder */}
+        <div className="flex-none w-[280px] rounded-2xl bg-white/[0.02] border border-white/[0.04] overflow-hidden relative">
+            {/* Shimmer overlay */}
+            <motion.div
+                animate={{ x: ["-100%", "100%"] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent"
+            />
+            <div className="p-4">
                 <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-xl bg-white/[0.08] flex items-center justify-center">
-                        <span className="text-white/20 font-bold text-sm">B</span>
-                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-white/[0.04]" />
                     <div className="flex-1">
-                        <div className="h-4 w-24 bg-white/[0.08] rounded-lg mb-2" />
-                        <div className="h-3 w-16 bg-white/[0.05] rounded-lg" />
+                        <div className="h-4 w-24 bg-white/[0.04] rounded-lg mb-2" />
+                        <div className="h-3 w-16 bg-white/[0.03] rounded-lg" />
                     </div>
                 </div>
-                {/* Text placeholders */}
-                <div className="h-3 w-full bg-white/[0.05] rounded-lg mb-2" />
-                <div className="h-3 w-2/3 bg-white/[0.05] rounded-lg" />
+                <div className="h-3 w-full bg-white/[0.03] rounded-lg mb-2" />
+                <div className="h-3 w-2/3 bg-white/[0.03] rounded-lg" />
             </div>
-        </motion.div>
+        </div>
     );
 }
 
-// Section placeholder (for New on Backbenchers, etc.)
+// Premium page loader - full height section
+export function BBPageLoader() {
+    return (
+        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+            <BBLoader size="lg" />
+        </div>
+    );
+}
+
+// Section placeholder with shimmer
 export function BBSectionPlaceholder({ title }: { title: string }) {
     return (
-        <div className="mb-8">
+        <div className="mb-6">
             <div className="flex items-center justify-between mb-4 px-5">
                 <h2 className="text-white font-semibold">{title}</h2>
-                <motion.div
-                    animate={{ opacity: [0.3, 0.6, 0.3] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                    className="h-4 w-12 bg-white/[0.08] rounded-lg"
-                />
+                <div className="h-4 w-12 bg-white/[0.04] rounded-lg" />
             </div>
-            <div className="flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-hide">
+            <div className="flex gap-3 overflow-x-auto px-5 pb-2 scrollbar-hide">
                 <BBCardPlaceholder />
                 <BBCardPlaceholder />
             </div>

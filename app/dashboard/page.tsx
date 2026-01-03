@@ -22,6 +22,11 @@ import { Offer } from "@/lib/types";
 import { dashboardCache } from "@/lib/services/cache.service";
 import { HeartButton } from "@/components/HeartButton";
 import { BBInlineLoader, BBCardPlaceholder } from "@/components/BBLoader";
+import { MasonryGrid } from "@/components/ui/MasonryGrid";
+import { OfferCard } from "@/components/OfferCard";
+import { DistrictOfferCard } from "@/components/DistrictOfferCard";
+import { vibrate } from "@/lib/haptics";
+import { cn } from "@/lib/utils";
 
 // Hero Banner - Premium #India's 1st
 const HERO_CONTENT = {
@@ -483,7 +488,7 @@ export default function DashboardPage() {
         : [];
 
     return (
-        <div className="min-h-screen bg-[#0a0a0b] pb-32">
+        <div className="min-h-screen bg-black pb-32">
             {/* Get Verified Modal */}
             <AnimatePresence>
                 {showVerifyModal && (
@@ -537,7 +542,7 @@ export default function DashboardPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[90] bg-[#0a0a0b]"
+                        className="fixed inset-0 z-[90] bg-black"
                     >
                         <div className="p-4 pt-12">
                             <div className="flex items-center gap-3 mb-6">
@@ -640,7 +645,7 @@ export default function DashboardPage() {
             />
 
             {/* Header - Minimal Premium */}
-            <header className="sticky top-0 z-40 bg-[#0a0a0b]/90 backdrop-blur-xl">
+            <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-xl">
                 <div className="px-5 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                         <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
@@ -726,324 +731,251 @@ export default function DashboardPage() {
                     >
                         <AnimatePresence mode="wait">
                             {(heroBanners.length > 0 ? heroBanners : [
-                                { id: '1', title: 'Student Discounts', subtitle: 'Up to 50% off on 100+ brands', ctaText: 'Explore', backgroundGradient: 'from-primary to-emerald-500' },
-                                { id: '2', title: 'Flash Deals', subtitle: 'Limited time offers nearby', ctaText: 'View All', backgroundGradient: 'from-orange-500 to-rose-500' },
-                                { id: '3', title: 'New Drops', subtitle: 'Fresh deals every week', ctaText: 'Check Out', backgroundGradient: 'from-blue-500 to-indigo-600' },
+                                { id: '1', title: 'END OF SEASON', highlight: 'SALE', subtitle: 'Up to 60% Off + Rewards up to ₹10,000', ctaText: 'Go out and shop', bgColor: 'from-slate-800 via-slate-900 to-black' },
+                                { id: '2', title: 'FLASH', highlight: 'DEALS', subtitle: 'Limited time offers nearby', ctaText: 'View All', bgColor: 'from-orange-900 via-orange-950 to-black' },
+                                { id: '3', title: 'NEW', highlight: 'DROPS', subtitle: 'Fresh deals every week', ctaText: 'Check Out', bgColor: 'from-emerald-900 via-emerald-950 to-black' },
                             ]).map((banner: any, index: number) =>
                                 index === currentBannerIndex && (
                                     <motion.div
                                         key={banner.id}
-                                        initial={{ opacity: 0, x: swipeDirection === 'left' ? 300 : -300 }}
+                                        initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: swipeDirection === 'left' ? -300 : 300 }}
-                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                        className={`mx-5 h-44 rounded-3xl bg-gradient-to-br ${banner.backgroundGradient} p-6 flex flex-col justify-between relative overflow-hidden cursor-grab active:cursor-grabbing`}
+                                        exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+                                        transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                                        className={`mx-5 min-h-[220px] rounded-t-2xl rounded-b-none bg-gradient-to-br ${banner.bgColor || 'from-slate-800 to-black'} p-6 flex flex-col justify-center items-center text-center relative overflow-hidden cursor-grab active:cursor-grabbing`}
                                     >
-                                        {/* Shine overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
-                                        <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+                                        {/* Decorative Elements */}
+                                        <div className="absolute -left-10 -top-10 w-32 h-32 bg-white/5 rounded-full blur-3xl" />
+                                        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-3xl" />
 
+                                        {/* Content */}
                                         <div className="relative z-10">
-                                            <h2 className="text-white text-2xl font-extrabold tracking-tight">{banner.title}</h2>
+                                            <p className="text-white/60 text-xs tracking-[0.2em] mb-1">{banner.title}</p>
+                                            <h2 className="text-white text-4xl font-black tracking-tight mb-2">{banner.highlight}</h2>
                                             {banner.subtitle && (
-                                                <p className="text-white/80 text-sm mt-1.5 font-medium">{banner.subtitle}</p>
+                                                <p className="text-white/70 text-sm mb-4">{banner.subtitle}</p>
                                             )}
+                                            <button
+                                                onClick={handleOfferClick}
+                                                className="bg-white text-black font-semibold px-5 py-2.5 rounded-full text-xs shadow-lg hover:shadow-xl transition-shadow"
+                                            >
+                                                {banner.ctaText} →
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={handleOfferClick}
-                                            className="relative z-10 bg-white text-gray-900 font-bold px-6 py-2.5 rounded-xl w-fit text-sm shadow-lg"
-                                        >
-                                            {banner.ctaText}
-                                        </button>
+
+                                        {/* Bottom Fade - Seamless connection to categories */}
+                                        <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
+                                        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-green-900/20 via-transparent to-transparent opacity-40 mix-blend-screen pointer-events-none" />
                                     </motion.div>
                                 )
                             )}
                         </AnimatePresence>
-
-                        {/* Swipe hint + Active dot indicators */}
-                        <div className="flex items-center justify-center gap-2 mt-4">
-                            <span className="text-[10px] text-white/30 mr-2">← Swipe →</span>
-                            {(heroBanners.length > 0 ? heroBanners : [1, 2, 3]).map((_, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => setCurrentBannerIndex(i)}
-                                    className={`h-2 rounded-full transition-all duration-300 ${currentBannerIndex === i ? 'w-8 bg-green-400' : 'w-2 bg-white/20 hover:bg-white/30'}`}
-                                />
-                            ))}
-                        </div>
                     </div>
                 )}
 
-                {/* Categories - Minimal Grid */}
-                <section className="py-6">
-                    <div className="flex items-center gap-3 mb-5">
-                        <div className="h-8 w-8 rounded-lg bg-white/[0.04] flex items-center justify-center">
-                            <Store className="h-4 w-4 text-white/50" />
-                        </div>
-                        <h2 className="text-lg font-semibold text-white tracking-tight">Categories</h2>
+                {/* Categories - Connected to Hero Fade */}
+                <section className="pb-4 -mt-4 relative z-10">
+                    <div className="flex items-center justify-center mb-5">
+                        <div className="flex-1 h-px bg-white/[0.08]" />
+                        <span className="px-4 text-[10px] text-white/40 tracking-[0.2em] font-medium">SHOP BY CATEGORY</span>
+                        <div className="flex-1 h-px bg-white/[0.08]" />
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-4 gap-2">
                         {[
-                            { name: "Food", emoji: "🍕", color: "bg-orange-500/10 text-orange-400" },
-                            { name: "Fashion", emoji: "👗", color: "bg-pink-500/10 text-pink-400" },
-                            { name: "Fitness", emoji: "💪", color: "bg-blue-500/10 text-blue-400" }
+                            { name: "Food", image: "🍕", color: "from-orange-900/50 to-orange-950/80", category: "Food" },
+                            { name: "Fashion", image: "👗", color: "from-pink-900/50 to-pink-950/80", category: "Fashion" },
+                            { name: "Fitness", image: "💪", color: "from-blue-900/50 to-blue-950/80", category: "Fitness" },
+                            { name: "Beauty", image: "💄", color: "from-purple-900/50 to-purple-950/80", category: "Beauty" },
                         ].map((cat) => (
-                            <Link key={cat.name} href={`/dashboard/category/${cat.name}`}>
-                                <motion.div
-                                    whileTap={{ scale: 0.97 }}
-                                    className="bg-white/[0.02] rounded-xl p-4 border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all flex flex-col items-center gap-2"
-                                >
-                                    <div className={`w-10 h-10 ${cat.color} rounded-xl flex items-center justify-center`}>
-                                        <span className="text-xl">{cat.emoji}</span>
-                                    </div>
-                                    <span className="text-sm font-medium text-white/80">{cat.name}</span>
-                                </motion.div>
-                            </Link>
+                            <motion.div
+                                key={cat.name}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => {
+                                    vibrate('light');
+                                    router.push(`/dashboard/explore?category=${cat.category}`);
+                                }}
+                                className={`aspect-square rounded-xl bg-gradient-to-br ${cat.color} border border-white/[0.06] flex flex-col items-center justify-center gap-1 hover:border-white/[0.12] transition-all cursor-pointer`}
+                            >
+                                <span className="text-2xl">{cat.image}</span>
+                                <span className="text-[10px] font-medium text-white/80">{cat.name}</span>
+                            </motion.div>
                         ))}
                     </div>
                 </section>
 
-                {/* New on BackBenchers - Minimal Horizontal Scroll */}
+                {/* New Stores - Real App Style */}
                 {newMerchants.length > 0 && (
                     <section className="py-6">
-                        <div className="flex items-center justify-between mb-5">
-                            <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center">
-                                    <Sparkles className="h-4 w-4 text-green-400" />
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2.5">
+                                <div className="h-7 w-7 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                    <Sparkles className="h-3.5 w-3.5 text-green-400" />
                                 </div>
-                                <h2 className="text-lg font-semibold text-white tracking-tight">New Stores</h2>
+                                <h2 className="text-base font-semibold text-white">New Stores</h2>
                             </div>
-                            <span className="text-xs text-white/30">Recently joined</span>
+                            <span className="text-[11px] text-[#666]">Recently joined</span>
                         </div>
-                        <div className="flex gap-3 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-2">
-                            {newMerchants.map((merchant, i) => (
-                                <motion.div
-                                    key={merchant.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    onClick={() => {
-                                        if (isVerified) {
-                                            router.push(`/store/${merchant.id}`);
-                                        } else {
-                                            router.push('/signup');
-                                        }
-                                    }}
-                                    className="flex-shrink-0 w-28 bg-white/[0.02] rounded-2xl p-3 border border-white/[0.04] cursor-pointer hover:bg-white/[0.04] hover:border-white/[0.08] transition-all text-center"
-                                >
-                                    <div className="h-12 w-12 mx-auto bg-white/[0.04] rounded-xl flex items-center justify-center mb-2 overflow-hidden">
-                                        {merchant.logoUrl ? (
-                                            <img src={merchant.logoUrl} alt={merchant.businessName} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <Store className="h-5 w-5 text-white/30" />
-                                        )}
-                                    </div>
-                                    <p className="font-medium text-xs text-white truncate">{merchant.businessName}</p>
-                                    <p className="text-[10px] text-white/30 truncate mt-0.5">{merchant.category}</p>
-                                </motion.div>
+                        <div className="flex gap-4 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-4">
+                            {newMerchants.map((merchant) => (
+                                <div key={merchant.id} className="w-[180px] flex-shrink-0">
+                                    <OfferCard
+                                        offer={{
+                                            id: merchant.id,
+                                            merchantId: merchant.id,
+                                            merchantName: merchant.businessName,
+                                            merchantLogo: merchant.logoUrl,
+                                            title: merchant.category || "New Store",
+                                            description: "Just Joined",
+                                            type: "custom",
+                                            discountValue: 0,
+                                            status: "active",
+                                            totalRedemptions: 0,
+                                            createdAt: merchant.createdAt
+                                        } as any}
+                                        onClick={() => {
+                                            if (isVerified) router.push(`/store/${merchant.id}`);
+                                            else router.push('/signup');
+                                        }}
+                                        priority={false}
+                                    />
+                                </div>
                             ))}
                         </div>
                     </section>
                 )}
 
-                {/* Trending Offers - Ultra Minimal Premium Design */}
-                {contentSettings.showTrending && (
-                    <section className="py-8">
-                        {/* Section Header */}
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/10 flex items-center justify-center">
-                                    <TrendingUp className="h-4 w-4 text-green-400" />
+                {/* Trending Offers - Real App Style */}
+                {
+                    contentSettings.showTrending && (
+                        <section id="trending-section" className="py-6">
+                            {/* Section Header - Like Real App */}
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="h-7 w-7 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                        <TrendingUp className="h-3.5 w-3.5 text-green-400" />
+                                    </div>
+                                    <h2 className="text-base font-semibold text-white">Trending</h2>
                                 </div>
-                                <h2 className="text-lg font-semibold text-white tracking-tight">Trending</h2>
+                                {/* Tab Switcher - Right aligned like real app */}
+                                <div className="flex gap-1 p-1 bg-white/[0.03] rounded-full border border-white/[0.04]">
+                                    <button
+                                        onClick={() => { setTrendingTab('offline'); vibrate('light'); }}
+                                        className={cn(
+                                            "px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-200",
+                                            trendingTab === 'offline' ? 'bg-white text-black' : 'text-white/40 hover:text-white/60'
+                                        )}
+                                    >
+                                        In-Store
+                                    </button>
+                                    <button
+                                        onClick={() => { setTrendingTab('online'); vibrate('light'); }}
+                                        className={cn(
+                                            "px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-200",
+                                            trendingTab === 'online' ? 'bg-white text-black' : 'text-white/40 hover:text-white/60'
+                                        )}
+                                    >
+                                        Online
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* Premium Tab Switcher */}
-                            <div className="flex gap-1 p-1 bg-white/[0.03] rounded-full border border-white/[0.04]">
-                                <button
-                                    onClick={() => setTrendingTab('offline')}
-                                    className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${trendingTab === 'offline'
-                                        ? 'bg-white text-black'
-                                        : 'text-white/40 hover:text-white/60'
-                                        }`}
-                                >
-                                    In-Store
-                                </button>
-                                <button
-                                    onClick={() => setTrendingTab('online')}
-                                    className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${trendingTab === 'online'
-                                        ? 'bg-white text-black'
-                                        : 'text-white/40 hover:text-white/60'
-                                        }`}
-                                >
-                                    Online
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Offers Grid - Clean Minimal Cards */}
-                        <div className="space-y-3">
-                            {currentOffers.slice(0, 5).map((offer: any, index: number) => {
-                                const isFav = offer.id && favoriteIds.includes(offer.id);
-                                const expiryText = getExpiryText(offer.validUntil);
-                                const isExpired = expiryText === 'Expired';
-
-                                return (
-                                    <motion.div
-                                        key={offer.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.05 }}
-                                        whileTap={{ scale: 0.99 }}
+                            {/* Offers Grid - District-Quality Masonry Layout */}
+                            <MasonryGrid
+                                items={currentOffers.slice(0, 10)}
+                                columns={{ default: 2 }}
+                                gap={12}
+                                renderItem={(offer, index) => (
+                                    <DistrictOfferCard
+                                        offer={offer}
+                                        priority={index < 4}
                                         onClick={() => {
                                             if (!isVerified) {
                                                 setShowVerifyModal(true);
-                                            } else if (offer.merchantId) {
-                                                router.push(`/store/${offer.merchantId}`);
+                                            } else if (offer.id) {
+                                                router.push(`/offer/${offer.id}`);
                                             }
                                         }}
-                                        className={`group flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] cursor-pointer
-                                        hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-200
-                                        ${isExpired ? 'opacity-40' : ''}`}
-                                    >
-                                        {/* Logo Container */}
-                                        <div className="relative flex-shrink-0">
-                                            <div className="h-14 w-14 rounded-xl bg-white/[0.04] flex items-center justify-center overflow-hidden">
-                                                {offer.merchantLogo ? (
-                                                    <img src={offer.merchantLogo} alt="" className="h-10 w-10 object-contain" />
-                                                ) : (
-                                                    <Store className="h-6 w-6 text-white/30" />
-                                                )}
-                                            </div>
-                                        </div>
+                                    />
+                                )}
+                            />
 
-                                        {/* Content */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div className="min-w-0">
-                                                    <h3 className="text-[15px] font-medium text-white truncate">
-                                                        {offer.merchantName || offer.brand || 'Special Offer'}
-                                                    </h3>
-                                                    <p className="text-sm text-white/40 truncate mt-0.5">
-                                                        {offer.title || 'Limited time offer'}
-                                                    </p>
-                                                </div>
-
-                                                {/* Discount Badge - Minimal */}
-                                                <div className="flex-shrink-0">
-                                                    <span className="inline-flex items-center justify-center h-8 px-3 rounded-lg bg-green-500/10 text-green-400 text-sm font-semibold">
-                                                        {offer.discountValue
-                                                            ? `${offer.type === 'percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue}`
-                                                            : (offer.discount || 'Deal')}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Expiry Tag */}
-                                            {expiryText && !isExpired && (
-                                                <span className={`inline-block text-[11px] font-medium mt-2 ${expiryText.includes('h') || expiryText.includes('Ends')
-                                                    ? 'text-orange-400'
-                                                    : 'text-white/30'
-                                                    }`}>
-                                                    {expiryText}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* Favorite Button - Clean Instagram Style */}
-                                        <motion.button
-                                            onClick={(e) => offer.id && toggleFavorite(offer.id, e)}
-                                            className="flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center active:scale-90 transition-all"
-                                            whileTap={{ scale: 0.85 }}
-                                        >
-                                            <motion.div
-                                                animate={isFav ? { scale: [1, 1.25, 1] } : { scale: 1 }}
-                                                transition={{ duration: 0.25, ease: "easeOut" }}
-                                            >
-                                                <Heart
-                                                    className={`h-5 w-5 transition-all duration-200 ${isFav
-                                                        ? 'fill-red-500 text-red-500'
-                                                        : 'text-white/40 hover:text-white/60'
-                                                        }`}
-                                                />
-                                            </motion.div>
-                                        </motion.button>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
-
-                        {/* See All Link */}
-                        <Link href="/dashboard/explore" className="block mt-6">
-                            <div className="flex items-center justify-center gap-2 py-3 text-white/30 hover:text-white/50 transition-colors">
-                                <span className="text-sm">View all offers</span>
-                                <ChevronRight className="h-4 w-4" />
-                            </div>
-                        </Link>
-                    </section>
-                )}
+                            {/* View All Button - District Style */}
+                            <motion.button
+                                whileTap={{ scale: 0.97 }}
+                                onClick={() => router.push('/dashboard/explore')}
+                                className="w-full h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white/70 font-medium text-sm hover:bg-white/[0.06] hover:border-white/[0.12] transition-all mt-4 active:scale-95"
+                            >
+                                View All Offers →
+                            </motion.button>
+                        </section>
+                    )
+                }
 
                 {/* Top Brands - Minimal Grid */}
-                {contentSettings.showTopBrands && (
-                    <section className="py-6">
-                        <div className="flex items-center gap-3 mb-5">
-                            <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                                <Sparkles className="h-4 w-4 text-amber-400" />
+                {
+                    contentSettings.showTopBrands && (
+                        <section className="py-6">
+                            <div className="flex items-center gap-3 mb-5">
+                                <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                                    <Sparkles className="h-4 w-4 text-amber-400" />
+                                </div>
+                                <h2 className="text-lg font-semibold text-white tracking-tight">Top Brands</h2>
                             </div>
-                            <h2 className="text-lg font-semibold text-white tracking-tight">Top Brands</h2>
-                        </div>
 
-                        <div className="grid grid-cols-3 gap-2">
-                            {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
-                                <motion.button
-                                    key={brand.id}
-                                    whileTap={{ scale: 0.97 }}
-                                    onClick={(e) => {
-                                        if (!isVerified) {
-                                            e.preventDefault();
-                                            setShowVerifyModal(true);
-                                        } else {
-                                            router.push(`/store/${brand.id}`);
-                                        }
-                                    }}
-                                    className="bg-white/[0.02] rounded-xl p-3 flex flex-col items-center gap-2 border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all"
-                                >
-                                    <div className="h-10 w-10 rounded-lg bg-white/[0.04] flex items-center justify-center overflow-hidden">
-                                        {brand.logo ? (
-                                            <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <Store className="h-4 w-4 text-white/30" />
-                                        )}
-                                    </div>
-                                    <span className="text-xs font-medium text-white/80 text-center line-clamp-1">{brand.name}</span>
-                                    <span className="text-[10px] text-green-400/80">{brand.discount || brand.category}</span>
-                                </motion.button>
-                            ))}
-                        </div>
-                    </section>
-                )}
-            </main>
+                            <div className="grid grid-cols-3 gap-2">
+                                {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
+                                    <motion.button
+                                        key={brand.id}
+                                        whileTap={{ scale: 0.97 }}
+                                        onClick={(e) => {
+                                            if (!isVerified) {
+                                                e.preventDefault();
+                                                setShowVerifyModal(true);
+                                            } else {
+                                                router.push(`/store/${brand.id}`);
+                                            }
+                                        }}
+                                        className="bg-white/[0.02] rounded-xl p-3 flex flex-col items-center gap-2 border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all"
+                                    >
+                                        <div className="h-10 w-10 rounded-lg bg-white/[0.04] flex items-center justify-center overflow-hidden">
+                                            {brand.logo ? (
+                                                <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Store className="h-4 w-4 text-white/30" />
+                                            )}
+                                        </div>
+                                        <span className="text-xs font-medium text-white/80 text-center line-clamp-1">{brand.name}</span>
+                                        <span className="text-[10px] text-green-400/80">{brand.discount || brand.category}</span>
+                                    </motion.button>
+                                ))}
+                            </div>
+                        </section>
+                    )
+                }
+            </main >
 
             {/* Rating Modal - Shows after successful redemption */}
-            {ratingModalData && studentId && (
-                <RatingModal
-                    isOpen={ratingModalData.isOpen}
-                    onClose={() => {
-                        // Dismiss in database when skipped/closed
-                        dismissPendingRating(ratingModalData.transactionId);
-                        setRatingModalData(null);
-                    }}
-                    transactionId={ratingModalData.transactionId}
-                    merchantId={ratingModalData.merchantId}
-                    merchantName={ratingModalData.merchantName}
-                    studentId={studentId}
-                    onRatingSubmitted={() => {
-                        // Delete from database when submitted
-                        deletePendingRating(ratingModalData.transactionId);
-                        setRatingModalData(null);
-                    }}
-                />
-            )}
+            {
+                ratingModalData && studentId && (
+                    <RatingModal
+                        isOpen={ratingModalData.isOpen}
+                        onClose={() => {
+                            // Dismiss in database when skipped/closed
+                            dismissPendingRating(ratingModalData.transactionId);
+                            setRatingModalData(null);
+                        }}
+                        transactionId={ratingModalData.transactionId}
+                        merchantId={ratingModalData.merchantId}
+                        merchantName={ratingModalData.merchantName}
+                        studentId={studentId}
+                        onRatingSubmitted={() => {
+                            // Delete from database when submitted
+                            deletePendingRating(ratingModalData.transactionId);
+                            setRatingModalData(null);
+                        }}
+                    />
+                )
+            }
         </div >
     );
 }

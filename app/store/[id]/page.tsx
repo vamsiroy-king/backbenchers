@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, MapPin, Clock, Phone, Globe, Instagram, Star, Tag, Navigation, ExternalLink, X, Heart, Loader2, Flame } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Navigation, Bookmark, ChevronRight, Share2, Tag, Star, X, Clock, Camera, Store } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,65 +9,44 @@ import { offerService } from "@/lib/services/offer.service";
 import { ratingService, MerchantRatingStats } from "@/lib/services/rating.service";
 import { favoritesService } from "@/lib/services/favorites.service";
 import { Merchant, Offer } from "@/lib/types";
+import { vibrate } from "@/lib/haptics";
+
+// Tab options - District style
+const TABS = [
+    { id: 'offers', label: 'Offers' },
+    { id: 'photos', label: 'Photos' },
+    { id: 'about', label: 'About' },
+];
 
 export default function StorePage({ params }: { params: Promise<{ id: string }> }) {
-    // Unwrap async params for Next.js 16
     const { id } = use(params);
     const [showImageGallery, setShowImageGallery] = useState(false);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-    const [showTimings, setShowTimings] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
     const [merchant, setMerchant] = useState<Merchant | null>(null);
     const [offers, setOffers] = useState<Offer[]>([]);
-    const [expandedOfferId, setExpandedOfferId] = useState<string | null>(null);
     const [hasFetched, setHasFetched] = useState(false);
     const [ratingStats, setRatingStats] = useState<MerchantRatingStats>({ avgRating: 0, totalReviews: 0 });
     const [savingFavorite, setSavingFavorite] = useState(false);
-    const [savedOfferIds, setSavedOfferIds] = useState<string[]>([]);
-    const [savingOfferId, setSavingOfferId] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState('offers');
+    const [expandedOfferId, setExpandedOfferId] = useState<string | null>(null);
 
-    // Fetch real merchant data and offers - only once
     useEffect(() => {
-        // Skip if already fetched (prevents re-fetch on visibility change)
         if (hasFetched) return;
-
         async function fetchData() {
             try {
                 setInitialLoading(true);
-                console.log('Fetching merchant with ID:', id);
-
-                // Fetch merchant by ID
-                const merchantResult = await merchantService.getById(id);
-                console.log('Merchant result:', merchantResult);
-
-                if (merchantResult.success && merchantResult.data) {
-                    setMerchant(merchantResult.data);
-                } else {
-                    console.error('Failed to fetch merchant:', merchantResult.error);
-                }
-
-                // Fetch offers for this merchant
-                const offersResult = await offerService.getByMerchantId(id);
-                console.log('Offers result:', offersResult);
-
-                // Fetch rating stats for this merchant
-                const stats = await ratingService.getMerchantRatingStats(id);
+                const [merchantResult, offersResult, stats, isSaved] = await Promise.all([
+                    merchantService.getById(id),
+                    offerService.getByMerchantId(id),
+                    ratingService.getMerchantRatingStats(id),
+                    favoritesService.isMerchantSaved(id)
+                ]);
+                if (merchantResult.success && merchantResult.data) setMerchant(merchantResult.data);
+                if (offersResult.success && offersResult.data) setOffers(offersResult.data);
                 setRatingStats(stats);
-                console.log('Rating stats:', stats);
-
-                if (offersResult.success && offersResult.data) {
-                    setOffers(offersResult.data);
-                }
-
-                // Check if merchant is saved
-                const isSaved = await favoritesService.isMerchantSaved(id);
                 setIsFavorite(isSaved);
-
-                // Get saved offer IDs
-                const savedIds = await favoritesService.getSavedOfferIds();
-                setSavedOfferIds(savedIds);
-
                 setHasFetched(true);
             } catch (error) {
                 console.error('Error fetching store data:', error);
@@ -79,412 +57,96 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
         fetchData();
     }, [id, hasFetched]);
 
-    // Prepare images array
-    const allImages = merchant ? [
-        merchant.coverPhoto || 'https://picsum.photos/800/400?random=1',
-        ...(merchant.storeImages || [])
-    ] : [];
-
-    const openGallery = (index: number) => {
-        setSelectedImageIndex(index);
-        setShowImageGallery(true);
-    };
+    const allImages = merchant ? [merchant.coverPhoto, merchant.logo, ...(merchant.storeImages || [])].filter(Boolean) as string[] : [];
+    const heroImage = merchant?.coverPhoto || (merchant?.storeImages && merchant.storeImages[0]) || null;
 
     const handleGetDirections = () => {
         if (!merchant) return;
-
-        // Priority 1: Use direct Google Maps link if available
+        vibrate('light');
         if (merchant.googleMapsLink) {
             window.open(merchant.googleMapsLink, '_blank');
-            return;
-        }
-
-        // Priority 2: Use latitude/longitude if available
-        if (merchant.latitude && merchant.longitude) {
-            const url = `https://www.google.com/maps/search/?api=1&query=${merchant.latitude},${merchant.longitude}`;
-            window.open(url, '_blank');
-            return;
-        }
-
-        // Priority 3: Fallback to address search
-        if (merchant.address && merchant.city) {
-            const query = encodeURIComponent(`${merchant.address}, ${merchant.city}`);
-            window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+        } else if (merchant.latitude && merchant.longitude) {
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${merchant.latitude},${merchant.longitude}`, '_blank');
+        } else {
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(merchant.address + ', ' + merchant.city)}`, '_blank');
         }
     };
 
-    // Get discount display text
-    const getDiscountText = (offer: Offer) => {
-        if (offer.type === 'percentage') return `${offer.discountValue}% OFF`;
-        if (offer.type === 'flat') return `₹${offer.discountValue} OFF`;
-        if (offer.type === 'bogo') return 'Buy 1 Get 1';
-        if (offer.type === 'freebie') return 'Free Gift';
-        return `${offer.discountValue}% OFF`;
-    };
-
-    // Calculate days until expiry and return urgency info
-    const getExpiryUrgency = (validTo: string | null | undefined) => {
-        if (!validTo) return null;
-
-        const expiryDate = new Date(validTo);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        expiryDate.setHours(0, 0, 0, 0);
-
-        const diffTime = expiryDate.getTime() - today.getTime();
-        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (daysLeft < 0) return null; // Already expired
-
-        if (daysLeft === 0) {
-            return { daysLeft, label: "Ends Today!", color: "text-red-600", bgColor: "bg-red-100" };
-        } else if (daysLeft === 1) {
-            return { daysLeft, label: "Ends Tomorrow", color: "text-orange-600", bgColor: "bg-orange-100" };
-        } else if (daysLeft <= 3) {
-            return { daysLeft, label: `${daysLeft} days left`, color: "text-amber-600", bgColor: "bg-amber-100" };
-        } else if (daysLeft <= 7) {
-            return { daysLeft, label: `${daysLeft} days left`, color: "text-green-600", bgColor: "bg-green-50" };
+    const handleCall = () => {
+        if (merchant?.phone) {
+            vibrate('light');
+            window.open(`tel:${merchant.phone}`, '_blank');
         }
-
-        return null; // More than 7 days, no badge
     };
 
+    const handleShare = async () => {
+        vibrate('light');
+        if (navigator.share) {
+            await navigator.share({
+                title: merchant?.businessName,
+                text: `Check out ${merchant?.businessName} on Backbenchers`,
+                url: window.location.href
+            });
+        }
+    };
+
+    const handleSave = async () => {
+        if (savingFavorite) return;
+        setSavingFavorite(true);
+        vibrate(isFavorite ? 'light' : 'success');
+        const result = await favoritesService.toggleMerchant(id);
+        if (result.success && typeof result.data === 'boolean') setIsFavorite(result.data);
+        setSavingFavorite(false);
+    };
+
+    // Loading State
     if (initialLoading) {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="w-full max-w-[430px] min-h-screen bg-black flex items-center justify-center">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-3">
+                        <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="h-12 w-12 rounded-xl bg-green-500 flex items-center justify-center">
+                            <span className="text-black font-bold text-xl">B</span>
+                        </motion.div>
+                    </motion.div>
+                </div>
             </div>
         );
     }
 
     if (!merchant) {
         return (
-            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8">
-                <p className="text-xl font-bold mb-4">Store not found</p>
-                <Link href="/dashboard">
-                    <Button>Go back</Button>
-                </Link>
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="w-full max-w-[430px] min-h-screen bg-black flex flex-col items-center justify-center p-6">
+                    <p className="text-lg font-semibold mb-3 text-white">Store not found</p>
+                    <Link href="/dashboard" className="text-green-400 text-sm font-medium">Go back</Link>
+                </div>
             </div>
         );
     }
 
-    // Content to render in both mobile and desktop views
-    const storeContent = (
-        <>
-            {/* Cover Image with Back Button */}
-            <div className="relative h-56">
-                <img
-                    src={merchant.coverPhoto || 'https://picsum.photos/800/400?random=1'}
-                    alt="Cover"
-                    className="w-full h-full object-cover"
-                    onClick={() => openGallery(0)}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-
-                {/* Back & Favorite Buttons */}
-                <div className="absolute top-4 md:top-14 left-4 right-4 flex items-center justify-between">
-                    <Link href="/dashboard">
-                        <button className="h-10 w-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
-                            <ArrowLeft className="h-5 w-5 text-white" />
-                        </button>
-                    </Link>
-                    <button
-                        onClick={async () => {
-                            if (savingFavorite) return;
-                            setSavingFavorite(true);
-                            const result = await favoritesService.toggleMerchant(id);
-                            if (result.success && typeof result.data === 'boolean') {
-                                setIsFavorite(result.data);
-                            }
-                            setSavingFavorite(false);
-                        }}
-                        disabled={savingFavorite}
-                        className="h-10 w-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center"
-                    >
-                        {savingFavorite ? (
-                            <Loader2 className="h-5 w-5 text-white animate-spin" />
-                        ) : (
-                            <Heart className={`h-5 w-5 ${isFavorite ? 'text-red-500 fill-red-500' : 'text-white'}`} />
-                        )}
-                    </button>
-                </div>
-
-                {/* Logo & Name on Cover */}
-                <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3">
-                    {merchant.logo && (
-                        <div className="h-16 w-16 rounded-xl overflow-hidden border-2 border-white shadow-lg">
-                            <img src={merchant.logo} alt="" className="w-full h-full object-cover" />
-                        </div>
-                    )}
-                    <div className="flex-1">
-                        <h1 className="text-xl font-extrabold text-white">{merchant.businessName}</h1>
-                        <p className="text-white/80 text-sm">{merchant.category}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="px-5 pt-5 pb-32 space-y-6 dark:bg-gray-950">
-                {/* Rating & Status */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 bg-primary/10 dark:bg-primary/20 px-3 py-1.5 rounded-lg">
-                        <Star className="h-4 w-4 text-primary fill-primary" />
-                        <span className="font-bold text-sm text-primary">
-                            {ratingStats.avgRating > 0 ? ratingStats.avgRating.toFixed(1) : 'New'}
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-400">
-                        <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                        Open
-                    </div>
-                </div>
-
-                {/* Store Images */}
-                {merchant.storeImages && merchant.storeImages.length > 0 && (
-                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-5 px-5">
-                        {merchant.storeImages.map((img, index) => (
-                            <button
-                                key={index}
-                                onClick={() => openGallery(index + 1)}
-                                className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden shadow-subtle"
-                            >
-                                <img src={img} alt="" className="w-full h-full object-cover" />
-                            </button>
-                        ))}
-                    </div>
-                )}
-
-                {/* Description */}
-                {merchant.description && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{merchant.description}</p>
-                )}
-
-                {/* Quick Info */}
-                <div className="space-y-2.5">
-                    <div className="flex items-center gap-3 p-3.5 bg-gray-800/50 dark:bg-gray-800/80 rounded-xl border border-gray-700/50">
-                        <div className="h-10 w-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                            <MapPin className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-medium text-sm text-white">{merchant.address}</p>
-                            <p className="text-xs text-gray-400">{merchant.city}, {merchant.pinCode}</p>
-                        </div>
-                    </div>
-
-                    {merchant.phone && (
-                        <a href={`tel:${merchant.phone}`} className="flex items-center gap-3 p-3.5 bg-gray-800/50 dark:bg-gray-800/80 rounded-xl border border-gray-700/50">
-                            <div className="h-10 w-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                                <Phone className="h-5 w-5 text-primary" />
-                            </div>
-                            <p className="font-medium text-sm text-primary">{merchant.phone}</p>
-                        </a>
-                    )}
-                </div>
-
-                {/* Get Directions Button */}
-                <Button
-                    onClick={handleGetDirections}
-                    className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl shadow-lg shadow-primary/30"
-                >
-                    <Navigation className="h-5 w-5 mr-2" />
-                    Get Directions
-                    <ExternalLink className="h-4 w-4 ml-2" />
-                </Button>
-
-                {/* Active Offers */}
-                {offers.length > 0 && (
-                    <div className="space-y-3">
-                        <h3 className="font-semibold text-xs text-gray-400 uppercase tracking-wider">
-                            Available Offers
-                        </h3>
-                        {offers.filter(o => o.status === 'active').map((offer) => (
-                            <motion.div
-                                key={offer.id}
-                                layout
-                                onClick={() => setExpandedOfferId(expandedOfferId === offer.id ? null : offer.id)}
-                                className="bg-white rounded-xl p-3.5 shadow-card border border-gray-100/50 relative cursor-pointer"
-                            >
-                                {/* Compact Row Layout */}
-                                <div className="flex items-center gap-3.5">
-                                    {/* Discount Badge */}
-                                    <div className="flex-shrink-0 h-12 w-12 bg-gradient-to-br from-primary to-emerald-500 rounded-lg flex flex-col items-center justify-center text-white shadow-sm">
-                                        <span className="text-base font-bold leading-none">
-                                            {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
-                                        </span>
-                                        <span className="text-[8px] font-medium opacity-80">OFF</span>
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-0.5">
-                                            <h4 className="font-semibold text-gray-900 truncate">{offer.title}</h4>
-                                            {new Date(offer.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
-                                                <span className="flex-shrink-0 text-[9px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded">NEW</span>
-                                            )}
-                                            {/* Expiry Urgency Badge */}
-                                            {(() => {
-                                                const urgency = getExpiryUrgency(offer.validUntil);
-                                                if (!urgency) return null;
-                                                return (
-                                                    <span className={`flex-shrink-0 text-[9px] font-bold ${urgency.bgColor} ${urgency.color} px-1.5 py-0.5 rounded flex items-center gap-0.5`}>
-                                                        {urgency.daysLeft <= 1 && <Flame className="w-2.5 h-2.5" />}
-                                                        {urgency.label}
-                                                    </span>
-                                                );
-                                            })()}
-                                        </div>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-gray-400 text-sm line-through">₹{offer.originalPrice}</span>
-                                            <span className="text-primary text-lg font-bold">₹{offer.finalPrice}</span>
-                                            <span className="text-xs text-green-600 font-medium">Save ₹{offer.discountAmount}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Save Offer Heart Button */}
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (savingOfferId === offer.id) return;
-                                            setSavingOfferId(offer.id);
-                                            favoritesService.toggleOffer(offer.id).then(result => {
-                                                if (result.success && typeof result.data === 'boolean') {
-                                                    setSavedOfferIds(prev =>
-                                                        result.data
-                                                            ? [...prev, offer.id]
-                                                            : prev.filter(id => id !== offer.id)
-                                                    );
-                                                }
-                                                setSavingOfferId(null);
-                                            });
-                                        }}
-                                        className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center"
-                                    >
-                                        {savingOfferId === offer.id ? (
-                                            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                                        ) : (
-                                            <Heart className={`h-4 w-4 ${savedOfferIds.includes(offer.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
-                                        )}
-                                    </button>
-
-                                    {/* Chevron - Rotates when expanded */}
-                                    <motion.div
-                                        animate={{ rotate: expandedOfferId === offer.id ? 90 : 0 }}
-                                        className="flex-shrink-0 text-gray-400"
-                                    >
-                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </motion.div>
-                                </div>
-
-                                {/* Expanded Content - Terms & Validity */}
-                                <AnimatePresence>
-                                    {expandedOfferId === offer.id && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            transition={{ duration: 0.2 }}
-                                            className="overflow-hidden"
-                                        >
-                                            <div className="pt-4 mt-4 border-t border-gray-100 pl-[72px]">
-                                                {/* Terms */}
-                                                {offer.terms && offer.terms.length > 0 && (
-                                                    <div className="mb-3">
-                                                        <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Terms & Conditions</p>
-                                                        {(() => {
-                                                            // Parse terms properly - handle both array and concatenated string
-                                                            let termsArray: string[] = [];
-                                                            if (Array.isArray(offer.terms)) {
-                                                                termsArray = offer.terms;
-                                                            } else if (typeof offer.terms === 'string') {
-                                                                // Split on common term start patterns
-                                                                const patterns = /(?=Valid |Cannot |One |Minimum |Prior |First|Not |Subject |Terms |Applicable |No |Exchange )/g;
-                                                                termsArray = offer.terms.split(patterns).filter(t => t.trim());
-                                                            }
-                                                            return termsArray.map((term: string, i: number) => (
-                                                                <p key={i} className="text-xs text-gray-600 flex items-start gap-1.5 mb-0.5">
-                                                                    <span className="text-primary flex-shrink-0">•</span>
-                                                                    <span>{term.trim()}</span>
-                                                                </p>
-                                                            ));
-                                                        })()}
-                                                    </div>
-                                                )}
-
-                                                {/* Validity */}
-                                                {offer.validUntil && (
-                                                    <p className="text-[10px] text-gray-400">
-                                                        Valid until {new Date(offer.validUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                    </p>
-                                                )}
-
-                                                {/* Show at Store Badge */}
-                                                <div className="mt-3 inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
-                                                    <Tag className="h-3 w-3" />
-                                                    Show at store to redeem
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </motion.div>
-                        ))}
-                    </div>
-                )}
-
-                {offers.length === 0 && (
-                    <div className="text-center py-8 text-gray-400">
-                        <Tag className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No active offers at this store</p>
-                    </div>
-                )}
-            </div>
-        </>
-    );
+    const activeOffers = offers.filter(o => o.status === 'active');
+    const bestDiscount = activeOffers.length > 0 ? Math.max(...activeOffers.map(o => o.discountValue || 0)) : 0;
 
     return (
         <>
             {/* Image Gallery Modal */}
             <AnimatePresence>
                 {showImageGallery && allImages.length > 0 && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-black"
-                    >
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black">
                         <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-                            <button
-                                onClick={() => setShowImageGallery(false)}
-                                className="h-10 w-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center"
-                            >
-                                <X className="h-6 w-6 text-white" />
+                            <button onClick={() => setShowImageGallery(false)} className="h-9 w-9 bg-white/10 rounded-full flex items-center justify-center">
+                                <X className="h-5 w-5 text-white" />
                             </button>
-                            <span className="text-white text-sm font-medium">
-                                {selectedImageIndex + 1} / {allImages.length}
-                            </span>
-                            <div className="w-10" />
+                            <span className="text-white text-xs font-medium">{selectedImageIndex + 1}/{allImages.length}</span>
+                            <div className="w-9" />
                         </div>
-
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <motion.img
-                                key={selectedImageIndex}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                src={allImages[selectedImageIndex]}
-                                alt=""
-                                className="max-w-full max-h-[70vh] object-contain"
-                            />
+                        <div className="absolute inset-0 flex items-center justify-center p-4">
+                            <img src={allImages[selectedImageIndex]} alt="" className="max-w-full max-h-[70vh] object-contain rounded-xl" />
                         </div>
-
-                        <div className="absolute bottom-8 left-0 right-0 flex gap-2 px-4 overflow-x-auto pb-2 scrollbar-hide">
-                            {allImages.map((img, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => setSelectedImageIndex(index)}
-                                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${index === selectedImageIndex ? 'border-white' : 'border-transparent opacity-50'
-                                        }`}
-                                >
+                        <div className="absolute bottom-6 left-0 right-0 flex gap-2 px-4 overflow-x-auto">
+                            {allImages.map((img, i) => (
+                                <button key={i} onClick={() => setSelectedImageIndex(i)} className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 ${i === selectedImageIndex ? 'border-white' : 'border-transparent opacity-40'}`}>
                                     <img src={img} alt="" className="w-full h-full object-cover" />
                                 </button>
                             ))}
@@ -493,11 +155,290 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 )}
             </AnimatePresence>
 
-            {/* Mobile-sized container centered on all screens */}
-            <div className="min-h-screen bg-gray-100 dark:bg-gray-950 flex justify-center">
-                <div className="w-full max-w-[430px] min-h-screen bg-white dark:bg-gray-950 shadow-xl dark:shadow-none">
-                    <div className="h-full w-full overflow-y-auto">
-                        {storeContent}
+            {/* Mobile Container */}
+            <div className="min-h-screen bg-black flex justify-center">
+                <div className="w-full max-w-[430px] min-h-screen bg-black">
+
+                    {/* Large Hero Image - District Style */}
+                    <div className="relative h-[320px]">
+                        {heroImage ? (
+                            <img
+                                src={heroImage}
+                                alt={merchant.businessName}
+                                className="w-full h-full object-cover"
+                                onClick={() => { setSelectedImageIndex(0); setShowImageGallery(true); }}
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] to-black flex items-center justify-center">
+                                <div className="text-center">
+                                    <div className="h-20 w-20 rounded-2xl bg-green-500 flex items-center justify-center mx-auto mb-3">
+                                        <span className="text-black font-bold text-3xl">{merchant.businessName[0]}</span>
+                                    </div>
+                                    <p className="text-[#444] text-sm">No cover image</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+
+                        {/* Top Buttons */}
+                        <div className="absolute top-4 left-4 right-4 flex justify-between">
+                            <Link href="/dashboard">
+                                <motion.button whileTap={{ scale: 0.9 }} className="h-10 w-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                    <ArrowLeft className="h-5 w-5 text-white" />
+                                </motion.button>
+                            </Link>
+                            <div className="flex gap-2">
+                                <motion.button whileTap={{ scale: 0.9 }} onClick={handleSave} className="h-10 w-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                    <Bookmark className={`h-5 w-5 ${isFavorite ? 'fill-white text-white' : 'text-white'}`} />
+                                </motion.button>
+                                <motion.button whileTap={{ scale: 0.9 }} onClick={handleShare} className="h-10 w-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                    <Share2 className="h-5 w-5 text-white" />
+                                </motion.button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Scrolling Ticker - Green BackBenchers Theme */}
+                    {bestDiscount > 0 && (
+                        <div className="bg-gradient-to-r from-green-600 to-green-500 py-2.5 overflow-hidden">
+                            <motion.div
+                                className="flex whitespace-nowrap"
+                                animate={{ x: ["0%", "-50%"] }}
+                                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                            >
+                                {[0, 1].map((i) => (
+                                    <div key={i} className="flex items-center gap-6 px-4 text-white text-xs font-medium">
+                                        <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-white/60" />Sale is live</span>
+                                        <span className="font-bold">Flat {bestDiscount}% OFF</span>
+                                        <span>+ 10% Rewards</span>
+                                        <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-white/60" />Limited time</span>
+                                    </div>
+                                ))}
+                            </motion.div>
+                        </div>
+                    )}
+
+                    {/* Store Info Section - Adidas Style */}
+                    <div className="px-4 pt-4 pb-4 border-b border-[#222]">
+                        {/* Logo + Name + Details - LEFT ALIGNED like Adidas */}
+                        <div className="flex items-start gap-3 mb-4">
+                            {/* Square Logo - LEFT aligned */}
+                            <div className="h-14 w-14 rounded-xl bg-black flex items-center justify-center flex-shrink-0 overflow-hidden border border-[#333]">
+                                {merchant.logo ? (
+                                    <img src={merchant.logo} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-white font-bold text-2xl">{merchant.businessName[0]}</span>
+                                )}
+                            </div>
+
+                            {/* Store Info - LEFT aligned */}
+                            <div className="flex-1 min-w-0">
+                                <h1 className="text-lg font-bold text-white mb-0.5">{merchant.businessName}</h1>
+                                <p className="text-xs text-[#888] mb-0.5 truncate">
+                                    {merchant.address}, {merchant.city}
+                                </p>
+                                <p className="text-xs text-[#666] mb-1">
+                                    {merchant.category}
+                                </p>
+                                <div className="flex items-center gap-1.5 text-xs">
+                                    <span className="text-green-400 font-medium">Open</span>
+                                    <span className="text-[#555]">• Closes 10:00 PM ▾</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons - 3 buttons like Adidas */}
+                        <div className="flex gap-2">
+                            <motion.button
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handleGetDirections}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-[#1a1a1a] rounded-full border border-[#333] text-white text-[11px] font-medium"
+                            >
+                                <Navigation className="h-3 w-3" />
+                                Directions
+                            </motion.button>
+                            <motion.button
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handleCall}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-[#1a1a1a] rounded-full border border-[#333] text-white text-[11px] font-medium"
+                            >
+                                <Phone className="h-3 w-3" />
+                                Call Now
+                            </motion.button>
+                            <motion.button
+                                whileTap={{ scale: 0.95 }}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-[#1a1a1a] rounded-full border border-[#333] text-white text-[11px] font-medium"
+                            >
+                                <Store className="h-3 w-3" />
+                                Other Stores
+                            </motion.button>
+                        </div>
+                    </div>
+
+                    {/* Tabs - District Style */}
+                    <div className="border-b border-[#222] px-4">
+                        <div className="flex gap-6 justify-center">
+                            {TABS.map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => { setActiveTab(tab.id); vibrate('light'); }}
+                                    className={`py-3 text-sm font-medium relative ${activeTab === tab.id ? 'text-white' : 'text-[#666]'}`}
+                                >
+                                    {tab.label}
+                                    {activeTab === tab.id && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Tab Content */}
+                    <div className="px-4 py-4 pb-24">
+                        {activeTab === 'offers' && (
+                            <div className="space-y-3">
+                                <p className="text-[10px] text-[#555] uppercase tracking-wider mb-3">In-store deals applied at billing counter</p>
+
+                                {activeOffers.length === 0 ? (
+                                    <div className="text-center py-10">
+                                        <Tag className="h-8 w-8 text-[#333] mx-auto mb-2" />
+                                        <p className="text-[#555] text-xs">No active offers</p>
+                                    </div>
+                                ) : (
+                                    activeOffers.map(offer => (
+                                        <motion.div
+                                            key={offer.id}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => setExpandedOfferId(expandedOfferId === offer.id ? null : offer.id)}
+                                            className="bg-[#111] rounded-xl p-4 border border-[#222] cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-12 w-12 rounded-xl bg-green-500 flex flex-col items-center justify-center flex-shrink-0">
+                                                    <span className="text-black font-bold text-sm">{offer.discountValue}%</span>
+                                                    <span className="text-black text-[8px] font-medium">OFF</span>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="text-white font-semibold text-sm">{offer.title}</h4>
+                                                    <p className="text-[#666] text-xs mt-0.5">
+                                                        {offer.validUntil && `Valid till ${new Date(offer.validUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
+                                                    </p>
+                                                </div>
+                                                <motion.div animate={{ rotate: expandedOfferId === offer.id ? 90 : 0 }}>
+                                                    <ChevronRight className="h-5 w-5 text-[#444]" />
+                                                </motion.div>
+                                            </div>
+
+                                            {/* Expanded Details */}
+                                            <AnimatePresence>
+                                                {expandedOfferId === offer.id && (
+                                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                                                        <div className="pt-4 mt-4 border-t border-[#222] space-y-3">
+                                                            {offer.description && <p className="text-[#888] text-xs leading-relaxed">{offer.description}</p>}
+
+                                                            {/* Price Display */}
+                                                            <div className="flex items-center gap-3">
+                                                                {offer.originalPrice && (
+                                                                    <>
+                                                                        <span className="text-[#555] text-sm line-through">₹{offer.originalPrice}</span>
+                                                                        <span className="text-white text-lg font-bold">₹{offer.finalPrice}</span>
+                                                                    </>
+                                                                )}
+                                                                <span className="text-green-400 text-xs font-medium">
+                                                                    Save ₹{offer.discountAmount || Math.round((offer.originalPrice || 100) * (offer.discountValue || 0) / 100)}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Terms */}
+                                                            <div className="bg-[#0a0a0a] rounded-lg p-3 border border-[#1a1a1a]">
+                                                                <p className="text-[10px] text-[#555] uppercase tracking-wider mb-2">Terms & Conditions</p>
+                                                                <ul className="space-y-1">
+                                                                    <li className="text-[#666] text-[11px] flex items-start gap-1.5">
+                                                                        <span className="text-green-500 mt-0.5">•</span>
+                                                                        <span>Valid for verified students only</span>
+                                                                    </li>
+                                                                    <li className="text-[#666] text-[11px] flex items-start gap-1.5">
+                                                                        <span className="text-green-500 mt-0.5">•</span>
+                                                                        <span>Show student ID at billing</span>
+                                                                    </li>
+                                                                    <li className="text-[#666] text-[11px] flex items-start gap-1.5">
+                                                                        <span className="text-green-500 mt-0.5">•</span>
+                                                                        <span>Cannot be combined with other offers</span>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+
+                                                            <div className="flex gap-2 flex-wrap">
+                                                                <span className="text-[10px] bg-green-500/10 text-green-400 px-2.5 py-1 rounded-full font-medium">{offer.discountValue}% OFF</span>
+                                                                <span className="text-[10px] bg-[#1a1a1a] text-[#888] px-2.5 py-1 rounded-full flex items-center gap-1">
+                                                                    <Tag className="h-2.5 w-2.5" />
+                                                                    Show at store
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </motion.div>
+                                    ))
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'photos' && (
+                            <div className="space-y-3">
+                                <p className="text-[10px] text-[#555] uppercase tracking-wider mb-3">Store gallery</p>
+
+                                {allImages.length === 0 ? (
+                                    <div className="text-center py-10">
+                                        <div className="h-12 w-12 rounded-xl bg-[#1a1a1a] flex items-center justify-center mx-auto mb-2">
+                                            <Camera className="h-5 w-5 text-[#444]" />
+                                        </div>
+                                        <p className="text-[#555] text-xs">No photos yet</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {allImages.map((img, i) => (
+                                            <motion.div
+                                                key={i}
+                                                whileTap={{ scale: 0.97 }}
+                                                onClick={() => { setSelectedImageIndex(i); setShowImageGallery(true); }}
+                                                className="aspect-square rounded-xl overflow-hidden bg-[#1a1a1a] cursor-pointer"
+                                            >
+                                                <img src={img} alt="" className="w-full h-full object-cover" />
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'about' && (
+                            <div className="space-y-3">
+                                {merchant.description && (
+                                    <p className="text-[#888] text-sm leading-relaxed">{merchant.description}</p>
+                                )}
+
+                                <div className="bg-[#111] rounded-xl p-4 border border-[#222]">
+                                    <div className="flex items-start gap-3">
+                                        <MapPin className="h-5 w-5 text-[#666] mt-0.5 flex-shrink-0" />
+                                        <div>
+                                            <p className="text-white text-sm font-medium">{merchant.address}</p>
+                                            <p className="text-[#666] text-xs mt-0.5">{merchant.city}, {merchant.pinCode}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-[#111] rounded-xl p-4 border border-[#222]">
+                                    <div className="flex items-center gap-3">
+                                        <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                                        <div>
+                                            <p className="text-white text-sm font-medium">{ratingStats.avgRating > 0 ? ratingStats.avgRating.toFixed(1) : 'New'}</p>
+                                            <p className="text-[#666] text-xs">{ratingStats.totalReviews} reviews</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

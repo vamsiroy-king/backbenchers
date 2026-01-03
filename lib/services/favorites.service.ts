@@ -4,6 +4,9 @@
 import { supabase } from '@/lib/supabase';
 import { ApiResponse } from '@/lib/types';
 
+// DEV MODE flag
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 export interface Favorite {
     id: string;
     studentId: string;
@@ -55,15 +58,32 @@ const transformFavorite = (row: any): Favorite => ({
 async function getStudentId(): Promise<string | null> {
     try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return null;
 
-        const { data: student } = await supabase
-            .from('students')
-            .select('id')
-            .eq('user_id', user.id)
-            .single();
+        if (user) {
+            const { data: student } = await supabase
+                .from('students')
+                .select('id')
+                .eq('user_id', user.id)
+                .single();
 
-        return student?.id || null;
+            return student?.id || null;
+        }
+
+        // DEV MODE: Use localStorage dev student ID
+        if (IS_DEV && typeof window !== 'undefined') {
+            let devStudentId = localStorage.getItem('dev_student_id');
+            if (!devStudentId) {
+                // Generate a new dev student ID
+                devStudentId = crypto.randomUUID();
+                localStorage.setItem('dev_student_id', devStudentId);
+                console.log('DEV MODE: Created new dev student ID:', devStudentId);
+            } else {
+                console.log('DEV MODE: Using dev student ID:', devStudentId);
+            }
+            return devStudentId;
+        }
+
+        return null;
     } catch {
         return null;
     }

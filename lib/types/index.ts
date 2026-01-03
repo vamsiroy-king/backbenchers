@@ -185,3 +185,177 @@ export interface LocationData {
     cities: Record<string, string[]>;
     colleges: Record<string, string[]>;
 }
+
+// =============================================
+// MULTI-BRANCH MERCHANT SYSTEM TYPES
+// =============================================
+
+export type BrandType = 'national_chain' | 'regional_chain' | 'local' | 'franchise';
+export type VerificationStatus = 'pending' | 'email_verified' | 'document_verified' | 'admin_verified' | 'rejected';
+export type VerificationMethod = 'email_domain' | 'gstin' | 'document' | 'manual_admin';
+export type OfferScope = 'brand_wide' | 'outlet_specific' | 'merchant_specific';
+
+export interface Brand {
+    id: string;
+    name: string;
+    slug: string;
+    logoUrl?: string;
+    coverImageUrl?: string;
+    description?: string;
+
+    // Classification
+    brandType: BrandType;
+    category: string;
+    subCategory?: string;
+
+    // Corporate Contact
+    corporateEmail?: string;
+    corporatePhone?: string;
+    website?: string;
+    instagram?: string;
+
+    // Verification
+    verificationStatus: VerificationStatus;
+    verifiedAt?: string;
+    verifiedBy?: string;
+    rejectionReason?: string;
+
+    // Owner
+    ownerUserId?: string;
+
+    // Settings
+    allowOutletOffers: boolean;
+    isActive: boolean;
+
+    // Stats
+    totalOutlets: number;
+    totalOffers: number;
+    totalRedemptions: number;
+
+    // Timestamps
+    createdAt: string;
+    updatedAt: string;
+
+    // Nested data (populated when needed)
+    outlets?: Outlet[];
+}
+
+export interface OperatingHours {
+    open: string;
+    close: string;
+    closed: boolean;
+}
+
+export interface WeeklyOperatingHours {
+    monday: OperatingHours;
+    tuesday: OperatingHours;
+    wednesday: OperatingHours;
+    thursday: OperatingHours;
+    friday: OperatingHours;
+    saturday: OperatingHours;
+    sunday: OperatingHours;
+}
+
+export interface Outlet {
+    id: string;
+    brandId: string;
+
+    // Basic Info
+    name: string;
+    outletCode?: string;
+
+    // Location
+    address: string;
+    area?: string;
+    city: string;
+    state?: string;
+    pincode?: string;
+    latitude?: number;
+    longitude?: number;
+
+    // Google Maps
+    googleMapsUrl?: string;
+    googlePlaceId?: string;
+
+    // Contact
+    phone?: string;
+    email?: string;
+    whatsapp?: string;
+
+    // Manager
+    managerName?: string;
+    managerPhone?: string;
+    managerUserId?: string;
+
+    // Images
+    coverImageUrl?: string;
+    images?: OutletImage[];
+
+    // Operating Hours
+    operatingHours: WeeklyOperatingHours;
+
+    // Stats
+    totalRedemptions: number;
+
+    // Status
+    isActive: boolean;
+
+    // Timestamps
+    createdAt: string;
+    updatedAt: string;
+
+    // Nested data
+    brand?: Brand;
+}
+
+export interface OutletImage {
+    id: string;
+    outletId: string;
+    imageUrl: string;
+    displayOrder: number;
+    createdAt: string;
+}
+
+export interface BrandVerification {
+    id: string;
+    brandId: string;
+
+    // Method
+    method: VerificationMethod;
+
+    // Email verification
+    corporateDomain?: string;
+    verificationEmail?: string;
+    emailVerifiedAt?: string;
+
+    // GSTIN verification
+    gstin?: string;
+    gstinVerified: boolean;
+    gstinBusinessName?: string;
+
+    // Document verification
+    documentType?: 'trademark' | 'incorporation_cert' | 'gst_certificate';
+    documentUrl?: string;
+    documentVerified: boolean;
+    documentVerifiedAt?: string;
+
+    // Admin
+    adminNotes?: string;
+    verifiedByAdmin?: string;
+
+    // Status
+    status: 'pending' | 'verified' | 'rejected';
+
+    // Timestamps
+    createdAt: string;
+    updatedAt: string;
+}
+
+// Extended Offer type with brand/outlet support
+export interface BrandOffer extends Offer {
+    brandId?: string;
+    outletId?: string;
+    offerScope: OfferScope;
+    brandName?: string;
+    outletName?: string;
+}

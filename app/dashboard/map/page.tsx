@@ -1,44 +1,50 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Locate, Navigation, Layers, Coffee, Laptop, Shirt, BookOpen, X, Store, Loader2, Sparkles, Scissors, Dumbbell } from "lucide-react";
+import { Locate, Navigation, Layers, Coffee, Laptop, Shirt, Sparkles, Scissors, Dumbbell, Store, Loader2, X, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import { merchantService } from "@/lib/services/merchant.service";
 import { offerService } from "@/lib/services/offer.service";
 import { authService } from "@/lib/services/auth.service";
 import { Merchant, Offer } from "@/lib/types";
 import { useRouter } from "next/navigation";
+import { vibrate } from "@/lib/haptics";
+import { cn } from "@/lib/utils";
 
 // Dynamically import LeafletMap (client-side only)
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
     ssr: false,
-    loading: () => <div className="h-full w-full bg-gray-50 flex items-center justify-center text-gray-400 font-mono text-xs">LOADING MAP...</div>
+    loading: () => (
+        <div className="h-full w-full bg-[#0a0a0b] flex flex-col items-center justify-center text-white/40 font-mono text-xs gap-3">
+            <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            LOADING MAP...
+        </div>
+    )
 });
 
-// Category icons and colors mapping
+// Category configuration
 const CATEGORY_CONFIG: Record<string, { icon: any; color: string; emoji: string }> = {
-    "All": { icon: Layers, color: "#374151", emoji: "📍" },
-    "Food": { icon: Coffee, color: "#EF4444", emoji: "🍕" },
-    "Food & Beverages": { icon: Coffee, color: "#EF4444", emoji: "🍕" },
-    "Restaurant": { icon: Coffee, color: "#EF4444", emoji: "🍽️" },
-    "Coffee": { icon: Coffee, color: "#92400E", emoji: "☕" },
-    "Grocery": { icon: Coffee, color: "#16A34A", emoji: "🛒" },
-    "Tech": { icon: Laptop, color: "#3B82F6", emoji: "📱" },
-    "Tech & Electronics": { icon: Laptop, color: "#3B82F6", emoji: "💻" },
-    "Electronics": { icon: Laptop, color: "#3B82F6", emoji: "🔌" },
-    "Fashion": { icon: Shirt, color: "#8B5CF6", emoji: "👕" },
-    "Fashion & Lifestyle": { icon: Shirt, color: "#8B5CF6", emoji: "👗" },
-    "Beauty": { icon: Sparkles, color: "#EC4899", emoji: "💄" },
-    "Beauty & Wellness": { icon: Sparkles, color: "#EC4899", emoji: "💅" },
-    "Services": { icon: Scissors, color: "#6366F1", emoji: "✂️" },
-    "Fitness": { icon: Dumbbell, color: "#22C55E", emoji: "💪" },
-    "Health & Fitness": { icon: Dumbbell, color: "#22C55E", emoji: "🏃" },
-    "Sports": { icon: Dumbbell, color: "#14B8A6", emoji: "🏏" },
-    "Entertainment": { icon: Layers, color: "#F97316", emoji: "🎬" },
-    "Other": { icon: Store, color: "#6B7280", emoji: "🏪" },
+    "All": { icon: Layers, color: "#9ca3af", emoji: "📍" },
+    "Food": { icon: Coffee, color: "#ef4444", emoji: "🍕" },
+    "Food & Beverages": { icon: Coffee, color: "#ef4444", emoji: "🍕" },
+    "Restaurant": { icon: Coffee, color: "#ef4444", emoji: "🍽️" },
+    "Coffee": { icon: Coffee, color: "#d97706", emoji: "☕" },
+    "Grocery": { icon: Store, color: "#16a34a", emoji: "🛒" },
+    "Tech": { icon: Laptop, color: "#3b82f6", emoji: "💻" },
+    "Tech & Electronics": { icon: Laptop, color: "#3b82f6", emoji: "💻" },
+    "Electronics": { icon: Laptop, color: "#3b82f6", emoji: "🔌" },
+    "Fashion": { icon: Shirt, color: "#8b5cf6", emoji: "👗" },
+    "Fashion & Lifestyle": { icon: Shirt, color: "#8b5cf6", emoji: "👗" },
+    "Beauty": { icon: Sparkles, color: "#ec4899", emoji: "💄" },
+    "Beauty & Wellness": { icon: Sparkles, color: "#ec4899", emoji: "💅" },
+    "Services": { icon: Scissors, color: "#6366f1", emoji: "✂️" },
+    "Fitness": { icon: Dumbbell, color: "#22c55e", emoji: "💪" },
+    "Health & Fitness": { icon: Dumbbell, color: "#22c55e", emoji: "🏃" },
+    "Sports": { icon: Dumbbell, color: "#14b8a6", emoji: "🏏" },
+    "Entertainment": { icon: Layers, color: "#f97316", emoji: "🎬" },
+    "Other": { icon: Store, color: "#6b7280", emoji: "🏪" },
 };
 
 const getCategoryConfig = (category: string) => {
@@ -59,6 +65,7 @@ interface MerchantWithOffer {
 }
 
 export default function MapPage() {
+    const router = useRouter();
     const [sessionActive, setSessionActive] = useState(false);
     const [permissionStatus, setPermissionStatus] = useState<'prompt' | 'granted' | 'denied'>('prompt');
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -70,44 +77,41 @@ export default function MapPage() {
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<string[]>(["All"]);
     const [isVerified, setIsVerified] = useState(false);
-    const router = useRouter();
 
-    // Check if user is verified
+    // Initial Verification Check
     useEffect(() => {
-        async function checkVerification() {
-            const user = await authService.getCurrentUser();
+        authService.getCurrentUser().then(user => {
             setIsVerified(!!(user?.role === 'student' && user?.isComplete));
-        }
-        checkVerification();
+        });
     }, []);
 
-    // Fetch real merchants with offers and coordinates
+    // Data Fetching Logic (Unified)
     const fetchMerchants = async () => {
         setLoading(true);
         try {
-            // First get merchants with real coordinates
-            const mapResult = await merchantService.getForMap();
-            const offersResult = await offerService.getActiveOffers();
+            const [mapResult, offersResult] = await Promise.all([
+                merchantService.getForMap(),
+                offerService.getActiveOffers()
+            ]);
 
             const merchantMap = new Map<string, MerchantWithOffer>();
             const categorySet = new Set<string>(["All"]);
-
-            // Create a map of merchant coordinates and links
             const coordsMap = new Map<string, { lat: number; lng: number; logo?: string; googleMapsLink?: string }>();
+
+            // Map Coordinates
             if (mapResult.success && mapResult.data) {
-                for (const m of mapResult.data) {
+                mapResult.data.forEach(m => {
                     coordsMap.set(m.id, { lat: m.latitude, lng: m.longitude, logo: m.logo, googleMapsLink: m.googleMapsLink });
                     categorySet.add(m.category || "Other");
-                }
+                });
             }
 
-            // Match offers with merchant coordinates
+            // Process Offers
             if (offersResult.success && offersResult.data) {
-                for (const offer of offersResult.data) {
-                    if (!offer.merchantId) continue;
-
+                offersResult.data.forEach(offer => {
+                    if (!offer.merchantId) return;
                     const coords = coordsMap.get(offer.merchantId);
-                    if (!coords) continue; // Skip merchants without coordinates
+                    if (!coords) return;
 
                     const category = offer.merchantCategory || "Other";
                     categorySet.add(category);
@@ -118,25 +122,21 @@ export default function MapPage() {
                             name: offer.merchantName || offer.title,
                             lat: coords.lat,
                             lng: coords.lng,
-                            discount: offer.type === 'percentage'
-                                ? `${offer.discountValue}% OFF`
-                                : offer.type === 'flat'
-                                    ? `₹${offer.discountValue} OFF`
-                                    : offer.type === 'bogo'
-                                        ? 'BOGO'
-                                        : `${offer.discountValue}% OFF`,
+                            discount: offer.type === 'percentage' ? `${offer.discountValue}% OFF` :
+                                offer.type === 'flat' ? `₹${offer.discountValue} OFF` :
+                                    `${offer.discountValue}% OFF`,
                             type: category,
                             category: category,
                             logo: coords.logo || offer.merchantLogo,
                             googleMapsLink: coords.googleMapsLink,
                         });
                     }
-                }
+                });
             }
 
-            // Also add merchants with coords but no active offers
+            // Add Stores without Offers
             if (mapResult.success && mapResult.data) {
-                for (const m of mapResult.data) {
+                mapResult.data.forEach(m => {
                     if (!merchantMap.has(m.id)) {
                         merchantMap.set(m.id, {
                             id: m.id,
@@ -150,36 +150,30 @@ export default function MapPage() {
                             googleMapsLink: m.googleMapsLink,
                         });
                     }
-                }
+                });
             }
 
             setMerchants(Array.from(merchantMap.values()));
             setCategories(Array.from(categorySet));
         } catch (error) {
-            console.error('Error fetching merchants:', error);
+            console.error('Error loading map data:', error);
         } finally {
             setLoading(false);
         }
     };
 
     const startTracking = () => {
+        vibrate('medium');
         setSessionActive(true);
         if (!("geolocation" in navigator)) {
-            // Fallback to Bengaluru if no geolocation
             setUserLocation([12.9716, 77.5946]);
             setPermissionStatus('granted');
             fetchMerchants();
             return;
         }
 
-        // Options for high accuracy real-time location
-        const geoOptions: PositionOptions = {
-            enableHighAccuracy: true,  // Use GPS if available
-            timeout: 10000,            // 10 second timeout
-            maximumAge: 0              // Don't use cached location
-        };
+        const geoOptions: PositionOptions = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
 
-        // First get a quick position
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
@@ -187,112 +181,92 @@ export default function MapPage() {
                 setViewState({ latitude, longitude, zoom: 15 });
                 setPermissionStatus('granted');
             },
-            (error) => {
-                console.warn("Location access denied or unavailable, using default location:", error.message || error);
-                // Still allow map with default location (Bengaluru)
+            () => {
                 setUserLocation([12.9716, 77.5946]);
                 setPermissionStatus('granted');
             },
             geoOptions
         );
 
-        // Watch for location changes (live tracking)
         navigator.geolocation.watchPosition(
-            (position) => {
-                const { latitude, longitude, accuracy } = position.coords;
-                console.log(`Location updated: ${latitude}, ${longitude} (accuracy: ${accuracy}m)`);
-                setUserLocation([latitude, longitude]);
-            },
-            (error) => {
-                console.warn("Watch position error:", error.message);
-            },
+            (pos) => setUserLocation([pos.coords.latitude, pos.coords.longitude]),
+            (err) => console.warn(err),
             geoOptions
         );
     };
 
-    // Fetch merchants when location is set
     useEffect(() => {
-        if (permissionStatus === 'granted') {
-            fetchMerchants();
-        }
-    }, [permissionStatus, userLocation]);
+        if (permissionStatus === 'granted') fetchMerchants();
+    }, [permissionStatus]);
 
     const openGoogleMaps = () => {
+        vibrate('light');
         if (!selectedOffer) return;
-
-        // If merchant has a stored Google Maps link, use it directly
-        if (selectedOffer.googleMapsLink) {
-            window.open(selectedOffer.googleMapsLink, '_blank');
-            return;
-        }
-
-        // Fallback: construct directions URL from coordinates
-        if (userLocation) {
-            const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${selectedOffer.lat},${selectedOffer.lng}&travelmode=walking`;
-            window.open(url, '_blank');
-        } else {
-            const url = `https://www.google.com/maps/search/?api=1&query=${selectedOffer.lat},${selectedOffer.lng}`;
-            window.open(url, '_blank');
-        }
+        const url = selectedOffer.googleMapsLink ||
+            (userLocation
+                ? `https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${selectedOffer.lat},${selectedOffer.lng}&travelmode=walking`
+                : `https://www.google.com/maps/search/?api=1&query=${selectedOffer.lat},${selectedOffer.lng}`);
+        window.open(url, '_blank');
     };
 
-    // Filter merchants by category
     const filteredMerchants = selectedCategory === "All"
         ? merchants
         : merchants.filter(m => m.category.toLowerCase().includes(selectedCategory.toLowerCase()));
 
-    // Build dynamic filters from actual categories with colors
     const FILTERS = categories.map(cat => {
         const config = getCategoryConfig(cat);
-        return {
-            id: cat,
-            icon: config.icon,
-            color: config.color,
-            emoji: config.emoji
-        };
+        return { id: cat, ...config };
     });
 
-    // 1. Explicit Start Screen (Light Theme)
+    // 1. Dark Start Screen
     if (!sessionActive) {
         return (
-            <div className="absolute inset-0 bg-white flex flex-col items-center justify-center p-8 space-y-8 z-50 text-center">
-                <div className="relative h-24 w-24 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-blue-50 rounded-full animate-ping" />
-                    <Locate className="h-10 w-10 text-blue-500 relative z-10" />
+            <div className="absolute inset-0 bg-[#0a0a0b] flex flex-col items-center justify-center p-8 space-y-8 z-50 text-center">
+                <div className="relative h-28 w-28 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping" />
+                    <div className="absolute inset-0 bg-green-500/10 rounded-full animate-pulse delay-75" />
+                    <MapPin className="h-12 w-12 text-green-500 relative z-10 drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" />
                 </div>
-                <div className="space-y-2">
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Realtime Map</h1>
-                    <p className="text-gray-500 text-sm max-w-[240px] mx-auto">
-                        Active GPS helps us find student perks within walking distance of you.
+                <div className="space-y-3">
+                    <h1 className="text-3xl font-bold tracking-tight text-white">Live Map</h1>
+                    <p className="text-white/50 text-base max-w-[260px] mx-auto leading-relaxed">
+                        Enable location to find exclusive student deals near you.
                     </p>
                 </div>
-                <Button onClick={startTracking} className="w-full max-w-xs h-12 rounded-full font-bold shadow-xl shadow-blue-500/20 text-white bg-black">
+                <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={startTracking}
+                    className="w-full max-w-xs h-14 rounded-2xl font-bold bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)] flex items-center justify-center gap-2 text-lg hover:scale-105 transition-all"
+                >
+                    <Navigation className="w-5 h-5 fill-current" />
                     Enable Location
-                </Button>
+                </motion.button>
             </div>
         )
     }
 
-    // 2. Loading state
+    // 2. Loading Screen
     if (loading && merchants.length === 0) {
         return (
-            <div className="absolute inset-0 bg-white flex flex-col items-center justify-center p-8 text-center z-50">
-                <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                <p className="text-gray-500">Finding nearby stores...</p>
+            <div className="absolute inset-0 bg-[#0a0a0b] flex flex-col items-center justify-center p-8 z-50">
+                <Loader2 className="h-10 w-10 animate-spin text-green-500 mb-4" />
+                <p className="text-white/60 font-medium animate-pulse">Scanning area...</p>
             </div>
         )
     }
 
     return (
-        // Fixed height container to ensure MapGL renders and bottom nav is visible
-        <div className="relative w-full h-[calc(100vh-80px)] bg-gray-100 overflow-hidden text-black">
+        <div className="relative w-full h-[calc(100vh-64px)] bg-[#0a0a0b] overflow-hidden">
 
-            {/* Top Status (Light) */}
-            <div className="absolute top-12 left-0 right-0 z-30 flex justify-center pointer-events-none">
-                <div className="bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full shadow-sm border border-gray-100 flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="font-mono text-[10px] text-gray-800 font-bold tracking-tight">
-                        GPS ACTIVE • {filteredMerchants.length} STORES {selectedCategory !== "All" && `(${selectedCategory})`}
+            {/* Status Pill */}
+            <div className="absolute top-6 left-0 right-0 z-[400] flex justify-center pointer-events-none">
+                <div className="bg-[#0a0a0b]/80 backdrop-blur-xl px-4 py-2 rounded-full border border-white/10 flex items-center gap-3 shadow-2xl">
+                    <div className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                    </div>
+                    <span className="font-mono text-[11px] text-white font-bold tracking-wider uppercase">
+                        {filteredMerchants.length} Active Spots {selectedCategory !== "All" && `• ${selectedCategory}`}
                     </span>
                 </div>
             </div>
@@ -309,82 +283,79 @@ export default function MapPage() {
                     discount: m.discount
                 }))}
                 onMerchantClick={(merchant) => {
+                    vibrate('light');
                     const offer = filteredMerchants.find(m => m.id === merchant.id);
-                    if (offer) {
-                        setSelectedOffer(offer);
-                    }
+                    if (offer) setSelectedOffer(offer);
                 }}
                 center={userLocation || [viewState.latitude, viewState.longitude]}
                 zoom={viewState.zoom}
                 selectedCategory={selectedCategory}
             />
 
-            {/* Expandable Filter Speed Dial */}
-            <div className="absolute right-4 bottom-28 z-[400] flex flex-col-reverse items-end gap-3 pointer-events-auto">
-                {/* Main Toggle Button */}
+            {/* Floating Filter Menu */}
+            <div className="absolute right-4 bottom-32 z-[400] flex flex-col-reverse items-end gap-4 pointer-events-auto">
                 <motion.button
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
-                    className={`h-12 w-12 rounded-full flex items-center justify-center shadow-xl transition-all z-20 ${isFilterMenuOpen ? 'bg-black text-white' : 'bg-white text-black'}`}
+                    onClick={() => {
+                        vibrate('light');
+                        setIsFilterMenuOpen(!isFilterMenuOpen);
+                    }}
+                    className={cn(
+                        "h-14 w-14 rounded-full flex items-center justify-center shadow-2xl transition-all z-20 border border-white/10",
+                        isFilterMenuOpen ? "bg-white text-black" : "bg-[#0a0a0b]/90 text-white backdrop-blur-xl"
+                    )}
                 >
-                    {isFilterMenuOpen ? <X className="h-5 w-5" /> : (
-                        // Show active category icon or default Layers
+                    {isFilterMenuOpen ? <X className="h-6 w-6" /> : (
                         (() => {
                             const ActiveIcon = FILTERS.find(f => f.id === selectedCategory)?.icon || Layers;
-                            return <ActiveIcon className="h-5 w-5" />
+                            return <ActiveIcon className="h-6 w-6" />
                         })()
                     )}
                 </motion.button>
 
-                {/* Expanded Options */}
                 <AnimatePresence>
                     {isFilterMenuOpen && (
                         <div className="flex flex-col-reverse gap-3 items-end mb-2">
-                            {FILTERS.map((cat) => {
+                            {FILTERS.map((cat, i) => {
                                 if (cat.id === selectedCategory && !isFilterMenuOpen) return null;
-
                                 const Icon = cat.icon;
                                 const isSelected = selectedCategory === cat.id;
 
                                 return (
                                     <motion.div
                                         key={cat.id}
-                                        initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 10, scale: 0.8 }}
-                                        transition={{ duration: 0.2 }}
+                                        initial={{ opacity: 0, x: 20, scale: 0.8 }}
+                                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                                        exit={{ opacity: 0, x: 20, scale: 0.8 }}
+                                        transition={{ delay: i * 0.05 }}
                                         className="flex items-center gap-3"
                                     >
-                                        {/* Category label with emoji */}
-                                        <span
-                                            className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg backdrop-blur-md shadow-sm border flex items-center gap-1.5"
-                                            style={{
-                                                backgroundColor: isSelected ? cat.color : 'rgba(255,255,255,0.95)',
-                                                color: isSelected ? 'white' : '#374151',
-                                                borderColor: isSelected ? cat.color : '#E5E7EB'
-                                            }}
-                                        >
-                                            <span>{cat.emoji}</span>
-                                            <span>{cat.id}</span>
+                                        <span className={cn(
+                                            "text-[12px] font-bold px-3 py-1.5 rounded-xl backdrop-blur-xl shadow-lg border",
+                                            isSelected
+                                                ? "bg-white text-black border-white"
+                                                : "bg-black/60 text-white border-white/10"
+                                        )}>
+                                            {cat.emoji} {cat.id}
                                         </span>
-                                        {/* Filter button with category color */}
-                                        <button
+                                        <motion.button
+                                            whileTap={{ scale: 0.9 }}
                                             onClick={() => {
+                                                vibrate('medium');
                                                 setSelectedCategory(cat.id);
                                                 setSelectedOffer(null);
                                                 setIsFilterMenuOpen(false);
-                                                // Zoom out to show all stores in this category
-                                                setViewState(prev => ({ ...prev, zoom: 12 }));
+                                                setViewState(prev => ({ ...prev, zoom: 13 }));
                                             }}
-                                            className="h-11 w-11 rounded-full flex items-center justify-center shadow-lg transition-all"
-                                            style={{
-                                                backgroundColor: isSelected ? cat.color : 'white',
-                                                color: isSelected ? 'white' : cat.color,
-                                                border: `2px solid ${cat.color}`
-                                            }}
+                                            className={cn(
+                                                "h-12 w-12 rounded-full flex items-center justify-center shadow-lg transition-all border",
+                                                isSelected
+                                                    ? "bg-white text-black border-white"
+                                                    : "bg-black/80 text-white/80 border-white/10"
+                                            )}
                                         >
                                             <Icon className="h-5 w-5" />
-                                        </button>
+                                        </motion.button>
                                     </motion.div>
                                 )
                             })}
@@ -393,66 +364,85 @@ export default function MapPage() {
                 </AnimatePresence>
             </div>
 
-            {/* Detail Sheet */}
+            {/* Merchant Detail Sheet - Glassmorphism */}
             <AnimatePresence>
                 {selectedOffer && (
                     <motion.div
                         initial={{ y: "100%" }}
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
-                        className="absolute bottom-32 left-4 right-4 z-[500] pb-safe"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        drag="y"
+                        dragConstraints={{ top: 0, bottom: 0 }}
+                        onDragEnd={(_, info) => {
+                            if (info.offset.y > 100) setSelectedOffer(null);
+                        }}
+                        className="absolute bottom-0 left-0 right-0 z-[500] p-4 pb-8"
                     >
-                        <div className="bg-white rounded-3xl p-5 shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-gray-100">
-                            <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-3">
-                                    {selectedOffer.logo && (
-                                        <div className="h-12 w-12 rounded-xl overflow-hidden bg-gray-100">
-                                            <img src={selectedOffer.logo} alt="" className="w-full h-full object-cover" />
-                                        </div>
-                                    )}
-                                    <div>
-                                        <p className="text-[10px] uppercase font-bold text-blue-600 mb-1 bg-blue-50 inline-block px-1 rounded">
-                                            NEARBY
-                                        </p>
-                                        <h2 className="text-xl font-bold text-gray-900">{selectedOffer.name}</h2>
-                                        <p className="text-gray-500 text-xs mt-1 font-medium">{selectedOffer.type} • {selectedOffer.discount}</p>
-                                    </div>
-                                </div>
-                                <Button size="icon" variant="ghost" className="h-8 w-8 -mr-2 -mt-2 text-gray-400" onClick={() => setSelectedOffer(null)}>
-                                    ✕
-                                </Button>
+                        <div className="bg-[#121212]/95 backdrop-blur-2xl rounded-[32px] p-1 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden">
+                            {/* Drag Indicator */}
+                            <div className="w-full h-6 flex items-center justify-center">
+                                <div className="w-10 h-1 rounded-full bg-white/20" />
                             </div>
-                            <div className="flex gap-3 mt-4">
-                                <Button
-                                    className="flex-1 bg-primary text-white font-bold h-12 rounded-xl"
-                                    onClick={() => {
-                                        if (isVerified) {
-                                            router.push(`/store/${selectedOffer.id}`);
-                                        } else {
-                                            router.push('/signup');
-                                        }
-                                    }}
-                                >
-                                    <Store className="mr-2 h-4 w-4" /> View Store
-                                </Button>
-                                <Button className="flex-1 bg-gray-900 text-white font-bold h-12 rounded-xl" onClick={openGoogleMaps}>
-                                    <Navigation className="mr-2 h-4 w-4" /> Directions
-                                </Button>
+
+                            <div className="px-5 pb-5">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-14 w-14 rounded-2xl overflow-hidden bg-white/5 border border-white/10">
+                                            {selectedOffer.logo ? (
+                                                <img src={selectedOffer.logo} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <Store className="w-6 h-6 text-white/30" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h2 className="text-xl font-bold text-white">{selectedOffer.name}</h2>
+                                                {selectedOffer.discount && (
+                                                    <span className="text-[10px] font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/20">
+                                                        {selectedOffer.discount}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-white/40 text-sm font-medium">{selectedOffer.type} • {selectedOffer.category}</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setSelectedOffer(null)}
+                                        className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center text-white/50 hover:bg-white/10 transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <motion.button
+                                        whileTap={{ scale: 0.96 }}
+                                        className="flex-1 bg-white text-black font-bold h-14 rounded-2xl flex items-center justify-center gap-2"
+                                        onClick={() => {
+                                            vibrate('light');
+                                            router.push(isVerified ? `/store/${selectedOffer.id}` : '/signup');
+                                        }}
+                                    >
+                                        <Store className="w-4 h-4" />
+                                        View Store
+                                    </motion.button>
+                                    <motion.button
+                                        whileTap={{ scale: 0.96 }}
+                                        className="flex-1 bg-white/10 text-white font-bold h-14 rounded-2xl flex items-center justify-center gap-2 border border-white/5 hover:bg-white/15 transition-colors"
+                                        onClick={openGoogleMaps}
+                                    >
+                                        <Navigation className="w-4 h-4" />
+                                        Directions
+                                    </motion.button>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            {/* No stores message */}
-            {!loading && filteredMerchants.length === 0 && (
-                <div className="absolute bottom-40 left-4 right-4 z-[400]">
-                    <div className="bg-white rounded-2xl p-4 shadow-lg text-center">
-                        <p className="text-gray-500 text-sm">No stores found {selectedCategory !== "All" && `in ${selectedCategory}`}</p>
-                        <p className="text-xs text-gray-400 mt-1">Try selecting "All" categories</p>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

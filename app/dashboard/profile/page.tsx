@@ -290,8 +290,37 @@ export default function ProfilePage() {
     // Loading state
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0a0a0b] flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-green-400" />
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center gap-4"
+                >
+                    <motion.div
+                        animate={{
+                            scale: [1, 1.05, 1],
+                            boxShadow: [
+                                "0 0 0 0 rgba(34, 197, 94, 0)",
+                                "0 0 0 12px rgba(34, 197, 94, 0.1)",
+                                "0 0 0 0 rgba(34, 197, 94, 0)"
+                            ]
+                        }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                        className="h-14 w-14 rounded-2xl bg-green-500 flex items-center justify-center"
+                    >
+                        <span className="text-black font-bold text-2xl">B</span>
+                    </motion.div>
+                    <div className="flex gap-1">
+                        {[0, 1, 2].map((i) => (
+                            <motion.div
+                                key={i}
+                                animate={{ opacity: [0.3, 1, 0.3] }}
+                                transition={{ duration: 0.8, delay: i * 0.15, repeat: Infinity }}
+                                className="h-1.5 w-1.5 rounded-full bg-green-500"
+                            />
+                        ))}
+                    </div>
+                </motion.div>
             </div>
         );
     }
@@ -299,7 +328,7 @@ export default function ProfilePage() {
     // Guest View - Get Verified CTA (only if no student record found)
     if (!isVerified || !student) {
         return (
-            <div className="min-h-screen bg-[#0a0a0b] pb-28 px-4">
+            <div className="min-h-screen bg-black pb-28 px-4">
                 <header className="py-6">
                     <h1 className="text-2xl font-bold text-white">Profile</h1>
                 </header>
@@ -358,7 +387,7 @@ export default function ProfilePage() {
 
     // Verified User View - Full Profile with ID Card
     return (
-        <div className="min-h-screen bg-[#0a0a0b] pb-24 px-5">
+        <div className="min-h-screen bg-black pb-24 px-5">
             {/* Camera Modal - Using Premium FaceCamera Component */}
             <AnimatePresence>
                 {showCameraModal && (
@@ -511,19 +540,34 @@ export default function ProfilePage() {
                         className="absolute inset-0 rounded-2xl overflow-hidden"
                         style={{ backfaceVisibility: "hidden" }}
                     >
-                        {/* Card Background with Shine Effect */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a1a] via-[#0d0d0d] to-[#1a1a1a]" />
+                        {/* Card Background - Premium dark */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#111111] to-[#0a0a0a]" />
 
-                        {/* Holographic Shine Overlay */}
-                        <div
-                            className="absolute inset-0 opacity-30"
+                        {/* Holographic Rainbow Shimmer - Apple Pay Style */}
+                        <motion.div
+                            className="absolute inset-0 opacity-40"
+                            animate={{
+                                backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                            }}
+                            transition={{
+                                duration: 5,
+                                repeat: Infinity,
+                                ease: "linear"
+                            }}
                             style={{
-                                background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 55%, transparent 60%)',
+                                background: 'linear-gradient(135deg, transparent 20%, rgba(255,100,100,0.1) 25%, rgba(255,200,100,0.1) 30%, rgba(100,255,100,0.1) 35%, rgba(100,200,255,0.1) 40%, rgba(200,100,255,0.1) 45%, transparent 50%)',
+                                backgroundSize: '200% 200%',
                             }}
                         />
 
-                        {/* Subtle Border */}
-                        <div className="absolute inset-0 rounded-2xl border border-white/10" />
+                        {/* Subtle edge glow */}
+                        <div className="absolute inset-0 rounded-2xl" style={{
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.3)'
+                        }} />
+
+                        {/* Clean border */}
+                        <div className="absolute inset-0 rounded-2xl border border-white/[0.08]" />
+
 
                         {/* Card Content */}
                         <div className="relative h-full p-5 flex flex-col">
@@ -662,8 +706,8 @@ export default function ProfilePage() {
             </motion.p>
 
 
-            {/* Savings Section */}
-            <div className="bg-white/[0.04] rounded-2xl p-5 mb-6 border border-white/[0.06]">
+            {/* Savings Section - District-Quality Bold Stats */}
+            <div className="bg-white/[0.03] rounded-2xl p-6 mb-6 border border-white/[0.06]">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2.5">
                         <div className="h-9 w-9 bg-green-500/15 rounded-lg flex items-center justify-center">
@@ -698,7 +742,9 @@ export default function ProfilePage() {
 
                 <div className="text-center mb-4">
                     <p className="text-xs text-white/50">Total Saved</p>
-                    <p className="text-4xl font-extrabold text-green-400">₹{savingsStats.total}</p>
+                    <p className="text-6xl font-black text-white tracking-tight mt-1">
+                        ₹{Math.round(savingsStats.total).toLocaleString('en-IN')}
+                    </p>
                     <p className="text-xs text-white/50 mt-1">from {totalRedemptions} redemptions</p>
                 </div>
 
@@ -708,14 +754,14 @@ export default function ProfilePage() {
                             <Store className="h-4 w-4 text-orange-400" />
                             <span className="text-xs text-white/50">Offline</span>
                         </div>
-                        <p className="font-bold text-lg text-white">₹{savingsStats.offline}</p>
+                        <p className="font-bold text-2xl text-white">₹{Math.round(savingsStats.offline).toLocaleString('en-IN')}</p>
                     </div>
                     <div className="bg-white/[0.04] rounded-xl p-3 text-center border border-white/[0.06]">
                         <div className="flex items-center justify-center gap-1 mb-1">
                             <Globe className="h-4 w-4 text-blue-400" />
                             <span className="text-xs text-white/50">Online</span>
                         </div>
-                        <p className="font-bold text-lg text-white">₹{savingsStats.online}</p>
+                        <p className="font-bold text-2xl text-white">₹{Math.round(savingsStats.online).toLocaleString('en-IN')}</p>
                     </div>
                 </div>
 

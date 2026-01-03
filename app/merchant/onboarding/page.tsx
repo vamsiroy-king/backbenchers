@@ -36,9 +36,9 @@ export default function MerchantOnboardingPage() {
                 }
 
                 // User is logged in but not yet a merchant
-                // Proceed to business details form (first onboarding step)
+                // Proceed to merchant type selection (first onboarding step)
                 setStatus("Starting registration...");
-                router.replace("/merchant/onboarding/business");
+                router.replace("/merchant/onboarding/merchant-type");
 
             } catch (error) {
                 console.error("Auth check error:", error);

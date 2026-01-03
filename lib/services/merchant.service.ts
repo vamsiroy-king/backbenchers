@@ -253,15 +253,30 @@ export const merchantService = {
     // Get current user's merchant profile
     async getMyProfile(): Promise<ApiResponse<Merchant>> {
         try {
+            // DEV MODE: Check for dev bypass
+            const IS_DEV = process.env.NODE_ENV === 'development';
+            let userId: string | null = null;
+
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
+
+            if (user) {
+                userId = user.id;
+            } else if (IS_DEV && typeof window !== 'undefined') {
+                // In dev mode, use localStorage dev user ID
+                userId = localStorage.getItem('dev_merchant_user_id');
+                if (userId) {
+                    console.log('DEV MODE: Using dev user ID for profile:', userId);
+                }
+            }
+
+            if (!userId) {
                 return { success: false, data: null, error: 'Not authenticated' };
             }
 
             const { data, error } = await supabase
                 .from('merchants')
                 .select('*')
-                .eq('user_id', user.id)
+                .eq('user_id', userId)
                 .single();
 
             if (error) {
@@ -292,15 +307,30 @@ export const merchantService = {
         submittedAt: string;
     }>> {
         try {
+            // DEV MODE: Check for dev bypass
+            const IS_DEV = process.env.NODE_ENV === 'development';
+            let userId: string | null = null;
+
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
+
+            if (user) {
+                userId = user.id;
+            } else if (IS_DEV && typeof window !== 'undefined') {
+                // In dev mode, use localStorage dev user ID
+                userId = localStorage.getItem('dev_merchant_user_id');
+                if (userId) {
+                    console.log('DEV MODE: Using dev user ID for pending check:', userId);
+                }
+            }
+
+            if (!userId) {
                 return { success: false, data: null, error: 'Not authenticated' };
             }
 
             const { data, error } = await supabase
                 .from('pending_merchants')
                 .select('id, business_name, status, submitted_at')
-                .eq('user_id', user.id)
+                .eq('user_id', userId)
                 .order('submitted_at', { ascending: false })
                 .limit(1)
                 .single();
@@ -563,8 +593,25 @@ export const merchantService = {
     // Upload merchant image
     async uploadImage(type: 'logo' | 'cover' | 'store' | 'document' | 'payment_qr', file: File): Promise<ApiResponse<string>> {
         try {
+            // DEV MODE: Check for dev bypass
+            const IS_DEV = process.env.NODE_ENV === 'development';
+            let userId: string;
+
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
+
+            if (user) {
+                userId = user.id;
+            } else if (IS_DEV) {
+                // In dev mode without real auth, use a dev user ID from localStorage or generate one
+                const storedDevId = localStorage.getItem('dev_merchant_user_id');
+                if (storedDevId) {
+                    userId = storedDevId;
+                } else {
+                    userId = crypto.randomUUID();
+                    localStorage.setItem('dev_merchant_user_id', userId);
+                }
+                console.log('DEV MODE: Using dev user ID for upload:', userId);
+            } else {
                 return { success: false, data: null, error: 'Not authenticated' };
             }
 
@@ -578,24 +625,24 @@ export const merchantService = {
             switch (type) {
                 case 'logo':
                     bucket = 'merchant-logos';
-                    path = `${user.id}/logo.${fileExt}`;
+                    path = `${userId}/logo.${fileExt}`;
                     break;
                 case 'cover':
                     bucket = 'merchant-covers';
-                    path = `${user.id}/cover.${fileExt}`;
+                    path = `${userId}/cover.${fileExt}`;
                     break;
                 case 'store':
                     bucket = 'merchant-stores';
-                    path = `${user.id}/${fileName}`;
+                    path = `${userId}/${fileName}`;
                     break;
                 case 'document':
                     bucket = 'merchant-documents';
-                    path = `${user.id}/${fileName}`;
+                    path = `${userId}/${fileName}`;
                     isPublic = false;
                     break;
                 case 'payment_qr':
                     bucket = 'merchant-payment-qr';
-                    path = `${user.id}/payment_qr.${fileExt}`;
+                    path = `${userId}/payment_qr.${fileExt}`;
                     isPublic = false;
                     break;
                 default:

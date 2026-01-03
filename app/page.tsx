@@ -1,327 +1,322 @@
 "use client";
 
-import { ArrowRight, Shield, Zap, Store, Sparkles, ChevronRight, Loader2 } from "lucide-react";
+import { ArrowRight, Shield, Zap, Store, GraduationCap, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion, useInView } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/lib/services/auth.service";
 
-// Rotating words for hero
-const HOOK_WORDS = ["Student", "Exclusive", "Premium", "Insider"];
+// Animated words for hero
+const WORDS = ["Savings", "Discounts", "Deals", "Perks"];
 
-// Stats for social proof
-const STATS = [
-  { value: "10K+", label: "Students" },
-  { value: "100+", label: "Brands" },
-  { value: "₹2L+", label: "Saved" },
-];
+// Simple reveal animation
+function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 30 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export default function Home() {
   const router = useRouter();
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    async function checkAuthAndRedirect() {
+    async function check() {
       if (typeof window === 'undefined') return;
-
-      // Handle OAuth tokens in URL
-      if (window.location.hash && window.location.hash.includes('access_token')) {
-        console.log('OAuth tokens detected - redirecting to callback');
-        const authFlow = localStorage.getItem('auth_flow') || sessionStorage.getItem('auth_flow');
-        const wasMerchantFlow = authFlow === 'merchant' || document.referrer.includes('/merchant/');
+      // Handle OAuth callback
+      if (window.location.hash?.includes('access_token')) {
+        const flow = localStorage.getItem('auth_flow');
         localStorage.removeItem('auth_flow');
-        sessionStorage.removeItem('auth_flow');
-        if (wasMerchantFlow) {
-          router.replace('/merchant/auth/callback' + window.location.hash);
-        } else {
-          router.replace('/auth/callback' + window.location.hash);
-        }
+        router.replace(flow === 'merchant' ? '/merchant/auth/callback' + window.location.hash : '/auth/callback' + window.location.hash);
         return;
       }
-
-      // Check if already authenticated
       try {
         const user = await authService.getCurrentUser();
-        if (user && user.role === 'student' && !user.isSuspended) {
-          router.replace('/dashboard');
-          return;
-        }
-
-        // If user has no student/merchant record OR is pending, redirect to onboarding
-        // getCurrentUser returns role:'pending' for auth users without student records
+        if (user?.role === 'student' && !user.isSuspended) { router.replace('/dashboard'); return; }
         const { supabase } = await import('@/lib/supabase');
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('Landing page auth check:', session?.user?.email, 'user role:', user?.role);
-        if (session && (!user || user.role === 'pending')) {
-          // User has auth session but no complete student record - redirect to onboarding
-          console.log('Pending user - redirecting to /verify');
-          window.location.href = '/verify';
-          return;
-        }
-      } catch (e) {
-        console.log('Auth check error:', e);
-      }
-      // Only show landing page if no redirect
-      setCheckingAuth(false);
+        if (session && (!user || user.role === 'pending')) { window.location.href = '/verify'; return; }
+      } catch { }
+      setChecking(false);
     }
-    checkAuthAndRedirect();
+    check();
   }, [router]);
 
-  // Show loading screen while checking auth
-  if (checkingAuth) {
+  if (checking) {
     return (
-      <div className="min-h-screen bg-[#0a0a0b] flex flex-col items-center justify-center">
-        <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center mb-4">
-          <span className="text-black font-bold text-lg">B</span>
-        </div>
-        <Loader2 className="h-6 w-6 animate-spin text-green-400" />
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <motion.div
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          className="h-12 w-12 rounded-xl bg-green-500 flex items-center justify-center"
+        >
+          <span className="text-black font-bold text-xl">B</span>
+        </motion.div>
       </div>
     );
   }
 
-  return (
-    <>
-      {/* MOBILE */}
-      <div className="md:hidden min-h-screen bg-[#0a0a0b]">
-        <LandingContent />
-      </div>
-
-      {/* DESKTOP - Phone Frame */}
-      <div className="hidden md:flex min-h-screen bg-[#0a0a0b] items-center justify-center py-8">
-        <div className="w-full max-w-[430px] h-[932px] bg-[#0a0a0b] rounded-[50px] shadow-[0_0_0_12px_#1a1a1a,0_0_0_14px_#2a2a2a,0_25px_80px_rgba(0,0,0,0.8)] relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-8 w-32 bg-black rounded-b-3xl z-[9999]" />
-          <div className="h-full w-full overflow-y-auto scrollbar-hide">
-            <LandingContent />
-          </div>
-        </div>
-      </div>
-    </>
-  );
+  return <LandingPage />;
 }
 
-function LandingContent() {
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+function LandingPage() {
+  const [wordIdx, setWordIdx] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentWordIndex((prev) => (prev + 1) % HOOK_WORDS.length);
-    }, 2000);
-    return () => clearInterval(interval);
+    const i = setInterval(() => setWordIdx(p => (p + 1) % WORDS.length), 2500);
+    return () => clearInterval(i);
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0a0a0b] relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-grid opacity-30" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-radial from-green-500/10 via-transparent to-transparent blur-3xl" />
+    <div className="min-h-screen bg-black flex justify-center">
+      <div className="w-full max-w-[430px] bg-black">
 
-      {/* Main Content */}
-      <div className="relative z-10 flex-1 flex flex-col px-6 pt-16 pb-8">
-
-        {/* Logo */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-16"
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/30">
-              <span className="font-black text-white text-2xl">B</span>
+        {/* Header - Sticky */}
+        <header className="sticky top-0 z-50 bg-black/95 backdrop-blur-sm border-b border-[#111] px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-green-500 flex items-center justify-center">
+                <span className="text-black font-bold text-xs">B</span>
+              </div>
+              <span className="text-white font-semibold text-sm">Backbenchers</span>
+            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/login" className="text-xs text-[#888] px-3 py-1.5">Sign in</Link>
+              <Link href="/signup">
+                <motion.button whileTap={{ scale: 0.95 }} className="text-xs bg-green-500 text-black font-semibold px-3 py-1.5 rounded-full">
+                  Get Started
+                </motion.button>
+              </Link>
             </div>
-            <span className="text-2xl font-bold tracking-tight text-white">Backbenchers</span>
           </div>
-        </motion.div>
+        </header>
 
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="mb-6"
-        >
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-green-400">
-            <Sparkles className="h-4 w-4" />
-            #India's 1st Student Discount Platform
-          </span>
-        </motion.div>
+        {/* Hero */}
+        <section className="min-h-[80vh] flex flex-col justify-center px-6 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {/* Live badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#111] border border-[#1a1a1a] mb-8">
+              <motion.div
+                animate={{ opacity: [1, 0.4, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="h-1.5 w-1.5 rounded-full bg-green-500"
+              />
+              <span className="text-[10px] text-[#666] uppercase tracking-wider">India's Student Discount Platform</span>
+            </div>
 
-        {/* Main Headline */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="mb-6"
-        >
-          <h1 className="text-5xl font-black tracking-tight leading-[1.05] text-white">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={currentWordIndex}
-                initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -20, filter: "blur(8px)" }}
-                transition={{ duration: 0.3 }}
-                className="text-gradient-green inline-block"
+            {/* Headline */}
+            <h1 className="text-[36px] leading-[1.1] font-bold text-white tracking-tight mb-2">
+              Unlock Student
+            </h1>
+            <div className="h-[44px] overflow-hidden mb-6">
+              <motion.div
+                key={wordIdx}
+                initial={{ y: 44, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -44, opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="text-[36px] leading-[1.1] font-bold text-green-400 tracking-tight"
               >
-                {HOOK_WORDS[currentWordIndex]}
-              </motion.span>
-            </AnimatePresence>
-            {" "}Perks
-            <br />
-            <span className="text-white/90">for Students.</span>
-          </h1>
-        </motion.div>
-
-        {/* Tagline */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="text-lg text-white/50 mb-8"
-        >
-          Save money. Live better. 💸
-        </motion.p>
-
-        {/* Stats Row */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="flex gap-6 mb-10"
-        >
-          {STATS.map((stat, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 + i * 0.1 }}
-              className="text-center"
-            >
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
-              <p className="text-xs text-white/40">{stat.label}</p>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="space-y-3"
-        >
-          <Link href="/signup" className="block">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full h-14 bg-gradient-to-r from-green-500 to-green-600 text-white text-base font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-green-500/25 transition-all hover:shadow-green-500/40"
-            >
-              Get Verified Free
-              <ArrowRight className="h-5 w-5" />
-            </motion.button>
-          </Link>
-          <Link href="/dashboard" className="block">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full h-14 bg-white/5 border border-white/10 text-white/80 text-base font-semibold rounded-2xl hover:bg-white/10 hover:border-white/15 transition-all"
-            >
-              Explore as Guest →
-            </motion.button>
-          </Link>
-        </motion.div>
-
-        {/* Spacer */}
-        <div className="flex-1 min-h-8" />
-
-        {/* Features Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-auto"
-        >
-          <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-5 border border-white/[0.06]">
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { icon: Store, label: "100+ Brands", sublabel: "Verified partners" },
-                { icon: Zap, label: "Instant Access", sublabel: "No waiting" },
-                { icon: Shield, label: "Verified Only", sublabel: "Secure & safe" },
-                { icon: Sparkles, label: "Flash Deals", sublabel: "Daily drops" },
-              ].map((feature, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.45 + i * 0.05 }}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] transition-colors cursor-pointer"
-                >
-                  <div className="h-10 w-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-                    <feature.icon className="h-5 w-5 text-green-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{feature.label}</p>
-                    <p className="text-xs text-white/40">{feature.sublabel}</p>
-                  </div>
-                </motion.div>
-              ))}
+                {WORDS[wordIdx]}
+              </motion.div>
             </div>
+
+            {/* Subtitle */}
+            <p className="text-[15px] text-[#666] leading-relaxed mb-10 max-w-[320px]">
+              Exclusive discounts for verified students at local stores and top brands.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="space-y-3">
+              <Link href="/signup" className="block">
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full h-[52px] bg-green-500 hover:bg-green-400 text-black font-semibold rounded-xl flex items-center justify-center gap-2 text-[15px] transition-colors"
+                >
+                  Get Verified Free
+                  <ArrowRight className="h-4 w-4" />
+                </motion.button>
+              </Link>
+              <Link href="/dashboard" className="block">
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full h-[52px] bg-[#111] hover:bg-[#1a1a1a] text-white font-medium rounded-xl border border-[#222] text-[15px] transition-colors"
+                >
+                  Explore Deals
+                </motion.button>
+              </Link>
+            </div>
+          </motion.div>
+        </section>
+
+        {/* Features Section */}
+        <section className="py-16 px-6 border-t border-[#111]">
+          <Reveal>
+            <p className="text-[10px] font-medium text-green-400 tracking-[0.2em] uppercase mb-2">Why Backbenchers</p>
+            <h2 className="text-xl font-bold text-white mb-8">Built for Students</h2>
+          </Reveal>
+
+          <div className="space-y-3">
+            {[
+              { icon: Shield, title: "Verify Once", desc: "Quick verification with college email", color: "green" },
+              { icon: Zap, title: "Instant Access", desc: "Unlock discounts immediately", color: "blue" },
+              { icon: Store, title: "Local + Online", desc: "Save at stores and online brands", color: "purple" }
+            ].map((f, i) => (
+              <Reveal key={i} delay={i * 0.1}>
+                <div className="p-4 rounded-xl bg-[#0a0a0a] border border-[#151515]">
+                  <div className="flex items-start gap-3">
+                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 ${f.color === 'green' ? 'bg-green-500/10' : f.color === 'blue' ? 'bg-blue-500/10' : 'bg-purple-500/10'
+                      }`}>
+                      <f.icon className={`h-5 w-5 ${f.color === 'green' ? 'text-green-400' : f.color === 'blue' ? 'text-blue-400' : 'text-purple-400'
+                        }`} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white mb-0.5">{f.title}</h3>
+                      <p className="text-sm text-[#555]">{f.desc}</p>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
           </div>
-        </motion.div>
-      </div>
+        </section>
 
-      {/* Footer */}
-      <motion.footer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="relative z-10 border-t border-white/[0.06] bg-[#0a0a0b]/80 backdrop-blur-xl"
-      >
-        <div className="px-6 py-6">
-          {/* Login Link */}
-          <Link href="/login" className="block text-center mb-5">
-            <span className="text-white/50">Already verified?</span>{" "}
-            <span className="text-green-400 font-semibold hover:text-green-300 transition-colors">Sign in →</span>
-          </Link>
+        {/* How it Works */}
+        <section className="py-16 px-6 bg-[#050505]">
+          <Reveal>
+            <p className="text-[10px] font-medium text-green-400 tracking-[0.2em] uppercase mb-2">Getting Started</p>
+            <h2 className="text-xl font-bold text-white mb-8">How it Works</h2>
+          </Reveal>
 
-          {/* Social Icons */}
-          <div className="flex justify-center gap-6 mb-5">
-            <a href="https://instagram.com/backbenchers_official" target="_blank" rel="noopener noreferrer"
-              className="text-white/30 hover:text-white/70 transition-colors">
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-              </svg>
-            </a>
-            <a href="https://twitter.com/backbenchers_in" target="_blank" rel="noopener noreferrer"
-              className="text-white/30 hover:text-white/70 transition-colors">
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-            </a>
-            <a href="https://linkedin.com/company/backbenchers" target="_blank" rel="noopener noreferrer"
-              className="text-white/30 hover:text-white/70 transition-colors">
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-              </svg>
-            </a>
+          <div className="space-y-6">
+            {[
+              { num: "01", title: "Sign Up", desc: "Create account with Google" },
+              { num: "02", title: "Verify", desc: "Confirm your college email" },
+              { num: "03", title: "Save", desc: "Access exclusive discounts" }
+            ].map((s, i) => (
+              <Reveal key={i} delay={i * 0.1}>
+                <div className="flex items-start gap-4">
+                  <span className="text-2xl font-bold text-[#1a1a1a]">{s.num}</span>
+                  <div>
+                    <h3 className="font-semibold text-white">{s.title}</h3>
+                    <p className="text-sm text-[#555]">{s.desc}</p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal delay={0.3}>
+            <Link href="/signup" className="block mt-10">
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                className="w-full h-[52px] bg-white text-black font-semibold rounded-xl text-[15px]"
+              >
+                Start Saving Now
+              </motion.button>
+            </Link>
+          </Reveal>
+        </section>
+
+        {/* For Students / Merchants */}
+        <section className="py-16 px-6">
+          <div className="space-y-4">
+            <Reveal>
+              <div className="p-5 rounded-xl bg-gradient-to-br from-green-500/5 to-transparent border border-[#151515]">
+                <GraduationCap className="h-7 w-7 text-green-400 mb-3" />
+                <h3 className="text-lg font-bold text-white mb-1">For Students</h3>
+                <p className="text-sm text-[#555] mb-4">Verify once and unlock exclusive discounts at hundreds of stores.</p>
+                <Link href="/signup" className="inline-flex items-center gap-1 text-green-400 text-sm font-medium">
+                  Get Verified Free <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </Reveal>
+
+            <Reveal delay={0.1}>
+              <div className="p-5 rounded-xl bg-gradient-to-br from-purple-500/5 to-transparent border border-[#151515]">
+                <Store className="h-7 w-7 text-purple-400 mb-3" />
+                <h3 className="text-lg font-bold text-white mb-1">For Merchants</h3>
+                <p className="text-sm text-[#555] mb-4">Reach thousands of verified students. Zero upfront costs.</p>
+                <Link href="/merchant" className="inline-flex items-center gap-1 text-purple-400 text-sm font-medium">
+                  Partner with us <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="py-16 px-6 bg-[#050505]">
+          <Reveal>
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-white mb-2">Ready to Save?</h2>
+              <p className="text-sm text-[#555] mb-6">Join students already saving with Backbenchers.</p>
+              <Link href="/signup">
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  className="px-8 py-3 bg-green-500 text-black font-semibold rounded-full text-sm"
+                >
+                  Get Started Free
+                </motion.button>
+              </Link>
+            </div>
+          </Reveal>
+        </section>
+
+        {/* Footer */}
+        <footer className="py-10 px-6 border-t border-[#111]">
+          {/* Brand */}
+          <div className="flex items-center gap-2 mb-6">
+            <div className="h-7 w-7 rounded-lg bg-green-500 flex items-center justify-center">
+              <span className="text-black font-bold text-xs">B</span>
+            </div>
+            <span className="text-white font-semibold text-sm">Backbenchers</span>
           </div>
 
           {/* Links */}
-          <div className="flex justify-center gap-4 text-xs text-white/30 mb-4">
-            <Link href="/privacy" className="hover:text-white/60 transition-colors">Privacy</Link>
-            <span className="text-white/15">•</span>
-            <Link href="/terms" className="hover:text-white/60 transition-colors">Terms</Link>
-            <span className="text-white/15">•</span>
-            <Link href="/contact" className="hover:text-white/60 transition-colors">Help</Link>
+          <div className="grid grid-cols-2 gap-6 mb-8">
+            <div>
+              <h4 className="text-[10px] font-semibold text-[#444] uppercase tracking-wider mb-3">For Students</h4>
+              <ul className="space-y-2">
+                <li><Link href="/signup" className="text-sm text-[#555] hover:text-white transition-colors">Sign Up</Link></li>
+                <li><Link href="/dashboard" className="text-sm text-[#555] hover:text-white transition-colors">Browse Deals</Link></li>
+                <li><Link href="/login" className="text-sm text-[#555] hover:text-white transition-colors">Login</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-[10px] font-semibold text-[#444] uppercase tracking-wider mb-3">For Merchants</h4>
+              <ul className="space-y-2">
+                <li><Link href="/merchant" className="text-sm text-[#555] hover:text-white transition-colors">Partner</Link></li>
+                <li><Link href="/merchant/auth/login" className="text-sm text-[#555] hover:text-white transition-colors">Merchant Login</Link></li>
+              </ul>
+            </div>
           </div>
 
-          {/* Copyright */}
-          <p className="text-center text-[11px] text-white/20">
-            © {new Date().getFullYear()} Backbenchers
-          </p>
-        </div>
-      </motion.footer>
+          {/* Bottom */}
+          <div className="pt-6 border-t border-[#111]">
+            <div className="flex gap-4 mb-3">
+              <Link href="#" className="text-xs text-[#333]">Privacy</Link>
+              <Link href="#" className="text-xs text-[#333]">Terms</Link>
+            </div>
+            <p className="text-[10px] text-[#222]">© 2024 Backbenchers. All rights reserved.</p>
+          </div>
+        </footer>
+
+      </div>
     </div>
   );
 }

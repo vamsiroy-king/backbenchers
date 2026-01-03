@@ -15,7 +15,8 @@ import {
     ChevronLeft,
     ChevronRight,
     LogOut,
-    Image
+    Image,
+    Building2
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ import { cn } from "@/lib/utils";
 const MENU_ITEMS = [
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { name: "Hero Banners", href: "/admin/dashboard/hero-banners", icon: Image },
+    { name: "Brands", href: "/admin/dashboard/brands", icon: Building2 },
     { name: "Merchants", href: "/admin/dashboard/merchants", icon: Store },
     { name: "Students", href: "/admin/dashboard/students", icon: Users },
     { name: "Offers", href: "/admin/dashboard/offers", icon: Tag },

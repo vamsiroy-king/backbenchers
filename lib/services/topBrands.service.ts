@@ -22,7 +22,7 @@ const transformTopBrand = (row: any): TopBrand => ({
     id: row.id,
     merchantId: row.merchant_id,
     logoUrl: row.logo_url,
-    position: row.position,
+    position: row.display_order, // Mapped from display_order
     isActive: row.is_active,
     createdAt: row.created_at,
     merchant: row.merchants ? {
@@ -40,7 +40,7 @@ export const topBrandsService = {
         try {
             console.log('[TopBrands] Fetching all top brands...');
             const { data, error } = await supabase
-                .from('top_brands')
+                .from('featured_brands')
                 .select(`
                     *,
                     merchants (
@@ -52,11 +52,11 @@ export const topBrandsService = {
                     )
                 `)
                 .eq('is_active', true)
-                .order('position', { ascending: true });
+                .order('display_order', { ascending: true });
 
             if (error) {
-                console.error('[TopBrands] Error fetching:', error);
-                return { success: false, data: null, error: error.message };
+                console.error('[TopBrands] Error fetching:', JSON.stringify(error, null, 2));
+                return { success: false, data: null, error: error.message || 'Unknown error' };
             }
 
             console.log('[TopBrands] Fetched:', data?.length, 'brands');
@@ -75,10 +75,10 @@ export const topBrandsService = {
     async add(merchantId: string, position: number): Promise<ApiResponse<TopBrand>> {
         try {
             const { data, error } = await supabase
-                .from('top_brands')
+                .from('featured_brands')
                 .insert({
                     merchant_id: merchantId,
-                    position,
+                    display_order: position,
                 })
                 .select()
                 .single();
@@ -97,7 +97,7 @@ export const topBrandsService = {
     async remove(id: string): Promise<ApiResponse<void>> {
         try {
             const { error } = await supabase
-                .from('top_brands')
+                .from('featured_brands')
                 .delete()
                 .eq('id', id);
 
@@ -118,14 +118,14 @@ export const topBrandsService = {
 
             // First, get all existing IDs
             const { data: existing } = await supabase
-                .from('top_brands')
+                .from('featured_brands')
                 .select('id');
 
             // Delete each existing entry
             if (existing && existing.length > 0) {
                 console.log('[TopBrands] Deleting', existing.length, 'existing entries...');
                 for (const item of existing) {
-                    await supabase.from('top_brands').delete().eq('id', item.id);
+                    await supabase.from('featured_brands').delete().eq('id', item.id);
                 }
             }
 
@@ -133,10 +133,10 @@ export const topBrandsService = {
             if (brands.length > 0) {
                 console.log('[TopBrands] Inserting new entries...');
                 const { data, error } = await supabase
-                    .from('top_brands')
+                    .from('featured_brands')
                     .insert(brands.map(b => ({
                         merchant_id: b.merchantId,
-                        position: b.position,
+                        display_order: b.position,
                         is_active: true,
                     })))
                     .select();
@@ -161,8 +161,8 @@ export const topBrandsService = {
         try {
             for (const item of positions) {
                 await supabase
-                    .from('top_brands')
-                    .update({ position: item.position })
+                    .from('featured_brands')
+                    .update({ display_order: item.position })
                     .eq('id', item.id);
             }
             return { success: true, data: null, error: null };

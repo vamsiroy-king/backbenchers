@@ -2,21 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, MapPin, Loader2 } from "lucide-react";
+import { ChevronDown, Search, MapPin, Loader2, Navigation } from "lucide-react";
 import { cityService, City } from "@/lib/services/city.service";
+import { vibrate } from "@/lib/haptics";
 
-// City icons for popular cities
+// City icons for popular cities - line art style like District
 const CITY_ICONS: Record<string, string> = {
     'Mumbai': '🏛️',
     'Delhi-NCR': '🕌',
-    'Bengaluru': '💻',
+    'Delhi NCR': '🕌',
+    'Bengaluru': '🏙️',
     'Hyderabad': '🏰',
     'Chennai': '⛪',
     'Pune': '🏔️',
     'Kolkata': '🌉',
-    'Ahmedabad': '🏛️',
-    'Chandigarh': '🌸',
-    'Kochi': '🌴',
+    'Chandigarh': '🏛️',
 };
 
 interface CitySelectorProps {
@@ -33,6 +33,7 @@ export function CitySelector({ isOpen, onClose, onSelectCity, currentCity }: Cit
     const [loading, setLoading] = useState(true);
     const [searching, setSearching] = useState(false);
     const [detectingLocation, setDetectingLocation] = useState(false);
+    const [detectedAddress, setDetectedAddress] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -78,41 +79,33 @@ export function CitySelector({ isOpen, onClose, onSelectCity, currentCity }: Cit
 
     const handleAutoDetect = async () => {
         setDetectingLocation(true);
+        vibrate('light');
         try {
-            // Import and use the new location service
             const { locationService } = await import('@/lib/services/location.service');
             const result = await locationService.detectUserCity();
 
             if (result.success && result.city) {
-                // Successfully detected city - select it
+                setDetectedAddress(result.fullAddress || result.city);
                 handleSelectCity(result.city);
             } else if (result.fullAddress) {
-                // Couldn't map to supported city, but got address
-                // Try to find a matching city from our popular cities
+                setDetectedAddress(result.fullAddress);
                 const addressLower = result.fullAddress.toLowerCase();
                 const matchedCity = popularCities.find(c =>
                     addressLower.includes(c.name.toLowerCase())
                 );
-
                 if (matchedCity) {
                     handleSelectCity(matchedCity.name);
-                } else {
-                    // No match - show error and let user select manually
-                    console.log('Could not detect supported city:', result.fullAddress);
-                    alert(`We detected "${result.fullAddress.split(',')[0]}" but it's not in our supported cities yet. Please select your nearest city.`);
                 }
-            } else {
-                alert(result.error || 'Could not detect your location. Please select manually.');
             }
         } catch (error) {
             console.error('Auto detect error:', error);
-            alert('Location detection failed. Please allow location access and try again.');
         } finally {
             setDetectingLocation(false);
         }
     };
 
     const handleSelectCity = (cityName: string) => {
+        vibrate('light');
         cityService.setSelectedCity(cityName);
         onSelectCity(cityName);
         onClose();
@@ -126,118 +119,132 @@ export function CitySelector({ isOpen, onClose, onSelectCity, currentCity }: Cit
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[100] bg-white dark:bg-gray-950"
+                className="fixed inset-0 z-[100] bg-black"
             >
                 {/* Header */}
-                <div className="sticky top-0 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 px-4 py-4">
+                <div className="sticky top-0 bg-black px-4 py-4 border-b border-[#222]">
                     <div className="flex items-center justify-between mb-4">
-                        <button onClick={onClose} className="p-2 -ml-2">
-                            <X className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+                        <button onClick={() => { vibrate('light'); onClose(); }} className="p-2 -ml-2">
+                            <ChevronDown className="h-6 w-6 text-white" />
                         </button>
-                        <h2 className="text-lg font-bold dark:text-white">{currentCity || 'Select City'}</h2>
-                        <div className="w-10" /> {/* Spacer */}
+                        <h2 className="text-base font-semibold text-white">Location</h2>
+                        <div className="w-10" />
                     </div>
 
                     {/* Search Bar */}
                     <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#666]" />
                         <input
                             type="text"
-                            placeholder="Search for your city"
+                            placeholder="Search city, area or locality"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-12 pl-12 pr-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-base outline-none dark:text-white dark:placeholder:text-gray-500"
+                            className="w-full h-11 pl-11 pr-4 bg-[#111] rounded-xl text-sm text-white placeholder:text-[#555] outline-none border border-[#222] focus:border-[#333]"
                         />
                     </div>
 
-                    {/* Auto Detect */}
-                    <button
+                    {/* Use Current Location - District Style */}
+                    <motion.button
+                        whileTap={{ scale: 0.98 }}
                         onClick={handleAutoDetect}
                         disabled={detectingLocation}
-                        className="flex items-center gap-2 mt-4 text-red-500 font-medium text-sm"
+                        className="w-full mt-3 p-3 bg-[#111] rounded-xl border border-[#222] flex items-start gap-3"
                     >
-                        {detectingLocation ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <MapPin className="h-4 w-4" />
-                        )}
-                        Auto Detect My Location
-                    </button>
+                        <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                            {detectingLocation ? (
+                                <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />
+                            ) : (
+                                <Navigation className="h-4 w-4 text-blue-400" />
+                            )}
+                        </div>
+                        <div className="text-left">
+                            <p className="text-sm font-medium text-white">Use current location</p>
+                            <p className="text-xs text-[#666] mt-0.5 line-clamp-1">
+                                {detectedAddress || 'Enable location to auto-detect'}
+                            </p>
+                        </div>
+                        <ChevronDown className="h-4 w-4 text-[#555] ml-auto -rotate-90 mt-2" />
+                    </motion.button>
                 </div>
 
                 {/* Content */}
-                <div className="px-4 py-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+                <div className="px-4 py-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
                     {loading ? (
                         <div className="flex justify-center py-12">
-                            <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                            <Loader2 className="h-6 w-6 animate-spin text-green-500" />
                         </div>
                     ) : searchQuery.trim() ? (
                         // Search Results
                         <div>
                             {searching && (
                                 <div className="flex justify-center py-4">
-                                    <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
+                                    <Loader2 className="h-5 w-5 animate-spin text-green-500" />
                                 </div>
                             )}
                             {searchResults.length > 0 ? (
-                                <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                                <div className="space-y-1">
                                     {searchResults.map((city) => (
-                                        <button
+                                        <motion.button
                                             key={city.id}
+                                            whileTap={{ scale: 0.98 }}
                                             onClick={() => handleSelectCity(city.name)}
-                                            className={`w-full py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white ${currentCity === city.name ? 'text-purple-600 font-medium' : ''
+                                            className={`w-full py-3 px-3 text-left rounded-lg transition-colors ${currentCity === city.name
+                                                    ? 'bg-green-500/10 text-green-400'
+                                                    : 'text-white hover:bg-[#111]'
                                                 }`}
                                         >
                                             {city.name}
-                                        </button>
+                                        </motion.button>
                                     ))}
                                 </div>
                             ) : !searching && (
-                                <p className="text-center text-gray-400 py-8">No cities found</p>
+                                <p className="text-center text-[#555] py-8 text-sm">No cities found</p>
                             )}
                         </div>
                     ) : (
-                        // Popular Cities Grid
+                        // Popular Cities Grid - District Style
                         <div>
-                            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">
-                                Popular Cities
+                            <h3 className="text-xs font-medium text-[#888] mb-4">
+                                Popular cities
                             </h3>
-                            <div className="grid grid-cols-4 gap-3 mb-8">
-                                {popularCities.map((city) => (
+                            <div className="grid grid-cols-3 gap-3 mb-6">
+                                {popularCities.slice(0, 6).map((city) => (
                                     <motion.button
                                         key={city.id}
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => handleSelectCity(city.name)}
-                                        className={`flex flex-col items-center p-3 rounded-xl border-2 transition-colors ${currentCity === city.name
-                                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30'
-                                            : 'border-transparent bg-gray-50 dark:bg-gray-800'
+                                        className={`flex flex-col items-center p-4 rounded-xl border transition-all ${currentCity === city.name
+                                                ? 'border-green-500 bg-green-500/10'
+                                                : 'border-[#222] bg-[#111] hover:border-[#333]'
                                             }`}
                                     >
-                                        <span className="text-3xl mb-1">
+                                        <span className="text-3xl mb-2">
                                             {CITY_ICONS[city.name] || city.iconEmoji || '🏙️'}
                                         </span>
-                                        <span className="text-xs font-medium text-center truncate w-full dark:text-white">
+                                        <span className="text-xs font-medium text-center text-white">
                                             {city.name}
                                         </span>
                                     </motion.button>
                                 ))}
                             </div>
 
-                            {/* Other Cities List */}
-                            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">
-                                Other Cities
+                            {/* All Cities List */}
+                            <h3 className="text-xs font-medium text-[#888] mb-3">
+                                All cities
                             </h3>
-                            <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                                {/* Show a few other cities as examples */}
-                                {['Vizag', 'Jaipur', 'Lucknow', 'Indore', 'Bhopal', 'Coimbatore'].map((city) => (
-                                    <button
+                            <div className="space-y-1">
+                                {['Abohar', 'Abu Road', 'Achampet', 'Acharapakkam', 'Addanki', 'Adilabad', 'Vizag', 'Jaipur', 'Lucknow', 'Indore', 'Bhopal', 'Coimbatore'].map((city) => (
+                                    <motion.button
                                         key={city}
+                                        whileTap={{ scale: 0.98 }}
                                         onClick={() => handleSelectCity(city)}
-                                        className={`w-full py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white ${currentCity === city ? 'text-purple-600 font-medium' : ''
+                                        className={`w-full py-3 px-3 text-left text-sm rounded-lg transition-colors border-b border-[#1a1a1a] ${currentCity === city
+                                                ? 'text-green-400'
+                                                : 'text-white hover:bg-[#111]'
                                             }`}
                                     >
                                         {city}
-                                    </button>
+                                    </motion.button>
                                 ))}
                             </div>
                         </div>

@@ -101,6 +101,18 @@ export default function PasscodeSetupPage() {
                 businessName: businessData.businessName,
                 category: businessData.category || 'General',
                 subCategory: businessData.subCategory, // Sub-category
+                brandType: businessData.brandType || 'single', // Legacy field
+                brandScale: businessData.brandScale || businessData.brandType || 'single', // single, regional_chain, national_chain
+                merchantType: businessData.merchantType || 'local_store', // chain_outlet, local_store, online_brand
+                brandId: businessData.brandId, // For chain outlets
+                brandName: businessData.brandName, // For display
+                outletName: businessData.outletName, // For chain outlets
+                outletRole: businessData.outletRole, // manager, franchise_owner, owner
+                outletManagerName: businessData.outletManagerName,
+                outletManagerPhone: businessData.outletManagerPhone,
+                outletArea: locationData.area || businessData.outletArea, // Locality/area
+                baseCity: businessData.baseCity, // For regional chains
+                baseState: businessData.baseState, // For regional chains
                 description: businessData.description || '',
                 address: locationData.address || businessData.address || '',
                 city: locationData.city || businessData.city || '',

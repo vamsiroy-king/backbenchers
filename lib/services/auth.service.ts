@@ -39,8 +39,19 @@ const hashPasscode = (passcode: string): string => {
 
 export const ALLOWED_COLLEGE_DOMAINS = ['.ac.in', '.edu.in', '.edu'] as const;
 
+// DEV MODE: Allow test emails for local testing
+const IS_DEV = process.env.NODE_ENV === 'development';
+export const DEV_TEST_EMAIL = 'test@student.edu';
+export const DEV_MERCHANT_EMAIL = 'test@merchant.dev';
+export const DEV_TEST_OTP = '123456';
+
 export const isValidStudentEmail = (email: string): boolean => {
     const emailLower = email.toLowerCase().trim();
+
+    // DEV MODE: Allow test email
+    if (IS_DEV && emailLower === DEV_TEST_EMAIL) {
+        return true;
+    }
 
     // STRICT: Only allowed college domains
     return ALLOWED_COLLEGE_DOMAINS.some(domain => emailLower.endsWith(domain));
@@ -48,8 +59,12 @@ export const isValidStudentEmail = (email: string): boolean => {
 
 // Get clean error message for invalid domain
 export const getInvalidDomainError = (): string => {
+    if (IS_DEV) {
+        return `Please use your official college email. For testing, use: ${DEV_TEST_EMAIL}`;
+    }
     return 'Please use your official college email';
 };
+
 
 export const authService = {
     // =============================================
@@ -57,11 +72,39 @@ export const authService = {
     // =============================================
 
     async hasActiveSession(): Promise<boolean> {
+        // DEV MODE: Check for dev test user
+        if (IS_DEV && typeof window !== 'undefined') {
+            const devTestUser = localStorage.getItem('dev_test_user');
+            if (devTestUser) return true;
+        }
         const { data: { session } } = await supabase.auth.getSession();
         return !!session;
     },
 
     async getCurrentUser(): Promise<AuthUser | null> {
+        // DEV MODE: Check for dev test user in localStorage
+        if (IS_DEV && typeof window !== 'undefined') {
+            const devTestUser = localStorage.getItem('dev_test_user');
+            if (devTestUser) {
+                try {
+                    const student = JSON.parse(devTestUser);
+                    console.log('DEV MODE: Using dev test user:', student.email);
+                    return {
+                        id: student.id,
+                        email: student.email,
+                        name: student.name,
+                        role: 'student',
+                        bbId: student.bb_id,
+                        isComplete: student.status !== 'pending',
+                        isSuspended: student.status === 'suspended'
+                    };
+                } catch (e) {
+                    console.error('Failed to parse dev test user:', e);
+                    localStorage.removeItem('dev_test_user');
+                }
+            }
+        }
+
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return null;
 
@@ -164,6 +207,7 @@ export const authService = {
         if (typeof window !== 'undefined') {
             localStorage.removeItem(PASSCODE_KEY);
             localStorage.removeItem(DEVICE_ID_KEY);
+            localStorage.removeItem('dev_test_user'); // Clear dev test user
         }
     },
 
@@ -246,6 +290,15 @@ export const authService = {
             };
         }
 
+        // DEV MODE: Skip actual OTP sending for test email
+        if (IS_DEV && email === DEV_TEST_EMAIL) {
+            console.log('DEV MODE: Skipping OTP send for test email. Use OTP:', DEV_TEST_OTP);
+            return {
+                success: true,
+                message: `DEV MODE: Use OTP ${DEV_TEST_OTP} for ${email}`
+            };
+        }
+
         try {
             // Use signUp to send OTP code (Confirm Signup template in Supabase)
             const { data, error } = await supabase.auth.signUp({
@@ -254,6 +307,7 @@ export const authService = {
             });
 
             console.log('SignUp response:', { data, error });
+
 
             if (error) {
                 console.error('SignUp error:', error);
@@ -307,16 +361,24 @@ export const authService = {
         try {
             const email = collegeEmail.toLowerCase().trim();
 
-            // Verify OTP (type must match how it was sent - 'signup' for signUp flow)
-            const { data, error } = await supabase.auth.verifyOtp({
-                email: email,
-                token: otp,
-                type: 'signup'  // Must be 'signup' to match signUp method
-            });
+            // DEV MODE: Bypass OTP verification for test email
+            const isDevTestBypass = IS_DEV && email === DEV_TEST_EMAIL && otp === DEV_TEST_OTP;
 
-            if (error) {
-                return { success: false, error: 'Invalid OTP. Please try again.' };
+            if (!isDevTestBypass) {
+                // Verify OTP (type must match how it was sent - 'signup' for signUp flow)
+                const { data, error } = await supabase.auth.verifyOtp({
+                    email: email,
+                    token: otp,
+                    type: 'signup'  // Must be 'signup' to match signUp method
+                });
+
+                if (error) {
+                    return { success: false, error: 'Invalid OTP. Please try again.' };
+                }
+            } else {
+                console.log('DEV MODE: Bypassing OTP verification for test email');
             }
+
 
             // Get current Google auth user
             const { data: { user } } = await supabase.auth.getUser();
@@ -475,6 +537,12 @@ export const authService = {
                 return { success: false, error: 'This email is already registered.' };
             }
 
+            // DEV MODE: Skip OTP for test merchant email
+            if (IS_DEV && email.toLowerCase() === DEV_MERCHANT_EMAIL) {
+                console.log('DEV MODE: Skipping OTP send for test merchant. Use OTP:', DEV_TEST_OTP);
+                return { success: true, message: `DEV MODE: Use OTP ${DEV_TEST_OTP}` };
+            }
+
             // Send OTP
             const { error } = await supabase.auth.signInWithOtp({
                 email: email.toLowerCase(),
@@ -533,20 +601,32 @@ export const authService = {
         otp: string
     ): Promise<ApiResponse<{ merchantId: string }>> {
         try {
-            const { data, error } = await supabase.auth.verifyOtp({
-                email: email.toLowerCase(),
-                token: otp,
-                type: 'email'
-            });
+            // DEV MODE: Bypass OTP verification for test merchant
+            const isDevTestBypass = IS_DEV && email.toLowerCase() === DEV_MERCHANT_EMAIL && otp === DEV_TEST_OTP;
 
-            if (error) {
-                return { success: false, error: 'Invalid OTP' };
+            let userId = '';
+
+            if (!isDevTestBypass) {
+                const { data, error } = await supabase.auth.verifyOtp({
+                    email: email.toLowerCase(),
+                    token: otp,
+                    type: 'email'
+                });
+
+                if (error) {
+                    return { success: false, error: 'Invalid OTP' };
+                }
+                userId = data.user?.id || '';
+            } else {
+                console.log('DEV MODE: Bypassing OTP verification for test merchant');
+                // In dev mode, generate a fake user ID for testing
+                userId = crypto.randomUUID();
             }
 
             // User is now authenticated, redirect to onboarding
             return {
                 success: true,
-                data: { merchantId: data.user?.id || '' },
+                data: { merchantId: userId },
                 message: 'Email verified! Please complete your business profile.'
             };
         } catch (error: any) {
@@ -560,12 +640,24 @@ export const authService = {
         businessName: string;
         category: string;
         subCategory?: string; // Sub-category
-        description: string;
+        brandType?: string; // 'single' | 'regional_chain' | 'national_chain'
+        brandScale?: string; // 'single' | 'regional_chain' | 'national_chain'
+        merchantType?: string; // 'chain_outlet' | 'local_store' | 'online_brand'
+        brandId?: string; // For chain outlets - links to existing brand
+        brandName?: string; // For display
+        outletName?: string; // For chain outlets
+        outletRole?: string; // 'manager' | 'franchise_owner' | 'owner'
+        outletManagerName?: string;
+        outletManagerPhone?: string;
+        outletArea?: string; // Locality/area
+        baseCity?: string; // For regional chains
+        baseState?: string; // For regional chains
+        description?: string;
         address: string;
         city: string;
         state: string;
         pincode: string;
-        phone: string;
+        phone?: string;
         ownerPhone: string; // Owner's personal phone (+91...)
         ownerName: string;
         gstNumber?: string;
@@ -584,53 +676,87 @@ export const authService = {
         paymentQrUrl?: string;
     }): Promise<ApiResponse<{ merchantId: string }>> {
         try {
+            // DEV MODE: Check for dev bypass
+            let userId: string;
+            let userEmail: string;
+
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
+
+            if (user) {
+                userId = user.id;
+                userEmail = user.email || '';
+            } else if (IS_DEV) {
+                // In dev mode without real auth, use dev user ID from localStorage
+                const storedDevId = typeof window !== 'undefined' ? localStorage.getItem('dev_merchant_user_id') : null;
+                if (storedDevId) {
+                    userId = storedDevId;
+                } else {
+                    // Generate a valid UUID for dev mode (database expects UUID type)
+                    userId = crypto.randomUUID();
+                    if (typeof window !== 'undefined') {
+                        localStorage.setItem('dev_merchant_user_id', userId);
+                    }
+                }
+                userEmail = DEV_MERCHANT_EMAIL;
+                console.log('DEV MODE: Using dev user ID for onboarding:', userId);
+            } else {
                 return { success: false, error: 'Please sign in first.' };
             }
 
-            // Check if already submitted an application
-            const { data: existingApplication } = await supabase
-                .from('pending_merchants')
-                .select('id, status')
-                .eq('user_id', user.id)
-                .maybeSingle();
+            // Check if already submitted an application (skip in dev mode for easier testing)
+            if (!IS_DEV) {
+                const { data: existingApplication } = await supabase
+                    .from('pending_merchants')
+                    .select('id, status')
+                    .eq('user_id', userId)
+                    .maybeSingle();
 
-            if (existingApplication) {
-                return {
-                    success: false,
-                    error: existingApplication.status === 'pending'
-                        ? 'You already have a pending application.'
-                        : 'Application already processed.'
-                };
-            }
+                if (existingApplication) {
+                    return {
+                        success: false,
+                        error: existingApplication.status === 'pending'
+                            ? 'You already have a pending application.'
+                            : 'Application already processed.'
+                    };
+                }
 
-            // Check if already approved merchant
-            const { data: existingMerchant } = await supabase
-                .from('merchants')
-                .select('id')
-                .eq('user_id', user.id)
-                .maybeSingle();
+                // Check if already approved merchant
+                const { data: existingMerchant } = await supabase
+                    .from('merchants')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .maybeSingle();
 
-            if (existingMerchant) {
-                return { success: false, error: 'You already have a merchant account.' };
+                if (existingMerchant) {
+                    return { success: false, error: 'You already have a merchant account.' };
+                }
             }
 
             // Submit to pending_merchants table (NOT main merchants table)
             const { data: application, error } = await supabase
                 .from('pending_merchants')
                 .insert({
-                    user_id: user.id,
-                    email: user.email,
+                    user_id: userId,
+                    email: userEmail,
+                    merchant_type: merchantData.merchantType || 'local_store', // chain_outlet, local_store, online_brand
+                    brand_scale: merchantData.brandScale || merchantData.brandType || 'single', // single, regional_chain, national_chain
+                    brand_id: merchantData.brandId || null, // For chain outlets
+                    outlet_name: merchantData.outletName || null, // For chain outlets
+                    outlet_role: merchantData.outletRole || null, // manager, franchise_owner, owner
+                    outlet_manager_name: merchantData.outletManagerName || null,
+                    outlet_manager_phone: merchantData.outletManagerPhone || null,
+                    outlet_area: merchantData.outletArea || null,
+                    base_city: merchantData.baseCity || null, // For regional chains
                     business_name: merchantData.businessName,
                     category: merchantData.category,
                     sub_category: merchantData.subCategory,
-                    description: merchantData.description,
+                    brand_type: merchantData.brandScale || merchantData.brandType || 'single', // Single store, regional_chain, or national_chain
+                    description: merchantData.description || '',
                     address: merchantData.address,
                     city: merchantData.city,
                     state: merchantData.state,
                     pincode: merchantData.pincode,
-                    phone: merchantData.phone,
+                    phone: merchantData.phone || '',
                     owner_phone: merchantData.ownerPhone,
                     owner_name: merchantData.ownerName,
                     gst_number: merchantData.gstNumber,

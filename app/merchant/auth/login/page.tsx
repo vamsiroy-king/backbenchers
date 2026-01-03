@@ -259,6 +259,23 @@ export default function MerchantLoginPage() {
                                 )}
                             </Button>
 
+                            {/* DEV MODE: Quick login for test merchant */}
+                            {process.env.NODE_ENV === 'development' && (
+                                <Button
+                                    onClick={() => {
+                                        // Set dev user ID if not exists
+                                        if (!localStorage.getItem('dev_merchant_user_id')) {
+                                            localStorage.setItem('dev_merchant_user_id', crypto.randomUUID());
+                                        }
+                                        // Navigate to pending page or dashboard
+                                        router.push('/merchant/onboarding/pending');
+                                    }}
+                                    className="w-full h-14 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-2xl text-base"
+                                >
+                                    🧪 DEV: Login as test@merchant.dev
+                                </Button>
+                            )}
+
                             <div className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-4 border border-primary/10 dark:border-primary/20">
                                 <p className="text-sm text-primary/80 dark:text-primary">
                                     New merchant? Complete your business profile after signing in to get approved.
