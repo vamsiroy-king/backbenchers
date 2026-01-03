@@ -34,7 +34,7 @@ export default function BusinessDetailsPage() {
     const [businessName, setBusinessName] = useState("");
     const [ownerName, setOwnerName] = useState("");
     const [ownerPhone, setOwnerPhone] = useState("");
-    const [storePhone, setStorePhone] = useState(""); // Distinct store phone
+    const [storePhone, setStorePhone] = useState("");
     const [category, setCategory] = useState("");
     const [subCategory, setSubCategory] = useState("");
     const [description, setDescription] = useState("");
@@ -139,15 +139,14 @@ export default function BusinessDetailsPage() {
             businessName,
             ownerName,
             ownerPhone: `+91${ownerPhone}`,
-            phone: `+91${storePhone}`, // Store phone (distinct)
+            phone: `+91${storePhone}`,
             category,
             subCategory,
             description,
             website,
             instagram,
-            // Defaults for simplified flow
-            merchantType: 'local_store', // Default to local/independent
-            brandScale: 'single',        // Default to single
+            merchantType: 'local_store',
+            brandScale: 'single',
         };
 
         // Save business data
@@ -169,336 +168,351 @@ export default function BusinessDetailsPage() {
         router.push("/merchant/onboarding/documents");
     };
 
+    // District-style input classes
+    const inputClass = "w-full h-12 bg-[#111] border border-[#333] rounded-xl px-4 text-white text-sm font-medium placeholder:text-[#555] outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/20 transition-all";
+    const selectClass = "w-full h-12 bg-[#111] border border-[#333] rounded-xl px-4 text-white text-sm font-medium outline-none focus:border-green-500/50 appearance-none cursor-pointer disabled:opacity-40";
+    const labelClass = "text-[11px] font-semibold text-[#888] uppercase tracking-wider";
+
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-            <div className="max-w-lg mx-auto min-h-screen">
-                <div className="min-h-screen overflow-y-auto pt-6 pb-8 px-5">
-                    {/* Header */}
-                    <div className="flex items-center gap-4 mb-6">
-                        <Link href="/merchant/auth/signup">
-                            <button className="h-10 w-10 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors">
-                                <ArrowLeft className="h-5 w-5 text-gray-600" />
-                            </button>
-                        </Link>
-                        <div>
-                            <h1 className="text-xl font-extrabold text-gray-900">Business Details</h1>
-                            <p className="text-xs text-gray-500">Step 1 of 3</p>
+        <div className="min-h-screen bg-black">
+            {/* Header */}
+            <header className="sticky top-0 z-50 bg-black/95 backdrop-blur-xl border-b border-[#222]">
+                <div className="px-5 py-4 flex items-center gap-4">
+                    <Link href="/merchant/auth/signup">
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            className="h-10 w-10 rounded-full bg-[#1a1a1a] border border-[#333] flex items-center justify-center hover:bg-[#222] transition-colors"
+                        >
+                            <ArrowLeft className="h-5 w-5 text-white" />
+                        </motion.button>
+                    </Link>
+                    <div className="flex-1">
+                        <h1 className="text-lg font-bold text-white">Business Details</h1>
+                        <p className="text-xs text-[#666]">Step 1 of 3</p>
+                    </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="px-5 pb-4 flex gap-2">
+                    <div className="h-1 flex-1 bg-green-500 rounded-full" />
+                    <div className="h-1 flex-1 bg-[#222] rounded-full" />
+                    <div className="h-1 flex-1 bg-[#222] rounded-full" />
+                </div>
+            </header>
+
+            {/* Main Form */}
+            <main className="px-5 py-6 pb-32">
+                <div className="space-y-8">
+
+                    {/* ===== SECTION 1: BUSINESS TYPE ===== */}
+                    <section>
+                        <p className={labelClass}>Business Type</p>
+                        <div className="grid grid-cols-2 gap-3 mt-3">
+                            <motion.button
+                                type="button"
+                                whileTap={{ scale: 0.97 }}
+                                onClick={() => setBusinessType('offline')}
+                                className={`p-5 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${businessType === 'offline'
+                                    ? 'border-green-500 bg-green-500/10'
+                                    : 'border-[#333] bg-[#111] hover:border-[#444]'
+                                    }`}
+                            >
+                                <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${businessType === 'offline' ? 'bg-green-500' : 'bg-[#1a1a1a]'}`}>
+                                    <Store className={`h-6 w-6 ${businessType === 'offline' ? 'text-black' : 'text-[#666]'}`} />
+                                </div>
+                                <div className="text-center">
+                                    <span className="font-bold text-white text-sm block">Offline Store</span>
+                                    <span className="text-[10px] text-[#666]">Physical location</span>
+                                </div>
+                            </motion.button>
+
+                            <motion.button
+                                type="button"
+                                whileTap={{ scale: 0.97 }}
+                                onClick={() => setBusinessType('online')}
+                                className={`p-5 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${businessType === 'online'
+                                    ? 'border-green-500 bg-green-500/10'
+                                    : 'border-[#333] bg-[#111] hover:border-[#444]'
+                                    }`}
+                            >
+                                <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${businessType === 'online' ? 'bg-green-500' : 'bg-[#1a1a1a]'}`}>
+                                    <Wifi className={`h-6 w-6 ${businessType === 'online' ? 'text-black' : 'text-[#666]'}`} />
+                                </div>
+                                <div className="text-center">
+                                    <span className="font-bold text-white text-sm block">Online Brand</span>
+                                    <span className="text-[10px] text-[#666]">E-commerce / Digital</span>
+                                </div>
+                            </motion.button>
                         </div>
-                    </div>
+                    </section>
 
-                    {/* Progress Bar */}
-                    <div className="flex gap-2 mb-8">
-                        <div className="h-1.5 flex-1 bg-primary rounded-full" />
-                        <div className="h-1.5 flex-1 bg-gray-200 rounded-full" />
-                        <div className="h-1.5 flex-1 bg-gray-200 rounded-full" />
-                    </div>
-
-                    {/* Form */}
-                    <div className="space-y-6">
-
-                        {/* ===== SECTION 1: BUSINESS TYPE ===== */}
-                        <section>
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Business Type</label>
-                            <div className="grid grid-cols-2 gap-3 mt-2">
-                                <motion.button
-                                    type="button"
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => setBusinessType('offline')}
-                                    className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${businessType === 'offline'
-                                        ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
-                                        : 'border-gray-100 bg-white hover:border-gray-200'
-                                        }`}
-                                >
-                                    <Store className={`h-8 w-8 ${businessType === 'offline' ? 'text-primary' : 'text-gray-400'}`} />
-                                    <span className="font-semibold text-sm text-gray-900">Offline Store</span>
-                                    <span className="text-[10px] text-gray-500">Physical location</span>
-                                </motion.button>
-                                <motion.button
-                                    type="button"
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => setBusinessType('online')}
-                                    className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${businessType === 'online'
-                                        ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
-                                        : 'border-gray-100 bg-white hover:border-gray-200'
-                                        }`}
-                                >
-                                    <Wifi className={`h-8 w-8 ${businessType === 'online' ? 'text-primary' : 'text-gray-400'}`} />
-                                    <span className="font-semibold text-sm text-gray-900">Online Brand</span>
-                                    <span className="text-[10px] text-gray-500">E-commerce / Digital</span>
-                                </motion.button>
-                            </div>
-                        </section>
-
-                        {/* ===== SECTION 2: BUSINESS DETAILS ===== */}
-                        <AnimatePresence>
-                            {(businessType) && (
-                                <motion.section
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="space-y-4"
-                                >
-                                    <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                                        <Store className="h-4 w-4 text-primary" />
-                                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                            Business Details
-                                        </span>
+                    {/* ===== SECTION 2: BUSINESS DETAILS ===== */}
+                    <AnimatePresence>
+                        {businessType && (
+                            <motion.section
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="space-y-5"
+                            >
+                                {/* Section Header */}
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                        <Store className="h-4 w-4 text-green-400" />
                                     </div>
+                                    <span className="text-sm font-semibold text-white">Business Details</span>
+                                </div>
 
-                                    {/* Business Name */}
+                                {/* Business Name */}
+                                <div>
+                                    <label className={labelClass}>Business Name *</label>
+                                    <input
+                                        type="text"
+                                        value={businessName}
+                                        onChange={(e) => setBusinessName(e.target.value)}
+                                        placeholder="e.g., Chai Point"
+                                        className={`${inputClass} mt-2`}
+                                    />
+                                </div>
+
+                                {/* Owner Details */}
+                                <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                            Business Name *
-                                        </label>
+                                        <label className={labelClass}>Owner Name *</label>
                                         <input
                                             type="text"
-                                            value={businessName}
-                                            onChange={(e) => setBusinessName(e.target.value)}
-                                            placeholder="e.g., Chai Point"
-                                            className="w-full h-12 bg-gray-50 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30 border border-transparent focus:border-primary/30"
+                                            value={ownerName}
+                                            onChange={(e) => setOwnerName(e.target.value)}
+                                            placeholder="Full name"
+                                            className={`${inputClass} mt-2`}
                                         />
                                     </div>
-
-                                    {/* Owner Details */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                Owner Name *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={ownerName}
-                                                onChange={(e) => setOwnerName(e.target.value)}
-                                                placeholder="Full name"
-                                                className="w-full h-12 bg-gray-50 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Owner Mobile *</label>
-                                            <div className="flex gap-1 mt-1">
-                                                <div className="flex items-center px-3 bg-gray-100 rounded-l-xl text-gray-600 font-medium text-sm border-r">
-                                                    +91
-                                                </div>
-                                                <input
-                                                    type="tel"
-                                                    inputMode="numeric"
-                                                    maxLength={10}
-                                                    value={ownerPhone}
-                                                    onChange={(e) => setOwnerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                                                    placeholder="10 digits"
-                                                    className="flex-1 h-12 bg-gray-50 rounded-r-xl px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Store Contact Number */}
                                     <div>
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Store Contact Number *</label>
-                                            <button
-                                                type="button"
-                                                onClick={() => setStorePhone(ownerPhone)}
-                                                className="text-[10px] font-medium text-primary hover:underline flex items-center gap-1"
-                                                disabled={!ownerPhone}
-                                            >
-                                                <Phone className="h-3 w-3" />
-                                                Same as Owner
-                                            </button>
-                                        </div>
-                                        <div className="flex gap-1 mt-1">
-                                            <div className="flex items-center px-3 bg-gray-100 rounded-l-xl text-gray-600 font-medium text-sm border-r">
+                                        <label className={labelClass}>Owner Mobile *</label>
+                                        <div className="flex gap-0 mt-2">
+                                            <div className="flex items-center px-3 bg-[#1a1a1a] border border-r-0 border-[#333] rounded-l-xl text-[#888] font-medium text-sm">
                                                 +91
                                             </div>
                                             <input
                                                 type="tel"
                                                 inputMode="numeric"
                                                 maxLength={10}
-                                                value={storePhone}
-                                                onChange={(e) => setStorePhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                                                placeholder="Store number for customers to call"
-                                                className="flex-1 h-12 bg-gray-50 rounded-r-xl px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                                value={ownerPhone}
+                                                onChange={(e) => setOwnerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                                placeholder="10 digits"
+                                                className="flex-1 h-12 bg-[#111] border border-[#333] rounded-r-xl px-3 text-white text-sm font-medium placeholder:text-[#555] outline-none focus:border-green-500/50"
                                             />
                                         </div>
-                                        <p className="text-[10px] text-gray-400 mt-1.5 ml-1">
-                                            This number will be displayed on your store profile for students to call.
-                                        </p>
                                     </div>
+                                </div>
 
-                                    {/* Category */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Category *</label>
-                                            <select
-                                                value={category}
-                                                onChange={(e) => setCategory(e.target.value)}
-                                                className="w-full h-12 bg-gray-50 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30 appearance-none"
-                                            >
-                                                <option value="">Select</option>
-                                                {Object.keys(CATEGORIES).map((cat) => (
-                                                    <option key={cat} value={cat}>{cat}</option>
-                                                ))}
-                                            </select>
+                                {/* Store Contact Number */}
+                                <div>
+                                    <div className="flex items-center justify-between">
+                                        <label className={labelClass}>Store Contact Number *</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setStorePhone(ownerPhone)}
+                                            className="text-[10px] font-medium text-green-400 hover:text-green-300 flex items-center gap-1 transition-colors"
+                                            disabled={!ownerPhone}
+                                        >
+                                            <Phone className="h-3 w-3" />
+                                            Same as Owner
+                                        </button>
+                                    </div>
+                                    <div className="flex gap-0 mt-2">
+                                        <div className="flex items-center px-3 bg-[#1a1a1a] border border-r-0 border-[#333] rounded-l-xl text-[#888] font-medium text-sm">
+                                            +91
                                         </div>
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sub-Category *</label>
-                                            <select
-                                                value={subCategory}
-                                                onChange={(e) => setSubCategory(e.target.value)}
-                                                disabled={!category}
-                                                className="w-full h-12 bg-gray-50 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30 appearance-none disabled:opacity-50"
-                                            >
-                                                <option value="">Select</option>
-                                                {category && CATEGORIES[category]?.map((sub) => (
-                                                    <option key={sub} value={sub}>{sub}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    {/* Description */}
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</label>
-                                        <textarea
-                                            value={description}
-                                            onChange={(e) => setDescription(e.target.value)}
-                                            placeholder="Brief description of your business"
-                                            rows={2}
-                                            className="w-full bg-gray-50 rounded-xl px-4 py-3 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-                                        />
-                                    </div>
-                                </motion.section>
-                            )}
-                        </AnimatePresence>
-
-                        {/* ===== SECTION 3: LOCATION ===== */}
-                        <AnimatePresence>
-                            {(businessType === 'offline') && (
-                                <motion.section
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="space-y-4"
-                                >
-                                    <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                                        <MapPin className="h-4 w-4 text-primary" />
-                                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                            Store Location
-                                        </span>
-                                    </div>
-
-                                    {/* State & City */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">State *</label>
-                                            <select
-                                                value={state}
-                                                onChange={(e) => setState(e.target.value)}
-                                                className="w-full h-12 bg-gray-50 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30 appearance-none"
-                                            >
-                                                <option value="">Select state</option>
-                                                {INDIAN_STATES.map((s) => (
-                                                    <option key={s} value={s}>{s}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">City *</label>
-                                            <select
-                                                value={city}
-                                                onChange={(e) => setCity(e.target.value)}
-                                                disabled={!state}
-                                                className="w-full h-12 bg-gray-50 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30 appearance-none disabled:opacity-50"
-                                            >
-                                                <option value="">Select city</option>
-                                                {availableCities.map((c) => (
-                                                    <option key={c} value={c}>{c}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    {/* Area/Locality */}
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Area / Locality</label>
                                         <input
-                                            type="text"
-                                            value={area}
-                                            onChange={(e) => setArea(e.target.value)}
-                                            placeholder="e.g., Koramangala, Indiranagar"
-                                            className="w-full h-12 bg-gray-50 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
-                                        />
-                                    </div>
-
-                                    {/* Full Address */}
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Full Address *</label>
-                                        <input
-                                            type="text"
-                                            value={address}
-                                            onChange={(e) => setAddress(e.target.value)}
-                                            placeholder="Shop no, building, street, landmark"
-                                            className="w-full h-12 bg-gray-50 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
-                                        />
-                                    </div>
-
-                                    {/* Pincode & Store Phone */}
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pincode *</label>
-                                        <input
-                                            type="text"
+                                            type="tel"
                                             inputMode="numeric"
-                                            maxLength={6}
-                                            value={pincode}
-                                            onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                            placeholder="560001"
-                                            className="w-full h-12 bg-gray-50 rounded-xl px-4 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+                                            maxLength={10}
+                                            value={storePhone}
+                                            onChange={(e) => setStorePhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                            placeholder="Store number for customers"
+                                            className="flex-1 h-12 bg-[#111] border border-[#333] rounded-r-xl px-3 text-white text-sm font-medium placeholder:text-[#555] outline-none focus:border-green-500/50"
                                         />
                                     </div>
+                                    <p className="text-[10px] text-[#555] mt-2">
+                                        This will be displayed on your store profile for students to call.
+                                    </p>
+                                </div>
 
-                                    {/* Google Maps Link */}
+                                {/* Category */}
+                                <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Google Maps Link</label>
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                value={googleMapsLink}
-                                                onChange={(e) => handleGoogleMapsLinkChange(e.target.value)}
-                                                placeholder="Paste map location link"
-                                                className="w-full h-12 bg-gray-50 rounded-xl px-4 pl-10 mt-1 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
-                                            />
-                                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 mt-0.5" />
-                                            {extractingLocation && (
-                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
-                                                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                                                </div>
-                                            )}
-                                        </div>
-                                        {extractedCoords && (
-                                            <div className="flex items-center gap-1 mt-1 text-xs text-green-600 font-medium">
-                                                <CheckCircle2 className="h-3 w-3" />
-                                                Location detected successfully
+                                        <label className={labelClass}>Category *</label>
+                                        <select
+                                            value={category}
+                                            onChange={(e) => setCategory(e.target.value)}
+                                            className={`${selectClass} mt-2`}
+                                        >
+                                            <option value="">Select</option>
+                                            {Object.keys(CATEGORIES).map((cat) => (
+                                                <option key={cat} value={cat}>{cat}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Sub-Category *</label>
+                                        <select
+                                            value={subCategory}
+                                            onChange={(e) => setSubCategory(e.target.value)}
+                                            disabled={!category}
+                                            className={`${selectClass} mt-2`}
+                                        >
+                                            <option value="">Select</option>
+                                            {category && CATEGORIES[category]?.map((sub) => (
+                                                <option key={sub} value={sub}>{sub}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Description */}
+                                <div>
+                                    <label className={labelClass}>Description</label>
+                                    <textarea
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Brief description of your business"
+                                        rows={3}
+                                        className="w-full bg-[#111] border border-[#333] rounded-xl px-4 py-3 mt-2 text-white text-sm placeholder:text-[#555] outline-none focus:border-green-500/50 resize-none"
+                                    />
+                                </div>
+                            </motion.section>
+                        )}
+                    </AnimatePresence>
+
+                    {/* ===== SECTION 3: LOCATION ===== */}
+                    <AnimatePresence>
+                        {businessType === 'offline' && (
+                            <motion.section
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="space-y-5"
+                            >
+                                {/* Section Header */}
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                        <MapPin className="h-4 w-4 text-blue-400" />
+                                    </div>
+                                    <span className="text-sm font-semibold text-white">Store Location</span>
+                                </div>
+
+                                {/* State & City */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className={labelClass}>State *</label>
+                                        <select
+                                            value={state}
+                                            onChange={(e) => setState(e.target.value)}
+                                            className={`${selectClass} mt-2`}
+                                        >
+                                            <option value="">Select state</option>
+                                            {INDIAN_STATES.map((s) => (
+                                                <option key={s} value={s}>{s}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>City *</label>
+                                        <select
+                                            value={city}
+                                            onChange={(e) => setCity(e.target.value)}
+                                            disabled={!state}
+                                            className={`${selectClass} mt-2`}
+                                        >
+                                            <option value="">Select city</option>
+                                            {availableCities.map((c) => (
+                                                <option key={c} value={c}>{c}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Area/Locality */}
+                                <div>
+                                    <label className={labelClass}>Area / Locality</label>
+                                    <input
+                                        type="text"
+                                        value={area}
+                                        onChange={(e) => setArea(e.target.value)}
+                                        placeholder="e.g., Koramangala, Indiranagar"
+                                        className={`${inputClass} mt-2`}
+                                    />
+                                </div>
+
+                                {/* Full Address */}
+                                <div>
+                                    <label className={labelClass}>Full Address *</label>
+                                    <input
+                                        type="text"
+                                        value={address}
+                                        onChange={(e) => setAddress(e.target.value)}
+                                        placeholder="Shop no, building, street, landmark"
+                                        className={`${inputClass} mt-2`}
+                                    />
+                                </div>
+
+                                {/* Pincode */}
+                                <div>
+                                    <label className={labelClass}>Pincode *</label>
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        maxLength={6}
+                                        value={pincode}
+                                        onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                        placeholder="560001"
+                                        className={`${inputClass} mt-2`}
+                                    />
+                                </div>
+
+                                {/* Google Maps Link */}
+                                <div>
+                                    <label className={labelClass}>Google Maps Link</label>
+                                    <div className="relative mt-2">
+                                        <input
+                                            type="text"
+                                            value={googleMapsLink}
+                                            onChange={(e) => handleGoogleMapsLinkChange(e.target.value)}
+                                            placeholder="Paste map location link"
+                                            className={`${inputClass} pl-10`}
+                                        />
+                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#555]" />
+                                        {extractingLocation && (
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                <Loader2 className="h-4 w-4 animate-spin text-green-400" />
                                             </div>
                                         )}
                                     </div>
-                                </motion.section>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Submit Button */}
-                        <div className="pt-4 pb-10">
-                            <Button
-                                onClick={handleContinue}
-                                disabled={!isFormValid()}
-                                className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-bold rounded-2xl text-base disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/25"
-                            >
-                                Continue
-                                <ArrowRight className="ml-2 h-5 w-5" />
-                            </Button>
-                        </div>
-
-                    </div>
+                                    {extractedCoords && (
+                                        <div className="flex items-center gap-1.5 mt-2 text-xs text-green-400 font-medium">
+                                            <CheckCircle2 className="h-3.5 w-3.5" />
+                                            Location detected successfully
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.section>
+                        )}
+                    </AnimatePresence>
                 </div>
+            </main>
+
+            {/* Fixed Bottom Button */}
+            <div className="fixed bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black via-black to-transparent">
+                <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleContinue}
+                    disabled={!isFormValid()}
+                    className="w-full h-14 bg-green-500 hover:bg-green-400 disabled:bg-[#333] disabled:text-[#666] text-black font-bold rounded-2xl text-base flex items-center justify-center gap-2 transition-all shadow-lg shadow-green-500/20 disabled:shadow-none"
+                >
+                    Continue
+                    <ArrowRight className="h-5 w-5" />
+                </motion.button>
             </div>
         </div>
     );

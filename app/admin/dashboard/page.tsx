@@ -102,8 +102,8 @@ export default function AdminDashboardPage() {
         return (
             <div className="flex items-center justify-center h-[60vh]">
                 <div className="text-center">
-                    <Loader2 className="h-12 w-12 animate-spin text-purple-500 mx-auto mb-4" />
-                    <p className="text-gray-500">Loading dashboard...</p>
+                    <Loader2 className="h-12 w-12 animate-spin text-green-400 mx-auto mb-4" />
+                    <p className="text-[#888]">Loading dashboard...</p>
                 </div>
             </div>
         );
@@ -114,14 +114,14 @@ export default function AdminDashboardPage() {
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                    <p className="text-sm text-gray-500 mt-1">Complete platform overview and analytics</p>
+                    <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+                    <p className="text-sm text-[#888] mt-1">Complete platform overview and analytics</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <select
                         value={dateRange}
                         onChange={(e) => setDateRange(e.target.value)}
-                        className="h-10 px-4 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-purple-500/20"
+                        className="h-10 px-4 bg-[#111] border border-[#333] rounded-xl text-white text-sm font-medium outline-none focus:border-green-500/50"
                     >
                         <option value="7">Last 7 days</option>
                         <option value="30">Last 30 days</option>
@@ -132,7 +132,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex gap-2 border-b border-gray-100 pb-3">
+            <div className="flex gap-2 border-b border-[#333] pb-3">
                 {[
                     { id: 'overview', label: 'Overview', icon: BarChart3 },
                     { id: 'analytics', label: 'Analytics', icon: PieChart },
@@ -142,8 +142,8 @@ export default function AdminDashboardPage() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'text-gray-500 hover:bg-gray-50'
+                            ? 'bg-green-500/10 text-green-400'
+                            : 'text-[#888] hover:bg-[#1a1a1a]'
                             }`}
                     >
                         <tab.icon className="h-4 w-4" />
@@ -170,10 +170,10 @@ export default function AdminDashboardPage() {
                                 className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg shadow-green-500/20"
                             >
                                 <div className="flex items-center justify-between mb-3">
-                                    <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <div className="h-10 w-10 bg-[#111]/20 rounded-xl flex items-center justify-center">
                                         <DollarSign className="h-5 w-5" />
                                     </div>
-                                    <span className="text-xs bg-white/20 px-2 py-1 rounded-lg">+12%</span>
+                                    <span className="text-xs bg-[#111]/20 px-2 py-1 rounded-lg">+12%</span>
                                 </div>
                                 <p className="text-2xl font-bold">₹{(stats.transactions.totalSavings * 1.5).toLocaleString()}</p>
                                 <p className="text-sm opacity-80 mt-1">Total Revenue</p>
@@ -185,10 +185,10 @@ export default function AdminDashboardPage() {
                                 className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20"
                             >
                                 <div className="flex items-center justify-between mb-3">
-                                    <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <div className="h-10 w-10 bg-[#111]/20 rounded-xl flex items-center justify-center">
                                         <PiggyBank className="h-5 w-5" />
                                     </div>
-                                    <span className="text-xs bg-white/20 px-2 py-1 rounded-lg">+8%</span>
+                                    <span className="text-xs bg-[#111]/20 px-2 py-1 rounded-lg">+8%</span>
                                 </div>
                                 <p className="text-2xl font-bold">₹{stats.transactions.totalSavings.toLocaleString()}</p>
                                 <p className="text-sm opacity-80 mt-1">Student Savings</p>
@@ -200,10 +200,10 @@ export default function AdminDashboardPage() {
                                 className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-5 text-white shadow-lg shadow-purple-500/20"
                             >
                                 <div className="flex items-center justify-between mb-3">
-                                    <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <div className="h-10 w-10 bg-[#111]/20 rounded-xl flex items-center justify-center">
                                         <Users className="h-5 w-5" />
                                     </div>
-                                    <span className="text-xs bg-white/20 px-2 py-1 rounded-lg">{stats.students.pending} pending</span>
+                                    <span className="text-xs bg-[#111]/20 px-2 py-1 rounded-lg">{stats.students.pending} pending</span>
                                 </div>
                                 <p className="text-2xl font-bold">{stats.students.total.toLocaleString()}</p>
                                 <p className="text-sm opacity-80 mt-1">Total Students</p>
@@ -215,10 +215,10 @@ export default function AdminDashboardPage() {
                                 className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-5 text-white shadow-lg shadow-orange-500/20"
                             >
                                 <div className="flex items-center justify-between mb-3">
-                                    <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <div className="h-10 w-10 bg-[#111]/20 rounded-xl flex items-center justify-center">
                                         <Activity className="h-5 w-5" />
                                     </div>
-                                    <span className="text-xs bg-white/20 px-2 py-1 rounded-lg">{stats.transactions.week} this week</span>
+                                    <span className="text-xs bg-[#111]/20 px-2 py-1 rounded-lg">{stats.transactions.week} this week</span>
                                 </div>
                                 <p className="text-2xl font-bold">{stats.transactions.today}</p>
                                 <p className="text-sm opacity-80 mt-1">Today's Redemptions</p>
@@ -228,68 +228,68 @@ export default function AdminDashboardPage() {
                         {/* Stats Cards */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                             <Link href="/admin/dashboard/students">
-                                <div className="bg-white rounded-xl p-5 border border-gray-100 hover:shadow-lg transition-all cursor-pointer">
+                                <div className="bg-[#111] rounded-xl p-5 border border-[#333] hover:border-[#444] transition-all cursor-pointer">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className="h-10 w-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                                            <UserCheck className="h-5 w-5 text-blue-600" />
+                                        <div className="h-10 w-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                                            <UserCheck className="h-5 w-5 text-blue-400" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-2xl font-bold text-gray-900">{stats.students.verified}</p>
-                                            <p className="text-xs text-gray-500">Verified Students</p>
+                                            <p className="text-2xl font-bold text-white">{stats.students.verified}</p>
+                                            <p className="text-xs text-[#888]">Verified Students</p>
                                         </div>
                                     </div>
-                                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div className="h-1.5 bg-[#222] rounded-full overflow-hidden">
                                         <div className="h-full bg-blue-500 rounded-full" style={{ width: `${stats.students.total > 0 ? (stats.students.verified / stats.students.total) * 100 : 0}%` }} />
                                     </div>
                                 </div>
                             </Link>
 
                             <Link href="/admin/dashboard/merchants">
-                                <div className="bg-white rounded-xl p-5 border border-gray-100 hover:shadow-lg transition-all cursor-pointer">
+                                <div className="bg-[#111] rounded-xl p-5 border border-[#333] hover:border-[#444] transition-all cursor-pointer">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className="h-10 w-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                                            <Store className="h-5 w-5 text-purple-600" />
+                                        <div className="h-10 w-10 bg-purple-500/10 rounded-xl flex items-center justify-center">
+                                            <Store className="h-5 w-5 text-purple-400" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-2xl font-bold text-gray-900">{stats.merchants.approved}</p>
-                                            <p className="text-xs text-gray-500">Active Merchants</p>
+                                            <p className="text-2xl font-bold text-white">{stats.merchants.approved}</p>
+                                            <p className="text-xs text-[#888]">Active Merchants</p>
                                         </div>
                                     </div>
-                                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div className="h-1.5 bg-[#222] rounded-full overflow-hidden">
                                         <div className="h-full bg-purple-500 rounded-full" style={{ width: `${stats.merchants.total > 0 ? (stats.merchants.approved / stats.merchants.total) * 100 : 0}%` }} />
                                     </div>
                                 </div>
                             </Link>
 
                             <Link href="/admin/dashboard/offers">
-                                <div className="bg-white rounded-xl p-5 border border-gray-100 hover:shadow-lg transition-all cursor-pointer">
+                                <div className="bg-[#111] rounded-xl p-5 border border-[#333] hover:border-[#444] transition-all cursor-pointer">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className="h-10 w-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                                            <Tag className="h-5 w-5 text-orange-600" />
+                                        <div className="h-10 w-10 bg-orange-500/10 rounded-xl flex items-center justify-center">
+                                            <Tag className="h-5 w-5 text-orange-400" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-2xl font-bold text-gray-900">{stats.offers.active}</p>
-                                            <p className="text-xs text-gray-500">Active Offers</p>
+                                            <p className="text-2xl font-bold text-white">{stats.offers.active}</p>
+                                            <p className="text-xs text-[#888]">Active Offers</p>
                                         </div>
                                     </div>
-                                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div className="h-1.5 bg-[#222] rounded-full overflow-hidden">
                                         <div className="h-full bg-orange-500 rounded-full" style={{ width: `${stats.offers.total > 0 ? (stats.offers.active / stats.offers.total) * 100 : 0}%` }} />
                                     </div>
                                 </div>
                             </Link>
 
                             <Link href="/admin/dashboard/transactions">
-                                <div className="bg-white rounded-xl p-5 border border-gray-100 hover:shadow-lg transition-all cursor-pointer">
+                                <div className="bg-[#111] rounded-xl p-5 border border-[#333] hover:border-[#444] transition-all cursor-pointer">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className="h-10 w-10 bg-green-100 rounded-xl flex items-center justify-center">
-                                            <Wallet className="h-5 w-5 text-green-600" />
+                                        <div className="h-10 w-10 bg-green-500/10 rounded-xl flex items-center justify-center">
+                                            <Wallet className="h-5 w-5 text-green-400" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-2xl font-bold text-gray-900">{stats.transactions.total}</p>
-                                            <p className="text-xs text-gray-500">Total Transactions</p>
+                                            <p className="text-2xl font-bold text-white">{stats.transactions.total}</p>
+                                            <p className="text-xs text-[#888]">Total Transactions</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1 text-xs text-green-600">
+                                    <div className="flex items-center gap-1 text-xs text-green-400">
                                         <ArrowUpRight className="h-3 w-3" />
                                         {stats.transactions.week} this week
                                     </div>
@@ -300,15 +300,15 @@ export default function AdminDashboardPage() {
                         {/* Pending Approvals & Alerts */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             {/* Pending Approvals */}
-                            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                                <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                            <div className="bg-[#111] rounded-2xl border border-[#333] overflow-hidden">
+                                <div className="p-5 border-b border-[#333] flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 bg-yellow-100 rounded-xl flex items-center justify-center">
                                             <Clock className="h-5 w-5 text-yellow-600" />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900">Pending Approvals</h3>
-                                            <p className="text-xs text-gray-500">{stats.merchants.pending} merchants waiting</p>
+                                            <h3 className="font-bold text-white">Pending Approvals</h3>
+                                            <p className="text-xs text-[#888]">{stats.merchants.pending} merchants waiting</p>
                                         </div>
                                     </div>
                                     <Link href="/admin/dashboard/merchants" className="text-sm text-purple-600 font-semibold hover:underline flex items-center gap-1">
@@ -317,21 +317,21 @@ export default function AdminDashboardPage() {
                                 </div>
 
                                 {pendingMerchants.length > 0 ? (
-                                    <div className="divide-y divide-gray-50">
+                                    <div className="divide-y divide-[#222]">
                                         {pendingMerchants.slice(0, 4).map((merchant) => (
-                                            <div key={merchant.id} className="p-4 hover:bg-gray-50 transition-colors">
+                                            <div key={merchant.id} className="p-4 hover:bg-[#1a1a1a] transition-colors">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="h-10 w-10 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden">
+                                                        <div className="h-10 w-10 bg-[#1a1a1a] rounded-xl flex items-center justify-center overflow-hidden">
                                                             {merchant.logo ? (
                                                                 <img src={merchant.logo} alt="" className="w-full h-full object-cover" />
                                                             ) : (
-                                                                <Store className="h-5 w-5 text-gray-400" />
+                                                                <Store className="h-5 w-5 text-[#666]" />
                                                             )}
                                                         </div>
                                                         <div>
-                                                            <h4 className="font-semibold text-gray-900 text-sm">{merchant.businessName}</h4>
-                                                            <p className="text-xs text-gray-500">{merchant.category} • {merchant.city}</p>
+                                                            <h4 className="font-semibold text-white text-sm">{merchant.businessName}</h4>
+                                                            <p className="text-xs text-[#888]">{merchant.category} • {merchant.city}</p>
                                                         </div>
                                                     </div>
                                                     <Link href={`/admin/dashboard/merchants/${merchant.id}`}>
@@ -348,21 +348,21 @@ export default function AdminDashboardPage() {
                                         <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                                             <Check className="h-6 w-6 text-green-600" />
                                         </div>
-                                        <p className="text-gray-500 text-sm">No pending approvals! 🎉</p>
+                                        <p className="text-[#888] text-sm">No pending approvals! 🎉</p>
                                     </div>
                                 )}
                             </div>
 
                             {/* Alerts & Notifications */}
-                            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                                <div className="p-5 border-b border-gray-100">
+                            <div className="bg-[#111] rounded-2xl border border-[#333] overflow-hidden">
+                                <div className="p-5 border-b border-[#333]">
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 bg-red-100 rounded-xl flex items-center justify-center">
                                             <AlertTriangle className="h-5 w-5 text-red-600" />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900">Alerts</h3>
-                                            <p className="text-xs text-gray-500">Items requiring attention</p>
+                                            <h3 className="font-bold text-white">Alerts</h3>
+                                            <p className="text-xs text-[#888]">Items requiring attention</p>
                                         </div>
                                     </div>
                                 </div>
@@ -373,8 +373,8 @@ export default function AdminDashboardPage() {
                                                 <Clock className="h-4 w-4 text-yellow-600" />
                                             </div>
                                             <div className="flex-1">
-                                                <p className="text-sm font-medium text-gray-900">{stats.merchants.pending} merchants pending approval</p>
-                                                <p className="text-xs text-gray-500">Review and approve to activate</p>
+                                                <p className="text-sm font-medium text-white">{stats.merchants.pending} merchants pending approval</p>
+                                                <p className="text-xs text-[#888]">Review and approve to activate</p>
                                             </div>
                                         </div>
                                     )}
@@ -384,8 +384,8 @@ export default function AdminDashboardPage() {
                                                 <Users className="h-4 w-4 text-blue-600" />
                                             </div>
                                             <div className="flex-1">
-                                                <p className="text-sm font-medium text-gray-900">{stats.students.pending} students pending</p>
-                                                <p className="text-xs text-gray-500">Awaiting verification</p>
+                                                <p className="text-sm font-medium text-white">{stats.students.pending} students pending</p>
+                                                <p className="text-xs text-[#888]">Awaiting verification</p>
                                             </div>
                                         </div>
                                     )}
@@ -395,15 +395,15 @@ export default function AdminDashboardPage() {
                                                 <AlertTriangle className="h-4 w-4 text-red-600" />
                                             </div>
                                             <div className="flex-1">
-                                                <p className="text-sm font-medium text-gray-900">{stats.students.suspended} suspended students</p>
-                                                <p className="text-xs text-gray-500">Account access blocked</p>
+                                                <p className="text-sm font-medium text-white">{stats.students.suspended} suspended students</p>
+                                                <p className="text-xs text-[#888]">Account access blocked</p>
                                             </div>
                                         </div>
                                     )}
                                     {stats.merchants.pending === 0 && stats.students.pending === 0 && stats.students.suspended === 0 && (
                                         <div className="text-center py-6">
                                             <Check className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                                            <p className="text-sm text-gray-500">All clear! No alerts.</p>
+                                            <p className="text-sm text-[#888]">All clear! No alerts.</p>
                                         </div>
                                     )}
                                 </div>
@@ -461,15 +461,15 @@ export default function AdminDashboardPage() {
                         className="space-y-6"
                     >
                         {/* City Distribution */}
-                        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                            <div className="p-5 border-b border-gray-100">
+                        <div className="bg-[#111] rounded-2xl border border-[#333] overflow-hidden">
+                            <div className="p-5 border-b border-[#333]">
                                 <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 bg-indigo-100 rounded-xl flex items-center justify-center">
                                         <MapPin className="h-5 w-5 text-indigo-600" />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-900">City Distribution</h3>
-                                        <p className="text-xs text-gray-500">Students and merchants by city</p>
+                                        <h3 className="font-bold text-white">City Distribution</h3>
+                                        <p className="text-xs text-[#888]">Students and merchants by city</p>
                                     </div>
                                 </div>
                             </div>
@@ -478,11 +478,11 @@ export default function AdminDashboardPage() {
                                     <div className="space-y-4">
                                         {cityDistribution.slice(0, 8).map((city, index) => (
                                             <div key={city.city} className="flex items-center gap-4">
-                                                <span className="text-sm font-medium text-gray-500 w-6">{index + 1}</span>
+                                                <span className="text-sm font-medium text-[#888] w-6">{index + 1}</span>
                                                 <div className="flex-1">
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <span className="font-semibold text-gray-900">{city.city || 'Unknown'}</span>
-                                                        <span className="text-sm text-gray-500">
+                                                        <span className="font-semibold text-white">{city.city || 'Unknown'}</span>
+                                                        <span className="text-sm text-[#888]">
                                                             {city.studentsCount} students • {city.merchantsCount} merchants
                                                         </span>
                                                     </div>
@@ -501,21 +501,21 @@ export default function AdminDashboardPage() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-center text-gray-500 py-8">No city data available</p>
+                                    <p className="text-center text-[#888] py-8">No city data available</p>
                                 )}
                             </div>
                         </div>
 
                         {/* Category Performance */}
-                        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                            <div className="p-5 border-b border-gray-100">
+                        <div className="bg-[#111] rounded-2xl border border-[#333] overflow-hidden">
+                            <div className="p-5 border-b border-[#333]">
                                 <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 bg-orange-100 rounded-xl flex items-center justify-center">
                                         <PieChart className="h-5 w-5 text-orange-600" />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-900">Category Performance</h3>
-                                        <p className="text-xs text-gray-500">Merchants and transactions by category</p>
+                                        <h3 className="font-bold text-white">Category Performance</h3>
+                                        <p className="text-xs text-[#888]">Merchants and transactions by category</p>
                                     </div>
                                 </div>
                             </div>
@@ -523,24 +523,24 @@ export default function AdminDashboardPage() {
                                 {categoryPerformance.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         {categoryPerformance.map((cat) => (
-                                            <div key={cat.category} className="bg-gray-50 rounded-xl p-4">
+                                            <div key={cat.category} className="bg-[#1a1a1a] rounded-xl p-4">
                                                 <div className="flex items-center justify-between mb-2">
-                                                    <span className="font-semibold text-gray-900">{cat.category}</span>
-                                                    <span className="text-xs bg-white px-2 py-1 rounded-lg text-gray-500">
+                                                    <span className="font-semibold text-white">{cat.category}</span>
+                                                    <span className="text-xs bg-[#111] px-2 py-1 rounded-lg text-[#888]">
                                                         {cat.merchantsCount} merchants
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-4 text-sm">
                                                     <div>
-                                                        <p className="text-gray-500">Offers</p>
-                                                        <p className="font-bold text-gray-900">{cat.offersCount}</p>
+                                                        <p className="text-[#888]">Offers</p>
+                                                        <p className="font-bold text-white">{cat.offersCount}</p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-gray-500">Transactions</p>
-                                                        <p className="font-bold text-gray-900">{cat.transactionsCount}</p>
+                                                        <p className="text-[#888]">Transactions</p>
+                                                        <p className="font-bold text-white">{cat.transactionsCount}</p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-gray-500">Revenue</p>
+                                                        <p className="text-[#888]">Revenue</p>
                                                         <p className="font-bold text-green-600">₹{cat.revenue.toLocaleString()}</p>
                                                     </div>
                                                 </div>
@@ -548,7 +548,7 @@ export default function AdminDashboardPage() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-center text-gray-500 py-8">No category data available</p>
+                                    <p className="text-center text-[#888] py-8">No category data available</p>
                                 )}
                             </div>
                         </div>
@@ -589,15 +589,15 @@ export default function AdminDashboardPage() {
                         className="space-y-6"
                     >
                         {/* Top Performing Merchants */}
-                        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                        <div className="bg-[#111] rounded-2xl border border-[#333] overflow-hidden">
+                            <div className="p-5 border-b border-[#333] flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 bg-yellow-100 rounded-xl flex items-center justify-center">
                                         <Award className="h-5 w-5 text-yellow-600" />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-900">Top Performing Merchants</h3>
-                                        <p className="text-xs text-gray-500">Ranked by transaction volume</p>
+                                        <h3 className="font-bold text-white">Top Performing Merchants</h3>
+                                        <p className="text-xs text-[#888]">Ranked by transaction volume</p>
                                     </div>
                                 </div>
                                 <Link href="/admin/dashboard/merchants" className="text-sm text-purple-600 font-semibold hover:underline flex items-center gap-1">
@@ -606,37 +606,37 @@ export default function AdminDashboardPage() {
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full">
-                                    <thead className="bg-gray-50">
+                                    <thead className="bg-[#1a1a1a]">
                                         <tr>
-                                            <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Rank</th>
-                                            <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Merchant</th>
-                                            <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">City</th>
-                                            <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Category</th>
-                                            <th className="text-right text-xs font-semibold text-gray-500 px-5 py-3">Transactions</th>
-                                            <th className="text-right text-xs font-semibold text-gray-500 px-5 py-3">Revenue</th>
-                                            <th className="text-right text-xs font-semibold text-gray-500 px-5 py-3">Rating</th>
+                                            <th className="text-left text-xs font-semibold text-[#888] px-5 py-3">Rank</th>
+                                            <th className="text-left text-xs font-semibold text-[#888] px-5 py-3">Merchant</th>
+                                            <th className="text-left text-xs font-semibold text-[#888] px-5 py-3">City</th>
+                                            <th className="text-left text-xs font-semibold text-[#888] px-5 py-3">Category</th>
+                                            <th className="text-right text-xs font-semibold text-[#888] px-5 py-3">Transactions</th>
+                                            <th className="text-right text-xs font-semibold text-[#888] px-5 py-3">Revenue</th>
+                                            <th className="text-right text-xs font-semibold text-[#888] px-5 py-3">Rating</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-50">
+                                    <tbody className="divide-y divide-[#222]">
                                         {topMerchants.map((merchant, index) => (
-                                            <tr key={merchant.merchantId} className="hover:bg-gray-50 transition-colors">
+                                            <tr key={merchant.merchantId} className="hover:bg-[#1a1a1a] transition-colors">
                                                 <td className="px-5 py-4">
                                                     <span className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700' :
-                                                        index === 1 ? 'bg-gray-100 text-gray-600' :
+                                                        index === 1 ? 'bg-[#1a1a1a] text-[#aaa]' :
                                                             index === 2 ? 'bg-orange-100 text-orange-700' :
-                                                                'bg-gray-50 text-gray-500'
+                                                                'bg-[#1a1a1a] text-[#888]'
                                                         }`}>
                                                         {index + 1}
                                                     </span>
                                                 </td>
                                                 <td className="px-5 py-4">
-                                                    <span className="font-semibold text-gray-900">{merchant.businessName}</span>
+                                                    <span className="font-semibold text-white">{merchant.businessName}</span>
                                                 </td>
-                                                <td className="px-5 py-4 text-gray-500 text-sm">{merchant.city}</td>
+                                                <td className="px-5 py-4 text-[#888] text-sm">{merchant.city}</td>
                                                 <td className="px-5 py-4">
-                                                    <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600">{merchant.category}</span>
+                                                    <span className="text-xs bg-[#1a1a1a] px-2 py-1 rounded-lg text-[#aaa]">{merchant.category}</span>
                                                 </td>
-                                                <td className="px-5 py-4 text-right font-semibold text-gray-900">{merchant.transactionCount}</td>
+                                                <td className="px-5 py-4 text-right font-semibold text-white">{merchant.transactionCount}</td>
                                                 <td className="px-5 py-4 text-right font-semibold text-green-600">₹{merchant.revenue.toLocaleString()}</td>
                                                 <td className="px-5 py-4 text-right">
                                                     <span className="flex items-center justify-end gap-1 text-sm">
@@ -649,7 +649,7 @@ export default function AdminDashboardPage() {
                                     </tbody>
                                 </table>
                                 {topMerchants.length === 0 && (
-                                    <div className="text-center py-12 text-gray-500">
+                                    <div className="text-center py-12 text-[#888]">
                                         No merchant data available yet
                                     </div>
                                 )}
@@ -658,20 +658,20 @@ export default function AdminDashboardPage() {
 
                         {/* Merchant Stats Grid */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="bg-white rounded-xl p-5 border border-gray-100">
-                                <p className="text-sm text-gray-500 mb-1">Total Merchants</p>
-                                <p className="text-3xl font-bold text-gray-900">{stats.merchants.total}</p>
+                            <div className="bg-[#111] rounded-xl p-5 border border-[#333]">
+                                <p className="text-sm text-[#888] mb-1">Total Merchants</p>
+                                <p className="text-3xl font-bold text-white">{stats.merchants.total}</p>
                             </div>
-                            <div className="bg-white rounded-xl p-5 border border-gray-100">
-                                <p className="text-sm text-gray-500 mb-1">Approved</p>
+                            <div className="bg-[#111] rounded-xl p-5 border border-[#333]">
+                                <p className="text-sm text-[#888] mb-1">Approved</p>
                                 <p className="text-3xl font-bold text-green-600">{stats.merchants.approved}</p>
                             </div>
-                            <div className="bg-white rounded-xl p-5 border border-gray-100">
-                                <p className="text-sm text-gray-500 mb-1">Pending</p>
+                            <div className="bg-[#111] rounded-xl p-5 border border-[#333]">
+                                <p className="text-sm text-[#888] mb-1">Pending</p>
                                 <p className="text-3xl font-bold text-yellow-600">{stats.merchants.pending}</p>
                             </div>
-                            <div className="bg-white rounded-xl p-5 border border-gray-100">
-                                <p className="text-sm text-gray-500 mb-1">Rejected</p>
+                            <div className="bg-[#111] rounded-xl p-5 border border-[#333]">
+                                <p className="text-sm text-[#888] mb-1">Rejected</p>
                                 <p className="text-3xl font-bold text-red-600">{stats.merchants.rejected}</p>
                             </div>
                         </div>

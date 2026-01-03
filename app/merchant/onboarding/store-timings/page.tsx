@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Clock, QrCode, Upload, X, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, QrCode, Upload, X, Loader2, Check } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -86,7 +86,6 @@ export default function StoreTimingsPage() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Preview
         const reader = new FileReader();
         reader.onload = (e) => {
             setPaymentQr({ url: e.target?.result as string, file });
@@ -123,7 +122,6 @@ export default function StoreTimingsPage() {
     const handleShowConfirmation = async () => {
         setError(null);
 
-        // Get all onboarding data for validation
         const businessData = JSON.parse(localStorage.getItem('merchant_business') || '{}');
         const locationData = JSON.parse(localStorage.getItem('merchant_location') || '{}');
 
@@ -139,11 +137,9 @@ export default function StoreTimingsPage() {
             return;
         }
 
-        // Save operating hours to business data before showing confirmation
         businessData.operatingHours = operatingHours;
         localStorage.setItem('merchant_business', JSON.stringify(businessData));
 
-        // All validations passed - show confirmation modal
         setAgreedToTerms(false);
         setShowConfirmation(true);
     };
@@ -160,25 +156,21 @@ export default function StoreTimingsPage() {
         setShowConfirmation(false);
 
         try {
-            // Upload QR if present
             let qrUrl = null;
             if (paymentQr?.file) {
                 qrUrl = await uploadQrToStorage(paymentQr.file);
             }
 
-            // Get all onboarding data
             const businessData = JSON.parse(localStorage.getItem('merchant_business') || '{}');
             const locationData = JSON.parse(localStorage.getItem('merchant_location') || '{}');
             const documentsData = JSON.parse(localStorage.getItem('merchant_documents') || '{}');
             const mapsData = JSON.parse(localStorage.getItem('merchant_maps') || '{}');
 
-            // Save QR to documents data
             if (qrUrl) {
                 documentsData.paymentQr = { url: qrUrl };
                 localStorage.setItem('merchant_documents', JSON.stringify(documentsData));
             }
 
-            // Import auth service and complete onboarding
             const { authService } = await import('@/lib/services/auth.service');
 
             const result = await authService.completeMerchantOnboarding({
@@ -207,7 +199,6 @@ export default function StoreTimingsPage() {
             });
 
             if (result.success) {
-                // Clear onboarding data
                 localStorage.removeItem('merchant_business');
                 localStorage.removeItem('merchant_location');
                 localStorage.removeItem('merchant_documents');
@@ -216,7 +207,6 @@ export default function StoreTimingsPage() {
                 localStorage.removeItem('merchant_first_offer');
                 localStorage.removeItem('merchant_maps');
 
-                // Redirect to pending page (waiting for admin approval)
                 router.push('/merchant/onboarding/pending');
             } else {
                 console.error('Merchant onboarding error:', result.error);
@@ -232,86 +222,91 @@ export default function StoreTimingsPage() {
         }
     };
 
+    const timeInputClass = "h-11 px-3 bg-[#111] border border-[#333] rounded-xl text-white text-sm font-medium outline-none focus:border-green-500/50 [color-scheme:dark]";
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary/5 via-white to-emerald-50/30">
+        <div className="min-h-screen bg-black">
             {/* Header */}
-            <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100/50">
-                <div className="px-5 h-16 flex items-center gap-4">
+            <header className="sticky top-0 z-50 bg-black/95 backdrop-blur-xl border-b border-[#222]">
+                <div className="px-5 py-4 flex items-center gap-4">
                     <Link href="/merchant/onboarding/documents">
                         <motion.button
-                            whileTap={{ scale: 0.92 }}
-                            className="h-11 w-11 rounded-full bg-gray-50 flex items-center justify-center shadow-sm"
+                            whileTap={{ scale: 0.95 }}
+                            className="h-10 w-10 rounded-full bg-[#1a1a1a] border border-[#333] flex items-center justify-center hover:bg-[#222] transition-colors"
                         >
-                            <ArrowLeft className="h-5 w-5 text-gray-700" />
+                            <ArrowLeft className="h-5 w-5 text-white" />
                         </motion.button>
                     </Link>
                     <div className="flex-1">
-                        <h1 className="font-bold text-[17px] text-gray-900 tracking-tight">Store Timings</h1>
-                        <p className="text-[11px] text-gray-400 font-medium">Step 3 of 3 • Final Step!</p>
+                        <h1 className="text-lg font-bold text-white">Store Timings</h1>
+                        <p className="text-xs text-[#666]">Step 3 of 3 • Final Step!</p>
                     </div>
                 </div>
 
-                {/* Progress */}
+                {/* Progress Bar */}
                 <div className="px-5 pb-4 flex gap-2">
-                    {[1, 2, 3].map(s => (
-                        <div
-                            key={s}
-                            className="h-1.5 flex-1 rounded-full bg-primary"
-                        />
-                    ))}
+                    <div className="h-1 flex-1 bg-green-500 rounded-full" />
+                    <div className="h-1 flex-1 bg-green-500 rounded-full" />
+                    <div className="h-1 flex-1 bg-green-500 rounded-full" />
                 </div>
             </header>
 
             {/* Error Banner */}
             {error && (
-                <div className="mx-5 mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                    <p className="text-red-600 text-sm font-medium">{error}</p>
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mx-5 mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl"
+                >
+                    <p className="text-red-400 text-sm font-medium">{error}</p>
                     <button
                         onClick={() => setError(null)}
-                        className="text-red-500 text-xs mt-1 underline"
+                        className="text-red-400/60 text-xs mt-1 underline hover:text-red-400"
                     >
                         Dismiss
                     </button>
-                </div>
+                </motion.div>
             )}
 
-            <main className="px-5 pt-6 pb-32 space-y-6">
+            <main className="px-5 pt-6 pb-32 space-y-8">
                 {/* Store Hours Section */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-primary" />
-                        <h2 className="font-bold text-gray-900">Operating Hours</h2>
+                <section className="space-y-5">
+                    <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                            <Clock className="h-4 w-4 text-green-400" />
+                        </div>
+                        <span className="text-sm font-semibold text-white">Operating Hours</span>
                     </div>
 
                     {/* Same for all days toggle */}
-                    <div className="bg-gray-50 rounded-2xl p-4">
+                    <div className="bg-[#111] border border-[#333] rounded-2xl p-5">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="font-semibold text-sm text-gray-900">Same for all days?</p>
-                                <p className="text-xs text-gray-500 mt-0.5">Quick setup with one timing</p>
+                                <p className="font-semibold text-sm text-white">Same for all days?</p>
+                                <p className="text-xs text-[#666] mt-0.5">Quick setup with one timing</p>
                             </div>
                             <button
                                 onClick={() => setSameForAllDays(!sameForAllDays)}
-                                className={`h-7 w-12 rounded-full transition-colors ${sameForAllDays ? 'bg-primary' : 'bg-gray-300'}`}
+                                className={`h-7 w-12 rounded-full transition-colors ${sameForAllDays ? 'bg-green-500' : 'bg-[#333]'}`}
                             >
                                 <div className={`h-5 w-5 bg-white rounded-full shadow transition-transform ${sameForAllDays ? 'translate-x-6' : 'translate-x-1'}`} />
                             </button>
                         </div>
 
                         {sameForAllDays && (
-                            <div className="mt-4 flex items-center gap-3 bg-white rounded-xl p-3">
+                            <div className="mt-5 flex items-center gap-3">
                                 <input
                                     type="time"
                                     value={commonHours.open}
                                     onChange={(e) => setCommonHours({ ...commonHours, open: e.target.value })}
-                                    className="flex-1 h-11 px-3 border border-gray-200 rounded-xl text-sm font-medium"
+                                    className={`flex-1 ${timeInputClass}`}
                                 />
-                                <span className="text-gray-400 font-medium">to</span>
+                                <span className="text-[#555] font-medium">to</span>
                                 <input
                                     type="time"
                                     value={commonHours.close}
                                     onChange={(e) => setCommonHours({ ...commonHours, close: e.target.value })}
-                                    className="flex-1 h-11 px-3 border border-gray-200 rounded-xl text-sm font-medium"
+                                    className={`flex-1 ${timeInputClass}`}
                                 />
                             </div>
                         )}
@@ -319,27 +314,27 @@ export default function StoreTimingsPage() {
 
                     {/* Day-by-day timings (only shown if not same for all) */}
                     {!sameForAllDays && (
-                        <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
+                        <div className="bg-[#111] border border-[#333] rounded-2xl divide-y divide-[#222]">
                             {DAYS.map((day) => (
                                 <div key={day.id} className="p-4 flex items-center gap-3">
-                                    <span className="w-10 text-sm font-semibold text-gray-700">{day.label}</span>
+                                    <span className="w-10 text-sm font-semibold text-white">{day.label}</span>
 
                                     {operatingHours[day.id].closed ? (
-                                        <span className="flex-1 text-sm text-gray-400 italic">Closed</span>
+                                        <span className="flex-1 text-sm text-[#555] italic">Closed</span>
                                     ) : (
                                         <div className="flex-1 flex items-center gap-2">
                                             <input
                                                 type="time"
                                                 value={operatingHours[day.id].open}
                                                 onChange={(e) => updateTime(day.id, 'open', e.target.value)}
-                                                className="h-10 px-3 border border-gray-200 rounded-xl text-sm bg-gray-50"
+                                                className={timeInputClass}
                                             />
-                                            <span className="text-gray-400">to</span>
+                                            <span className="text-[#555]">to</span>
                                             <input
                                                 type="time"
                                                 value={operatingHours[day.id].close}
                                                 onChange={(e) => updateTime(day.id, 'close', e.target.value)}
-                                                className="h-10 px-3 border border-gray-200 rounded-xl text-sm bg-gray-50"
+                                                className={timeInputClass}
                                             />
                                         </div>
                                     )}
@@ -347,8 +342,8 @@ export default function StoreTimingsPage() {
                                     <button
                                         onClick={() => toggleDayClosed(day.id)}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${operatingHours[day.id].closed
-                                            ? 'bg-gray-100 text-gray-500'
-                                            : 'bg-red-50 text-red-500'
+                                            ? 'bg-green-500/10 text-green-400'
+                                            : 'bg-red-500/10 text-red-400'
                                             }`}
                                     >
                                         {operatingHours[day.id].closed ? 'Open' : 'Close'}
@@ -357,43 +352,50 @@ export default function StoreTimingsPage() {
                             ))}
                         </div>
                     )}
-                </div>
+                </section>
 
                 {/* Payment QR Section (Optional) */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <QrCode className="h-5 w-5 text-primary" />
-                        <h2 className="font-bold text-gray-900">Payment QR Code</h2>
-                        <span className="text-xs text-gray-400 font-medium bg-gray-100 px-2 py-0.5 rounded">Optional</span>
+                <section className="space-y-5">
+                    <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                            <QrCode className="h-4 w-4 text-purple-400" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-white">Payment QR Code</span>
+                            <span className="text-[10px] text-[#555] font-medium bg-[#1a1a1a] px-2 py-0.5 rounded">Optional</span>
+                        </div>
                     </div>
 
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-[#666]">
                         Upload your UPI/Google Pay/PhonePe QR code. This will be shown to students after offer redemption.
                     </p>
 
                     {paymentQr?.url ? (
-                        <div className="relative bg-white rounded-2xl border-2 border-primary/20 p-6 flex flex-col items-center">
+                        <div className="relative bg-[#111] rounded-2xl border border-green-500/30 p-6 flex flex-col items-center">
                             <img
                                 src={paymentQr.url}
                                 alt="Payment QR"
-                                className="w-48 h-48 object-contain rounded-xl"
+                                className="w-48 h-48 object-contain rounded-xl bg-white p-2"
                             />
                             <button
                                 onClick={() => setPaymentQr(null)}
-                                className="absolute top-3 right-3 h-8 w-8 bg-red-50 rounded-full flex items-center justify-center"
+                                className="absolute top-3 right-3 h-8 w-8 bg-red-500/10 rounded-full flex items-center justify-center hover:bg-red-500/20 transition-colors"
                             >
-                                <X className="h-4 w-4 text-red-500" />
+                                <X className="h-4 w-4 text-red-400" />
                             </button>
-                            <p className="text-xs text-gray-500 mt-3">QR code uploaded successfully</p>
+                            <p className="text-xs text-green-400 mt-4 flex items-center gap-1">
+                                <Check className="h-3.5 w-3.5" />
+                                QR code uploaded successfully
+                            </p>
                         </div>
                     ) : (
                         <label className="block cursor-pointer">
-                            <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-8 flex flex-col items-center gap-3 hover:border-primary/30 transition-colors">
-                                <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center">
-                                    <Upload className="h-6 w-6 text-primary" />
+                            <div className="bg-[#111] rounded-2xl border-2 border-dashed border-[#333] p-8 flex flex-col items-center gap-3 hover:border-green-500/40 transition-colors">
+                                <div className="h-14 w-14 bg-green-500/10 rounded-2xl flex items-center justify-center">
+                                    <Upload className="h-6 w-6 text-green-400" />
                                 </div>
-                                <p className="text-sm font-medium text-gray-700">Upload QR Code Image</p>
-                                <p className="text-xs text-gray-400">PNG, JPG up to 2MB</p>
+                                <p className="text-sm font-medium text-white">Upload QR Code Image</p>
+                                <p className="text-xs text-[#555]">PNG, JPG up to 2MB</p>
                             </div>
                             <input
                                 type="file"
@@ -403,68 +405,67 @@ export default function StoreTimingsPage() {
                             />
                         </label>
                     )}
-                </div>
+                </section>
             </main>
 
-            {/* Bottom CTA */}
-            <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/95 backdrop-blur-xl border-t border-gray-100">
-                <Button
+            {/* Fixed Bottom CTA */}
+            <div className="fixed bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black via-black to-transparent">
+                <motion.button
+                    whileTap={{ scale: 0.98 }}
                     onClick={handleShowConfirmation}
                     disabled={uploading}
-                    className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-semibold rounded-2xl shadow-lg shadow-primary/30"
+                    className="w-full h-14 bg-green-500 hover:bg-green-400 disabled:bg-[#333] disabled:text-[#666] text-black font-bold rounded-2xl text-base flex items-center justify-center gap-2 transition-all shadow-lg shadow-green-500/20 disabled:shadow-none"
                 >
                     {uploading ? (
                         <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            <Loader2 className="h-5 w-5 animate-spin" />
                             Creating Your Account...
                         </>
                     ) : (
                         <>
                             Complete Registration
-                            <ArrowRight className="ml-2 h-5 w-5" />
+                            <ArrowRight className="h-5 w-5" />
                         </>
                     )}
-                </Button>
-                <p className="text-center text-xs text-gray-400 mt-2">
+                </motion.button>
+                <p className="text-center text-xs text-[#555] mt-3">
                     You can update these later in settings
                 </p>
             </div>
 
             {/* Confirmation Modal with Terms & Conditions */}
             {showConfirmation && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-5">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-5">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl"
+                        className="bg-[#111] border border-[#333] rounded-3xl p-6 max-w-md w-full"
                     >
                         {/* Header */}
                         <div className="text-center mb-6">
-                            <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                            <div className="h-16 w-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Check className="h-8 w-8 text-green-400" />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-900">Submit Application</h2>
-                            <p className="text-sm text-gray-500 mt-2">You're about to submit your merchant application for review</p>
+                            <h2 className="text-xl font-bold text-white">Submit Application</h2>
+                            <p className="text-sm text-[#888] mt-2">You're about to submit your merchant application for review</p>
                         </div>
 
                         {/* Terms & Conditions */}
-                        <div className="bg-gray-50 rounded-2xl p-4 mb-6">
+                        <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-4 mb-6">
                             <label className="flex gap-3 cursor-pointer">
                                 <input
                                     type="checkbox"
                                     checked={agreedToTerms}
                                     onChange={(e) => setAgreedToTerms(e.target.checked)}
-                                    className="h-5 w-5 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
+                                    className="h-5 w-5 mt-0.5 rounded border-[#555] bg-[#222] text-green-500 focus:ring-green-500 accent-green-500"
                                 />
-                                <span className="text-sm text-gray-700">
+                                <span className="text-sm text-[#888]">
                                     I agree to the{' '}
-                                    <a href="/terms" target="_blank" className="text-primary font-semibold underline">
+                                    <a href="/terms" target="_blank" className="text-green-400 font-semibold underline">
                                         Terms of Service
                                     </a>{' '}
                                     and{' '}
-                                    <a href="/privacy" target="_blank" className="text-primary font-semibold underline">
+                                    <a href="/privacy" target="_blank" className="text-green-400 font-semibold underline">
                                         Privacy Policy
                                     </a>
                                     . I consent to share my business information with Backbenchers for verification purposes.
@@ -474,28 +475,29 @@ export default function StoreTimingsPage() {
 
                         {/* Error */}
                         {error && (
-                            <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+                            <p className="text-red-400 text-sm text-center mb-4">{error}</p>
                         )}
 
                         {/* Actions */}
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowConfirmation(false)}
-                                className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-700 font-semibold"
+                                className="flex-1 h-12 rounded-xl border border-[#333] text-white font-semibold hover:bg-[#1a1a1a] transition-colors"
                             >
                                 Cancel
                             </button>
-                            <Button
+                            <motion.button
+                                whileTap={{ scale: 0.98 }}
                                 onClick={handleConfirmSubmit}
                                 disabled={!agreedToTerms || uploading}
-                                className="flex-1 h-12 bg-primary text-white font-semibold rounded-xl disabled:opacity-50"
+                                className="flex-1 h-12 bg-green-500 hover:bg-green-400 disabled:bg-[#333] disabled:text-[#666] text-black font-bold rounded-xl transition-all"
                             >
                                 {uploading ? (
-                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                                 ) : (
                                     'Confirm & Submit'
                                 )}
-                            </Button>
+                            </motion.button>
                         </div>
                     </motion.div>
                 </div>
