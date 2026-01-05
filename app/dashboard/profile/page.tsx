@@ -66,17 +66,22 @@ export default function ProfilePage() {
                         setTransactions(txResult.data);
                     }
 
-                    // Subscribe to savings updates -> Refetch transactions to keep everything in sync
+                    // Subscribe to savings updates -> Auto-refresh with spinning animation!
                     const studentId = profileResult.data.id;
                     transactionService.subscribeToStudentSavings(studentId, () => {
+                        // 🔄 Start spinning animation automatically!
+                        setIsRefreshing(true);
+
                         transactionService.getStudentTransactions(studentId).then(res => {
                             if (res.success && res.data) {
                                 setTransactions(res.data);
-                                // Also update user profile to get latest total if needed, though we calc from tx now
+                                // Also update user profile to get latest total if needed
                                 studentService.getMyProfile().then(p => {
                                     if (p.success && p.data) setStudent(p.data);
                                 });
                             }
+                            // Stop spinning after data loaded (with slight delay for visual feedback)
+                            setTimeout(() => setIsRefreshing(false), 800);
                         });
                     });
                 } else {
