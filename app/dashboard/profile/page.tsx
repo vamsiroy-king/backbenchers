@@ -576,20 +576,15 @@ export default function ProfilePage() {
                         {/* Card Content */}
                         <div className="relative h-full p-5 flex flex-col">
 
-                            {/* Header Row */}
+                            {/* Header Row - Just BACKBENCHERS logo */}
                             <div className="flex items-center justify-between mb-auto">
-                                <div className="flex items-center gap-2">
-                                    <div className="h-6 w-6 rounded-md bg-white flex items-center justify-center">
-                                        <span className="text-black font-bold text-[10px]">B</span>
+                                <span className="text-sm text-white font-bold italic tracking-tight">BACKBENCHERS</span>
+                                {/* PRO badge or empty for minimal look */}
+                                {hasProfileImage && (
+                                    <div className="px-2 py-0.5 border border-green-500 rounded text-[9px] text-green-400 font-bold">
+                                        PRO
                                     </div>
-                                    <span className="text-sm text-white font-bold italic tracking-tight">BACKBENCHERS</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <div className="h-4 w-4 rounded-full bg-green-500 flex items-center justify-center">
-                                        <Check className="h-2.5 w-2.5 text-white" />
-                                    </div>
-                                    <span className="text-[9px] text-green-400 font-medium">VERIFIED</span>
-                                </div>
+                                )}
                             </div>
 
                             {/* Main Content - Photo + Info */}
@@ -615,11 +610,19 @@ export default function ProfilePage() {
                                     )}
                                 </motion.div>
 
-                                {/* Name & College */}
+                                {/* Name & College + Verified Badge */}
                                 <div className="flex-1 min-w-0 pt-1">
-                                    <h2 className="text-base font-semibold text-white truncate leading-tight">
-                                        {student?.name || 'Loading...'}
-                                    </h2>
+                                    <div className="flex items-center gap-1.5">
+                                        <h2 className="text-base font-semibold text-white truncate leading-tight">
+                                            {student?.name || 'Loading...'}
+                                        </h2>
+                                        {/* Verified checkmark beside name */}
+                                        {hasProfileImage && (
+                                            <div className="h-4 w-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                                                <Check className="h-2.5 w-2.5 text-white" />
+                                            </div>
+                                        )}
+                                    </div>
                                     <p className="text-[11px] text-white/50 truncate mt-0.5">
                                         {student?.college || 'College'}
                                     </p>
@@ -688,12 +691,9 @@ export default function ProfilePage() {
                             )}
                         </div>
 
-                        {/* Bottom Branding */}
-                        <div className="absolute bottom-3 left-0 right-0 flex justify-center items-center gap-1.5">
-                            <div className="h-4 w-4 rounded-md bg-black flex items-center justify-center">
-                                <span className="text-[8px] font-bold text-white">B</span>
-                            </div>
-                            <span className="text-[10px] text-gray-300 font-medium tracking-wider">backbenchers.in</span>
+                        {/* Bottom Branding - Clean */}
+                        <div className="absolute bottom-3 left-0 right-0 flex justify-center">
+                            <span className="text-[10px] text-gray-400 font-medium italic">backbenchers.in</span>
                         </div>
                     </div>
                 </motion.div>

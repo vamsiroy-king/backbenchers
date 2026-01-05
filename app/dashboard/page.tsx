@@ -624,11 +624,8 @@ export default function DashboardPage() {
             {/* Header - Minimal Premium */}
             <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-xl">
                 <div className="px-5 h-14 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
-                            <span className="text-black font-bold text-sm">B</span>
-                        </div>
-                        <span className="font-semibold text-lg text-white tracking-tight">Backbenchers</span>
+                    <div className="flex items-center">
+                        <span className="font-bold text-lg text-white italic tracking-tight">BACKBENCHERS</span>
                     </div>
                     <div className="flex items-center gap-2">
                         {/* City Selector */}
