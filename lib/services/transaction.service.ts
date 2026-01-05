@@ -276,9 +276,10 @@ export const transactionService = {
         });
     },
 
-    // Subscribe to student's savings updates
+    // Subscribe to student's savings updates (watches both student updates AND new transactions)
     subscribeToStudentSavings(studentId: string, callback: (savings: number) => void) {
-        return supabase
+        // Create a channel that watches for updates to this student's data
+        const channel = supabase
             .channel(`student-${studentId}-savings`)
             .on(
                 'postgres_changes',
@@ -289,11 +290,29 @@ export const transactionService = {
                     filter: `id=eq.${studentId}`
                 },
                 (payload) => {
+                    console.log('[RealTime] Student savings updated:', payload);
                     if (payload.new && payload.new.total_savings !== undefined) {
                         callback(Number(payload.new.total_savings));
                     }
                 }
             )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'transactions',
+                    filter: `student_id=eq.${studentId}`
+                },
+                (payload) => {
+                    console.log('[RealTime] 🔥 New transaction for student:', payload);
+                    // Trigger callback with 0 to signal a refresh is needed
+                    // The actual savings will be fetched by the component
+                    callback(0);
+                }
+            )
             .subscribe();
+
+        return channel;
     }
 };

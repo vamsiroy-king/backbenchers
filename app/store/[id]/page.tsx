@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, MapPin, Phone, Navigation, Bookmark, ChevronRight, Share2, Tag, Star, X, Clock, Camera, Store } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Navigation, Heart, ChevronRight, Share2, Tag, Star, X, Clock, Camera, Store } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -225,7 +225,7 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                             </Link>
                             <div className="flex gap-2">
                                 <motion.button whileTap={{ scale: 0.9 }} onClick={handleSave} className="h-10 w-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
-                                    <Bookmark className={`h-5 w-5 ${isFavorite ? 'fill-white text-white' : 'text-white'}`} />
+                                    <Heart className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-white'}`} />
                                 </motion.button>
                                 <motion.button whileTap={{ scale: 0.9 }} onClick={handleShare} className="h-10 w-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
                                     <Share2 className="h-5 w-5 text-white" />
@@ -279,7 +279,7 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                         </div>
                                     )}
                                 </div>
-                                <p className="text-xs text-[#888] mb-0.5 truncate">
+                                <p className="text-xs text-[#888] mb-0.5 leading-relaxed">
                                     {merchant.address}, {merchant.city}
                                 </p>
                                 <p className="text-xs text-[#666] mb-1">
@@ -295,30 +295,30 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                             </div>
                         </div>
 
-                        {/* Action Buttons - 3 buttons like Adidas */}
-                        <div className="flex gap-2">
+                        {/* Action Buttons - Clean alignment with equal spacing */}
+                        <div className="flex gap-3">
                             <motion.button
                                 whileTap={{ scale: 0.95 }}
                                 onClick={handleGetDirections}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-[#1a1a1a] rounded-full border border-[#333] text-white text-[11px] font-medium"
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333] text-white text-xs font-medium"
                             >
-                                <Navigation className="h-3 w-3" />
+                                <Navigation className="h-3.5 w-3.5" />
                                 Directions
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 0.95 }}
                                 onClick={handleCall}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-[#1a1a1a] rounded-full border border-[#333] text-white text-[11px] font-medium"
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333] text-white text-xs font-medium"
                             >
-                                <Phone className="h-3 w-3" />
+                                <Phone className="h-3.5 w-3.5" />
                                 Call Now
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 0.95 }}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-[#1a1a1a] rounded-full border border-[#333] text-white text-[11px] font-medium"
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333] text-white text-xs font-medium"
                             >
-                                <Store className="h-3 w-3" />
-                                Other Stores
+                                <Store className="h-3.5 w-3.5" />
+                                More
                             </motion.button>
                         </div>
                     </div>
