@@ -107,9 +107,11 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
     };
 
     const handleCall = () => {
-        if (merchant?.phone) {
+        // Prioritize ownerPhone, fallback to phone
+        const phoneNumber = merchant?.ownerPhone || merchant?.phone;
+        if (phoneNumber) {
             vibrate('light');
-            window.open(`tel:${merchant.phone}`, '_blank');
+            window.location.href = `tel:${phoneNumber}`;
         }
     };
 
