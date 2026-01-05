@@ -838,12 +838,15 @@ export default function DashboardPage() {
                                             merchantName: merchant.businessName,
                                             merchantLogo: merchant.logoUrl,
                                             title: merchant.category || "New Store",
-                                            description: "Just Joined",
-                                            type: "custom",
-                                            discountValue: 0,
+                                            description: merchant.hasOffers ? "New Arrival" : "Coming Soon",
+                                            type: merchant.discountType || "percentage",
+                                            discountValue: merchant.bestDiscount || 0,
                                             status: "active",
                                             totalRedemptions: 0,
-                                            createdAt: merchant.createdAt
+                                            createdAt: merchant.createdAt,
+                                            // Rating data
+                                            avgRating: merchant.avgRating,
+                                            totalRatings: merchant.totalRatings
                                         } as any}
                                         onClick={() => {
                                             if (!isVerified) {

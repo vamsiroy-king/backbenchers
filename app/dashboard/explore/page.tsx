@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, ChevronLeft, Wifi, MapPin, Heart } from "lucide-react";
+import { Search, ChevronLeft, Wifi, MapPin, Heart, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -158,7 +158,7 @@ export default function ExplorePage() {
                             )}
                         >
                             <Wifi className="h-4 w-4" />
-                            <span>Online ({onlineOffers.length})</span>
+                            <span>Online ({groupByMerchant(onlineOffers).length})</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('nearby')}
@@ -168,7 +168,7 @@ export default function ExplorePage() {
                             )}
                         >
                             <MapPin className="h-4 w-4" />
-                            <span>Nearby ({nearbyOffers.length})</span>
+                            <span>Nearby ({groupByMerchant(nearbyOffers).length})</span>
                         </button>
                     </div>
                 </header>

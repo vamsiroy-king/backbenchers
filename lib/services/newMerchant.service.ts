@@ -12,6 +12,11 @@ export interface NewMerchant {
     createdAt: string;
     daysOld: number;
     hasOffers: boolean;
+    // Added for proper discount display
+    bestDiscount: number;
+    discountType: 'percentage' | 'flat' | 'custom';
+    avgRating: number;
+    totalRatings: number;
 }
 
 export const newMerchantService = {
@@ -25,7 +30,8 @@ export const newMerchantService = {
                 .from('merchants')
                 .select(`
                     id, business_name, category, city, logo_url, created_at,
-                    offers!left (id)
+                    average_rating, total_ratings,
+                    offers!left (id, discount_value, type, status)
                 `)
                 .eq('status', 'approved')
                 .gte('created_at', cutoffDate.toISOString())
@@ -49,6 +55,15 @@ export const newMerchantService = {
                 const diffTime = Math.abs(now.getTime() - createdDate.getTime());
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
+                // Find best discount from active offers
+                const activeOffers = (row.offers || []).filter((o: any) => o.status === 'active');
+                const bestOffer = activeOffers.reduce((best: any, offer: any) => {
+                    if (!best || (offer.discount_value || 0) > (best.discount_value || 0)) {
+                        return offer;
+                    }
+                    return best;
+                }, null);
+
                 return {
                     id: row.id,
                     businessName: row.business_name,
@@ -57,7 +72,11 @@ export const newMerchantService = {
                     logoUrl: row.logo_url,
                     createdAt: row.created_at,
                     daysOld: diffDays,
-                    hasOffers: row.offers && row.offers.length > 0
+                    hasOffers: activeOffers.length > 0,
+                    bestDiscount: bestOffer?.discount_value || 0,
+                    discountType: bestOffer?.type || 'percentage',
+                    avgRating: row.average_rating || 0,
+                    totalRatings: row.total_ratings || 0
                 };
             });
 
