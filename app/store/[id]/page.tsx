@@ -320,8 +320,34 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                         {/* Gradient Overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
 
+                        {/* SWIGGY-STYLE CLOSED BANNER */}
+                        {(() => {
+                            const storeStatus = getStoreStatus(merchant.operatingHours);
+                            if (!storeStatus.isOpen) {
+                                return (
+                                    <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-10">
+                                        {/* Hanging Sign */}
+                                        <div className="relative">
+                                            {/* String lines */}
+                                            <div className="absolute -top-8 left-1/4 w-px h-8 bg-gray-400"></div>
+                                            <div className="absolute -top-8 right-1/4 w-px h-8 bg-gray-400"></div>
+                                            {/* The sign */}
+                                            <div className="bg-gradient-to-br from-red-500 to-red-600 px-8 py-4 rounded-xl shadow-2xl border-2 border-red-400">
+                                                <p className="text-white/80 text-xs font-medium text-center mb-1">Temporarily</p>
+                                                <p className="text-white text-xl font-bold tracking-wide text-center">CLOSED</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-white/60 text-sm mt-4 text-center">
+                                            {storeStatus.openingTime ? `Opens at ${storeStatus.openingTime}` : 'Check back later'}
+                                        </p>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
+
                         {/* Top Buttons */}
-                        <div className="absolute top-4 left-4 right-4 flex justify-between">
+                        <div className="absolute top-4 left-4 right-4 flex justify-between z-20">
                             <Link href="/dashboard">
                                 <motion.button whileTap={{ scale: 0.9 }} className="h-10 w-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
                                     <ArrowLeft className="h-5 w-5 text-white" />

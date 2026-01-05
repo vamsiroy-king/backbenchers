@@ -493,9 +493,11 @@ export default function ProfilePage() {
 
             <header className="py-6 flex justify-between items-center">
                 <h1 className="text-xl font-bold text-white">My ID</h1>
-                <button className="h-10 w-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.08] transition-colors">
-                    <Settings className="h-5 w-5 text-white/50" />
-                </button>
+                <Link href="/dashboard/settings">
+                    <button className="h-10 w-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.08] transition-colors">
+                        <Settings className="h-5 w-5 text-white/50" />
+                    </button>
+                </Link>
             </header>
 
             {/* Profile Photo Warning */}
