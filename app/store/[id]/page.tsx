@@ -57,6 +57,40 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
         fetchData();
     }, [id, hasFetched]);
 
+    // 🔥 REAL-TIME RATING SUBSCRIPTION - Updates without page refresh!
+    useEffect(() => {
+        if (!id) return;
+
+        const { supabase } = require('@/lib/supabase');
+
+        const channel = supabase
+            .channel(`merchant-rating-${id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'merchants',
+                    filter: `id=eq.${id}`
+                },
+                (payload: any) => {
+                    console.log('[RealTime] 🔥 Merchant updated:', payload);
+                    // Update rating stats in real-time
+                    if (payload.new) {
+                        setRatingStats({
+                            avgRating: payload.new.average_rating || 0,
+                            totalReviews: payload.new.total_ratings || 0
+                        });
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [id]);
+
     const allImages = merchant ? [merchant.coverPhoto, merchant.logo, ...(merchant.storeImages || [])].filter(Boolean) as string[] : [];
     const heroImage = merchant?.coverPhoto || (merchant?.storeImages && merchant.storeImages[0]) || null;
 
