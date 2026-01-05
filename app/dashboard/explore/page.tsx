@@ -193,7 +193,16 @@ export default function ExplorePage() {
 
                                     {/* Details */}
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-white font-semibold text-[15px] truncate">{offer.merchantName}</h3>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-white font-semibold text-[15px] truncate">{offer.merchantName}</h3>
+                                            {/* Rating Badge */}
+                                            {(offer as any).avgRating > 0 && (
+                                                <div className="flex items-center gap-0.5 bg-yellow-500/20 px-1.5 py-0.5 rounded">
+                                                    <Star className="h-2.5 w-2.5 text-yellow-400 fill-yellow-400" />
+                                                    <span className="text-[10px] font-bold text-yellow-400">{(offer as any).avgRating?.toFixed(1)}</span>
+                                                </div>
+                                            )}
+                                        </div>
                                         <p className="text-green-500 font-bold text-sm tracking-wide">
                                             {offer.type === 'percentage' ? `${offer.discountValue}% OFF` : `₹${offer.discountValue} OFF`}
                                         </p>

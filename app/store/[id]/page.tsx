@@ -299,19 +299,19 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                         <div className="flex gap-3">
                             <motion.button
                                 whileTap={{ scale: 0.95 }}
-                                onClick={handleGetDirections}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333] text-white text-xs font-medium"
-                            >
-                                <Navigation className="h-3.5 w-3.5" />
-                                Directions
-                            </motion.button>
-                            <motion.button
-                                whileTap={{ scale: 0.95 }}
                                 onClick={handleCall}
                                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333] text-white text-xs font-medium"
                             >
                                 <Phone className="h-3.5 w-3.5" />
-                                Call Now
+                                Call
+                            </motion.button>
+                            <motion.button
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handleGetDirections}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 rounded-xl text-black text-xs font-semibold"
+                            >
+                                <Navigation className="h-3.5 w-3.5" />
+                                Directions
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 0.95 }}
