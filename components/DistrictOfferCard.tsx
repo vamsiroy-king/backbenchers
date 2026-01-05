@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Bookmark, Clock, Store, Tag } from "lucide-react";
+import { ArrowRight, Heart, Clock, Store, Tag } from "lucide-react";
 import { Offer } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -38,9 +38,9 @@ export function DistrictOfferCard({ offer, onClick, priority = false }: District
                     {discountDisplay}
                 </div>
 
-                {/* 2. Bookmark Icon (Top-Right Standard) */}
+                {/* 2. Heart Icon (Top-Right Consistent) */}
                 <button className="absolute top-3 right-3 h-8 w-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 hover:bg-white text-white hover:text-black transition-colors z-10">
-                    <Bookmark className="h-4 w-4" />
+                    <Heart className="h-4 w-4" />
                 </button>
 
                 {/* Offer Visual/Image */}

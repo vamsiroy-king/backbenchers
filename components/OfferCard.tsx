@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
-import { Bookmark, MapPin, ChevronRight } from "lucide-react";
+import { Heart, MapPin, ChevronRight, Star } from "lucide-react";
 import { Offer } from "@/lib/types";
 import { vibrate } from "@/lib/haptics";
 import { useState } from "react";
 
 interface OfferCardProps {
-    offer: Offer;
+    offer: Offer & { avgRating?: number; totalRatings?: number };
     isFavorited?: boolean;
     onToggleFavorite?: (e: React.MouseEvent) => void;
     onClick?: (e: React.MouseEvent) => void;
@@ -100,15 +100,15 @@ export function OfferCard({
                         {discountBadge}
                     </div>
 
-                    {/* Bookmark */}
+                    {/* Heart - Consistent icon */}
                     {onToggleFavorite && (
                         <motion.button
                             whileTap={{ scale: 0.85 }}
                             onClick={handleSave}
                             className="absolute top-4 right-4 h-10 w-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center"
                         >
-                            <Bookmark
-                                className={`h-5 w-5 ${isFavorited ? 'fill-white text-white' : 'text-white'}`}
+                            <Heart
+                                className={`h-5 w-5 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-white'}`}
                             />
                         </motion.button>
                     )}
@@ -172,15 +172,15 @@ export function OfferCard({
                     </div>
                 </div>
 
-                {/* Bookmark - Top Right */}
+                {/* Heart - Top Right (Consistent icon) */}
                 {onToggleFavorite && (
                     <motion.button
                         whileTap={{ scale: 0.8 }}
                         onClick={handleSave}
                         className="absolute top-3 right-3 h-8 w-8 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center"
                     >
-                        <Bookmark
-                            className={`h-4 w-4 ${isFavorited ? 'fill-white text-white' : 'text-white/80'}`}
+                        <Heart
+                            className={`h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-white/80'}`}
                         />
                     </motion.button>
                 )}
@@ -191,6 +191,14 @@ export function OfferCard({
                 <h3 className="font-semibold text-white text-[14px] truncate">
                     {offer.merchantName || 'Merchant'}
                 </h3>
+                {/* Rating Display */}
+                {(offer as any).avgRating > 0 && (
+                    <div className="flex items-center gap-1 mt-1">
+                        <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
+                        <span className="text-yellow-400 text-xs font-medium">{(offer as any).avgRating?.toFixed(1)}</span>
+                        <span className="text-[#555] text-xs">({(offer as any).totalRatings})</span>
+                    </div>
+                )}
                 <p className="text-[#666] text-[12px] truncate mt-0.5">
                     {offer.title}
                 </p>
@@ -204,3 +212,4 @@ export function OfferCard({
         </motion.div>
     );
 }
+
