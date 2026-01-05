@@ -51,14 +51,23 @@ export default function ExplorePage() {
     useEffect(() => {
         async function fetchData() {
             try {
-                // Get student profile for city
-                const profileRes = await studentService.getMyProfile();
-                const city = profileRes.success && profileRes.data ? profileRes.data.city : null;
+                // 1. Get city from LocalStorage (User selection) OR Profile (Fallback)
+                let city = null;
+                if (typeof window !== 'undefined') {
+                    city = localStorage.getItem('selectedCity');
+                }
+
+                if (!city) {
+                    const profileRes = await studentService.getMyProfile();
+                    city = profileRes.success && profileRes.data ? profileRes.data.city : null;
+                }
+
                 setStudentCity(city);
+                console.log('[Explore] Filtering by city:', city);
 
                 let offersRes;
                 if (categoryParam) {
-                    // Use backend ILIKE search for better matching (e.g. 'Food' matches 'Fast Food')
+                    // Use backend ILIKE search for better matching
                     offersRes = await offerService.getByCategory(categoryParam);
                 } else {
                     offersRes = await offerService.getActiveOffers();
@@ -78,7 +87,7 @@ export default function ExplorePage() {
         fetchData();
     }, [categoryParam]); // Re-fetch when category changes
 
-    // Filter offers by city
+    // Filter AND Group offers by city & merchant
     useEffect(() => {
         if (offers.length === 0) {
             setFilteredOffers([]);
@@ -87,17 +96,30 @@ export default function ExplorePage() {
 
         let result = offers;
 
-        // 1. City Filter (Crucial)
+        // 1. City Filter
         if (studentCity) {
             result = result.filter(o =>
-                // Either no city set (online) or matches student city
                 !o.merchantCity ||
                 o.merchantCity.toLowerCase() === studentCity.toLowerCase() ||
-                o.merchantCity === 'All India'
+                o.merchantCity === 'All India' ||
+                (o.type as any) === 'online' || (o as any).isOnline // Always show online
             );
         }
 
-        setFilteredOffers(result);
+        // 2. Group by Merchant (Show 1 card per Store)
+        const merchantMap = new Map<string, Offer>();
+        result.forEach(offer => {
+            const existing = merchantMap.get(offer.merchantId || '');
+            // Keep the one with higher discount
+            if (!existing || (offer.discountValue || 0) > (existing.discountValue || 0)) {
+                merchantMap.set(offer.merchantId || '', offer);
+            }
+        });
+
+        // Convert map back to array
+        const grouped = Array.from(merchantMap.values());
+
+        setFilteredOffers(grouped);
     }, [offers, studentCity]);
 
     const handleToggleFavorite = async (e: React.MouseEvent, offerId: string) => {
@@ -111,22 +133,13 @@ export default function ExplorePage() {
     if (categoryParam) {
         const categoryData = CATEGORIES.find(c => c.id === categoryParam) || { name: categoryParam, icon: "🔍", headerColor: "bg-purple-600" };
 
-        // Use the fetched filtered offers directly
-        // Still separate Online vs Nearby
+        // filteredOffers is ALREADY grouped by merchant and filtered by city
+        // Just separate Online vs Nearby
         const onlineOffers = filteredOffers.filter(o => (o.type as any) === 'online' || (o as any).isOnline);
         const nearbyOffers = filteredOffers.filter(o => !((o.type as any) === 'online' || (o as any).isOnline));
 
-        // Group by merchant - show each merchant once with their best discount
-        const groupByMerchant = (offersList: Offer[]) => {
-            const merchantMap = new Map<string, Offer>();
-            offersList.forEach(offer => {
-                const existing = merchantMap.get(offer.merchantId || '');
-                if (!existing || (offer.discountValue || 0) > (existing.discountValue || 0)) {
-                    merchantMap.set(offer.merchantId || '', offer);
-                }
-            });
-            return Array.from(merchantMap.values());
-        };
+        // Use active tab list
+        const displayedOffers = activeTab === 'nearby' ? nearbyOffers : onlineOffers;
 
         return (
             <div className="min-h-screen bg-black">
@@ -155,7 +168,7 @@ export default function ExplorePage() {
                             )}
                         >
                             <Wifi className="h-4 w-4" />
-                            <span>Online ({groupByMerchant(onlineOffers).length})</span>
+                            <span>Online ({onlineOffers.length})</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('nearby')}
@@ -165,15 +178,15 @@ export default function ExplorePage() {
                             )}
                         >
                             <MapPin className="h-4 w-4" />
-                            <span>Nearby ({groupByMerchant(nearbyOffers).length})</span>
+                            <span>Nearby ({nearbyOffers.length})</span>
                         </button>
                     </div>
                 </header>
 
                 {/* Content List Matches Screenshot */}
                 <main className="px-4 py-4 space-y-3">
-                    {filteredOffers.length > 0 ? (
-                        filteredOffers.map((offer) => (
+                    {displayedOffers.length > 0 ? (
+                        displayedOffers.map((offer) => (
                             <Link href={`/store/${offer.merchantId}`} key={offer.id}>
                                 <motion.div
                                     whileTap={{ scale: 0.98 }}
