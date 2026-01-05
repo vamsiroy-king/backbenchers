@@ -10,6 +10,7 @@ import Link from "next/link";
 import { studentService } from "@/lib/services/student.service";
 import { transactionService } from "@/lib/services/transaction.service";
 import { authService } from "@/lib/services/auth.service";
+import { supabase } from "@/lib/supabase";
 import { Student, Transaction } from "@/lib/types";
 import FaceCamera from "@/components/FaceCamera";
 
@@ -68,7 +69,7 @@ export default function ProfilePage() {
 
                     // Subscribe to savings updates -> Auto-refresh with spinning animation!
                     const studentId = profileResult.data.id;
-                    transactionService.subscribeToStudentSavings(studentId, () => {
+                    const channel = transactionService.subscribeToStudentSavings(studentId, () => {
                         // 🔄 Start spinning animation automatically!
                         setIsRefreshing(true);
 
@@ -84,6 +85,11 @@ export default function ProfilePage() {
                             setTimeout(() => setIsRefreshing(false), 800);
                         });
                     });
+
+                    // CLEANUP: Remove channel when component unmounts or id changes
+                    return () => {
+                        if (channel) supabase.removeChannel(channel);
+                    };
                 } else {
                     // No student record found - show guest view
                     setIsVerified(false);

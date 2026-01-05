@@ -91,7 +91,7 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
         };
     }, [id]);
 
-    const allImages = merchant ? [merchant.coverPhoto, merchant.logo, ...(merchant.storeImages || [])].filter(Boolean) as string[] : [];
+    const allImages = merchant ? (merchant.storeImages || []).filter(Boolean) as string[] : [];
     const heroImage = merchant?.coverPhoto || (merchant?.storeImages && merchant.storeImages[0]) || null;
 
     const handleGetDirections = () => {

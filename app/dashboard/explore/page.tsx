@@ -6,7 +6,8 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { offerService } from "@/lib/services/offer.service";
-import { favoritesService } from "@/lib/services/favorites.service"; // Import favorites service
+import { studentService } from "@/lib/services/student.service";
+import { useFavorites } from "@/components/providers/FavoritesProvider";
 import { Offer } from "@/lib/types";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
@@ -30,9 +31,13 @@ export default function ExplorePage() {
 
     const [searchQuery, setSearchQuery] = useState("");
     const [offers, setOffers] = useState<Offer[]>([]);
+    const [filteredOffers, setFilteredOffers] = useState<Offer[]>([]);
     const [activeTab, setActiveTab] = useState<'nearby' | 'online'>('nearby');
-    const [favorites, setFavorites] = useState<Set<string>>(new Set());
+    const [studentCity, setStudentCity] = useState<string | null>(null);
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+    // Global Favorites
+    const { isFavorite, toggleFavorite } = useFavorites();
 
     // Placeholder animation
     useEffect(() => {
@@ -46,6 +51,11 @@ export default function ExplorePage() {
     useEffect(() => {
         async function fetchData() {
             try {
+                // Get student profile for city
+                const profileRes = await studentService.getMyProfile();
+                const city = profileRes.success && profileRes.data ? profileRes.data.city : null;
+                setStudentCity(city);
+
                 let offersRes;
                 if (categoryParam) {
                     // Use backend ILIKE search for better matching (e.g. 'Food' matches 'Fast Food')
@@ -65,45 +75,36 @@ export default function ExplorePage() {
             }
         }
 
-        // Also fetch saved status
-        async function fetchSavedStatus() {
-            const savedIds = await favoritesService.getSavedOfferIds();
-            setFavorites(new Set(savedIds));
-        }
-
         fetchData();
-        fetchSavedStatus();
     }, [categoryParam]); // Re-fetch when category changes
 
-    const toggleFavorite = async (e: React.MouseEvent, offerId: string) => {
+    // Filter offers by city
+    useEffect(() => {
+        if (offers.length === 0) {
+            setFilteredOffers([]);
+            return;
+        }
+
+        let result = offers;
+
+        // 1. City Filter (Crucial)
+        if (studentCity) {
+            result = result.filter(o =>
+                // Either no city set (online) or matches student city
+                !o.merchantCity ||
+                o.merchantCity.toLowerCase() === studentCity.toLowerCase() ||
+                o.merchantCity === 'All India'
+            );
+        }
+
+        setFilteredOffers(result);
+    }, [offers, studentCity]);
+
+    const handleToggleFavorite = async (e: React.MouseEvent, offerId: string) => {
         e.preventDefault();
         e.stopPropagation();
-
-        // Optimistic update
-        const isLiked = favorites.has(offerId);
-        const newFavs = new Set(favorites);
-        if (isLiked) {
-            newFavs.delete(offerId);
-            vibrate('light');
-        } else {
-            newFavs.add(offerId);
-            vibrate('success');
-        }
-        setFavorites(newFavs);
-
-        // API Call
-        try {
-            await favoritesService.toggleOffer(offerId);
-        } catch (error) {
-            console.error('Error toggling favorite:', error);
-            // Revert on error
-            setFavorites(prev => {
-                const reverted = new Set(prev);
-                if (isLiked) reverted.add(offerId);
-                else reverted.delete(offerId);
-                return reverted;
-            });
-        }
+        vibrate('light');
+        await toggleFavorite(offerId);
     };
 
     // --- VIEW 1: CATEGORY DETAILS (Matches Screenshot 1:1) ---
@@ -112,8 +113,8 @@ export default function ExplorePage() {
 
         // Use the fetched filtered offers directly
         // Still separate Online vs Nearby
-        const onlineOffers = offers.filter(o => (o.type as any) === 'online' || (o as any).isOnline);
-        const nearbyOffers = offers.filter(o => !((o.type as any) === 'online' || (o as any).isOnline));
+        const onlineOffers = filteredOffers.filter(o => (o.type as any) === 'online' || (o as any).isOnline);
+        const nearbyOffers = filteredOffers.filter(o => !((o.type as any) === 'online' || (o as any).isOnline));
 
         // Group by merchant - show each merchant once with their best discount
         const groupByMerchant = (offersList: Offer[]) => {
@@ -126,10 +127,6 @@ export default function ExplorePage() {
             });
             return Array.from(merchantMap.values());
         };
-
-        const displayedOffers = activeTab === 'nearby'
-            ? groupByMerchant(nearbyOffers)
-            : groupByMerchant(onlineOffers);
 
         return (
             <div className="min-h-screen bg-black">
@@ -175,8 +172,8 @@ export default function ExplorePage() {
 
                 {/* Content List Matches Screenshot */}
                 <main className="px-4 py-4 space-y-3">
-                    {displayedOffers.length > 0 ? (
-                        displayedOffers.map((offer) => (
+                    {filteredOffers.length > 0 ? (
+                        filteredOffers.map((offer) => (
                             <Link href={`/store/${offer.merchantId}`} key={offer.id}>
                                 <motion.div
                                     whileTap={{ scale: 0.98 }}
@@ -218,11 +215,11 @@ export default function ExplorePage() {
 
                                     {/* Heart/Fav */}
                                     <button
-                                        onClick={(e) => toggleFavorite(e, offer.id!)}
+                                        onClick={(e) => handleToggleFavorite(e, offer.merchantId)} // Save MERCHANT ID, not offer ID
                                         className="text-[#444] group-hover:text-white transition-colors"
                                     >
                                         <Heart
-                                            className={cn("h-5 w-5", favorites.has(offer.id!) && "fill-red-500 text-red-500")}
+                                            className={cn("h-5 w-5", isFavorite(offer.merchantId) && "fill-red-500 text-red-500")}
                                         />
                                     </button>
                                 </motion.div>
@@ -233,7 +230,7 @@ export default function ExplorePage() {
                             <div className="h-16 w-16 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-4">
                                 <Search className="h-6 w-6 text-[#333]" />
                             </div>
-                            <p className="text-white/40 text-sm">No offers found in this category</p>
+                            <p className="text-white/40 text-sm">No offers found in {studentCity || 'your city'}</p>
                         </div>
                     )
                     }

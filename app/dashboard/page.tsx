@@ -135,14 +135,6 @@ export default function DashboardPage() {
     // Favorite offers
     const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
-    // Rating modal state for post-redemption rating
-    const [ratingModalData, setRatingModalData] = useState<{
-        isOpen: boolean;
-        transactionId: string;
-        merchantId: string;
-        merchantName: string;
-    } | null>(null);
-
     // Real-time notifications with Supabase realtime subscription
     const { unreadCount, markAllAsRead } = useNotifications();
 
@@ -216,38 +208,10 @@ export default function DashboardPage() {
         return () => clearInterval(interval);
     }, [bannerCount]);
 
-    // Check for pending ratings on page load - SHOW IMMEDIATELY in center of screen
-    useEffect(() => {
-        async function checkPendingRatings() {
-            console.log('[RatingCheck] StudentId:', studentId);
-            if (!studentId) {
-                console.log('[RatingCheck] No studentId, skipping');
-                return;
-            }
-
-            try {
-                console.log('[RatingCheck] Fetching pending ratings from DB...');
-                const pendingRating = await getNextPendingRatingFromDB(studentId);
-                console.log('[RatingCheck] Result:', pendingRating);
-
-                if (pendingRating) {
-                    console.log('[RatingCheck] ✅ Found pending rating! Showing modal for:', pendingRating.merchantName);
-                    // Show rating modal immediately
-                    setRatingModalData({
-                        isOpen: true,
-                        transactionId: pendingRating.transactionId,
-                        merchantId: pendingRating.merchantId,
-                        merchantName: pendingRating.merchantName,
-                    });
-                } else {
-                    console.log('[RatingCheck] No pending ratings found');
-                }
-            } catch (err) {
-                console.error('[RatingCheck] Error:', err);
-            }
-        }
-        checkPendingRatings();
-    }, [studentId]);
+    // Check for pending ratings - REMOVED (Relocated to GlobalRatingProvider)
+    const checkPendingRatings = async (sId: string) => {
+        // Legacy: Logic moved to GlobalRatingProvider
+    };
 
     // Fetch real offers and check verification status
     useEffect(() => {
@@ -973,28 +937,7 @@ export default function DashboardPage() {
                 }
             </main >
 
-            {/* Rating Modal - Shows after successful redemption */}
-            {
-                ratingModalData && studentId && (
-                    <RatingModal
-                        isOpen={ratingModalData.isOpen}
-                        onClose={() => {
-                            // Dismiss in database when skipped/closed
-                            dismissPendingRating(ratingModalData.transactionId);
-                            setRatingModalData(null);
-                        }}
-                        transactionId={ratingModalData.transactionId}
-                        merchantId={ratingModalData.merchantId}
-                        merchantName={ratingModalData.merchantName}
-                        studentId={studentId}
-                        onRatingSubmitted={() => {
-                            // Delete from database when submitted
-                            deletePendingRating(ratingModalData.transactionId);
-                            setRatingModalData(null);
-                        }}
-                    />
-                )
-            }
+
         </div >
     );
 }
