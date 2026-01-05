@@ -269,16 +269,28 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
 
                             {/* Store Info - LEFT aligned */}
                             <div className="flex-1 min-w-0">
-                                <h1 className="text-lg font-bold text-white mb-0.5">{merchant.businessName}</h1>
+                                <div className="flex items-center gap-2 mb-0.5">
+                                    <h1 className="text-lg font-bold text-white">{merchant.businessName}</h1>
+                                    {/* Rating Badge - Visible in Header */}
+                                    {ratingStats.totalReviews > 0 && (
+                                        <div className="flex items-center gap-1 bg-yellow-500/20 px-2 py-0.5 rounded-full">
+                                            <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
+                                            <span className="text-xs font-bold text-yellow-400">{ratingStats.avgRating.toFixed(1)}</span>
+                                        </div>
+                                    )}
+                                </div>
                                 <p className="text-xs text-[#888] mb-0.5 truncate">
                                     {merchant.address}, {merchant.city}
                                 </p>
                                 <p className="text-xs text-[#666] mb-1">
                                     {merchant.category}
                                 </p>
-                                <div className="flex items-center gap-1.5 text-xs">
+                                <div className="flex items-center gap-2 text-xs">
                                     <span className="text-green-400 font-medium">Open</span>
                                     <span className="text-[#555]">• Closes 10:00 PM ▾</span>
+                                    {ratingStats.totalReviews > 0 && (
+                                        <span className="text-[#555]">• {ratingStats.totalReviews} reviews</span>
+                                    )}
                                 </div>
                             </div>
                         </div>

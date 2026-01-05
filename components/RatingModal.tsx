@@ -16,11 +16,11 @@ interface RatingModalProps {
 }
 
 const RATING_LABELS = [
-    { emoji: "😞", label: "Poor", color: "from-red-400 to-red-500" },
-    { emoji: "😕", label: "Fair", color: "from-orange-400 to-orange-500" },
-    { emoji: "😊", label: "Good", color: "from-yellow-400 to-yellow-500" },
-    { emoji: "😄", label: "Great", color: "from-lime-400 to-green-500" },
-    { emoji: "🤩", label: "Amazing!", color: "from-emerald-400 to-teal-500" },
+    { emoji: "😞", label: "Meh...", color: "from-red-400 to-red-500", vibe: "Could be better" },
+    { emoji: "😕", label: "Okay", color: "from-orange-400 to-orange-500", vibe: "Not bad" },
+    { emoji: "😊", label: "Good!", color: "from-yellow-400 to-yellow-500", vibe: "Pretty solid" },
+    { emoji: "🔥", label: "Fire!", color: "from-lime-400 to-green-500", vibe: "Love it here" },
+    { emoji: "🤩", label: "Insane!!", color: "from-emerald-400 to-teal-500", vibe: "Absolute W" },
 ];
 
 export function RatingModal({
@@ -138,14 +138,19 @@ export function RatingModal({
                                         className="relative text-center"
                                     >
                                         <div className="text-6xl mb-3">
-                                            {currentLabel?.emoji || "⭐"}
+                                            {currentLabel?.emoji || "💫"}
                                         </div>
                                         <h2 className="text-xl font-bold text-white drop-shadow-lg">
-                                            {currentLabel?.label || "Rate Your Experience"}
+                                            {currentLabel?.label || "Show Some Love!"}
                                         </h2>
-                                        <p className="text-white/80 text-sm mt-1 font-medium">
-                                            {merchantName}
+                                        <p className="text-white/90 text-sm mt-1 font-medium">
+                                            {currentLabel ? currentLabel.vibe : `${merchantName} gave you a discount!`}
                                         </p>
+                                        {!currentLabel && (
+                                            <p className="text-white/70 text-xs mt-2">
+                                                ⬇️ Tap the stars to rate
+                                            </p>
+                                        )}
                                     </motion.div>
                                 </div>
 
@@ -171,8 +176,8 @@ export function RatingModal({
                                                 )}
                                                 <Star
                                                     className={`h-11 w-11 relative z-10 transition-all duration-200 ${starNum <= activeRating
-                                                            ? 'fill-yellow-400 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]'
-                                                            : 'text-gray-600 hover:text-gray-500'
+                                                        ? 'fill-yellow-400 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]'
+                                                        : 'text-gray-600 hover:text-gray-500'
                                                         }`}
                                                 />
                                             </motion.button>
@@ -247,8 +252,8 @@ export function RatingModal({
                                             disabled={loading || stars === 0}
                                             whileTap={{ scale: 0.98 }}
                                             className={`flex-1 h-12 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all ${stars > 0
-                                                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50'
-                                                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50'
+                                                : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                                 }`}
                                         >
                                             {loading ? (
