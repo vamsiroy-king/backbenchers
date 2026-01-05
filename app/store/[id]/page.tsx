@@ -18,6 +18,108 @@ const TABS = [
     { id: 'about', label: 'About' },
 ];
 
+// Helper: Calculate real-time store status from operatingHours
+interface StoreStatus {
+    isOpen: boolean;
+    statusText: string;
+    closingTime?: string;
+    openingTime?: string;
+}
+
+function getStoreStatus(operatingHours: any): StoreStatus {
+    if (!operatingHours) {
+        return { isOpen: true, statusText: 'Hours not available' };
+    }
+
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const now = new Date();
+    const currentDay = days[now.getDay()];
+    const currentHours = operatingHours[currentDay];
+
+    if (!currentHours) {
+        return { isOpen: true, statusText: 'Hours not available' };
+    }
+
+    // Check if store is marked as closed today
+    if (currentHours.closed) {
+        // Find next open day
+        for (let i = 1; i <= 7; i++) {
+            const nextDay = days[(now.getDay() + i) % 7];
+            if (!operatingHours[nextDay]?.closed) {
+                return {
+                    isOpen: false,
+                    statusText: `Closed today`,
+                    openingTime: operatingHours[nextDay]?.open
+                };
+            }
+        }
+        return { isOpen: false, statusText: 'Temporarily closed' };
+    }
+
+    // Parse current time and store hours
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+
+    const parseTime = (timeStr: string): number => {
+        if (!timeStr) return 0;
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + (minutes || 0);
+    };
+
+    const formatTime = (timeStr: string): string => {
+        if (!timeStr) return '';
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        return `${displayHours}:${(minutes || 0).toString().padStart(2, '0')} ${period}`;
+    };
+
+    const openTime = parseTime(currentHours.open);
+    const closeTime = parseTime(currentHours.close);
+
+    // Handle overnight hours (e.g., 10:00 PM - 2:00 AM)
+    if (closeTime < openTime) {
+        // Store is open overnight
+        if (currentTime >= openTime || currentTime < closeTime) {
+            return {
+                isOpen: true,
+                statusText: `Open`,
+                closingTime: formatTime(currentHours.close)
+            };
+        }
+    } else {
+        // Normal hours
+        if (currentTime >= openTime && currentTime < closeTime) {
+            return {
+                isOpen: true,
+                statusText: `Open`,
+                closingTime: formatTime(currentHours.close)
+            };
+        }
+    }
+
+    // Store is currently closed
+    if (currentTime < openTime) {
+        return {
+            isOpen: false,
+            statusText: `Closed`,
+            openingTime: formatTime(currentHours.open)
+        };
+    }
+
+    // Find tomorrow's opening
+    const tomorrow = days[(now.getDay() + 1) % 7];
+    const tomorrowHours = operatingHours[tomorrow];
+    if (tomorrowHours && !tomorrowHours.closed) {
+        return {
+            isOpen: false,
+            statusText: `Closed`,
+            openingTime: formatTime(tomorrowHours.open)
+        };
+    }
+
+    return { isOpen: false, statusText: 'Closed' };
+}
+
 export default function StorePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const [showImageGallery, setShowImageGallery] = useState(false);
@@ -288,8 +390,22 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                     {merchant.category}
                                 </p>
                                 <div className="flex items-center gap-2 text-xs">
-                                    <span className="text-green-400 font-medium">Open</span>
-                                    <span className="text-[#555]">• Closes 10:00 PM ▾</span>
+                                    {(() => {
+                                        const status = getStoreStatus(merchant.operatingHours);
+                                        return (
+                                            <>
+                                                <span className={`font-medium ${status.isOpen ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {status.isOpen ? 'Open' : 'Closed'}
+                                                </span>
+                                                {status.isOpen && status.closingTime && (
+                                                    <span className="text-[#555]">• Closes {status.closingTime}</span>
+                                                )}
+                                                {!status.isOpen && status.openingTime && (
+                                                    <span className="text-[#555]">• Opens {status.openingTime}</span>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
                                     {ratingStats.totalReviews > 0 && (
                                         <span className="text-[#555]">• {ratingStats.totalReviews} reviews</span>
                                     )}
@@ -300,7 +416,8 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                         {/* Action Buttons - Clean alignment with equal spacing */}
                         <div className="flex gap-3">
                             <motion.button
-                                whileTap={{ scale: 0.95 }}
+                                whileTap={{ scale: 0.98 }}
+                                transition={{ duration: 0.05 }}
                                 onClick={handleCall}
                                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333] text-white text-xs font-medium"
                             >
@@ -308,7 +425,8 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                 Call
                             </motion.button>
                             <motion.button
-                                whileTap={{ scale: 0.95 }}
+                                whileTap={{ scale: 0.98 }}
+                                transition={{ duration: 0.05 }}
                                 onClick={handleGetDirections}
                                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 rounded-xl text-black text-xs font-semibold"
                             >
@@ -316,7 +434,8 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                 Directions
                             </motion.button>
                             <motion.button
-                                whileTap={{ scale: 0.95 }}
+                                whileTap={{ scale: 0.98 }}
+                                transition={{ duration: 0.05 }}
                                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333] text-white text-xs font-medium"
                             >
                                 <Store className="h-3.5 w-3.5" />

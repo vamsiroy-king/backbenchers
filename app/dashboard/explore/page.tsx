@@ -189,7 +189,8 @@ export default function ExplorePage() {
                         displayedOffers.map((offer) => (
                             <Link href={`/store/${offer.merchantId}`} key={offer.id}>
                                 <motion.div
-                                    whileTap={{ scale: 0.98 }}
+                                    whileTap={{ scale: 0.99 }}
+                                    transition={{ duration: 0.05 }}
                                     className="bg-[#111] border border-[#222] rounded-2xl p-4 flex items-center gap-4 group"
                                 >
                                     {/* Logo */}

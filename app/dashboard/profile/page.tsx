@@ -554,20 +554,11 @@ export default function ProfilePage() {
                         {/* Card Background - Premium dark */}
                         <div className="absolute inset-0 bg-gradient-to-br from-[#111111] to-[#0a0a0a]" />
 
-                        {/* Holographic Rainbow Shimmer - Apple Pay Style */}
-                        <motion.div
-                            className="absolute inset-0 opacity-40"
-                            animate={{
-                                backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                            }}
-                            transition={{
-                                duration: 5,
-                                repeat: Infinity,
-                                ease: "linear"
-                            }}
+                        {/* Subtle metallic sheen - static, ultra-minimal */}
+                        <div
+                            className="absolute inset-0 opacity-20"
                             style={{
-                                background: 'linear-gradient(135deg, transparent 20%, rgba(255,100,100,0.1) 25%, rgba(255,200,100,0.1) 30%, rgba(100,255,100,0.1) 35%, rgba(100,200,255,0.1) 40%, rgba(200,100,255,0.1) 45%, transparent 50%)',
-                                backgroundSize: '200% 200%',
+                                background: 'linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)',
                             }}
                         />
 
@@ -589,7 +580,7 @@ export default function ProfilePage() {
                                     <div className="h-6 w-6 rounded-md bg-white flex items-center justify-center">
                                         <span className="text-black font-bold text-[10px]">B</span>
                                     </div>
-                                    <span className="text-[10px] text-white/40 font-medium tracking-[0.2em]">BACKBENCHERS</span>
+                                    <span className="text-sm text-white font-bold italic tracking-tight">BACKBENCHERS</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <div className="h-4 w-4 rounded-full bg-green-500 flex items-center justify-center">
