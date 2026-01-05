@@ -9,9 +9,10 @@ interface DistrictOfferCardProps {
     offer: Offer;
     onClick?: () => void;
     priority?: boolean;
+    isClosed?: boolean; // NEW: Show closed badge when merchant is closed
 }
 
-export function DistrictOfferCard({ offer, onClick, priority = false }: DistrictOfferCardProps) {
+export function DistrictOfferCard({ offer, onClick, priority = false, isClosed = false }: DistrictOfferCardProps) {
     const discountDisplay = offer.type === 'percentage'
         ? `${offer.discountValue}% OFF`
         : offer.type === 'flat'
@@ -25,7 +26,8 @@ export function DistrictOfferCard({ offer, onClick, priority = false }: District
             onClick={onClick}
             className={cn(
                 "group relative w-full overflow-hidden rounded-2xl bg-[#111] border border-[#222] cursor-pointer",
-                "hover:border-[#333] transition-all duration-300"
+                "hover:border-[#333] transition-all duration-300",
+                isClosed && "opacity-70"
             )}
         >
             {/* Top Section: Standard Image/Pattern */}
@@ -33,8 +35,20 @@ export function DistrictOfferCard({ offer, onClick, priority = false }: District
                 {/* Standard Gradient Background (Clean) */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a1a] to-black" />
 
+                {/* CLOSED Overlay when store is closed */}
+                {isClosed && (
+                    <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center">
+                        <div className="bg-gradient-to-r from-red-600 to-red-500 px-4 py-2 rounded-lg shadow-xl border border-red-400">
+                            <span className="text-white text-sm font-bold tracking-wide">CLOSED</span>
+                        </div>
+                    </div>
+                )}
+
                 {/* 1. Green Discount Badge (Top-Left Standard) */}
-                <div className="absolute top-3 left-3 bg-green-500 text-black text-[11px] font-bold px-2.5 py-1 rounded-md z-10 shadow-lg shadow-green-900/20">
+                <div className={cn(
+                    "absolute top-3 left-3 bg-green-500 text-black text-[11px] font-bold px-2.5 py-1 rounded-md z-10 shadow-lg shadow-green-900/20",
+                    isClosed && "grayscale opacity-50"
+                )}>
                     {discountDisplay}
                 </div>
 

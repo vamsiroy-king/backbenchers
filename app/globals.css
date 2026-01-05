@@ -256,6 +256,88 @@
 
 }
 
+/* ============================================ */
+/* LIGHT THEME - White + Green Premium Theme   */
+/* ============================================ */
+.light-theme body {
+  background-color: #f8fafc !important;
+  color: #111111 !important;
+}
+
+/* Override bg-black */
+.light-theme .bg-black {
+  background-color: #ffffff !important;
+}
+
+.light-theme .bg-black\/80,
+.light-theme .bg-black\/90 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Override dark backgrounds */
+.light-theme [class*="bg-[#000]"],
+.light-theme [class*="bg-[#111]"],
+.light-theme [class*="bg-[#1a1a1a]"],
+.light-theme [class*="bg-[#121212]"] {
+  background-color: #ffffff !important;
+}
+
+.light-theme [class*="bg-white/[0.03]"],
+.light-theme [class*="bg-white/[0.05]"] {
+  background-color: #f1f5f9 !important;
+}
+
+/* Override text colors */
+.light-theme .text-white {
+  color: #111111 !important;
+}
+
+.light-theme [class*="text-white/40"],
+.light-theme [class*="text-white/50"],
+.light-theme [class*="text-white/60"],
+.light-theme [class*="text-white/70"] {
+  color: #666666 !important;
+}
+
+.light-theme [class*="text-white/80"],
+.light-theme [class*="text-white/90"] {
+  color: #333333 !important;
+}
+
+/* Keep green accent */
+.light-theme .text-green-400,
+.light-theme .text-green-500 {
+  color: #16a34a !important;
+}
+
+.light-theme .bg-green-500 {
+  background-color: #22c55e !important;
+}
+
+/* Override borders */
+.light-theme [class*="border-white/"],
+.light-theme [class*="border-[#222]"],
+.light-theme [class*="border-[#333]"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* Cards and surfaces */
+.light-theme .rounded-2xl,
+.light-theme .rounded-xl {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Header backdrop */
+.light-theme header {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* ID Card Light Theme */
+.light-theme [class*="from-[#111111]"] {
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e1) !important;
+}
+
 @layer base {
   * {
     border-color: var(--border);
