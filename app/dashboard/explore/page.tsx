@@ -115,7 +115,21 @@ export default function ExplorePage() {
         const onlineOffers = offers.filter(o => (o.type as any) === 'online' || (o as any).isOnline);
         const nearbyOffers = offers.filter(o => !((o.type as any) === 'online' || (o as any).isOnline));
 
-        const displayedOffers = activeTab === 'nearby' ? nearbyOffers : onlineOffers;
+        // Group by merchant - show each merchant once with their best discount
+        const groupByMerchant = (offersList: Offer[]) => {
+            const merchantMap = new Map<string, Offer>();
+            offersList.forEach(offer => {
+                const existing = merchantMap.get(offer.merchantId || '');
+                if (!existing || (offer.discountValue || 0) > (existing.discountValue || 0)) {
+                    merchantMap.set(offer.merchantId || '', offer);
+                }
+            });
+            return Array.from(merchantMap.values());
+        };
+
+        const displayedOffers = activeTab === 'nearby'
+            ? groupByMerchant(nearbyOffers)
+            : groupByMerchant(onlineOffers);
 
         return (
             <div className="min-h-screen bg-black">

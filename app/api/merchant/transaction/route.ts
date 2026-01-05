@@ -100,6 +100,31 @@ export async function POST(request: Request) {
                     .eq('id', payload.offer_id);
             }
 
+            // 4. Create Pending Rating for Student (so rating popup appears!)
+            // This is done server-side because merchant can't insert for student due to RLS
+            const expiresAt = new Date();
+            expiresAt.setHours(expiresAt.getHours() + 48); // Expires in 48 hours
+
+            const { error: pendingRatingError } = await supabaseAdmin
+                .from('pending_ratings')
+                .upsert({
+                    transaction_id: transaction.id,
+                    merchant_id: payload.merchant_id,
+                    merchant_name: payload.merchant_name,
+                    student_id: payload.student_id,
+                    expires_at: expiresAt.toISOString(),
+                    is_dismissed: false
+                }, {
+                    onConflict: 'transaction_id'
+                });
+
+            if (pendingRatingError) {
+                console.error('[API] Pending Rating Creation Warning:', pendingRatingError);
+                // Non-fatal, continue
+            } else {
+                console.log('[API] ✅ Pending rating created for student:', payload.student_id);
+            }
+
         } catch (statsError) {
             console.error('[API] Stats Update Warning:', statsError);
             // We do NOT fail the request, as the transaction is recorded.

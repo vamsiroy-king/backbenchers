@@ -457,11 +457,24 @@ export default function DashboardPage() {
         ? realOffers.filter(o => o.merchantCity?.toLowerCase() === selectedCity.toLowerCase())
         : realOffers;
 
+    // Group by merchant - show each merchant once with their best discount
+    const groupByMerchant = (offersList: Offer[]) => {
+        const merchantMap = new Map<string, Offer>();
+        offersList.forEach(offer => {
+            const merchantId = offer.merchantId || '';
+            const existing = merchantMap.get(merchantId);
+            if (!existing || (offer.discountValue || 0) > (existing.discountValue || 0)) {
+                merchantMap.set(merchantId, offer);
+            }
+        });
+        return Array.from(merchantMap.values());
+    };
+
     const currentOffers = trendingTab === 'online'
-        ? (trendingOnline.length > 0 ? trendingOnline : ONLINE_OFFERS)
-        : (cityFilteredTrendingOffline.length > 0
+        ? groupByMerchant(trendingOnline.length > 0 ? trendingOnline : ONLINE_OFFERS as any)
+        : groupByMerchant(cityFilteredTrendingOffline.length > 0
             ? cityFilteredTrendingOffline
-            : (cityFilteredRealOffers.length > 0 ? cityFilteredRealOffers : OFFLINE_OFFERS));
+            : (cityFilteredRealOffers.length > 0 ? cityFilteredRealOffers : OFFLINE_OFFERS as any));
 
     // Enhanced search: merge local items with real offers from database
     const filteredItems = searchQuery.length > 0
