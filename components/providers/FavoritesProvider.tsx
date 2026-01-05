@@ -77,10 +77,21 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         });
 
         // Server update
-        if (isCurrentlyFavorite) {
-            await favoritesService.unsaveMerchant(merchantId);
-        } else {
-            await favoritesService.saveMerchant(merchantId);
+        // Server update
+        try {
+            await favoritesService.toggleMerchant(merchantId);
+        } catch (error) {
+            console.error('[FavoritesProvider] Error toggling favorite:', error);
+            // Revert optimistic update on error
+            setFavorites((prev) => {
+                const reverted = new Set(prev);
+                if (isCurrentlyFavorite) {
+                    reverted.add(merchantId);
+                } else {
+                    reverted.delete(merchantId);
+                }
+                return reverted;
+            });
         }
     };
 
@@ -95,7 +106,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
                 {
                     event: "*",
                     schema: "public",
-                    table: "saved_merchants",
+                    table: "favorites",
                     filter: `student_id=eq.${studentId}`,
                 },
                 (payload) => {
