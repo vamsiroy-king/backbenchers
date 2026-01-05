@@ -360,7 +360,9 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="h-12 w-12 rounded-xl bg-green-500 flex flex-col items-center justify-center flex-shrink-0">
-                                                    <span className="text-black font-bold text-sm">{offer.discountValue}%</span>
+                                                    <span className="text-black font-bold text-sm">
+                                                        {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
+                                                    </span>
                                                     <span className="text-black text-[8px] font-medium">OFF</span>
                                                 </div>
                                                 <div className="flex-1 min-w-0">
@@ -383,14 +385,17 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
 
                                                             {/* Price Display */}
                                                             <div className="flex items-center gap-3">
-                                                                {offer.originalPrice && (
+                                                                {offer.originalPrice && offer.finalPrice && (
                                                                     <>
                                                                         <span className="text-[#555] text-sm line-through">₹{offer.originalPrice}</span>
                                                                         <span className="text-white text-lg font-bold">₹{offer.finalPrice}</span>
                                                                     </>
                                                                 )}
                                                                 <span className="text-green-400 text-xs font-medium">
-                                                                    Save ₹{offer.discountAmount || Math.round((offer.originalPrice || 100) * (offer.discountValue || 0) / 100)}
+                                                                    {offer.type === 'percentage'
+                                                                        ? `Save ${offer.discountValue}%`
+                                                                        : `Save ₹${offer.discountAmount || offer.discountValue}`
+                                                                    }
                                                                 </span>
                                                             </div>
 
@@ -414,7 +419,9 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                                             </div>
 
                                                             <div className="flex gap-2 flex-wrap">
-                                                                <span className="text-[10px] bg-green-500/10 text-green-400 px-2.5 py-1 rounded-full font-medium">{offer.discountValue}% OFF</span>
+                                                                <span className="text-[10px] bg-green-500/10 text-green-400 px-2.5 py-1 rounded-full font-medium">
+                                                                    {offer.type === 'percentage' ? `${offer.discountValue}% OFF` : `₹${offer.discountValue} OFF`}
+                                                                </span>
                                                                 <span className="text-[10px] bg-[#1a1a1a] text-[#888] px-2.5 py-1 rounded-full flex items-center gap-1">
                                                                     <Tag className="h-2.5 w-2.5" />
                                                                     Show at store
