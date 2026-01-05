@@ -233,20 +233,30 @@ export default function ScanPage() {
         try {
             // Record the transaction in Supabase with actual bill amounts
             console.log('[ConfirmPayment] 🔄 Recording transaction...');
-            const txResult = await transactionService.recordTransaction({
-                studentId: student.id,
-                studentBbId: student.bbId || '',
-                studentName: student.name,
-                merchantId: merchant.id,
-                merchantBbmId: merchant.bbmId || '',
-                merchantName: merchant.businessName,
-                offerId: selectedOffer.id,
-                offerTitle: selectedOffer.title,
-                originalAmount: originalBill,        // Actual bill amount entered
-                discountAmount: discount,            // Calculated discount
-                finalAmount: final,                  // Final amount to collect
-                paymentMethod: paymentMethod || 'cash'
+            // Record the transaction via Server-Side API (Bypasses RLS issues)
+            console.log('[ConfirmPayment] 🔄 Recording transaction (Server-Side)...');
+
+            const response = await fetch('/api/merchant/transaction', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    studentId: student.id,
+                    studentBbId: student.bbId || '',
+                    studentName: student.name,
+                    merchantId: merchant.id,
+                    merchantBbmId: merchant.bbmId || '',
+                    merchantName: merchant.businessName,
+                    offerId: selectedOffer.id,
+                    offerTitle: selectedOffer.title,
+                    originalAmount: originalBill,
+                    discountAmount: discount,
+                    finalAmount: final,
+                    paymentMethod: paymentMethod || 'cash'
+                })
             });
+
+            const txResult = await response.json();
+
 
             console.log('[ConfirmPayment] 📊 Transaction result:', txResult.success, txResult.error);
 
