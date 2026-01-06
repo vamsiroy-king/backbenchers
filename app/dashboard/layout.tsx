@@ -9,6 +9,7 @@ export default function DashboardLayout({
 }) {
     return (
         <SuspendedCheck>
+            {/* bg-black is theme-aware via globals.css .light-theme overrides */}
             <div className="min-h-screen bg-black flex justify-center">
                 {/* Mobile-sized container centered on all screens */}
                 <div className="w-full max-w-[430px] min-h-screen bg-black relative">
@@ -23,4 +24,3 @@ export default function DashboardLayout({
         </SuspendedCheck>
     );
 }
-

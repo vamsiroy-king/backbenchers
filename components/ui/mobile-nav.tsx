@@ -4,6 +4,7 @@ import { Home, User, Flame, Compass, Map } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 const TABS = [
     { name: "Home", href: "/dashboard", icon: Home },
@@ -15,6 +16,8 @@ const TABS = [
 
 export function MobileNav() {
     const pathname = usePathname();
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
 
     return (
         <motion.div
@@ -24,8 +27,11 @@ export function MobileNav() {
             className="fixed bottom-0 left-0 right-0 z-50"
             style={{ transform: 'translateZ(0)', willChange: 'transform' }}
         >
-            {/* Premium Glass Nav Bar */}
-            <div className="bg-black/70 backdrop-blur-3xl border-t border-white/10 px-2 pt-2 pb-[max(env(safe-area-inset-bottom),8px)] shadow-[0_-8px_32px_rgba(0,0,0,0.5)]">
+            {/* Premium Glass Nav Bar - Theme Aware */}
+            <div className={`backdrop-blur-3xl px-2 pt-2 pb-[max(env(safe-area-inset-bottom),8px)] ${isLight
+                    ? 'bg-white/95 border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]'
+                    : 'bg-black/70 border-t border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.5)]'
+                }`}>
                 <div className="flex items-center justify-around max-w-md mx-auto">
                     {TABS.map((tab) => {
                         const isActive = pathname === tab.href;
@@ -43,16 +49,29 @@ export function MobileNav() {
                                     style={{ transform: 'translateZ(0)' }}
                                 >
                                     <div
-                                        className={`p-2 rounded-xl transition-all duration-150 ${isActive ? 'bg-green-500 shadow-lg shadow-green-500/25' : 'bg-transparent'}`}
+                                        className={`p-2 rounded-xl transition-all duration-150 ${isActive
+                                                ? 'bg-green-500 shadow-lg shadow-green-500/25'
+                                                : 'bg-transparent'
+                                            }`}
                                     >
                                         <Icon
-                                            className={`h-5 w-5 transition-colors duration-150 ${isActive ? 'text-white' : 'text-white/40'}`}
+                                            className={`h-5 w-5 transition-colors duration-150 ${isActive
+                                                    ? 'text-white'
+                                                    : isLight
+                                                        ? 'text-gray-400'
+                                                        : 'text-white/40'
+                                                }`}
                                             strokeWidth={isActive ? 2.5 : 1.8}
                                         />
                                     </div>
 
                                     <span
-                                        className={`text-[10px] mt-0.5 font-medium transition-colors duration-150 ${isActive ? 'text-green-400' : 'text-white/40'}`}
+                                        className={`text-[10px] mt-0.5 font-medium transition-colors duration-150 ${isActive
+                                                ? 'text-green-500'
+                                                : isLight
+                                                    ? 'text-gray-400'
+                                                    : 'text-white/40'
+                                            }`}
                                     >
                                         {tab.name}
                                     </span>
