@@ -579,12 +579,6 @@ export default function ProfilePage() {
                             {/* Header Row - Just BACKBENCHERS logo */}
                             <div className="flex items-center justify-between mb-auto">
                                 <span className="text-sm text-white font-bold italic tracking-tight">BACKBENCHERS</span>
-                                {/* PRO badge or empty for minimal look */}
-                                {hasProfileImage && (
-                                    <div className="px-2 py-0.5 border border-green-500 rounded text-[9px] text-green-400 font-bold">
-                                        PRO
-                                    </div>
-                                )}
                             </div>
 
                             {/* Main Content - Photo + Info */}

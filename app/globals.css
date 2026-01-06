@@ -264,8 +264,9 @@
   color: #111111 !important;
 }
 
-/* Override bg-black */
-.light-theme .bg-black {
+/* Override bg-black and dark backgrounds */
+.light-theme .bg-black,
+.light-theme .min-h-screen.bg-black {
   background-color: #ffffff !important;
 }
 
@@ -274,15 +275,18 @@
   background-color: rgba(255, 255, 255, 0.95) !important;
 }
 
-/* Override dark backgrounds */
+/* Override specific dark color classes */
 .light-theme [class*="bg-[#000]"],
 .light-theme [class*="bg-[#111]"],
+.light-theme [class*="bg-[#0a0a0a]"],
 .light-theme [class*="bg-[#1a1a1a]"],
 .light-theme [class*="bg-[#121212]"] {
   background-color: #ffffff !important;
 }
 
+/* Surface colors */
 .light-theme [class*="bg-white/[0.03]"],
+.light-theme [class*="bg-white/[0.04]"],
 .light-theme [class*="bg-white/[0.05]"] {
   background-color: #f1f5f9 !important;
 }
@@ -292,6 +296,7 @@
   color: #111111 !important;
 }
 
+.light-theme [class*="text-white/30"],
 .light-theme [class*="text-white/40"],
 .light-theme [class*="text-white/50"],
 .light-theme [class*="text-white/60"],
@@ -304,7 +309,7 @@
   color: #333333 !important;
 }
 
-/* Keep green accent */
+/* Keep green accent consistent */
 .light-theme .text-green-400,
 .light-theme .text-green-500 {
   color: #16a34a !important;
@@ -314,6 +319,11 @@
   background-color: #22c55e !important;
 }
 
+.light-theme .bg-green-500\/10,
+.light-theme .bg-green-500\/15 {
+  background-color: rgba(34, 197, 94, 0.1) !important;
+}
+
 /* Override borders */
 .light-theme [class*="border-white/"],
 .light-theme [class*="border-[#222]"],
@@ -321,22 +331,58 @@
   border-color: #e2e8f0 !important;
 }
 
-/* Cards and surfaces */
+/* Cards and surfaces - light shadows */
 .light-theme .rounded-2xl,
 .light-theme .rounded-xl {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-/* Header backdrop */
-.light-theme header {
-  background-color: rgba(255, 255, 255, 0.9) !important;
+/* Header/Navigation */
+.light-theme header,
+.light-theme nav {
+  background-color: rgba(255, 255, 255, 0.95) !important;
   border-bottom: 1px solid #e2e8f0;
 }
 
-/* ID Card Light Theme */
-.light-theme [class*="from-[#111111]"] {
-  background: linear-gradient(135deg, #e2e8f0, #cbd5e1) !important;
+/* Bottom Navigation Bar */
+.light-theme .fixed.bottom-0 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-top: 1px solid #e2e8f0 !important;
 }
+
+/* Modals and overlays */
+.light-theme [class*="bg-black/80"],
+.light-theme [class*="bg-black/70"] {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ID Card - special handling for gradient background */
+.light-theme [class*="from-[#111111]"],
+.light-theme [class*="from-[#0a0a0a]"] {
+  background: linear-gradient(135deg, #1e3a5f, #0f172a) !important;
+}
+
+/* ID card text stays white on dark gradient */
+
+/* Input fields */
+.light-theme input,
+.light-theme textarea {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #111111 !important;
+}
+
+.light-theme input::placeholder,
+.light-theme textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Buttons - secondary style */
+.light-theme [class*="bg-white/[0.05]"] button,
+.light-theme button[class*="bg-white/[0.05]"] {
+  background-color: #f1f5f9 !important;
+}
+
 
 @layer base {
   * {
