@@ -33,9 +33,9 @@ export function BBLoader({ size = "md", text, fullScreen = false }: BBLoaderProp
                     repeat: Infinity,
                     ease: "easeInOut"
                 }}
-                className={`${sizes[size].logo} rounded-2xl bg-green-500 flex items-center justify-center`}
+                className={`${sizes[size].logo} rounded-2xl overflow-hidden flex items-center justify-center`}
             >
-                <span className={`text-black font-bold ${sizes[size].logoText}`}>B</span>
+                <img src="/b-logo.png" alt="B" className="w-full h-full object-cover" />
             </motion.div>
 
             {/* Loading dots */}
@@ -89,9 +89,9 @@ export function BBInlineLoader() {
                     opacity: [0.5, 1, 0.5]
                 }}
                 transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-                className="h-8 w-8 rounded-xl bg-green-500 flex items-center justify-center"
+                className="h-8 w-8 rounded-xl overflow-hidden flex items-center justify-center"
             >
-                <span className="text-black font-bold text-sm">B</span>
+                <img src="/b-logo.png" alt="B" className="w-full h-full object-cover" />
             </motion.div>
         </div>
     );

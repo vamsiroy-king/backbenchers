@@ -36,25 +36,24 @@ export function BBQRCode({ value, size = 160, withLogo = true }: BBQRCodeProps) 
                 } : undefined}
             />
 
-            {/* BB Logo Overlay in Center - small enough to not affect scanning */}
+            {/* BB Logo Overlay in Center - using B mark image */}
             {withLogo && (
                 <div
                     className="absolute inset-0 flex items-center justify-center"
                     style={{ pointerEvents: 'none' }}
                 >
                     <div
-                        className="bg-white rounded-lg shadow-md flex items-center justify-center border-2 border-primary"
+                        className="bg-white rounded-lg shadow-md flex items-center justify-center overflow-hidden"
                         style={{
-                            width: logoSize,
-                            height: logoSize,
+                            width: logoSize + 4,
+                            height: logoSize + 4,
                         }}
                     >
-                        <span
-                            className="font-black text-primary"
-                            style={{ fontSize: logoSize * 0.55 }}
-                        >
-                            B
-                        </span>
+                        <img
+                            src="/b-logo.png"
+                            alt="B"
+                            className="w-full h-full object-cover"
+                        />
                     </div>
                 </div>
             )}
