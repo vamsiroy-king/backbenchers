@@ -367,7 +367,7 @@ export default function ScanPage() {
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="mt-4 bg-red-100 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2"
+                                className="mt-4 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl flex items-center gap-2"
                             >
                                 <XCircle className="h-5 w-5" />
                                 <span className="text-sm font-medium">{scanError}</span>
@@ -389,7 +389,7 @@ export default function ScanPage() {
                                             handleQRScan(idToVerify);
                                         }
                                     }}
-                                    className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-xl text-center font-mono font-bold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                    className="flex-1 px-4 py-3 bg-white/[0.06] border border-white/[0.1] rounded-xl text-center font-mono font-bold text-white placeholder:text-white/30 focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:outline-none transition-all"
                                     suppressHydrationWarning
                                 />
                                 <Button
