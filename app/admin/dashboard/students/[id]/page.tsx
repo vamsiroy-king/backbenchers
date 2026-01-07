@@ -114,7 +114,13 @@ export default function StudentDetailPage() {
                     toast.error('Failed to delete student: ' + (result.error || 'Unknown error'));
                 }
             } else if (action === 'suspend') {
-                const result = await studentService.updateStatus(student.id, 'suspended');
+                // Use server-side API to bypass RLS
+                const response = await fetch('/api/admin/student', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ studentId: student.id, status: 'suspended' })
+                });
+                const result = await response.json();
                 console.log('Suspend result:', result);
                 if (result.success) {
                     setStudent({ ...student, status: 'suspended' });
@@ -124,7 +130,13 @@ export default function StudentDetailPage() {
                 }
                 setShowConfirmModal(null);
             } else if (action === 'verify') {
-                const result = await studentService.updateStatus(student.id, 'verified');
+                // Use server-side API to bypass RLS
+                const response = await fetch('/api/admin/student', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ studentId: student.id, status: 'verified' })
+                });
+                const result = await response.json();
                 console.log('Reinstate result:', result);
                 if (result.success) {
                     setStudent({ ...student, status: 'verified' });

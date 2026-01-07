@@ -824,6 +824,48 @@ export default function DashboardPage() {
                     </section>
                 )}
 
+                {/* Top Brands - Minimal Grid - MOVED TO MIDDLE */}
+                {
+                    contentSettings.showTopBrands && (
+                        <section className="py-6">
+                            <div className="flex items-center gap-3 mb-5">
+                                <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                                    <Sparkles className="h-4 w-4 text-amber-400" />
+                                </div>
+                                <h2 className="text-lg font-semibold text-white tracking-tight">Top Brands</h2>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2">
+                                {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
+                                    <motion.button
+                                        key={brand.id}
+                                        whileTap={{ scale: 0.97 }}
+                                        onClick={(e) => {
+                                            if (!isVerified) {
+                                                e.preventDefault();
+                                                setShowVerifyModal(true);
+                                            } else {
+                                                router.push(`/store/${brand.id}`);
+                                            }
+                                        }}
+                                        className="bg-white/[0.02] rounded-xl p-3 flex flex-col items-center gap-2 border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all"
+                                    >
+                                        <div className="h-10 w-10 rounded-lg bg-white/[0.04] flex items-center justify-center overflow-hidden">
+                                            {brand.logo ? (
+                                                <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Store className="h-4 w-4 text-white/30" />
+                                            )}
+                                        </div>
+                                        <span className="text-xs font-medium text-white/80 text-center line-clamp-1">{brand.name}</span>
+                                        <span className="text-[10px] text-green-400/80">{brand.discount || brand.category}</span>
+                                    </motion.button>
+                                ))}
+                            </div>
+                        </section>
+                    )
+                }
+
                 {/* Trending Offers - Real App Style */}
                 {
                     contentSettings.showTrending && (
@@ -887,48 +929,6 @@ export default function DashboardPage() {
                             >
                                 View All Offers →
                             </motion.button>
-                        </section>
-                    )
-                }
-
-                {/* Top Brands - Minimal Grid */}
-                {
-                    contentSettings.showTopBrands && (
-                        <section className="py-6">
-                            <div className="flex items-center gap-3 mb-5">
-                                <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                                    <Sparkles className="h-4 w-4 text-amber-400" />
-                                </div>
-                                <h2 className="text-lg font-semibold text-white tracking-tight">Top Brands</h2>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-2">
-                                {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
-                                    <motion.button
-                                        key={brand.id}
-                                        whileTap={{ scale: 0.97 }}
-                                        onClick={(e) => {
-                                            if (!isVerified) {
-                                                e.preventDefault();
-                                                setShowVerifyModal(true);
-                                            } else {
-                                                router.push(`/store/${brand.id}`);
-                                            }
-                                        }}
-                                        className="bg-white/[0.02] rounded-xl p-3 flex flex-col items-center gap-2 border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all"
-                                    >
-                                        <div className="h-10 w-10 rounded-lg bg-white/[0.04] flex items-center justify-center overflow-hidden">
-                                            {brand.logo ? (
-                                                <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <Store className="h-4 w-4 text-white/30" />
-                                            )}
-                                        </div>
-                                        <span className="text-xs font-medium text-white/80 text-center line-clamp-1">{brand.name}</span>
-                                        <span className="text-[10px] text-green-400/80">{brand.discount || brand.category}</span>
-                                    </motion.button>
-                                ))}
-                            </div>
                         </section>
                     )
                 }

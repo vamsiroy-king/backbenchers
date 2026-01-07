@@ -13,9 +13,12 @@ import { authService } from "@/lib/services/auth.service";
 import { supabase } from "@/lib/supabase";
 import { Student, Transaction } from "@/lib/types";
 import FaceCamera from "@/components/FaceCamera";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 export default function ProfilePage() {
     const router = useRouter();
+    const { theme } = useTheme();
+    const isLightTheme = theme === 'light';
     const [isFlipped, setIsFlipped] = useState(false);
     const [hasProfileImage, setHasProfileImage] = useState(false);
     const [showCameraModal, setShowCameraModal] = useState(false);
@@ -553,8 +556,8 @@ export default function ProfilePage() {
                         className="absolute inset-0 rounded-2xl overflow-hidden"
                         style={{ backfaceVisibility: "hidden" }}
                     >
-                        {/* Card Background - Premium dark */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#111111] to-[#0a0a0a]" />
+                        {/* Card Background - Theme aware: Dark premium / Light white+green */}
+                        <div className={`absolute inset-0 ${isLightTheme ? 'bg-gradient-to-br from-white to-green-50' : 'bg-gradient-to-br from-[#111111] to-[#0a0a0a]'}`} />
 
                         {/* Subtle metallic sheen - static, ultra-minimal */}
                         <div
@@ -570,7 +573,7 @@ export default function ProfilePage() {
                         }} />
 
                         {/* Clean border */}
-                        <div className="absolute inset-0 rounded-2xl border border-white/[0.08]" />
+                        <div className={`absolute inset-0 rounded-2xl border ${isLightTheme ? 'border-green-200' : 'border-white/[0.08]'}`} />
 
 
                         {/* Card Content */}
@@ -578,7 +581,7 @@ export default function ProfilePage() {
 
                             {/* Header Row - Just BACKBENCHERS logo */}
                             <div className="flex items-center justify-between mb-auto">
-                                <span className="text-sm text-white font-bold italic tracking-tight">BACKBENCHERS</span>
+                                <span className={`text-sm font-bold italic tracking-tight ${isLightTheme ? 'text-green-600' : 'text-white'}`}>BACKBENCHERS</span>
                             </div>
 
                             {/* Main Content - Photo + Info */}
@@ -607,7 +610,7 @@ export default function ProfilePage() {
                                 {/* Name & College + Verified Badge */}
                                 <div className="flex-1 min-w-0 pt-1">
                                     <div className="flex items-center gap-1.5">
-                                        <h2 className="text-base font-semibold text-white truncate leading-tight">
+                                        <h2 className={`text-base font-semibold truncate leading-tight ${isLightTheme ? 'text-gray-900' : 'text-white'}`}>
                                             {student?.name || 'Loading...'}
                                         </h2>
                                         {/* Verified checkmark beside name */}

@@ -628,6 +628,33 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                     </div>
                                 </div>
 
+                                {/* Operating Hours Table - Full Week */}
+                                {merchant.operatingHours && (
+                                    <div className="bg-[#111] rounded-xl p-4 border border-[#222]">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <Clock className="h-4 w-4 text-green-400" />
+                                            <p className="text-white text-sm font-medium">Operating Hours</p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
+                                                const hours = merchant.operatingHours?.[day];
+                                                const isToday = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() === day;
+                                                return (
+                                                    <div key={day} className={`flex justify-between items-center py-1.5 ${isToday ? 'bg-green-500/10 -mx-2 px-2 rounded-lg' : ''}`}>
+                                                        <span className={`text-xs capitalize ${isToday ? 'text-green-400 font-medium' : 'text-[#888]'}`}>
+                                                            {day.charAt(0).toUpperCase() + day.slice(1)}
+                                                            {isToday && <span className="ml-1 text-[10px]">(Today)</span>}
+                                                        </span>
+                                                        <span className={`text-xs font-mono ${hours?.closed ? 'text-red-400' : isToday ? 'text-white font-medium' : 'text-[#aaa]'}`}>
+                                                            {hours?.closed ? 'Closed' : hours?.open && hours?.close ? `${hours.open} - ${hours.close}` : 'Not set'}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="bg-[#111] rounded-xl p-4 border border-[#222]">
                                     <div className="flex items-center gap-3">
                                         <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
