@@ -34,12 +34,25 @@ export default function Home() {
     async function check() {
       if (typeof window === 'undefined') return;
 
-      // Only handle access_token in hash (implicit flow fallback)
-      // DO NOT intercept 'code' - let Supabase redirect to /auth/callback directly
+      // CRITICAL: Handle OAuth redirect - both hash token and PKCE code
+      // Supabase may redirect here with ?code=... - we MUST redirect to callback
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+
+      if (code) {
+        console.log('[Landing] OAuth code detected, redirecting to /auth/callback');
+        const flow = localStorage.getItem('auth_flow');
+        localStorage.removeItem('auth_flow');
+        // Redirect with full query string to preserve code and other params
+        window.location.href = (flow === 'merchant' ? '/merchant/auth/callback' : '/auth/callback') + window.location.search;
+        return;
+      }
+
+      // Handle access_token in hash (implicit flow fallback)
       if (window.location.hash?.includes('access_token')) {
         const flow = localStorage.getItem('auth_flow');
         localStorage.removeItem('auth_flow');
-        router.replace(flow === 'merchant' ? '/merchant/auth/callback' + window.location.hash : '/auth/callback' + window.location.hash);
+        window.location.href = (flow === 'merchant' ? '/merchant/auth/callback' : '/auth/callback') + window.location.hash;
         return;
       }
 
