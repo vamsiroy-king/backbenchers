@@ -34,49 +34,27 @@ export default function Home() {
     async function check() {
       if (typeof window === 'undefined') return;
 
-      // Handle OAuth callback - check for both hash token and PKCE code
-      const urlParams = new URLSearchParams(window.location.search);
-      const hasCode = urlParams.has('code');
-      const hasAccessToken = window.location.hash?.includes('access_token');
-
-      if (hasCode || hasAccessToken) {
+      // Only handle access_token in hash (implicit flow fallback)
+      // DO NOT intercept 'code' - let Supabase redirect to /auth/callback directly
+      if (window.location.hash?.includes('access_token')) {
         const flow = localStorage.getItem('auth_flow');
         localStorage.removeItem('auth_flow');
-        const callbackPath = flow === 'merchant' ? '/merchant/auth/callback' : '/auth/callback';
-        const params = hasCode ? window.location.search : window.location.hash;
-        window.location.href = callbackPath + params;
+        router.replace(flow === 'merchant' ? '/merchant/auth/callback' + window.location.hash : '/auth/callback' + window.location.hash);
         return;
       }
 
       try {
-        const { supabase } = await import('@/lib/supabase');
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (session) {
-          // Session exists - check if student record exists
-          const { data: student } = await supabase
-            .from('students')
-            .select('id, status')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-
-          if (student) {
-            // Existing verified student - go to dashboard
-            if (student.status === 'suspended') {
-              window.location.href = '/suspended';
-            } else {
-              router.replace('/dashboard');
-            }
-          } else {
-            // No student record - this is a NEW user, must go to verify/onboarding
-            console.log('[Landing] New user detected, redirecting to /verify');
-            window.location.href = '/verify';
-          }
+        const user = await authService.getCurrentUser();
+        if (user?.role === 'student' && !user.isSuspended) {
+          router.replace('/dashboard');
           return;
         }
-      } catch (e) {
-        console.error('[Landing] Auth check error:', e);
-      }
+        if (user?.role === 'pending') {
+          // User has session but no student record - go to onboarding
+          window.location.href = '/verify';
+          return;
+        }
+      } catch { }
       setChecking(false);
     }
     check();
@@ -169,7 +147,7 @@ function LandingPage() {
               Exclusive discounts for verified students at local stores and top brands.
             </p>
 
-            {/* CTA Button */}
+            {/* CTA Buttons */}
             <div className="space-y-3">
               <Link href="/signup" className="block">
                 <motion.button
@@ -180,7 +158,14 @@ function LandingPage() {
                   <ArrowRight className="h-4 w-4" />
                 </motion.button>
               </Link>
-              <p className="text-center text-xs text-[#444]">Already have account? <Link href="/login" className="text-green-400 hover:underline">Sign in</Link></p>
+              <Link href="/dashboard" className="block">
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full h-[52px] bg-[#111] hover:bg-[#1a1a1a] text-white font-medium rounded-xl border border-[#222] text-[15px] transition-colors"
+                >
+                  Explore Deals
+                </motion.button>
+              </Link>
             </div>
           </motion.div>
         </section>

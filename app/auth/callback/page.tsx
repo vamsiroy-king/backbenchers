@@ -186,16 +186,6 @@ export default function AuthCallbackPage() {
             </div>
 
             <p className="text-white/50 text-sm font-medium">{status}</p>
-
-            {/* Debug Info - Visible for troubleshooting */}
-            {debugInfo.length > 0 && (
-                <div className="mt-6 bg-gray-900 rounded-lg p-4 max-w-md w-full border border-gray-700">
-                    <p className="text-xs text-gray-500 mb-2">Debug Log:</p>
-                    <div className="text-xs text-green-400 font-mono space-y-1 max-h-40 overflow-y-auto">
-                        {debugInfo.map((d, i) => <p key={i}>{d}</p>)}
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
