@@ -628,13 +628,13 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                     </div>
                                 </div>
 
-                                {/* Operating Hours Table - Full Week */}
-                                {merchant.operatingHours && (
-                                    <div className="bg-[#111] rounded-xl p-4 border border-[#222]">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Clock className="h-4 w-4 text-green-400" />
-                                            <p className="text-white text-sm font-medium">Operating Hours</p>
-                                        </div>
+                                {/* Operating Hours Table - Full Week - Always Show */}
+                                <div className="bg-[#111] rounded-xl p-4 border border-[#222]">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Clock className="h-4 w-4 text-green-400" />
+                                        <p className="text-white text-sm font-medium">Operating Hours</p>
+                                    </div>
+                                    {merchant.operatingHours ? (
                                         <div className="space-y-2">
                                             {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
                                                 const opHours = merchant.operatingHours as Record<string, { open?: string; close?: string; closed?: boolean }> | undefined;
@@ -653,8 +653,10 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                                 );
                                             })}
                                         </div>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <p className="text-[#555] text-xs">Hours not available. Contact store for timing.</p>
+                                    )}
+                                </div>
 
                                 <div className="bg-[#111] rounded-xl p-4 border border-[#222]">
                                     <div className="flex items-center gap-3">

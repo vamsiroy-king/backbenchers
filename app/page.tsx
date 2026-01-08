@@ -33,20 +33,50 @@ export default function Home() {
   useEffect(() => {
     async function check() {
       if (typeof window === 'undefined') return;
-      // Handle OAuth callback
-      if (window.location.hash?.includes('access_token')) {
+
+      // Handle OAuth callback - check for both hash token and PKCE code
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasCode = urlParams.has('code');
+      const hasAccessToken = window.location.hash?.includes('access_token');
+
+      if (hasCode || hasAccessToken) {
         const flow = localStorage.getItem('auth_flow');
         localStorage.removeItem('auth_flow');
-        router.replace(flow === 'merchant' ? '/merchant/auth/callback' + window.location.hash : '/auth/callback' + window.location.hash);
+        const callbackPath = flow === 'merchant' ? '/merchant/auth/callback' : '/auth/callback';
+        const params = hasCode ? window.location.search : window.location.hash;
+        window.location.href = callbackPath + params;
         return;
       }
+
       try {
-        const user = await authService.getCurrentUser();
-        if (user?.role === 'student' && !user.isSuspended) { router.replace('/dashboard'); return; }
         const { supabase } = await import('@/lib/supabase');
         const { data: { session } } = await supabase.auth.getSession();
-        if (session && (!user || user.role === 'pending')) { window.location.href = '/verify'; return; }
-      } catch { }
+
+        if (session) {
+          // Session exists - check if student record exists
+          const { data: student } = await supabase
+            .from('students')
+            .select('id, status')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (student) {
+            // Existing verified student - go to dashboard
+            if (student.status === 'suspended') {
+              window.location.href = '/suspended';
+            } else {
+              router.replace('/dashboard');
+            }
+          } else {
+            // No student record - this is a NEW user, must go to verify/onboarding
+            console.log('[Landing] New user detected, redirecting to /verify');
+            window.location.href = '/verify';
+          }
+          return;
+        }
+      } catch (e) {
+        console.error('[Landing] Auth check error:', e);
+      }
       setChecking(false);
     }
     check();
