@@ -637,7 +637,8 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                         </div>
                                         <div className="space-y-2">
                                             {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
-                                                const hours = merchant.operatingHours?.[day];
+                                                const opHours = merchant.operatingHours as Record<string, { open?: string; close?: string; closed?: boolean }> | undefined;
+                                                const hours = opHours?.[day];
                                                 const isToday = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() === day;
                                                 return (
                                                     <div key={day} className={`flex justify-between items-center py-1.5 ${isToday ? 'bg-green-500/10 -mx-2 px-2 rounded-lg' : ''}`}>
