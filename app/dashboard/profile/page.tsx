@@ -620,38 +620,38 @@ export default function ProfilePage() {
                                             </div>
                                         )}
                                     </div>
-                                    <p className="text-[11px] text-white/50 truncate mt-0.5">
+                                    <p className={`text-[11px] truncate mt-0.5 ${isLightTheme ? 'text-gray-600' : 'text-white/50'}`}>
                                         {student?.college || 'College'}
                                     </p>
-                                    <p className="text-[10px] text-white/30 mt-0.5">
+                                    <p className={`text-[10px] mt-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/30'}`}>
                                         {student?.city || 'City'}
                                     </p>
                                 </div>
                             </div>
 
                             {/* Bottom Section - ID & Details */}
-                            <div className="mt-auto pt-3 border-t border-white/[0.06]">
+                            <div className={`mt-auto pt-3 border-t ${isLightTheme ? 'border-green-200' : 'border-white/[0.06]'}`}>
                                 <div className="flex items-end justify-between">
                                     {/* Student ID */}
                                     <div>
-                                        <p className="text-[8px] text-white/30 uppercase tracking-wider mb-0.5">Student ID</p>
-                                        <p className="text-sm font-mono font-semibold text-green-400 tracking-wider">
+                                        <p className={`text-[8px] uppercase tracking-wider mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/30'}`}>Student ID</p>
+                                        <p className="text-sm font-mono font-semibold text-green-500 tracking-wider">
                                             {hasProfileImage && student?.bbId ? student.bbId : 'PENDING'}
                                         </p>
                                     </div>
 
                                     {/* DOB */}
                                     <div className="text-center">
-                                        <p className="text-[8px] text-white/30 uppercase tracking-wider mb-0.5">DOB</p>
-                                        <p className="text-[10px] text-white/60 font-medium">
-                                            {student?.dob ? new Date(student.dob).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                                        <p className={`text-[8px] uppercase tracking-wider mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/30'}`}>DOB</p>
+                                        <p className={`text-[10px] font-medium ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>
+                                            {student?.dob ? new Date(student.dob).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
                                         </p>
                                     </div>
 
                                     {/* Valid */}
                                     <div className="text-right">
-                                        <p className="text-[8px] text-white/30 uppercase tracking-wider mb-0.5">Valid</p>
-                                        <p className="text-[10px] text-white/60 font-medium">12/25</p>
+                                        <p className={`text-[8px] uppercase tracking-wider mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/30'}`}>Valid</p>
+                                        <p className={`text-[10px] font-medium ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>12/25</p>
                                     </div>
                                 </div>
                             </div>
