@@ -248,6 +248,16 @@ export const authService = {
     // STUDENT AUTH - LINK COLLEGE EMAIL (STEP 2)
     // =============================================
 
+    // Check if phone number already exists in database
+    async checkPhoneExists(phone: string): Promise<boolean> {
+        const { data } = await supabase
+            .from('students')
+            .select('id')
+            .eq('phone', phone)
+            .maybeSingle();
+        return !!data;
+    },
+
     // Check if college email already exists in database
     async checkCollegeEmailExists(collegeEmail: string): Promise<boolean> {
         const { data } = await supabase

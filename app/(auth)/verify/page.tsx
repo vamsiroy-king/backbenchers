@@ -249,8 +249,26 @@ export default function VerifyPage() {
 
             <AnimatePresence mode="wait">
                 {step === "details" && (
-                    <motion.form key="d" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} onSubmit={e => { e.preventDefault(); setStep("location"); }} className="space-y-5">
+                    <motion.form key="d" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} onSubmit={async (e) => {
+                        e.preventDefault();
+                        setError("");
+                        setLoading(true);
+                        try {
+                            // Check if phone already exists
+                            const phoneExists = await authService.checkPhoneExists(formData.phone);
+                            if (phoneExists) {
+                                setError("This mobile number is already registered");
+                                setLoading(false);
+                                return;
+                            }
+                            setStep("location");
+                        } catch (err) {
+                            setError("Failed to verify phone. Please try again.");
+                        }
+                        setLoading(false);
+                    }} className="space-y-5">
                         <div><h1 className="text-xl font-bold text-white mb-1">Personal details</h1><p className="text-sm text-white/40">Tell us about yourself</p></div>
+                        {error && <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400"><AlertCircle className="h-4 w-4" />{error}</div>}
                         <div className="grid grid-cols-2 gap-3">
                             <Input label="First name" placeholder="John" value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} required />
                             <Input label="Last name" placeholder="Doe" value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} required />
@@ -264,7 +282,7 @@ export default function VerifyPage() {
                                 <input type="tel" inputMode="numeric" maxLength={10} placeholder="10 digits" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} required className="flex-1 h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 text-white placeholder:text-white/30 focus:outline-none focus:border-green-500/50" />
                             </div>
                         </div>
-                        <button type="submit" disabled={formData.phone.length !== 10} className="w-full h-12 bg-green-500 hover:bg-green-400 disabled:bg-white/10 disabled:text-white/30 text-black font-semibold rounded-xl transition-colors">Continue</button>
+                        <button type="submit" disabled={formData.phone.length !== 10 || loading} className="w-full h-12 bg-green-500 hover:bg-green-400 disabled:bg-white/10 disabled:text-white/30 text-black font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Continue"}</button>
                     </motion.form>
                 )}
 
@@ -303,7 +321,7 @@ export default function VerifyPage() {
                         <div><h1 className="text-xl font-bold text-white mb-1">Verify OTP</h1><p className="text-sm text-white/40">Code sent to {formData.collegeEmail}</p></div>
                         {otpError && <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400"><AlertCircle className="h-4 w-4" />{otpError}</div>}
                         <div className="flex justify-center gap-2">
-                            {otp.map((d, i) => <input key={i} ref={el => { otpRefs.current[i] = el; }} type="text" inputMode="numeric" maxLength={1} value={d} onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => { if (e.key === 'Backspace' && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus(); }} className="w-10 h-12 text-center text-lg font-bold bg-white/[0.04] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:border-green-500/50" />)}
+                            {otp.map((d, i) => <input key={i} ref={el => { otpRefs.current[i] = el; }} type="text" inputMode="numeric" maxLength={1} value={d} onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => { if (e.key === 'Backspace' && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus(); }} autoComplete={i === 0 ? "one-time-code" : "off"} className="w-10 h-12 text-center text-lg font-bold bg-white/[0.04] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:border-green-500/50" />)}
                         </div>
                         <div className="text-center">
                             {canResend ? <button onClick={handleResend} disabled={loading} className="text-green-400 text-sm font-medium flex items-center justify-center gap-2 mx-auto"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />Resend</button> : <p className="text-white/40 text-sm">Resend in {resendTimer}s</p>}

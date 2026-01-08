@@ -804,20 +804,22 @@ export default function ProfilePage() {
                     </button>
                 </Link>
 
-                {/* Dark Mode Toggle */}
+                {/* Dark Mode Toggle - Synced with theme */}
                 <button
                     onClick={() => {
-                        const isDark = document.documentElement.classList.toggle('dark');
-                        localStorage.setItem('bb-theme', isDark ? 'dark' : 'light');
+                        const newTheme = theme === 'dark' ? 'light' : 'dark';
+                        document.documentElement.classList.toggle('dark', newTheme === 'dark');
+                        localStorage.setItem('bb-theme', newTheme);
+                        window.location.reload(); // Force refresh to sync theme
                     }}
                     className="w-full h-14 flex items-center justify-between px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] font-medium hover:bg-white/[0.08] transition-colors"
                 >
                     <div className="flex items-center gap-3">
-                        <span className="text-lg">🌙</span>
-                        <span className="text-white">Dark Mode</span>
+                        <span className="text-lg">{theme === 'dark' ? '🌙' : '☀️'}</span>
+                        <span className="text-white">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
                     </div>
-                    <div className="relative h-6 w-11 bg-green-500 rounded-full">
-                        <div className="absolute h-5 w-5 bg-white rounded-full top-0.5 left-[22px] shadow-sm" />
+                    <div className={`relative h-6 w-11 rounded-full transition-colors ${theme === 'dark' ? 'bg-green-500' : 'bg-white/20'}`}>
+                        <div className={`absolute h-5 w-5 bg-white rounded-full top-0.5 shadow-sm transition-all ${theme === 'dark' ? 'left-[22px]' : 'left-0.5'}`} />
                     </div>
                 </button>
 
