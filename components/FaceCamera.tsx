@@ -27,6 +27,7 @@ interface FaceCameraProps {
 const MIN_FACE_SIZE = 0.06; // 6% of frame - medium distance (half arm length)
 const BRIGHTNESS_THRESHOLD = 40;
 const DEBOUNCE_THRESHOLD = 3;
+const PERFECT_HOLD_TIME = 2000; // 2 seconds of stable face detection required
 
 // Helper to check image brightness
 const checkBrightness = (imageData: ImageData): number => {
@@ -60,6 +61,8 @@ export default function FaceCamera({
 
     // Debounce status changes
     const statusCountRef = useRef<{ status: FaceStatus; count: number }>({ status: "loading", count: 0 });
+    const perfectStartTimeRef = useRef<number | null>(null);
+    const [perfectHoldSeconds, setPerfectHoldSeconds] = useState(0);
 
     const updateStatusWithDebounce = (newStatus: FaceStatus) => {
         if (statusCountRef.current.status === newStatus) {
@@ -161,10 +164,9 @@ export default function FaceCamera({
                     }
                 }
 
-                // Face detection
                 const detections = await faceapi.detectAllFaces(
                     video,
-                    new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })
+                    new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.7 }) // Higher threshold for better accuracy
                 );
 
                 if (detections.length === 0) {
@@ -183,9 +185,23 @@ export default function FaceCamera({
                     if (faceArea < MIN_FACE_SIZE) {
                         updateStatusWithDebounce("too_far");
                     } else if (!isCentered) {
+                        perfectStartTimeRef.current = null;
+                        setPerfectHoldSeconds(0);
                         updateStatusWithDebounce("not_centered");
                     } else {
-                        updateStatusWithDebounce("perfect");
+                        // Track how long face has been in perfect position
+                        if (!perfectStartTimeRef.current) {
+                            perfectStartTimeRef.current = Date.now();
+                        }
+                        const holdTime = Date.now() - perfectStartTimeRef.current;
+                        setPerfectHoldSeconds(Math.floor(holdTime / 1000));
+
+                        if (holdTime >= PERFECT_HOLD_TIME) {
+                            updateStatusWithDebounce("perfect");
+                        } else {
+                            // Still waiting for 2 seconds
+                            setStatus("not_centered"); // Show as "hold still" state
+                        }
                     }
                 }
             } catch (err) {
@@ -250,6 +266,9 @@ export default function FaceCamera({
             case "too_far":
                 return { color: "orange", message: "Move closer to camera", icon: <User className="h-4 w-4" />, canCapture: false };
             case "not_centered":
+                if (perfectHoldSeconds > 0) {
+                    return { color: "orange", message: `Hold still... ${2 - perfectHoldSeconds}s`, icon: <Loader2 className="h-4 w-4 animate-spin" />, canCapture: false };
+                }
                 return { color: "orange", message: "Center your face", icon: <User className="h-4 w-4" />, canCapture: false };
             case "perfect":
                 return { color: "green", message: "Perfect! Ready to capture", icon: <CheckCircle className="h-4 w-4" />, canCapture: true };
@@ -389,9 +408,9 @@ export default function FaceCamera({
                     initial={{ y: 10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     className={`mt-4 px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 ${statusUI.color === "green" ? "bg-emerald-500 text-white" :
-                            statusUI.color === "orange" ? "bg-orange-500 text-white" :
-                                statusUI.color === "red" ? "bg-red-500 text-white" :
-                                    "bg-gray-600 text-white"
+                        statusUI.color === "orange" ? "bg-orange-500 text-white" :
+                            statusUI.color === "red" ? "bg-red-500 text-white" :
+                                "bg-gray-600 text-white"
                         }`}
                 >
                     {statusUI.icon}
@@ -408,8 +427,8 @@ export default function FaceCamera({
                     onClick={handleCapture}
                     disabled={!statusUI.canCapture || isCapturing}
                     className={`w-full h-14 font-bold rounded-2xl text-base transition-all ${statusUI.canCapture
-                            ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30"
-                            : "bg-white/10 text-white/40 cursor-not-allowed"
+                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30"
+                        : "bg-white/10 text-white/40 cursor-not-allowed"
                         }`}
                 >
                     {isCapturing ? (
