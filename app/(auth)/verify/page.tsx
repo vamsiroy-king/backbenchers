@@ -150,11 +150,31 @@ export default function VerifyPage() {
 
     const stepIndex = ["details", "location", "university", "email", "otp", "photo"].indexOf(step);
     const goBack = () => {
-        if (step === "location") setStep("details");
+        if (step === "details") {
+            // First step - go back to landing
+            window.location.href = '/';
+        } else if (step === "location") setStep("details");
         else if (step === "university") setStep("location");
         else if (step === "email") setStep("university");
         else if (step === "otp") setStep("email");
+        else if (step === "photo") setStep("otp");
     };
+
+    // Handle browser back button - use in-app navigation
+    useEffect(() => {
+        const handlePopState = (e: PopStateEvent) => {
+            e.preventDefault();
+            goBack();
+            // Push state again to prevent actual navigation
+            window.history.pushState(null, '', '/verify');
+        };
+
+        // Push initial state
+        window.history.pushState(null, '', '/verify');
+        window.addEventListener('popstate', handlePopState);
+
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [step]);
 
     const handleEmailSubmit = async (e: React.FormEvent) => {
         e.preventDefault(); setError(""); setLoading(true);
@@ -199,8 +219,8 @@ export default function VerifyPage() {
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] px-5 pt-12 pb-8">
-            {/* Header */}
-            {step !== "details" && step !== "photo" && step !== "success" && (
+            {/* Header - Back button on all steps except success */}
+            {step !== "success" && (
                 <button onClick={goBack} className="flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-6">
                     <ArrowLeft className="h-4 w-4" /><span className="text-sm">Back</span>
                 </button>
