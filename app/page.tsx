@@ -34,40 +34,101 @@ export default function Home() {
     async function check() {
       if (typeof window === 'undefined') return;
 
-      // CRITICAL: Handle OAuth redirect - both hash token and PKCE code
-      // Supabase may redirect here with ?code=... - we MUST redirect to callback
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-
-      if (code) {
-        console.log('[Landing] OAuth code detected, redirecting to /auth/callback');
-        const flow = localStorage.getItem('auth_flow');
-        localStorage.removeItem('auth_flow');
-        // Redirect with full query string to preserve code and other params
-        window.location.href = (flow === 'merchant' ? '/merchant/auth/callback' : '/auth/callback') + window.location.search;
-        return;
-      }
-
-      // Handle access_token in hash (implicit flow fallback)
-      if (window.location.hash?.includes('access_token')) {
-        const flow = localStorage.getItem('auth_flow');
-        localStorage.removeItem('auth_flow');
-        window.location.href = (flow === 'merchant' ? '/merchant/auth/callback' : '/auth/callback') + window.location.hash;
-        return;
-      }
-
       try {
+        // Import supabase for direct session handling
+        const { supabase } = await import('@/lib/supabase');
+
+        // Check if this is an OAuth callback (Supabase will auto-handle via detectSessionInUrl)
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasCode = urlParams.has('code');
+        const hasAccessToken = window.location.hash?.includes('access_token');
+
+        if (hasCode || hasAccessToken) {
+          console.log('[Landing] OAuth callback detected, waiting for session...');
+
+          // Give Supabase time to process the OAuth callback
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          // Wait for session with retries
+          let attempts = 0;
+          let session = null;
+
+          while (attempts < 20 && !session) {
+            const { data, error } = await supabase.auth.getSession();
+            if (error) console.error('Session error:', error);
+            session = data.session;
+            if (!session) {
+              await new Promise(resolve => setTimeout(resolve, 300));
+              attempts++;
+            }
+          }
+
+          if (session) {
+            console.log('[Landing] Session established for:', session.user.email);
+
+            // Check if student exists
+            const { data: student } = await supabase
+              .from('students')
+              .select('id, status')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+
+            // Also check by email
+            let foundStudent = student;
+            if (!foundStudent && session.user.email) {
+              const { data: studentByEmail } = await supabase
+                .from('students')
+                .select('id, status, user_id')
+                .eq('email', session.user.email.toLowerCase())
+                .maybeSingle();
+
+              if (studentByEmail) {
+                // Update user_id if needed
+                if (studentByEmail.user_id !== session.user.id) {
+                  await supabase
+                    .from('students')
+                    .update({ user_id: session.user.id })
+                    .eq('id', studentByEmail.id);
+                }
+                foundStudent = studentByEmail;
+              }
+            }
+
+            // Clear URL params and redirect
+            window.history.replaceState({}, '', '/');
+
+            if (foundStudent) {
+              if (foundStudent.status === 'suspended') {
+                window.location.href = '/suspended';
+              } else {
+                console.log('[Landing] Existing student - going to dashboard');
+                window.location.href = '/dashboard';
+              }
+            } else {
+              console.log('[Landing] New user - going to onboarding');
+              window.location.href = '/verify';
+            }
+            return;
+          } else {
+            console.error('[Landing] Failed to get session');
+            // Clear failed code from URL
+            window.history.replaceState({}, '', '/');
+          }
+        }
+
+        // Regular check - no OAuth callback
         const user = await authService.getCurrentUser();
         if (user?.role === 'student' && !user.isSuspended) {
           router.replace('/dashboard');
           return;
         }
         if (user?.role === 'pending') {
-          // User has session but no student record - go to onboarding
           window.location.href = '/verify';
           return;
         }
-      } catch { }
+      } catch (e) {
+        console.error('[Landing] Error:', e);
+      }
       setChecking(false);
     }
     check();
