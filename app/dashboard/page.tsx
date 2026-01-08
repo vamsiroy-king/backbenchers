@@ -500,7 +500,7 @@ export default function DashboardPage() {
                                 </p>
                             </div>
 
-                            <Link href="/signup" className="block">
+                            <Link href="/verify" className="block">
                                 <Button className="w-full h-14 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-2xl text-base shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all">
                                     Verify Now - Free
                                 </Button>

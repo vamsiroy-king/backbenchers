@@ -138,7 +138,7 @@ export default function CategoryPage() {
                                 </p>
                             </div>
 
-                            <Link href="/signup" className="block">
+                            <Link href="/verify" className="block">
                                 <Button className="w-full h-12 bg-black dark:bg-white dark:text-black text-white font-bold rounded-xl">
                                     Get Verified - Free
                                 </Button>
