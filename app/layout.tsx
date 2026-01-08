@@ -98,15 +98,20 @@ export default function RootLayout({
         <JsonLd />
         <link rel="canonical" href="https://backbenchers.app" />
         {/* Theme initialization script - runs before page renders to prevent flash */}
+        {/* DEFAULT: Dark theme unless user explicitly chose light */}
         <script dangerouslySetInnerHTML={{
           __html: `
           (function() {
             try {
               var theme = localStorage.getItem('bb-theme');
-              if (theme === 'dark') {
+              // Default to dark, only go light if explicitly set
+              if (theme !== 'light') {
                 document.documentElement.classList.add('dark');
               }
-            } catch(e) {}
+            } catch(e) {
+              // Fallback to dark if localStorage fails
+              document.documentElement.classList.add('dark');
+            }
           })();
         `}} />
       </head>

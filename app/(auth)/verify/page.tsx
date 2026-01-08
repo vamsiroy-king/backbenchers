@@ -100,6 +100,8 @@ export default function VerifyPage() {
                 }
 
                 // No student found - show onboarding form
+                // Replace history state so back button doesn't go to auth
+                window.history.replaceState(null, '', '/verify');
             } catch (e) { console.error(e); }
             finally { setCheckingAuth(false); }
         }
