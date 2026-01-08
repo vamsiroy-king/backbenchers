@@ -81,8 +81,25 @@ export default function VerifyPage() {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) { router.push("/signup"); return; }
                 setGoogleEmail(session.user.email?.toLowerCase() || "");
+
+                // Check by user_id first
                 const { data: student } = await supabase.from('students').select('id').eq('user_id', session.user.id).maybeSingle();
                 if (student) { router.push("/dashboard"); return; }
+
+                // Also check by email (in case user_id doesn't match)
+                if (session.user.email) {
+                    const { data: studentByEmail } = await supabase.from('students').select('id, user_id').eq('email', session.user.email.toLowerCase()).maybeSingle();
+                    if (studentByEmail) {
+                        // Update user_id if needed and redirect to dashboard
+                        if (studentByEmail.user_id !== session.user.id) {
+                            await supabase.from('students').update({ user_id: session.user.id }).eq('id', studentByEmail.id);
+                        }
+                        router.push("/dashboard");
+                        return;
+                    }
+                }
+
+                // No student found - show onboarding form
             } catch (e) { console.error(e); }
             finally { setCheckingAuth(false); }
         }
