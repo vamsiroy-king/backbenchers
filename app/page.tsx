@@ -91,9 +91,8 @@ function LandingPage() {
               <span className="text-white font-semibold text-sm">Backbenchers</span>
             </Link>
             <div className="flex items-center gap-2">
-              <Link href="/login" className="text-xs text-[#888] px-3 py-1.5">Sign in</Link>
               <Link href="/signup">
-                <motion.button whileTap={{ scale: 0.95 }} className="text-xs bg-green-500 text-black font-semibold px-3 py-1.5 rounded-full">
+                <motion.button whileTap={{ scale: 0.95 }} className="text-xs bg-green-500 text-black font-semibold px-4 py-2 rounded-full">
                   Get Started
                 </motion.button>
               </Link>
@@ -140,25 +139,18 @@ function LandingPage() {
               Exclusive discounts for verified students at local stores and top brands.
             </p>
 
-            {/* CTA Buttons */}
+            {/* CTA Button */}
             <div className="space-y-3">
               <Link href="/signup" className="block">
                 <motion.button
                   whileTap={{ scale: 0.98 }}
                   className="w-full h-[52px] bg-green-500 hover:bg-green-400 text-black font-semibold rounded-xl flex items-center justify-center gap-2 text-[15px] transition-colors"
                 >
-                  Get Verified Free
+                  Get Started Free
                   <ArrowRight className="h-4 w-4" />
                 </motion.button>
               </Link>
-              <Link href="/dashboard" className="block">
-                <motion.button
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full h-[52px] bg-[#111] hover:bg-[#1a1a1a] text-white font-medium rounded-xl border border-[#222] text-[15px] transition-colors"
-                >
-                  Explore Deals
-                </motion.button>
-              </Link>
+              <p className="text-center text-xs text-[#444]">Already have account? <Link href="/login" className="text-green-400 hover:underline">Sign in</Link></p>
             </div>
           </motion.div>
         </section>
