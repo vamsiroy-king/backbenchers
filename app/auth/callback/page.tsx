@@ -2,18 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function AuthCallbackPage() {
     const router = useRouter();
     const [status, setStatus] = useState("Signing you in...");
-    const [debugInfo, setDebugInfo] = useState<string[]>([]);
-
-    const addDebug = (msg: string) => {
-        console.log(msg);
-        setDebugInfo(prev => [...prev, msg]);
-    };
 
     useEffect(() => {
         async function handleCallback() {
@@ -28,63 +21,44 @@ export default function AuthCallbackPage() {
                 }
 
                 setStatus("Authenticating...");
-                addDebug("Starting auth callback...");
 
-                // Check for code parameter (PKCE flow)
-                const urlParams = new URLSearchParams(window.location.search);
-                const code = urlParams.get('code');
-
-                if (code) {
-                    addDebug(`Found auth code, exchanging for session...`);
-                    // Use the shared Supabase client which has the code verifier
-                    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-                    if (error) {
-                        addDebug(`Code exchange error: ${error.message}`);
-                        // Don't redirect on error, just continue to try getting session
-                        console.error('Code exchange failed:', error);
-                    } else {
-                        addDebug(`Code exchange successful!`);
-                    }
-                }
-
-                // Get session with retries
+                // Supabase will auto-detect and handle PKCE code exchange via detectSessionInUrl
+                // Just wait for the session to become available
                 let attempts = 0;
                 let session = null;
 
-                while (attempts < 15 && !session) {
+                while (attempts < 20 && !session) {
                     const { data, error } = await supabase.auth.getSession();
                     if (error) {
-                        addDebug(`Session error: ${error.message}`);
+                        console.error('Session error:', error.message);
                     }
                     session = data.session;
                     if (!session) {
-                        await new Promise(resolve => setTimeout(resolve, 300));
+                        await new Promise(resolve => setTimeout(resolve, 250));
                         attempts++;
-                        addDebug(`Waiting for session... attempt ${attempts}`);
                     }
                 }
 
                 if (!session) {
-                    addDebug("No session found after retries");
-                    router.replace("/login");
+                    console.error("No session found after retries");
+                    setStatus("Authentication failed. Please try again.");
+                    setTimeout(() => router.replace("/signup"), 2000);
                     return;
                 }
 
-                addDebug(`Session found! User ID: ${session.user.id}`);
-                addDebug(`User email: ${session.user.email}`);
+                console.log(`Session found! User ID: ${session.user.id}`);
 
                 // IMPORTANT: Only allow @gmail.com accounts for student signup
                 const userEmail = session.user.email?.toLowerCase() || '';
                 if (!userEmail.endsWith('@gmail.com')) {
-                    addDebug(`ERROR: Non-Gmail account detected (${userEmail})`);
+                    console.log(`Non-Gmail account detected: ${userEmail}`);
                     setStatus("Only Gmail accounts allowed");
-                    // Sign out and redirect with error
                     await supabase.auth.signOut();
                     window.location.href = '/signup?error=gmail_only';
                     return;
                 }
 
-                // Now check if user has a student record
+                // Check if user has a student record
                 setStatus("Checking your account...");
 
                 const { data: student, error: studentError } = await supabase
@@ -94,71 +68,60 @@ export default function AuthCallbackPage() {
                     .maybeSingle();
 
                 if (studentError) {
-                    addDebug(`Student query error: ${studentError.message}`);
+                    console.error('Student query error:', studentError.message);
                 }
 
                 if (student) {
-                    addDebug(`Student found: ${JSON.stringify(student)}`);
+                    console.log('Student found:', student.id);
 
-                    // Check if student is suspended
                     if (student.status === 'suspended') {
-                        addDebug("Student account is SUSPENDED - blocking login");
                         setStatus("Account suspended");
-                        // Sign out the user
                         await supabase.auth.signOut();
                         router.replace("/suspended");
                         return;
                     }
 
-                    setStatus("Welcome back! Loading dashboard...");
+                    setStatus("Welcome back!");
                     router.replace("/dashboard");
                 } else {
-                    // Also try matching by email
-                    addDebug("No student by user_id, trying email...");
-                    const { data: studentByEmail, error: emailError } = await supabase
+                    // Try matching by email
+                    console.log("No student by user_id, trying email...");
+                    const { data: studentByEmail } = await supabase
                         .from('students')
-                        .select('id, status, bb_id, email, user_id')
+                        .select('id, status, user_id')
                         .eq('email', session.user.email?.toLowerCase())
                         .maybeSingle();
 
-                    if (emailError) {
-                        addDebug(`Email query error: ${emailError.message}`);
-                    }
-
                     if (studentByEmail) {
-                        addDebug(`Student found by email: ${JSON.stringify(studentByEmail)}`);
+                        console.log('Student found by email:', studentByEmail.id);
 
-                        // Check if student is suspended
                         if (studentByEmail.status === 'suspended') {
-                            addDebug("Student account is SUSPENDED - blocking login");
                             setStatus("Account suspended");
                             await supabase.auth.signOut();
                             router.replace("/suspended");
                             return;
                         }
 
-                        // If student exists but user_id doesn't match, update it
+                        // Update user_id if needed
                         if (studentByEmail.user_id !== session.user.id) {
-                            addDebug("Updating student user_id to match auth user");
                             await supabase
                                 .from('students')
                                 .update({ user_id: session.user.id })
                                 .eq('id', studentByEmail.id);
                         }
 
-                        setStatus("Welcome back! Loading dashboard...");
+                        setStatus("Welcome back!");
                         router.replace("/dashboard");
                     } else {
-                        addDebug("No student record found - new user, redirecting to /verify");
-                        setStatus("Completing setup...");
-                        // Use window.location for more reliable redirect
+                        // NEW USER - redirect to onboarding
+                        console.log("New user - redirecting to onboarding");
+                        setStatus("Setting up your account...");
                         window.location.href = "/verify";
                     }
                 }
             } catch (error: any) {
-                addDebug(`Error: ${error.message}`);
                 console.error("Auth callback error:", error);
-                router.replace("/login");
+                router.replace("/signup");
             }
         }
 
@@ -167,7 +130,7 @@ export default function AuthCallbackPage() {
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-6">
-            {/* Branded Logo */}
+            {/* Logo */}
             <div className="mb-6 animate-pulse">
                 <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/25">
                     <span className="text-white font-bold text-2xl">B</span>
