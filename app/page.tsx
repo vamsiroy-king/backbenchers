@@ -44,27 +44,36 @@ export default function Home() {
         const hasAccessToken = window.location.hash?.includes('access_token');
 
         if (hasCode || hasAccessToken) {
-          console.log('[Landing] OAuth callback detected, waiting for session...');
+          console.log('[Landing] OAuth callback detected');
 
-          // Give Supabase time to process the OAuth callback
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Try explicit code exchange if code is present
+          if (hasCode) {
+            const code = urlParams.get('code');
+            console.log('[Landing] Exchanging code for session...');
 
-          // Wait for session with retries
-          let attempts = 0;
-          let session = null;
+            try {
+              const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code!);
 
-          while (attempts < 20 && !session) {
-            const { data, error } = await supabase.auth.getSession();
-            if (error) console.error('Session error:', error);
-            session = data.session;
-            if (!session) {
-              await new Promise(resolve => setTimeout(resolve, 300));
-              attempts++;
+              if (exchangeError) {
+                console.error('[Landing] Code exchange failed:', exchangeError.message);
+                // Code may have already been used - continue to check session
+              } else if (exchangeData.session) {
+                console.log('[Landing] Code exchange successful!');
+              }
+            } catch (e) {
+              console.error('[Landing] Code exchange exception:', e);
             }
           }
 
+          // Now get the session (either from exchange or already existing)
+          const { data: sessionData } = await supabase.auth.getSession();
+          const session = sessionData?.session;
+
+          // Clear URL params immediately
+          window.history.replaceState({}, '', '/');
+
           if (session) {
-            console.log('[Landing] Session established for:', session.user.email);
+            console.log('[Landing] Session found:', session.user.email);
 
             // Check if student exists
             const { data: student } = await supabase
@@ -83,7 +92,6 @@ export default function Home() {
                 .maybeSingle();
 
               if (studentByEmail) {
-                // Update user_id if needed
                 if (studentByEmail.user_id !== session.user.id) {
                   await supabase
                     .from('students')
@@ -94,25 +102,22 @@ export default function Home() {
               }
             }
 
-            // Clear URL params and redirect
-            window.history.replaceState({}, '', '/');
-
             if (foundStudent) {
               if (foundStudent.status === 'suspended') {
                 window.location.href = '/suspended';
               } else {
-                console.log('[Landing] Existing student - going to dashboard');
+                console.log('[Landing] Existing student - dashboard');
                 window.location.href = '/dashboard';
               }
             } else {
-              console.log('[Landing] New user - going to onboarding');
+              console.log('[Landing] New user - onboarding');
               window.location.href = '/verify';
             }
             return;
           } else {
-            console.error('[Landing] Failed to get session');
-            // Clear failed code from URL
-            window.history.replaceState({}, '', '/');
+            console.error('[Landing] No session after callback');
+            setChecking(false);
+            return;
           }
         }
 
