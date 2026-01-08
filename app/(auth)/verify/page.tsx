@@ -148,6 +148,25 @@ export default function VerifyPage() {
         }
     }, [step, resendTimer]);
 
+    // Real-time phone validation - check when 10 digits entered
+    const [phoneError, setPhoneError] = useState("");
+    const [checkingPhone, setCheckingPhone] = useState(false);
+
+    useEffect(() => {
+        if (formData.phone.length === 10 && step === "details") {
+            setCheckingPhone(true);
+            setPhoneError("");
+            authService.checkPhoneExists(formData.phone).then(exists => {
+                if (exists) {
+                    setPhoneError("This mobile number is already registered");
+                }
+                setCheckingPhone(false);
+            }).catch(() => setCheckingPhone(false));
+        } else {
+            setPhoneError("");
+        }
+    }, [formData.phone, step]);
+
     const stepIndex = ["details", "location", "university", "email", "otp", "photo"].indexOf(step);
     const goBack = () => {
         if (step === "details") {
@@ -279,10 +298,14 @@ export default function VerifyPage() {
                             <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Mobile</label>
                             <div className="flex gap-2">
                                 <div className="h-12 px-3 bg-white/[0.04] border border-white/[0.08] rounded-xl flex items-center text-white/50 text-sm">+91</div>
-                                <input type="tel" inputMode="numeric" maxLength={10} placeholder="10 digits" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} required className="flex-1 h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 text-white placeholder:text-white/30 focus:outline-none focus:border-green-500/50" />
+                                <div className="flex-1 relative">
+                                    <input type="tel" inputMode="numeric" maxLength={10} placeholder="10 digits" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} required className={`w-full h-12 bg-white/[0.04] border rounded-xl px-4 text-white placeholder:text-white/30 focus:outline-none transition-colors ${phoneError ? 'border-red-500/50 focus:border-red-500' : 'border-white/[0.08] focus:border-green-500/50'}`} />
+                                    {checkingPhone && <div className="absolute right-3 top-1/2 -translate-y-1/2"><Loader2 className="h-4 w-4 animate-spin text-white/30" /></div>}
+                                </div>
                             </div>
+                            {phoneError && <p className="text-xs text-red-400 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{phoneError}</p>}
                         </div>
-                        <button type="submit" disabled={formData.phone.length !== 10 || loading} className="w-full h-12 bg-green-500 hover:bg-green-400 disabled:bg-white/10 disabled:text-white/30 text-black font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Continue"}</button>
+                        <button type="submit" disabled={formData.phone.length !== 10 || loading || !!phoneError || checkingPhone} className="w-full h-12 bg-green-500 hover:bg-green-400 disabled:bg-white/10 disabled:text-white/30 text-black font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Continue"}</button>
                     </motion.form>
                 )}
 
