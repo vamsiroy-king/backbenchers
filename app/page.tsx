@@ -86,13 +86,13 @@ export default function LandingPageWrapper() {
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <motion.div
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ duration: 1.5, repeat: Infinity }}
           className="h-10 w-10 rounded-xl bg-green-500 flex items-center justify-center"
         >
-          <span className="text-black font-bold">B</span>
+          <span className="text-black font-bold italic">B</span>
         </motion.div>
       </div>
     );
@@ -110,31 +110,33 @@ function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black flex justify-center">
-      <div className="w-full max-w-[430px] min-h-screen bg-black flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex justify-center">
+      <div className="w-full max-w-[430px] min-h-screen flex flex-col">
 
         {/* Header */}
-        <header className="px-5 pt-4">
+        <header className="px-5 pt-4 pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-green-500 flex items-center justify-center">
-                <span className="text-black font-bold text-sm">B</span>
+              <div className="h-8 w-8 rounded-lg bg-green-500 flex items-center justify-center" style={{ transform: 'skewX(-6deg)' }}>
+                <span className="text-black font-extrabold text-sm" style={{ fontStyle: 'italic', transform: 'skewX(6deg)' }}>B</span>
               </div>
-              <span className="text-white font-semibold">Backbenchers</span>
+              <span className="font-bold italic">BACKBENCHERS</span>
             </div>
-            <Link href="/login" className="text-sm text-white/50">Sign in</Link>
+            <Link href="/login" className="text-sm opacity-50 hover:opacity-100 transition-opacity">Sign in</Link>
           </div>
         </header>
 
-        {/* Hero - Compact & Clean */}
-        <section className="flex-1 flex flex-col justify-center px-5 py-12">
+        {/* Hero - Centered in Screen */}
+        <section className="flex-1 flex flex-col justify-center px-5 min-h-[60vh]">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <p className="text-white text-[13px] font-medium mb-1">India's 1st</p>
-            <h1 className="text-[44px] leading-[0.95] font-extrabold text-white tracking-tight">
+            {/* India's 1st - Plain text */}
+            <p className="text-[13px] font-medium mb-1">India's 1st</p>
+
+            <h1 className="text-[44px] leading-[0.95] font-extrabold tracking-tight">
               Student
             </h1>
             <div className="h-[48px] overflow-hidden">
@@ -148,7 +150,7 @@ function LandingPage() {
                 {WORDS[wordIdx]}
               </motion.div>
             </div>
-            <p className="text-white text-[13px] font-medium mt-1 mb-6">Platform</p>
+            <p className="text-[13px] font-medium mt-1 mb-6">Platform</p>
 
             <div className="space-y-2.5">
               <Link href="/signup">
@@ -162,7 +164,7 @@ function LandingPage() {
               <Link href="/dashboard">
                 <motion.button
                   whileTap={{ scale: 0.98 }}
-                  className="w-full h-[50px] text-white/60 font-medium rounded-2xl border border-white/10"
+                  className="w-full h-[50px] font-medium rounded-2xl border border-current/10 opacity-60"
                 >
                   Explore
                 </motion.button>
@@ -171,76 +173,114 @@ function LandingPage() {
           </motion.div>
         </section>
 
-        {/* Simple Value Prop - Centered */}
+        {/* How It Works */}
         <section className="px-5 py-10">
           <Reveal>
+            <h3 className="text-[11px] font-semibold uppercase tracking-widest text-green-500 mb-4 text-center">How it works</h3>
+          </Reveal>
+          <div className="space-y-4">
+            <Reveal delay={0.1}>
+              <div className="flex items-start gap-3">
+                <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                  <span className="text-green-500 font-bold text-sm">1</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-[14px]">Sign up with Google</p>
+                  <p className="text-[12px] opacity-40">Takes less than 10 seconds</p>
+                </div>
+              </div>
+            </Reveal>
+            <Reveal delay={0.2}>
+              <div className="flex items-start gap-3">
+                <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                  <span className="text-green-500 font-bold text-sm">2</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-[14px]">Verify your college</p>
+                  <p className="text-[12px] opacity-40">One-time verification via email</p>
+                </div>
+              </div>
+            </Reveal>
+            <Reveal delay={0.3}>
+              <div className="flex items-start gap-3">
+                <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                  <span className="text-green-500 font-bold text-sm">3</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-[14px]">Unlock all deals</p>
+                  <p className="text-[12px] opacity-40">Access exclusive student discounts</p>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+
+
+        {/* BACKBENCHERS Full Width + Tagline */}
+        <section className="py-12">
+          <Reveal>
             <div className="text-center">
-              <h2 className="text-[24px] leading-[1.1] font-bold text-white">Verify once.</h2>
-              <h2 className="text-[24px] leading-[1.1] font-bold text-white/20">Save forever.</h2>
+              <motion.h2
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="text-[40px] leading-[1] font-extrabold tracking-tight italic px-2"
+              >
+                <span>BACK</span>
+                <span className="text-green-500">BENCHERS</span>
+              </motion.h2>
+              <p className="text-[13px] opacity-30 mt-2">Verify once. Save forever.</p>
             </div>
           </Reveal>
         </section>
 
-        {/* BACKBENCHERS + Footer - Same Section */}
-        <footer className="mt-auto">
-          {/* BACKBENCHERS - Centered */}
-          <div className="py-8 flex items-center justify-center">
-            <motion.h2
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="text-[38px] leading-[1] font-extrabold tracking-tight italic text-center"
-            >
-              <span className="text-white">BACK</span>
-              <span className="text-green-500">BENCHERS</span>
-            </motion.h2>
-          </div>
-
-          {/* Footer Links */}
-          <div className="px-5 pt-4 pb-6 border-t border-white/[0.04]">
+        {/* Footer */}
+        <footer className="mt-auto border-t border-current/5">
+          <div className="px-5 pt-6 pb-6">
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div>
                 <p className="text-[10px] text-green-500/60 font-semibold uppercase tracking-widest mb-2">Platform</p>
                 <div className="space-y-1.5">
-                  <Link href="/signup" className="block text-[12px] text-white/40 hover:text-white transition-colors">Sign Up</Link>
-                  <Link href="/login" className="block text-[12px] text-white/40 hover:text-white transition-colors">Login</Link>
-                  <Link href="/dashboard" className="block text-[12px] text-white/40 hover:text-white transition-colors">Explore</Link>
+                  <Link href="/signup" className="block text-[12px] opacity-40 hover:opacity-100 transition-opacity">Sign Up</Link>
+                  <Link href="/login" className="block text-[12px] opacity-40 hover:opacity-100 transition-opacity">Login</Link>
+                  <Link href="/dashboard" className="block text-[12px] opacity-40 hover:opacity-100 transition-opacity">Explore</Link>
                 </div>
               </div>
               <div>
                 <p className="text-[10px] text-green-500/60 font-semibold uppercase tracking-widest mb-2">Merchants</p>
                 <div className="space-y-1.5">
-                  <Link href="/merchant" className="block text-[12px] text-white/40 hover:text-white transition-colors">Partner</Link>
-                  <Link href="/merchant/auth/login" className="block text-[12px] text-white/40 hover:text-white transition-colors">Login</Link>
+                  <Link href="/merchant" className="block text-[12px] opacity-40 hover:opacity-100 transition-opacity">Partner</Link>
+                  <Link href="/merchant/auth/login" className="block text-[12px] opacity-40 hover:opacity-100 transition-opacity">Login</Link>
                 </div>
               </div>
               <div>
                 <p className="text-[10px] text-green-500/60 font-semibold uppercase tracking-widest mb-2">Legal</p>
                 <div className="space-y-1.5">
-                  <Link href="/privacy" className="block text-[12px] text-white/40 hover:text-white transition-colors">Privacy</Link>
-                  <Link href="/terms" className="block text-[12px] text-white/40 hover:text-white transition-colors">Terms</Link>
+                  <Link href="/privacy" className="block text-[12px] opacity-40 hover:opacity-100 transition-opacity">Privacy</Link>
+                  <Link href="/terms" className="block text-[12px] opacity-40 hover:opacity-100 transition-opacity">Terms</Link>
                 </div>
               </div>
             </div>
 
             {/* Socials */}
             <div className="flex items-center gap-2 mb-4">
-              <Link href="https://instagram.com" target="_blank" className="h-9 w-9 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center hover:bg-green-500/10 transition-colors">
-                <Instagram className="h-3.5 w-3.5 text-white/40" />
+              <Link href="https://instagram.com" target="_blank" className="h-9 w-9 rounded-xl bg-current/5 border border-current/5 flex items-center justify-center hover:bg-green-500/10 transition-colors">
+                <Instagram className="h-3.5 w-3.5 opacity-40" />
               </Link>
-              <Link href="https://twitter.com" target="_blank" className="h-9 w-9 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center hover:bg-green-500/10 transition-colors">
-                <Twitter className="h-3.5 w-3.5 text-white/40" />
+              <Link href="https://twitter.com" target="_blank" className="h-9 w-9 rounded-xl bg-current/5 border border-current/5 flex items-center justify-center hover:bg-green-500/10 transition-colors">
+                <Twitter className="h-3.5 w-3.5 opacity-40" />
               </Link>
-              <Link href="https://linkedin.com" target="_blank" className="h-9 w-9 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center hover:bg-green-500/10 transition-colors">
-                <Linkedin className="h-3.5 w-3.5 text-white/40" />
+              <Link href="https://linkedin.com" target="_blank" className="h-9 w-9 rounded-xl bg-current/5 border border-current/5 flex items-center justify-center hover:bg-green-500/10 transition-colors">
+                <Linkedin className="h-3.5 w-3.5 opacity-40" />
               </Link>
             </div>
 
             {/* Copyright */}
-            <div className="pt-4 border-t border-white/[0.04] flex flex-col items-center gap-1 text-center">
-              <p className="text-[10px] text-white/20">© 2024 Backbenchers. All rights reserved.</p>
-              <p className="text-[10px] text-white/25 flex items-center gap-1">
+            <div className="pt-4 border-t border-current/5 flex flex-col items-center gap-1 text-center">
+              <p className="text-[10px] opacity-20">© 2024 Backbenchers. All rights reserved.</p>
+              <p className="text-[10px] opacity-25 flex items-center gap-1">
                 Made with <Heart className="h-2 w-2 text-red-400 fill-red-400" /> from Andhra
               </p>
             </div>
