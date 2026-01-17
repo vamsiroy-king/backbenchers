@@ -3,6 +3,7 @@
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminTopbar } from "@/components/admin/AdminTopbar";
 import { useState, createContext, useContext, useEffect } from "react";
+import { Toaster } from "sonner";
 
 // Context for sidebar state
 const SidebarContext = createContext({ collapsed: false, setCollapsed: (v: boolean) => { } });
@@ -41,6 +42,9 @@ export default function AdminDashboardLayout({
                         {children}
                     </div>
                 </main>
+
+                {/* Enable Sonner Toasts for Admin */}
+                <Toaster richColors position="top-right" />
             </div>
         </SidebarContext.Provider>
     );

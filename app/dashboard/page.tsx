@@ -300,9 +300,28 @@ export default function DashboardPage() {
 
                 // Fetch trending offers (if not cached)
                 if (!cachedTrendingOffline || !cachedTrendingOnline) {
-                    const [offlineTrending, onlineTrending] = await Promise.all([
-                        trendingService.getMergedTrending('offline', 10),
-                        trendingService.getMergedTrending('online', 10)
+                    // 1. Get User for location-based filtering
+                    let userLocation = { city: undefined as string | undefined, state: undefined as string | undefined };
+                    try {
+                        const { authService } = await import('@/lib/services/auth.service'); // Import authService here
+                        const user = await authService.getCurrentUser();
+                        if (user) {
+                            const u = user as any;
+                            userLocation = {
+                                city: u.city || u.selectedCity || undefined,
+                                state: u.state || undefined
+                            };
+                        }
+                    } catch (e) {
+                        console.log("Could not load user for location", e);
+                    }
+
+                    const [
+                        offlineTrending,
+                        onlineTrending
+                    ] = await Promise.all([
+                        trendingService.getMergedTrending('offline', 10, cityToUse || undefined),
+                        trendingService.getMergedTrending('online', 10, cityToUse || userLocation.city, userLocation.state), // Pass selected city
                     ]);
                     if (!cachedTrendingOffline) {
                         setTrendingOffline(offlineTrending as any);
@@ -914,7 +933,12 @@ export default function DashboardPage() {
                                             if (!isVerified) {
                                                 setShowVerifyModal(true);
                                             } else if (offer.id) {
-                                                router.push(`/offer/${offer.id}`);
+                                                // Redirect to new Online Brand page if it's a new system offer
+                                                if ((offer as any).isNewSystem) {
+                                                    router.push(`/dashboard/online-brand/${offer.merchantId}`);
+                                                } else {
+                                                    router.push(`/offer/${offer.id}`);
+                                                }
                                             }
                                         }}
                                     />

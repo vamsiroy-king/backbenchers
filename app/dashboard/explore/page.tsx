@@ -7,8 +7,9 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { offerService } from "@/lib/services/offer.service";
 import { studentService } from "@/lib/services/student.service";
+import { onlineBrandService } from "@/lib/services/online-brand.service";
 import { useFavorites } from "@/components/providers/FavoritesProvider";
-import { Offer } from "@/lib/types";
+import { Offer, OnlineBrand } from "@/lib/types";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 
@@ -31,9 +32,12 @@ export default function ExplorePage() {
 
     const [searchQuery, setSearchQuery] = useState("");
     const [offers, setOffers] = useState<Offer[]>([]);
+    const [onlineBrands, setOnlineBrands] = useState<OnlineBrand[]>([]);
     const [filteredOffers, setFilteredOffers] = useState<Offer[]>([]);
     const [activeTab, setActiveTab] = useState<'nearby' | 'online'>('nearby');
     const [studentCity, setStudentCity] = useState<string | null>(null);
+    const [studentState, setStudentState] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true); // Track loading for skeleton counts
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
     // Global Favorites
@@ -50,24 +54,30 @@ export default function ExplorePage() {
     // Fetch data based on view
     useEffect(() => {
         async function fetchData() {
+            setLoading(true); // Start loading - show skeleton counts
             try {
-                // 1. Get city from LocalStorage (User selection) OR Profile (Fallback)
-                let city = null;
+                // 1. Get city/state from LocalStorage (User selection) OR Profile (Fallback)
+                let city: string | null = null;
+                let state: string | null = null;
+
                 if (typeof window !== 'undefined') {
                     city = localStorage.getItem('selectedCity');
                 }
 
                 if (!city) {
                     const profileRes = await studentService.getMyProfile();
-                    city = profileRes.success && profileRes.data ? profileRes.data.city : null;
+                    if (profileRes.success && profileRes.data) {
+                        city = profileRes.data.city || null;
+                        state = profileRes.data.state || null;
+                    }
                 }
 
                 setStudentCity(city);
-                console.log('[Explore] Filtering by city:', city);
+                setStudentState(state);
 
+                // 2. Fetch Offline offers (for Nearby tab)
                 let offersRes;
                 if (categoryParam) {
-                    // Use backend ILIKE search for better matching
                     offersRes = await offerService.getByCategory(categoryParam);
                 } else {
                     offersRes = await offerService.getActiveOffers();
@@ -78,9 +88,23 @@ export default function ExplorePage() {
                 } else {
                     setOffers([]);
                 }
+
+                // 3. Fetch Online brands (for Online tab) - uses location-aware filtering
+                // PAN_INDIA offers will show to everyone
+                // CITIES offers will only show to matching students
+                const studentLocation = { city: city || undefined, state: state || undefined };
+                const brands = await onlineBrandService.getAllBrands(
+                    categoryParam || undefined,
+                    studentLocation
+                );
+                setOnlineBrands(brands);
+
             } catch (error) {
                 console.error('Error loading explore data:', error);
                 setOffers([]);
+                setOnlineBrands([]);
+            } finally {
+                setLoading(false); // Done loading - show actual counts
             }
         }
 
@@ -129,17 +153,12 @@ export default function ExplorePage() {
         await toggleFavorite(offerId);
     };
 
-    // --- VIEW 1: CATEGORY DETAILS (Matches Screenshot 1:1) ---
+    // --- VIEW 1: CATEGORY DETAILS ---
     if (categoryParam) {
         const categoryData = CATEGORIES.find(c => c.id === categoryParam) || { name: categoryParam, icon: "🔍", headerColor: "bg-purple-600" };
 
-        // filteredOffers is ALREADY grouped by merchant and filtered by city
-        // Just separate Online vs Nearby
-        const onlineOffers = filteredOffers.filter(o => (o.type as any) === 'online' || (o as any).isOnline);
-        const nearbyOffers = filteredOffers.filter(o => !((o.type as any) === 'online' || (o as any).isOnline));
-
-        // Use active tab list
-        const displayedOffers = activeTab === 'nearby' ? nearbyOffers : onlineOffers;
+        // Nearby offers = offline merchant offers (already filtered by city)
+        const nearbyOffers = filteredOffers;
 
         return (
             <div className="min-h-screen bg-black">
@@ -158,7 +177,7 @@ export default function ExplorePage() {
                         </h1>
                     </div>
 
-                    {/* Tabs */}
+                    {/* Tabs - Instant counts */}
                     <div className="flex bg-black/20 p-1 rounded-xl backdrop-blur-sm">
                         <button
                             onClick={() => setActiveTab('online')}
@@ -168,7 +187,7 @@ export default function ExplorePage() {
                             )}
                         >
                             <Wifi className="h-4 w-4" />
-                            <span>Online ({onlineOffers.length})</span>
+                            <span>Online ({onlineBrands.length})</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('nearby')}
@@ -183,71 +202,120 @@ export default function ExplorePage() {
                     </div>
                 </header>
 
-                {/* Content List Matches Screenshot */}
+                {/* Content */}
                 <main className="px-4 py-4 space-y-3">
-                    {displayedOffers.length > 0 ? (
-                        displayedOffers.map((offer) => (
-                            <Link href={`/store/${offer.merchantId}`} key={offer.id}>
-                                <motion.div
-                                    whileTap={{ scale: 0.99 }}
-                                    transition={{ duration: 0.05 }}
-                                    className="bg-[#111] border border-[#222] rounded-2xl p-4 flex items-center gap-4 group"
-                                >
-                                    {/* Logo */}
-                                    <div className="h-14 w-14 rounded-xl bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
-                                        {offer.merchantLogo ? (
-                                            <img src={offer.merchantLogo} alt="" className="h-full w-full object-contain" />
-                                        ) : (
-                                            <span className="text-xl font-bold text-black">{offer.merchantName?.[0]}</span>
-                                        )}
-                                    </div>
+                    {/* ONLINE TAB - Show Online Brands */}
+                    {activeTab === 'online' && (
+                        <>
+                            {onlineBrands.length > 0 ? (
+                                onlineBrands.map((brand) => (
+                                    <Link href={`/dashboard/online-brand/${brand.id}`} key={brand.id}>
+                                        <motion.div
+                                            whileTap={{ scale: 0.99 }}
+                                            transition={{ duration: 0.05 }}
+                                            className="bg-[#111] border border-[#222] rounded-2xl p-4 flex items-center gap-4 group"
+                                        >
+                                            {/* Logo */}
+                                            <div className="h-14 w-14 rounded-xl bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                {brand.logoUrl ? (
+                                                    <img src={brand.logoUrl} alt={brand.name} className="h-full w-full object-contain" />
+                                                ) : (
+                                                    <span className="text-xl font-bold text-black">{brand.name?.[0]}</span>
+                                                )}
+                                            </div>
 
-                                    {/* Details */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="text-white font-semibold text-[15px] truncate">{offer.merchantName}</h3>
-                                            {/* Rating Badge */}
-                                            {(offer as any).avgRating > 0 && (
-                                                <div className="flex items-center gap-0.5 bg-yellow-500/20 px-1.5 py-0.5 rounded">
-                                                    <Star className="h-2.5 w-2.5 text-yellow-400 fill-yellow-400" />
-                                                    <span className="text-[10px] font-bold text-yellow-400">{(offer as any).avgRating?.toFixed(1)}</span>
+                                            {/* Details */}
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-white font-semibold text-[15px] truncate">{brand.name}</h3>
+                                                <p className="text-green-500 font-bold text-sm tracking-wide">
+                                                    Online Discounts Available
+                                                </p>
+                                                <div className="flex items-center gap-1 text-[#666] text-xs mt-1">
+                                                    <Wifi className="h-3 w-3" />
+                                                    <span>{brand.category}</span>
                                                 </div>
-                                            )}
-                                        </div>
-                                        <p className="text-green-500 font-bold text-sm tracking-wide">
-                                            {offer.type === 'percentage' ? `${offer.discountValue}% OFF` : `₹${offer.discountValue} OFF`}
-                                        </p>
-                                        <div className="flex items-center gap-3 mt-1">
-                                            {offer.merchantCity && (
-                                                <div className="flex items-center gap-1 text-[#666] text-xs">
-                                                    <MapPin className="h-3 w-3" />
-                                                    <span>{offer.merchantCity}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                            </div>
 
-                                    {/* Heart/Fav */}
-                                    <button
-                                        onClick={(e) => handleToggleFavorite(e, offer.merchantId)} // Save MERCHANT ID, not offer ID
-                                        className="text-[#444] group-hover:text-white transition-colors"
-                                    >
-                                        <Heart
-                                            className={cn("h-5 w-5", isFavorite(offer.merchantId) && "fill-red-500 text-red-500")}
-                                        />
-                                    </button>
-                                </motion.div>
-                            </Link>
-                        ))
-                    ) : (
-                        <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="h-16 w-16 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-4">
-                                <Search className="h-6 w-6 text-[#333]" />
-                            </div>
-                            <p className="text-white/40 text-sm">No offers found in {studentCity || 'your city'}</p>
-                        </div>
-                    )
-                    }
+                                            {/* Arrow */}
+                                            <ChevronLeft className="h-5 w-5 text-[#444] rotate-180" />
+                                        </motion.div>
+                                    </Link>
+                                ))
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-20 text-center">
+                                    <div className="h-16 w-16 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-4">
+                                        <Wifi className="h-6 w-6 text-[#333]" />
+                                    </div>
+                                    <p className="text-white/40 text-sm">No online brand partners yet</p>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* NEARBY TAB - Show Offline Merchant Offers */}
+                    {activeTab === 'nearby' && (
+                        <>
+                            {nearbyOffers.length > 0 ? (
+                                nearbyOffers.map((offer) => (
+                                    <Link href={`/store/${offer.merchantId}`} key={offer.id}>
+                                        <motion.div
+                                            whileTap={{ scale: 0.99 }}
+                                            transition={{ duration: 0.05 }}
+                                            className="bg-[#111] border border-[#222] rounded-2xl p-4 flex items-center gap-4 group"
+                                        >
+                                            {/* Logo */}
+                                            <div className="h-14 w-14 rounded-xl bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                {offer.merchantLogo ? (
+                                                    <img src={offer.merchantLogo} alt="" className="h-full w-full object-contain" />
+                                                ) : (
+                                                    <span className="text-xl font-bold text-black">{offer.merchantName?.[0]}</span>
+                                                )}
+                                            </div>
+
+                                            {/* Details */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="text-white font-semibold text-[15px] truncate">{offer.merchantName}</h3>
+                                                    {(offer as any).avgRating > 0 && (
+                                                        <div className="flex items-center gap-0.5 bg-yellow-500/20 px-1.5 py-0.5 rounded">
+                                                            <Star className="h-2.5 w-2.5 text-yellow-400 fill-yellow-400" />
+                                                            <span className="text-[10px] font-bold text-yellow-400">{(offer as any).avgRating?.toFixed(1)}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="text-green-500 font-bold text-sm tracking-wide">
+                                                    {offer.type === 'percentage' ? `${offer.discountValue}% OFF` : `₹${offer.discountValue} OFF`}
+                                                </p>
+                                                {offer.merchantCity && (
+                                                    <div className="flex items-center gap-1 text-[#666] text-xs mt-1">
+                                                        <MapPin className="h-3 w-3" />
+                                                        <span>{offer.merchantCity}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Heart/Fav */}
+                                            <button
+                                                onClick={(e) => handleToggleFavorite(e, offer.merchantId)}
+                                                className="text-[#444] group-hover:text-white transition-colors"
+                                            >
+                                                <Heart
+                                                    className={cn("h-5 w-5", isFavorite(offer.merchantId) && "fill-red-500 text-red-500")}
+                                                />
+                                            </button>
+                                        </motion.div>
+                                    </Link>
+                                ))
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-20 text-center">
+                                    <div className="h-16 w-16 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-4">
+                                        <Search className="h-6 w-6 text-[#333]" />
+                                    </div>
+                                    <p className="text-white/40 text-sm">No nearby offers in {studentCity || 'your city'}</p>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </main>
             </div>
         );

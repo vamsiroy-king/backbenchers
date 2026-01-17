@@ -9,9 +9,12 @@ import Link from "next/link";
 import { offerService } from "@/lib/services/offer.service";
 import { authService } from "@/lib/services/auth.service";
 import { favoritesService } from "@/lib/services/favorites.service";
-import { Offer } from "@/lib/types";
+import { studentService } from "@/lib/services/student.service";
+import { Offer, OnlineBrand } from "@/lib/types";
 import { MasonryGrid } from "@/components/ui/MasonryGrid";
 import { OfferCard } from "@/components/OfferCard";
+import { OnlineBrandCard } from "@/components/OnlineBrandCard";
+import { onlineBrandService } from "@/lib/services/online-brand.service";
 import { vibrate } from "@/lib/haptics";
 
 // Category data
@@ -55,7 +58,11 @@ export default function CategoryPage() {
     const [activeTab, setActiveTab] = useState<'online' | 'offline'>('offline');
     const [showVerifyModal, setShowVerifyModal] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [offers, setOffers] = useState<Offer[]>([]);
+
+    // Data states
+    const [offers, setOffers] = useState<Offer[]>([]); // Offline
+    const [onlineBrands, setOnlineBrands] = useState<OnlineBrand[]>([]); // Online
+
     const [isVerified, setIsVerified] = useState(false);
     const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
@@ -70,11 +77,45 @@ export default function CategoryPage() {
                 const isStudentVerified = !!(user?.role === 'student' && user?.isComplete);
                 setIsVerified(isStudentVerified);
 
-                // Fetch offers by category
+                // Get student's location (city/state) for filtering online offers
+                let studentLocation: { city?: string; state?: string } = {};
+
+                // Try localStorage first (user's selected city)
+                if (typeof window !== 'undefined') {
+                    const selectedCity = localStorage.getItem('selectedCity');
+                    if (selectedCity) {
+                        studentLocation.city = selectedCity;
+                    }
+                }
+
+                // Fallback to profile if available
+                if (!studentLocation.city) {
+                    const profileRes = await studentService.getMyProfile();
+                    if (profileRes.success && profileRes.data) {
+                        studentLocation.city = profileRes.data.city || undefined;
+                        studentLocation.state = profileRes.data.state || undefined;
+                    }
+                }
+
+                // 1. Fetch Offline offers
                 const result = await offerService.getByCategory(categoryName);
                 if (result.success && result.data) {
                     setOffers(result.data);
                 }
+
+                // 2. Fetch Online Brands with location-aware filtering
+                // PAN_INDIA offers will show to everyone
+                // STATES/CITIES offers will only show to matching students
+                let searchCategory = categoryName;
+                if (categoryName.includes("Food")) searchCategory = "Food";
+                if (categoryName.includes("Fashion")) searchCategory = "Fashion";
+                if (categoryName.includes("Tech") || categoryName.includes("Electronics")) searchCategory = "Tech";
+                if (categoryName.includes("Fitness") || categoryName.includes("Health")) searchCategory = "Fitness";
+                if (categoryName.includes("Beauty")) searchCategory = "Beauty";
+
+                // Pass student location - brands with PAN_INDIA offers will always appear
+                const brands = await onlineBrandService.getAllBrands(searchCategory, studentLocation);
+                setOnlineBrands(brands);
 
                 // Fetch saved offer IDs
                 const ids = await favoritesService.getSavedOfferIds();
@@ -87,11 +128,6 @@ export default function CategoryPage() {
         }
         fetchData();
     }, [categoryName]);
-
-    // Filter offers based on tab
-    const filteredOffers = activeTab === 'online'
-        ? offers.filter(o => o.type === 'percentage' && o.merchantCategory === 'Service') // Placeholder logic for now
-        : offers; // Show all for now/offline
 
     const toggleFavorite = async (offerId: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -170,7 +206,7 @@ export default function CategoryPage() {
                     </div>
                 </div>
 
-                {/* Tabs */}
+                {/* Tabs - Instant counts */}
                 <div className="flex bg-white/20 backdrop-blur rounded-xl p-1">
                     <button
                         onClick={() => { setActiveTab('online'); vibrate('light'); }}
@@ -178,7 +214,7 @@ export default function CategoryPage() {
                             }`}
                     >
                         <Wifi className="h-4 w-4" />
-                        Online ({offers.filter(o => o.type === 'percentage').length})
+                        Online ({onlineBrands.length})
                     </button>
                     <button
                         onClick={() => { setActiveTab('offline'); vibrate('light'); }}
@@ -189,6 +225,7 @@ export default function CategoryPage() {
                         Nearby ({offers.length})
                     </button>
                 </div>
+
             </div>
 
             {/* Offers Grid */}
@@ -198,33 +235,61 @@ export default function CategoryPage() {
                         <Loader2 className="h-8 w-8 animate-spin text-white/20" />
                     </div>
                 ) : (
-                    <MasonryGrid
-                        items={filteredOffers}
-                        columns={{ default: 2 }}
-                        gap={12}
-                        renderItem={(offer, index) => (
-                            <OfferCard
-                                offer={offer}
-                                isFavorited={offer.id && favoriteIds.includes(offer.id)}
-                                onToggleFavorite={(e) => offer.id && toggleFavorite(offer.id, e)}
-                                priority={index < 4}
-                                onClick={() => {
-                                    if (!isVerified) {
-                                        setShowVerifyModal(true);
-                                    } else if (offer.id) {
-                                        router.push(`/offer/${offer.id}`);
-                                    }
-                                }}
+                    <>
+                        {/* ONLINE TAB */}
+                        {activeTab === 'online' && (
+                            <MasonryGrid
+                                items={onlineBrands}
+                                columns={{ default: 2 }}
+                                gap={12}
+                                renderItem={(brand) => (
+                                    <OnlineBrandCard
+                                        brand={brand}
+                                        onClick={() => router.push(`/dashboard/online-brand/${brand.id}`)}
+                                        priority={true}
+                                    />
+                                )}
                             />
                         )}
-                    />
-                )}
 
-                {!loading && filteredOffers.length === 0 && (
-                    <div className="text-center py-16 text-white/40">
-                        <p className="text-4xl mb-2">🔍</p>
-                        <p className="text-sm">No {activeTab} offers found</p>
-                    </div>
+                        {/* OFFLINE TAB */}
+                        {activeTab === 'offline' && (
+                            <MasonryGrid
+                                items={offers}
+                                columns={{ default: 2 }}
+                                gap={12}
+                                renderItem={(offer, index) => (
+                                    <OfferCard
+                                        offer={offer}
+                                        isFavorited={offer.id && favoriteIds.includes(offer.id)}
+                                        onToggleFavorite={(e) => offer.id && toggleFavorite(offer.id, e)}
+                                        priority={index < 4}
+                                        onClick={() => {
+                                            if (!isVerified) {
+                                                setShowVerifyModal(true);
+                                            } else if (offer.id) {
+                                                router.push(`/offer/${offer.id}`);
+                                            }
+                                        }}
+                                    />
+                                )}
+                            />
+                        )}
+
+                        {/* Empty States */}
+                        {!loading && activeTab === 'online' && onlineBrands.length === 0 && (
+                            <div className="text-center py-16 text-white/40">
+                                <p className="text-4xl mb-2">🔍</p>
+                                <p className="text-sm">No online brand partners yet.</p>
+                            </div>
+                        )}
+                        {!loading && activeTab === 'offline' && offers.length === 0 && (
+                            <div className="text-center py-16 text-white/40">
+                                <p className="text-4xl mb-2">🔍</p>
+                                <p className="text-sm">No nearby offline offers found</p>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>

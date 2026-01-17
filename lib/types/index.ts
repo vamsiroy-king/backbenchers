@@ -351,11 +351,46 @@ export interface BrandVerification {
     updatedAt: string;
 }
 
-// Extended Offer type with brand/outlet support
 export interface BrandOffer extends Offer {
     brandId?: string;
     outletId?: string;
     offerScope: OfferScope;
     brandName?: string;
     outletName?: string;
+}
+
+// =============================================
+// ONLINE BRANDS SYSTEM TYPES
+// =============================================
+
+export interface OnlineBrand {
+    id: string;
+    name: string;
+    category: string; // 'Food', 'Fashion', 'Fitness', 'Beauty', 'Tech'
+    logoUrl?: string;
+    coverImageUrl?: string; // High-quality cover for "District" look
+    description?: string;
+    websiteUrl?: string;
+    appUrl?: string; // Mobile app deep link (e.g., zomato:// or universal link)
+    preferApp?: boolean; // If true, redirect to app first; if false, use website
+    playstoreUrl?: string; // Google Play Store URL for Android
+    appstoreUrl?: string; // Apple App Store URL for iOS
+    isActive: boolean;
+    createdAt: string;
+}
+
+export interface OnlineOffer {
+    id: string;
+    brandId: string;
+    title: string; // e.g. "Flat 50% Off"
+    description?: string;
+    code?: string; // e.g. "BB2025"
+    link?: string; // Affiliate or direct link
+    expiryDate?: string;
+    locationScope?: 'PAN_INDIA' | 'STATE' | 'CITY';
+    locationValues?: string[];
+    redemptionType?: 'CODE_REVEAL' | 'DIRECT_REDIRECT'; // How student redeems the offer
+    isActive: boolean;
+    createdAt: string;
+    brand?: OnlineBrand; // For joined queries
 }

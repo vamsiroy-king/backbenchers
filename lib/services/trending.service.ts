@@ -214,7 +214,12 @@ export const trendingService = {
     },
 
     // Get merged trending: admin picks FIRST, then fill with top redemptions (up to 10)
-    async getMergedTrending(section: 'online' | 'offline', maxTotal: number = 10): Promise<{
+    async getMergedTrending(
+        section: 'online' | 'offline',
+        maxTotal: number = 10,
+        studentCity?: string,
+        studentState?: string
+    ): Promise<{
         id: string;
         title: string;
         discountValue: number;
@@ -223,6 +228,7 @@ export const trendingService = {
         merchantId: string;
         merchantCity?: string;
         isAdminPick: boolean;
+        merchantLogo?: string; // Added for online brands
     }[]> {
         try {
             // 1. Get admin picks first
@@ -245,23 +251,88 @@ export const trendingService = {
                 return adminOffers.slice(0, maxTotal);
             }
 
-            // 2. Get top offers by redemption count (algorithm)
-            const { data: algoData } = await supabase
-                .from('offers')
-                .select(`
-                    id, title, discount_value, type, merchant_id,
-                    merchants!inner (business_name, city, online_store, status)
-                `)
-                .eq('status', 'active')
-                .eq('merchants.status', 'approved')
-                .eq('merchants.online_store', section === 'online')
-                .order('total_redemptions', { ascending: false })
-                .limit(maxTotal);
+            const slotsRemaining = maxTotal - adminOffers.length;
+            let algoOffers: any[] = [];
 
-            const adminOfferIds = new Set(adminOffers.map(o => o.id));
-            const algoOffers = (algoData || [])
-                .filter((o: any) => !adminOfferIds.has(o.id)) // Exclude duplicates
-                .map((o: any) => ({
+            if (section === 'online') {
+                // ONLINE: Fetch from BOTH 'offers' (legacy online) AND 'online_offers' (new)
+
+                // A. New Online Offers (Fetch active ones)
+                // We fetch MORE than needed because we might filter some out by location
+                // SIMPLIFIED QUERY: Removed relationship join that was failing
+                const { data: newOnlineData, error: newOnlineError } = await supabase
+                    .from('online_offers')
+                    .select('id, title, code, link, brand_id, location_scope, location_values')
+                    .eq('is_active', true)
+                    .order('created_at', { ascending: false })
+                    .limit(slotsRemaining + 20);
+
+                if (newOnlineError) {
+                    console.error('[Trending] online_offers query error:', newOnlineError);
+                }
+
+                // Fetch brand details separately if we have offers
+                let brandMap: Record<string, { name: string; logo_url: string | null }> = {};
+                const brandIds = [...new Set((newOnlineData || []).map((o: any) => o.brand_id).filter(Boolean))];
+                if (brandIds.length > 0) {
+                    const { data: brandsData } = await supabase
+                        .from('online_brands')
+                        .select('id, name, logo_url, category')
+                        .in('id', brandIds);
+                    (brandsData || []).forEach((b: any) => {
+                        brandMap[b.id] = { name: b.name, logo_url: b.logo_url };
+                    });
+                }
+
+                // Filter by Location
+                const filteredNewOffers = (newOnlineData || []).filter((o: any) => {
+                    const scope = (o.location_scope || 'PAN_INDIA').toUpperCase();
+                    const values = o.location_values || [];
+
+                    if (scope === 'PAN_INDIA') return true;
+
+                    if ((scope === 'STATE' || scope === 'STATES') && studentState) {
+                        return values.some((v: string) => v.trim().toLowerCase() === studentState.toLowerCase());
+                    }
+
+                    if ((scope === 'CITY' || scope === 'CITIES') && studentCity) {
+                        return values.some((v: string) => v.trim().toLowerCase() === studentCity.trim().toLowerCase());
+                    }
+
+                    // If no student location provided, show only PAN_INDIA
+                    return false;
+                });
+
+                const newMapped = filteredNewOffers.map((o: any) => {
+                    const brand = brandMap[o.brand_id] || { name: 'Online Brand', logo_url: null };
+                    return {
+                        id: o.id,
+                        title: o.title,
+                        discountValue: 0, // New online system doesn't have discount_value
+                        type: 'coupon', // Default type for coupon-based offers
+                        merchantName: brand.name,
+                        merchantId: o.brand_id, // Use brand_id as merchantId
+                        merchantCity: 'Online',
+                        merchantLogo: brand.logo_url,
+                        isAdminPick: false,
+                        isNewSystem: true
+                    };
+                });
+
+                // B. Legacy Online Offers (if any)
+                const { data: legacyOnlineData } = await supabase
+                    .from('offers')
+                    .select(`
+                        id, title, discount_value, type, merchant_id,
+                        merchants!inner (business_name, city, online_store, status)
+                    `)
+                    .eq('status', 'active')
+                    .eq('merchants.status', 'approved')
+                    .eq('merchants.online_store', true)
+                    .order('created_at', { ascending: false })
+                    .limit(slotsRemaining);
+
+                const legacyMapped = (legacyOnlineData || []).map((o: any) => ({
                     id: o.id,
                     title: o.title,
                     discountValue: o.discount_value,
@@ -272,8 +343,42 @@ export const trendingService = {
                     isAdminPick: false,
                 }));
 
-            // 3. Merge: admin first, then algorithm to fill remaining slots
-            const merged = [...adminOffers, ...algoOffers].slice(0, maxTotal);
+                // Merge New + Legacy
+                algoOffers = [...newMapped, ...legacyMapped];
+
+            } else {
+                // OFFLINE: Fetch from 'offers' only
+                const { data: offlineData } = await supabase
+                    .from('offers')
+                    .select(`
+                        id, title, discount_value, type, merchant_id,
+                        merchants!inner (business_name, city, online_store, status)
+                    `)
+                    .eq('status', 'active')
+                    .eq('merchants.status', 'approved')
+                    .eq('merchants.online_store', false)
+                    .order('total_redemptions', { ascending: false })
+                    .limit(slotsRemaining);
+
+                algoOffers = (offlineData || []).map((o: any) => ({
+                    id: o.id,
+                    title: o.title,
+                    discountValue: o.discount_value,
+                    type: o.type,
+                    merchantName: o.merchants?.business_name,
+                    merchantId: o.merchant_id,
+                    merchantCity: o.merchants?.city,
+                    isAdminPick: false,
+                }));
+            }
+
+            const adminOfferIds = new Set(adminOffers.map(o => o.id));
+            const uniqueAlgoOffers = algoOffers
+                .filter(o => !adminOfferIds.has(o.id))
+                .slice(0, slotsRemaining);
+
+            // 3. Merge: admin first, then algorithm
+            const merged = [...adminOffers, ...uniqueAlgoOffers];
             return merged;
         } catch (error) {
             console.error('[Trending] getMergedTrending error:', error);
