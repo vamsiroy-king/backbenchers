@@ -103,7 +103,7 @@ export default function NewOfferPage() {
                 code: redemptionType === 'CODE_REVEAL' ? code : undefined,
                 link,
                 redemptionType,
-                locationScope: locationScope === 'STATE' ? 'STATES' : locationScope === 'CITY' ? 'CITIES' : 'PAN_INDIA',
+                locationScope: locationScope,
                 locationValues: locationScope === 'PAN_INDIA' ? [] : locationValuesList,
                 isActive: true
             });
@@ -147,8 +147,8 @@ export default function NewOfferPage() {
                             type="button"
                             onClick={() => setRedemptionType('CODE_REVEAL')}
                             className={`relative p-4 rounded-xl border-2 text-left transition-all ${redemptionType === 'CODE_REVEAL'
-                                    ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                                 }`}
                         >
                             <div className="flex items-start gap-3">
@@ -172,8 +172,8 @@ export default function NewOfferPage() {
                             type="button"
                             onClick={() => setRedemptionType('DIRECT_REDIRECT')}
                             className={`relative p-4 rounded-xl border-2 text-left transition-all ${redemptionType === 'DIRECT_REDIRECT'
-                                    ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                                 }`}
                         >
                             <div className="flex items-start gap-3">
