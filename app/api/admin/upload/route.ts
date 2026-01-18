@@ -1,8 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { createClient } from '@supabase/supabase-js';
+
+// Force this to run on Node.js runtime, not Edge
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
     try {
+        // Create admin client inside the handler
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (!supabaseUrl || !serviceKey) {
+            return NextResponse.json(
+                { success: false, error: 'Server configuration error: Missing Supabase credentials' },
+                { status: 500 }
+            );
+        }
+
+        const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
+            auth: { autoRefreshToken: false, persistSession: false }
+        });
+
         const formData = await request.formData();
         const file = formData.get('file') as File;
         const bucket = formData.get('bucket') as string || 'online-brands';
@@ -40,7 +59,7 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         console.error('Admin Upload Exception:', error);
         return NextResponse.json(
-            { success: false, error: error.message },
+            { success: false, error: error.message || 'Upload failed' },
             { status: 500 }
         );
     }
