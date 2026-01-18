@@ -128,7 +128,9 @@ export const onlineBrandService = {
         };
 
         // Use Admin API to bypass RLS (since admin might be in guest mode on localhost)
-        const response = await fetch('/api/admin/online-brands', {
+        // Use origin to support both main domain and admin subdomain
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        const response = await fetch(`${baseUrl}/api/admin/online-brands`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dbBrand)
@@ -180,7 +182,9 @@ export const onlineBrandService = {
         };
 
         // Use Admin API to bypass RLS
-        const response = await fetch('/api/admin/online-offers', {
+        // Use origin to support both main domain and admin subdomain
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        const response = await fetch(`${baseUrl}/api/admin/online-offers`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dbOffer)
