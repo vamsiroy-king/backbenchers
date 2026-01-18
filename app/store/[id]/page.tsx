@@ -10,6 +10,8 @@ import { ratingService, MerchantRatingStats } from "@/lib/services/rating.servic
 import { favoritesService } from "@/lib/services/favorites.service";
 import { Merchant, Offer } from "@/lib/types";
 import { vibrate } from "@/lib/haptics";
+import { VerificationBanner } from "@/components/VerificationBanner";
+import { authService } from "@/lib/services/auth.service";
 
 // Tab options - District style
 const TABS = [
@@ -134,6 +136,9 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
     const [activeTab, setActiveTab] = useState('offers');
     const [expandedOfferId, setExpandedOfferId] = useState<string | null>(null);
 
+    // Auth state
+    const [isVerified, setIsVerified] = useState<boolean | null>(null);
+
     useEffect(() => {
         if (hasFetched) return;
         async function fetchData() {
@@ -157,7 +162,17 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
             }
         }
         fetchData();
+        checkAuth();
     }, [id, hasFetched]);
+
+    const checkAuth = async () => {
+        try {
+            const user = await authService.getCurrentUser();
+            setIsVerified(user?.role === 'student' && !user.isSuspended);
+        } catch {
+            setIsVerified(false);
+        }
+    };
 
     // 🔥 REAL-TIME RATING SUBSCRIPTION - Updates without page refresh!
     useEffect(() => {
@@ -672,6 +687,14 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                     </div>
                 </div>
             </div>
+
+            {/* Verification Banner - Shows for non-verified users */}
+            {isVerified === false && (
+                <VerificationBanner
+                    variant="offline"
+                    brandName={merchant?.businessName}
+                />
+            )}
         </>
     );
 }

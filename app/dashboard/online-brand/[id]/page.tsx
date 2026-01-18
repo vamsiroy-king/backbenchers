@@ -9,6 +9,8 @@ import { onlineBrandService } from "@/lib/services/online-brand.service";
 import { OnlineBrand, OnlineOffer } from "@/lib/types";
 import { vibrate } from "@/lib/haptics";
 import { toast } from "sonner";
+import { VerificationBanner } from "@/components/VerificationBanner";
+import { authService } from "@/lib/services/auth.service";
 
 // Tab options - Same as offline store page
 const TABS = [
@@ -58,10 +60,24 @@ export default function OnlineBrandPage() {
     const [revealedOffers, setRevealedOffers] = useState<string[]>([]);
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
+    // Auth state
+    const [isVerified, setIsVerified] = useState<boolean | null>(null);
+    const [showVerificationBanner, setShowVerificationBanner] = useState(false);
+
     useEffect(() => {
         setRevealedOffers(getRevealedOffers());
         loadData();
+        checkAuth();
     }, [brandId]);
+
+    const checkAuth = async () => {
+        try {
+            const user = await authService.getCurrentUser();
+            setIsVerified(user?.role === 'student' && !user.isSuspended);
+        } catch {
+            setIsVerified(false);
+        }
+    };
 
     const loadData = async () => {
         try {
@@ -132,6 +148,13 @@ export default function OnlineBrandPage() {
     };
 
     const handleRevealCode = (offer: OnlineOffer) => {
+        // Check if user is verified first
+        if (!isVerified) {
+            vibrate('light');
+            setShowVerificationBanner(true);
+            return;
+        }
+
         vibrate('medium');
         markOfferRevealed(offer.id);
         setRevealedOffers(prev => [...prev, offer.id]);
@@ -603,6 +626,16 @@ export default function OnlineBrandPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Verification Banner - Shows when unverified user tries to reveal */}
+            <AnimatePresence>
+                {showVerificationBanner && (
+                    <VerificationBanner
+                        variant="online"
+                        brandName={brand?.name}
+                    />
+                )}
+            </AnimatePresence>
         </>
     );
 }
