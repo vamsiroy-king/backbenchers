@@ -299,6 +299,43 @@ export const onlineBrandService = {
             console.error('Track action error:', error);
             return false;
         }
+    },
+
+    /**
+     * Get all offer IDs that the current user has revealed (from database)
+     * Returns empty array if not logged in
+     */
+    async getMyRevealedOffers(): Promise<string[]> {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user?.id) return [];
+
+            // Get student ID
+            const { data: student } = await supabase
+                .from('students')
+                .select('id')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+
+            if (!student?.id) return [];
+
+            // Get all reveals for this student
+            const { data: reveals, error } = await supabase
+                .from('coupon_tracking')
+                .select('offer_id')
+                .eq('student_id', student.id)
+                .eq('action', 'reveal');
+
+            if (error) {
+                console.error('Error fetching reveals:', error);
+                return [];
+            }
+
+            return (reveals || []).map(r => r.offer_id);
+        } catch (error) {
+            console.error('getMyRevealedOffers error:', error);
+            return [];
+        }
     }
 };
 

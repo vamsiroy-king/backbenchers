@@ -9,7 +9,6 @@ import { onlineBrandService } from "@/lib/services/online-brand.service";
 import { OnlineBrand, OnlineOffer } from "@/lib/types";
 import { vibrate } from "@/lib/haptics";
 import { toast } from "sonner";
-import { VerificationBanner } from "@/components/VerificationBanner";
 import { authService } from "@/lib/services/auth.service";
 
 // Tab options - Same as offline store page
@@ -17,26 +16,6 @@ const TABS = [
     { id: 'offers', label: 'Offers' },
     { id: 'about', label: 'About' },
 ];
-
-// Reveal persistence in localStorage
-const REVEALED_KEY = 'bb_revealed_offers';
-
-function getRevealedOffers(): string[] {
-    if (typeof window === 'undefined') return [];
-    try {
-        return JSON.parse(localStorage.getItem(REVEALED_KEY) || '[]');
-    } catch {
-        return [];
-    }
-}
-
-function markOfferRevealed(offerId: string) {
-    const revealed = getRevealedOffers();
-    if (!revealed.includes(offerId)) {
-        revealed.push(offerId);
-        localStorage.setItem(REVEALED_KEY, JSON.stringify(revealed));
-    }
-}
 
 // Calculate days until expiry
 function getDaysUntilExpiry(expiryDate: string): number {
@@ -63,9 +42,9 @@ export default function OnlineBrandPage() {
     // Auth state
     const [isVerified, setIsVerified] = useState<boolean | null>(null);
     const [showVerificationBanner, setShowVerificationBanner] = useState(false);
+    const [studentId, setStudentId] = useState<string | null>(null);
 
     useEffect(() => {
-        setRevealedOffers(getRevealedOffers());
         loadData();
         checkAuth();
     }, [brandId]);
@@ -73,9 +52,21 @@ export default function OnlineBrandPage() {
     const checkAuth = async () => {
         try {
             const user = await authService.getCurrentUser();
-            setIsVerified(user?.role === 'student' && !user.isSuspended);
+            const verified = !!(user?.role === 'student' && !user.isSuspended);
+            setIsVerified(verified);
+
+            if (verified && user?.id) {
+                setStudentId(user.id);
+                // Load user-specific revealed offers from database
+                const myReveals = await onlineBrandService.getMyRevealedOffers();
+                setRevealedOffers(myReveals);
+            } else {
+                // Not logged in or not verified - no reveals to show
+                setRevealedOffers([]);
+            }
         } catch {
             setIsVerified(false);
+            setRevealedOffers([]);
         }
     };
 
@@ -155,13 +146,20 @@ export default function OnlineBrandPage() {
             return;
         }
 
+        // Already revealed? Just expand
+        if (revealedOffers.includes(offer.id)) {
+            return;
+        }
+
         vibrate('medium');
-        markOfferRevealed(offer.id);
+
+        // Update local state immediately
         setRevealedOffers(prev => [...prev, offer.id]);
 
-        // Track reveal event
-        if (offer.code) {
+        // Track reveal in database (only for verified users)
+        if (offer.code && studentId) {
             onlineBrandService.trackReveal({
+                studentId: studentId,
                 offerId: offer.id,
                 brandId: brand?.id,
                 code: offer.code,
@@ -170,17 +168,10 @@ export default function OnlineBrandPage() {
             });
         }
 
-        // Auto-copy
-        if (offer.code) {
-            navigator.clipboard.writeText(offer.code).then(() => {
-                setCopiedCode(offer.code!);
-                toast.success("Code copied!", {
-                    icon: "✓",
-                    description: "Ready to paste at checkout"
-                });
-                setTimeout(() => setCopiedCode(null), 3000);
-            }).catch(() => { });
-        }
+        // NO auto-copy - user must manually click copy button
+        toast.success("Code revealed!", {
+            description: "Tap the copy button to copy code"
+        });
     };
 
     const handleCopyCode = (code: string, offerId: string) => {
@@ -637,7 +628,7 @@ export default function OnlineBrandPage() {
                 </div>
             </div>
 
-            {/* Verification Popup - Only shows when clicking reveal without being verified */}
+            {/* Verification Popup - Centered in screen */}
             <AnimatePresence>
                 {showVerificationBanner && (
                     <motion.div
@@ -645,38 +636,36 @@ export default function OnlineBrandPage() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                        className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center"
+                        className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
                         onClick={() => setShowVerificationBanner(false)}
                     >
                         <motion.div
-                            initial={{ y: 200 }}
-                            animate={{ y: 0 }}
-                            exit={{ y: 200 }}
-                            transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full max-w-[430px] bg-[#111] border-t border-[#333] rounded-t-3xl p-6 pb-12"
+                            className="w-full max-w-[340px] bg-[#111] border border-[#333] rounded-2xl p-6"
                         >
-                            <div className="w-12 h-1 bg-[#333] rounded-full mx-auto mb-5" />
-
                             <div className="text-center mb-5">
-                                <div className="h-12 w-12 rounded-xl bg-green-500 flex items-center justify-center mx-auto mb-3">
-                                    <Sparkles className="h-6 w-6 text-black" />
+                                <div className="h-14 w-14 rounded-xl bg-green-500 flex items-center justify-center mx-auto mb-4">
+                                    <Sparkles className="h-7 w-7 text-black" />
                                 </div>
-                                <h3 className="text-white font-bold text-base mb-1">Verify to Reveal Code</h3>
+                                <h3 className="text-white font-bold text-lg mb-2">Verify to Reveal Code</h3>
                                 <p className="text-[#666] text-sm">
-                                    Unlock exclusive codes for {brand?.name}
+                                    Get verified to unlock exclusive discounts for {brand?.name}
                                 </p>
                             </div>
 
                             <Link href="/signup">
-                                <button className="w-full h-11 bg-green-500 text-black font-bold rounded-xl mb-3 active:scale-[0.98] transition-transform">
+                                <button className="w-full h-12 bg-green-500 text-black font-bold rounded-xl mb-3 active:scale-[0.98] transition-transform">
                                     Get Verified — Free
                                 </button>
                             </Link>
 
                             <button
                                 onClick={() => setShowVerificationBanner(false)}
-                                className="w-full py-2 text-[#555] text-sm active:opacity-50 transition-opacity"
+                                className="w-full py-2 text-[#666] text-sm active:opacity-50 transition-opacity"
                             >
                                 Maybe later
                             </button>
