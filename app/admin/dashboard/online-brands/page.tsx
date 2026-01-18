@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Search, ExternalLink, Globe } from "lucide-react";
+import { Plus, Search, ExternalLink, Globe, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { onlineBrandService } from "@/lib/services/online-brand.service";
@@ -40,12 +40,20 @@ export default function OnlineBrandsPage() {
                     <h1 className="text-2xl font-bold tracking-tight">Online Brands</h1>
                     <p className="text-muted-foreground">Manage online brand partnerships and offers</p>
                 </div>
-                <Link href="/admin/dashboard/online-brands/new">
-                    <Button className="gap-2">
-                        <Plus className="h-4 w-4" />
-                        Add New Brand
-                    </Button>
-                </Link>
+                <div className="flex gap-2">
+                    <Link href="/admin/dashboard/tracking">
+                        <Button variant="outline" className="gap-2">
+                            <TrendingUp className="h-4 w-4" />
+                            Tracking
+                        </Button>
+                    </Link>
+                    <Link href="/admin/dashboard/online-brands/new">
+                        <Button className="gap-2">
+                            <Plus className="h-4 w-4" />
+                            Add New Brand
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             <div className="flex items-center gap-4">

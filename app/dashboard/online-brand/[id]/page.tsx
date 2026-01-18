@@ -136,6 +136,17 @@ export default function OnlineBrandPage() {
         markOfferRevealed(offer.id);
         setRevealedOffers(prev => [...prev, offer.id]);
 
+        // Track reveal event
+        if (offer.code) {
+            onlineBrandService.trackReveal({
+                offerId: offer.id,
+                brandId: brand?.id,
+                code: offer.code,
+                source: 'APP',
+                deviceType: /Mobile|Android|iPhone/.test(navigator.userAgent) ? 'MOBILE' : 'DESKTOP'
+            });
+        }
+
         // Auto-copy
         if (offer.code) {
             navigator.clipboard.writeText(offer.code).then(() => {
@@ -149,12 +160,19 @@ export default function OnlineBrandPage() {
         }
     };
 
-    const handleCopyCode = (code: string) => {
+    const handleCopyCode = (code: string, offerId: string) => {
         vibrate('light');
         navigator.clipboard.writeText(code).then(() => {
             setCopiedCode(code);
             toast.success("Copied!");
             setTimeout(() => setCopiedCode(null), 2500);
+
+            // Track copy event
+            onlineBrandService.trackAction({
+                offerId,
+                code,
+                action: 'copy'
+            });
         }).catch(() => {
             toast.error("Failed to copy");
         });
@@ -418,7 +436,7 @@ export default function OnlineBrandPage() {
                                                                                     onClick={(e) => {
                                                                                         e.stopPropagation();
                                                                                         e.preventDefault();
-                                                                                        handleCopyCode(offer.code!);
+                                                                                        handleCopyCode(offer.code!, offer.id);
                                                                                     }}
                                                                                     className={`h-12 w-12 rounded-xl flex items-center justify-center transition-colors ${copiedCode === offer.code
                                                                                         ? 'bg-green-500 text-black'

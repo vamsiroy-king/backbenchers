@@ -244,6 +244,61 @@ export const onlineBrandService = {
         }
 
         return result.url;
+    },
+
+    // ==================== TRACKING ====================
+
+    /**
+     * Track when a student reveals a coupon code
+     */
+    async trackReveal(params: {
+        studentId?: string;
+        offerId: string;
+        brandId?: string;
+        code: string;
+        source?: 'APP' | 'WEBSITE';
+        deviceType?: 'MOBILE' | 'DESKTOP';
+    }) {
+        try {
+            const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+            const response = await fetch(`${baseUrl}/api/tracking`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...params,
+                    action: 'reveal'
+                })
+            });
+            const result = await response.json();
+            return result.success;
+        } catch (error) {
+            console.error('Track reveal error:', error);
+            return false;
+        }
+    },
+
+    /**
+     * Track copy, click-through, or self-reported redemption
+     */
+    async trackAction(params: {
+        studentId?: string;
+        offerId: string;
+        code: string;
+        action: 'copy' | 'click' | 'redeem';
+    }) {
+        try {
+            const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+            const response = await fetch(`${baseUrl}/api/tracking`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params)
+            });
+            const result = await response.json();
+            return result.success;
+        } catch (error) {
+            console.error('Track action error:', error);
+            return false;
+        }
     }
 };
 
@@ -277,6 +332,13 @@ function mapOfferFromDb(row: any): OnlineOffer {
         expiryDate: row.expiry_date,
         redemptionType: row.redemption_type || 'CODE_REVEAL',
         isActive: row.is_active,
-        createdAt: row.created_at
+        createdAt: row.created_at,
+        // Tracking fields
+        revealCount: row.reveal_count || 0,
+        redemptionCount: row.redemption_count || 0,
+        termsConditions: row.terms_conditions,
+        minOrderValue: row.min_order_value,
+        maxDiscount: row.max_discount,
+        perUserLimit: row.per_user_limit || 1
     };
 }

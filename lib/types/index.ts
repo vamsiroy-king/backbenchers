@@ -393,4 +393,51 @@ export interface OnlineOffer {
     isActive: boolean;
     createdAt: string;
     brand?: OnlineBrand; // For joined queries
+
+    // Tracking fields
+    revealCount?: number;
+    redemptionCount?: number;
+    termsConditions?: string;
+    minOrderValue?: number;
+    maxDiscount?: number;
+    perUserLimit?: number;
+}
+
+// =============================================
+// COUPON TRACKING TYPES
+// =============================================
+
+export type RedemptionStatus = 'REVEALED' | 'COPIED' | 'CLICKED' | 'REDEEMED' | 'EXPIRED';
+
+export interface CouponRedemption {
+    id: string;
+    studentId: string;
+    offerId: string;
+    brandId?: string;
+    codeUsed: string;
+
+    // Timestamps
+    revealedAt: string;
+    copiedAt?: string;
+    clickedThroughAt?: string;
+    redeemedAt?: string;
+
+    // Status
+    status: RedemptionStatus;
+
+    // Additional info
+    source?: 'APP' | 'WEBSITE';
+    deviceType?: 'MOBILE' | 'DESKTOP';
+
+    createdAt: string;
+
+    // Joined data
+    offer?: OnlineOffer;
+    brand?: OnlineBrand;
+    student?: {
+        id: string;
+        name: string;
+        email: string;
+        college?: string;
+    };
 }
