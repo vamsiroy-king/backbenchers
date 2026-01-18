@@ -55,7 +55,13 @@ export default function CategoryPage() {
     const categoryName = decodeURIComponent(params.name as string);
     const category = CATEGORY_DATA[categoryName] || { emoji: "📦", color: "from-gray-500 to-gray-600" };
 
-    const [activeTab, setActiveTab] = useState<'online' | 'offline'>('offline');
+    // Read saved tab from localStorage on mount
+    const [activeTab, setActiveTab] = useState<'online' | 'offline'>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('categoryTabPreference') as 'online' | 'offline') || 'offline';
+        }
+        return 'offline';
+    });
     const [showVerifyModal, setShowVerifyModal] = useState(false);
     const [loading, setLoading] = useState(true);
 
@@ -65,6 +71,15 @@ export default function CategoryPage() {
 
     const [isVerified, setIsVerified] = useState(false);
     const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+
+    // Save tab preference when changed
+    const handleTabChange = (tab: 'online' | 'offline') => {
+        setActiveTab(tab);
+        vibrate('light');
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('categoryTabPreference', tab);
+        }
+    };
 
     // Fetch offers and group by merchant
     useEffect(() => {
@@ -206,23 +221,23 @@ export default function CategoryPage() {
                     </div>
                 </div>
 
-                {/* Tabs - Instant counts */}
+                {/* Tabs - Stable counts (only shown after load) */}
                 <div className="flex bg-white/20 backdrop-blur rounded-xl p-1">
                     <button
-                        onClick={() => { setActiveTab('online'); vibrate('light'); }}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'online' ? 'bg-white text-black shadow' : 'text-white/80'
+                        onClick={() => handleTabChange('online')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-colors active:opacity-80 ${activeTab === 'online' ? 'bg-white text-black shadow' : 'text-white/80'
                             }`}
                     >
                         <Wifi className="h-4 w-4" />
-                        Online ({onlineBrands.length})
+                        Online{!loading && onlineBrands.length > 0 ? ` (${onlineBrands.length})` : ''}
                     </button>
                     <button
-                        onClick={() => { setActiveTab('offline'); vibrate('light'); }}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'offline' ? 'bg-white text-black shadow' : 'text-white/80'
+                        onClick={() => handleTabChange('offline')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-colors active:opacity-80 ${activeTab === 'offline' ? 'bg-white text-black shadow' : 'text-white/80'
                             }`}
                     >
                         <MapPin className="h-4 w-4" />
-                        Nearby ({offers.length})
+                        Nearby{!loading && offers.length > 0 ? ` (${offers.length})` : ''}
                     </button>
                 </div>
 

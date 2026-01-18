@@ -388,6 +388,7 @@ export default function OnlineBrandPage() {
                                         return (
                                             <motion.div
                                                 key={offer.id}
+                                                id={`offer-${offer.id}`}
                                                 className="relative bg-[#111] rounded-xl p-4 border border-[#222] overflow-hidden"
                                             >
                                                 {/* REVEALED Corner Ribbon - Clean diagonal design */}
@@ -401,8 +402,17 @@ export default function OnlineBrandPage() {
 
                                                 {/* Header - Clickable to expand/collapse */}
                                                 <div
-                                                    className="flex items-center gap-3 cursor-pointer"
-                                                    onClick={() => setExpandedOfferId(isExpanded ? null : offer.id)}
+                                                    className="flex items-center gap-3 cursor-pointer active:opacity-70 transition-opacity"
+                                                    onClick={() => {
+                                                        const newExpanded = isExpanded ? null : offer.id;
+                                                        setExpandedOfferId(newExpanded);
+                                                        // Auto-scroll after expand animation
+                                                        if (newExpanded) {
+                                                            setTimeout(() => {
+                                                                document.getElementById(`offer-${offer.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                            }, 100);
+                                                        }
+                                                    }}
                                                 >
                                                     {/* Gift Badge */}
                                                     <div className="h-12 w-12 rounded-xl bg-green-500 flex flex-col items-center justify-center flex-shrink-0">
@@ -423,7 +433,7 @@ export default function OnlineBrandPage() {
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <motion.div animate={{ rotate: isExpanded ? 90 : 0 }}>
+                                                    <motion.div animate={{ rotate: isExpanded ? 90 : 0 }} transition={{ duration: 0.15 }}>
                                                         <ChevronRight className="h-5 w-5 text-[#444]" />
                                                     </motion.div>
                                                 </div>
@@ -634,40 +644,39 @@ export default function OnlineBrandPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
                         className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center"
                         onClick={() => setShowVerificationBanner(false)}
                     >
                         <motion.div
-                            initial={{ y: 100 }}
+                            initial={{ y: 200 }}
                             animate={{ y: 0 }}
-                            exit={{ y: 100 }}
+                            exit={{ y: 200 }}
+                            transition={{ type: "spring", damping: 30, stiffness: 400 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full max-w-[430px] bg-[#111] border-t border-[#333] rounded-t-3xl p-6"
+                            className="w-full max-w-[430px] bg-[#111] border-t border-[#333] rounded-t-3xl p-6 pb-12"
                         >
-                            <div className="w-12 h-1 bg-[#333] rounded-full mx-auto mb-6" />
+                            <div className="w-12 h-1 bg-[#333] rounded-full mx-auto mb-5" />
 
-                            <div className="text-center mb-6">
-                                <div className="h-14 w-14 rounded-2xl bg-green-500 flex items-center justify-center mx-auto mb-4">
-                                    <Sparkles className="h-7 w-7 text-black" />
+                            <div className="text-center mb-5">
+                                <div className="h-12 w-12 rounded-xl bg-green-500 flex items-center justify-center mx-auto mb-3">
+                                    <Sparkles className="h-6 w-6 text-black" />
                                 </div>
-                                <h3 className="text-white font-bold text-lg mb-1">Verify to Reveal Code</h3>
+                                <h3 className="text-white font-bold text-base mb-1">Verify to Reveal Code</h3>
                                 <p className="text-[#666] text-sm">
-                                    Get verified to unlock exclusive discount codes for {brand?.name}
+                                    Unlock exclusive codes for {brand?.name}
                                 </p>
                             </div>
 
                             <Link href="/signup">
-                                <motion.button
-                                    whileTap={{ scale: 0.98 }}
-                                    className="w-full h-12 bg-green-500 text-black font-bold rounded-xl mb-3"
-                                >
+                                <button className="w-full h-11 bg-green-500 text-black font-bold rounded-xl mb-3 active:scale-[0.98] transition-transform">
                                     Get Verified — Free
-                                </motion.button>
+                                </button>
                             </Link>
 
                             <button
                                 onClick={() => setShowVerificationBanner(false)}
-                                className="w-full py-2 text-[#666] text-sm"
+                                className="w-full py-2 text-[#555] text-sm active:opacity-50 transition-opacity"
                             >
                                 Maybe later
                             </button>
