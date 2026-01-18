@@ -76,8 +76,8 @@ export function middleware(request: NextRequest) {
             return NextResponse.redirect(url);
         }
 
-        // Only allow admin routes
-        if (!pathname.startsWith('/admin') && pathname !== '/') {
+        // Only allow admin routes and API routes
+        if (!pathname.startsWith('/admin') && !pathname.startsWith('/api') && pathname !== '/') {
             url.pathname = '/admin/dashboard';
             return NextResponse.redirect(url);
         }
