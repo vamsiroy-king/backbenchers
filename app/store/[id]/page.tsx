@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, MapPin, Phone, Navigation, Heart, ChevronRight, Share2, Tag, Star, X, Clock, Camera, Store } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Navigation, Heart, ChevronRight, Share2, Tag, Star, X, Clock, Camera, Store, QrCode } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -503,17 +503,25 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
 
                     {/* Tab Content */}
                     <div className="py-4 pb-24">
-                        {/* Verification Banner - Inline at top for non-verified */}
-                        {isVerified === false && activeTab === 'offers' && (
-                            <VerificationBanner
-                                variant="offline"
-                                brandName={merchant.businessName}
-                            />
-                        )}
-
                         {activeTab === 'offers' && (
                             <div className="space-y-3 px-4">
                                 <p className="text-[10px] text-[#555] uppercase tracking-wider mb-3">In-store deals applied at billing counter</p>
+
+                                {/* Subtle verification note for non-verified users */}
+                                {isVerified === false && (
+                                    <Link href="/signup">
+                                        <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-3 mb-4 flex items-center gap-3">
+                                            <div className="h-9 w-9 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                                                <QrCode className="h-4 w-4 text-green-400" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-white text-xs font-medium">Get verified for your QR pass</p>
+                                                <p className="text-[#555] text-[10px]">Show at checkout for discount</p>
+                                            </div>
+                                            <ChevronRight className="h-4 w-4 text-[#444] flex-shrink-0" />
+                                        </div>
+                                    </Link>
+                                )}
 
                                 {activeOffers.length === 0 ? (
                                     <div className="text-center py-10">

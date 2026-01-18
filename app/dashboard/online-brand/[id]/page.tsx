@@ -368,14 +368,6 @@ export default function OnlineBrandPage() {
 
                     {/* Tab Content */}
                     <div className="py-4 pb-24">
-                        {/* Verification Banner - Inline at top for non-verified */}
-                        {isVerified === false && activeTab === 'offers' && (
-                            <VerificationBanner
-                                variant="online"
-                                brandName={brand?.name}
-                            />
-                        )}
-
                         {activeTab === 'offers' && (
                             <div className="space-y-3 px-4">
                                 <p className="text-[10px] text-[#555] uppercase tracking-wider mb-3">Use codes at checkout on brand website</p>
@@ -635,6 +627,54 @@ export default function OnlineBrandPage() {
                 </div>
             </div>
 
+            {/* Verification Popup - Only shows when clicking reveal without being verified */}
+            <AnimatePresence>
+                {showVerificationBanner && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center"
+                        onClick={() => setShowVerificationBanner(false)}
+                    >
+                        <motion.div
+                            initial={{ y: 100 }}
+                            animate={{ y: 0 }}
+                            exit={{ y: 100 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full max-w-[430px] bg-[#111] border-t border-[#333] rounded-t-3xl p-6"
+                        >
+                            <div className="w-12 h-1 bg-[#333] rounded-full mx-auto mb-6" />
+
+                            <div className="text-center mb-6">
+                                <div className="h-14 w-14 rounded-2xl bg-green-500 flex items-center justify-center mx-auto mb-4">
+                                    <Sparkles className="h-7 w-7 text-black" />
+                                </div>
+                                <h3 className="text-white font-bold text-lg mb-1">Verify to Reveal Code</h3>
+                                <p className="text-[#666] text-sm">
+                                    Get verified to unlock exclusive discount codes for {brand?.name}
+                                </p>
+                            </div>
+
+                            <Link href="/signup">
+                                <motion.button
+                                    whileTap={{ scale: 0.98 }}
+                                    className="w-full h-12 bg-green-500 text-black font-bold rounded-xl mb-3"
+                                >
+                                    Get Verified — Free
+                                </motion.button>
+                            </Link>
+
+                            <button
+                                onClick={() => setShowVerificationBanner(false)}
+                                className="w-full py-2 text-[#666] text-sm"
+                            >
+                                Maybe later
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 }

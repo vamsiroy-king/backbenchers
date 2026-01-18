@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -71,16 +70,6 @@ export default function RootPage() {
     handleEntry();
   }, [router]);
 
-  // Loading state while checking/redirecting
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <motion.div
-        animate={{ scale: [1, 1.05, 1] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
-        className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center"
-      >
-        <span className="text-primary-foreground font-bold italic">B</span>
-      </motion.div>
-    </div>
-  );
+  // No loader - just blank screen for instant redirect feel
+  return <div className="min-h-screen bg-black" />;
 }
