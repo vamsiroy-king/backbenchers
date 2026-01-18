@@ -502,9 +502,17 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                     </div>
 
                     {/* Tab Content */}
-                    <div className="px-4 py-4 pb-24">
+                    <div className="py-4 pb-24">
+                        {/* Verification Banner - Inline at top for non-verified */}
+                        {isVerified === false && activeTab === 'offers' && (
+                            <VerificationBanner
+                                variant="offline"
+                                brandName={merchant.businessName}
+                            />
+                        )}
+
                         {activeTab === 'offers' && (
-                            <div className="space-y-3">
+                            <div className="space-y-3 px-4">
                                 <p className="text-[10px] text-[#555] uppercase tracking-wider mb-3">In-store deals applied at billing counter</p>
 
                                 {activeOffers.length === 0 ? (
@@ -687,14 +695,6 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                     </div>
                 </div>
             </div>
-
-            {/* Verification Banner - Shows for non-verified users */}
-            {isVerified === false && (
-                <VerificationBanner
-                    variant="offline"
-                    brandName={merchant?.businessName}
-                />
-            )}
         </>
     );
 }

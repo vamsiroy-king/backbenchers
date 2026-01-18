@@ -367,9 +367,17 @@ export default function OnlineBrandPage() {
                     </div>
 
                     {/* Tab Content */}
-                    <div className="px-4 py-4 pb-24">
+                    <div className="py-4 pb-24">
+                        {/* Verification Banner - Inline at top for non-verified */}
+                        {isVerified === false && activeTab === 'offers' && (
+                            <VerificationBanner
+                                variant="online"
+                                brandName={brand?.name}
+                            />
+                        )}
+
                         {activeTab === 'offers' && (
-                            <div className="space-y-3">
+                            <div className="space-y-3 px-4">
                                 <p className="text-[10px] text-[#555] uppercase tracking-wider mb-3">Use codes at checkout on brand website</p>
 
                                 {activeOffers.length === 0 ? (
@@ -627,15 +635,6 @@ export default function OnlineBrandPage() {
                 </div>
             </div>
 
-            {/* Verification Banner - Shows when unverified user tries to reveal */}
-            <AnimatePresence>
-                {showVerificationBanner && (
-                    <VerificationBanner
-                        variant="online"
-                        brandName={brand?.name}
-                    />
-                )}
-            </AnimatePresence>
         </>
     );
 }

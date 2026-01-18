@@ -10,75 +10,64 @@ interface VerificationBannerProps {
 }
 
 /**
- * Premium verification banner shown to non-verified users
- * - online: For online brands, prompts to verify for code reveal
- * - offline: For offline merchants, prompts to verify for QR code
+ * Clean, minimal verification banner - District style
+ * Inline card that doesn't block content
  */
 export function VerificationBanner({ variant = 'offline', brandName }: VerificationBannerProps) {
     const isOnline = variant === 'online';
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-6 bg-gradient-to-t from-black via-black/95 to-transparent"
+            className="mx-4 mb-6"
         >
-            <div className="max-w-[430px] mx-auto">
-                <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-500/20 rounded-2xl p-5 backdrop-blur-sm">
-                    {/* Icon + Badge */}
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="h-12 w-12 rounded-xl bg-green-500 flex items-center justify-center">
-                            {isOnline ? (
-                                <Sparkles className="h-6 w-6 text-black" />
-                            ) : (
-                                <QrCode className="h-6 w-6 text-black" />
-                            )}
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <GraduationCap className="h-4 w-4 text-green-400" />
-                                <span className="text-xs font-semibold text-green-400 uppercase tracking-wider">
-                                    Student Exclusive
-                                </span>
-                            </div>
-                            <h3 className="text-white font-bold text-lg">
-                                {isOnline ? 'Unlock Discount Codes' : 'Get Your QR Pass'}
-                            </h3>
-                        </div>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-[#888] text-sm mb-4 leading-relaxed">
+            <div className="bg-[#111] border border-[#222] rounded-2xl p-4">
+                {/* Header Row */}
+                <div className="flex items-center gap-3 mb-3">
+                    <div className="h-10 w-10 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
                         {isOnline ? (
-                            <>
-                                Verify your student status to reveal exclusive coupon codes
-                                {brandName && <> for <span className="text-white font-medium">{brandName}</span></>}.
-                            </>
+                            <Sparkles className="h-5 w-5 text-black" />
                         ) : (
-                            <>
-                                Get verified to unlock your personal QR code. Show it at checkout
-                                {brandName && <> at <span className="text-white font-medium">{brandName}</span></>} to get your student discount.
-                            </>
+                            <QrCode className="h-5 w-5 text-black" />
                         )}
-                    </p>
-
-                    {/* CTA Button */}
-                    <Link href="/signup">
-                        <motion.button
-                            whileTap={{ scale: 0.98 }}
-                            className="w-full h-12 bg-green-500 hover:bg-green-600 text-black font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
-                        >
-                            Get Verified — It's Free
-                            <ArrowRight className="h-4 w-4" />
-                        </motion.button>
-                    </Link>
-
-                    {/* Trust text */}
-                    <p className="text-[#555] text-[10px] text-center mt-3">
-                        One-time verification • Takes 2 minutes • 50,000+ students verified
-                    </p>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                            <GraduationCap className="h-3.5 w-3.5 text-green-400" />
+                            <span className="text-[10px] font-semibold text-green-400 uppercase tracking-wider">
+                                Student Exclusive
+                            </span>
+                        </div>
+                        <h3 className="text-white font-semibold text-sm">
+                            {isOnline ? 'Unlock Discount Codes' : 'Get Your QR Pass'}
+                        </h3>
+                    </div>
                 </div>
+
+                {/* Description */}
+                <p className="text-[#666] text-xs mb-4 leading-relaxed">
+                    {isOnline
+                        ? `Verify to reveal coupon codes${brandName ? ` for ${brandName}` : ''}.`
+                        : `Get verified for your QR code${brandName ? ` at ${brandName}` : ' at checkout'}.`
+                    }
+                </p>
+
+                {/* CTA Button */}
+                <Link href="/signup">
+                    <motion.button
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full h-11 bg-green-500 text-black font-semibold text-sm rounded-xl flex items-center justify-center gap-2"
+                    >
+                        Get Verified — Free
+                        <ArrowRight className="h-4 w-4" />
+                    </motion.button>
+                </Link>
+
+                {/* Trust line */}
+                <p className="text-[#444] text-[10px] text-center mt-3">
+                    One-time • 2 min • 50K+ verified
+                </p>
             </div>
         </motion.div>
     );
