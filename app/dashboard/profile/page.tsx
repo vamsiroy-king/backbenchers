@@ -345,6 +345,10 @@ export default function ProfilePage() {
             <div className="min-h-screen bg-black pb-28 px-4">
                 <header className="py-6">
                     <h1 className="text-2xl font-bold text-white">Profile</h1>
+                    <div className="flex flex-col mt-1">
+                        <span className="text-sm font-bold italic text-white/80">BACKBENCHERS</span>
+                        <span className="text-[10px] font-semibold text-green-400 tracking-wide">BORN TO SAVE</span>
+                    </div>
                 </header>
 
                 <div className="bg-gradient-to-br from-[#121212] to-[#0a0a0b] rounded-3xl p-6 text-white shadow-2xl mb-8 border border-white/[0.06]">
@@ -579,9 +583,12 @@ export default function ProfilePage() {
                         {/* Card Content */}
                         <div className="relative h-full p-5 flex flex-col">
 
-                            {/* Header Row - Just BACKBENCHERS logo */}
+                            {/* Header Row - Brand: Left corner position */}
                             <div className="flex items-center justify-between mb-auto">
-                                <span className={`text-sm font-bold italic tracking-tight ${isLightTheme ? 'text-green-600' : 'text-white'}`}>BACKBENCHERS</span>
+                                <div className="flex flex-col">
+                                    <span className={`text-sm font-bold italic tracking-tight ${isLightTheme ? 'text-gray-800' : 'text-white'}`}>BACKBENCHERS</span>
+                                    <span className={`text-[10px] font-semibold tracking-wide ${isLightTheme ? 'text-green-600' : 'text-green-400'}`}>BORN TO SAVE</span>
+                                </div>
                             </div>
 
                             {/* Main Content - Photo + Info */}
@@ -688,9 +695,10 @@ export default function ProfilePage() {
                             )}
                         </div>
 
-                        {/* Bottom Branding - Clean */}
-                        <div className="absolute bottom-3 left-0 right-0 flex justify-center">
-                            <span className="text-[10px] text-gray-400 font-medium italic">backbenchers.in</span>
+                        {/* Bottom Branding */}
+                        <div className="absolute bottom-3 left-0 right-0 flex flex-col items-center">
+                            <span className="text-[9px] font-bold italic text-gray-500">BACKBENCHERS</span>
+                            <span className="text-[7px] font-semibold text-green-500 tracking-wide">BORN TO SAVE</span>
                         </div>
                     </div>
                 </motion.div>

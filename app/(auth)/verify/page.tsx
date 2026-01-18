@@ -240,9 +240,21 @@ export default function VerifyPage() {
         <div className="min-h-screen bg-[#0a0a0a] px-5 pt-12 pb-8">
             {/* Header - Back button on all steps except success */}
             {step !== "success" && (
-                <button onClick={goBack} className="flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-6">
-                    <ArrowLeft className="h-4 w-4" /><span className="text-sm">Back</span>
-                </button>
+                <div className="flex items-center justify-between mb-6">
+                    <button onClick={goBack} className="flex items-center gap-2 text-white/50 hover:text-white transition-colors">
+                        <ArrowLeft className="h-4 w-4" /><span className="text-sm">Back</span>
+                    </button>
+                    {/* Brand Logo */}
+                    <div className="flex items-center gap-2">
+                        <div className="h-9 w-9 rounded-lg bg-green-500 flex items-center justify-center">
+                            <span className="text-black font-bold text-sm">B</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-bold italic text-white">BACKBENCHERS</span>
+                            <span className="text-[10px] font-semibold text-green-400 tracking-wide">BORN TO SAVE</span>
+                        </div>
+                    </div>
+                </div>
             )}
 
             <Progress current={stepIndex} total={6} />

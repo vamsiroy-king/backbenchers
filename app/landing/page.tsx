@@ -42,7 +42,10 @@ export default function LandingPage() {
                             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center" style={{ transform: 'skewX(-6deg)' }}>
                                 <span className="text-primary-foreground font-extrabold text-sm" style={{ fontStyle: 'italic', transform: 'skewX(6deg)' }}>B</span>
                             </div>
-                            <span className="font-bold italic text-foreground">BACKBENCHERS</span>
+                            <div className="flex flex-col">
+                                <span className="font-bold italic text-foreground">BACKBENCHERS</span>
+                                <span className="text-[10px] font-semibold text-primary tracking-wide">BORN TO SAVE</span>
+                            </div>
                         </div>
                         <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign in</Link>
                     </div>
@@ -150,7 +153,8 @@ export default function LandingPage() {
                                 <span className="text-foreground">BACK</span>
                                 <span className="text-primary">BENCHERS</span>
                             </motion.h2>
-                            <p className="text-[13px] text-muted-foreground mt-2">Verify once. Save forever.</p>
+                            <p className="text-sm font-semibold text-primary mt-2 tracking-wide">BORN TO SAVE</p>
+                            <p className="text-[12px] text-muted-foreground mt-1">Verify once. Save forever.</p>
                         </div>
                     </Reveal>
                 </section>

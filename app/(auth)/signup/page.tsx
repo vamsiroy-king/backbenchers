@@ -91,9 +91,15 @@ function SignupContent() {
                     transition={{ duration: 0.4 }}
                     className="flex-1 flex flex-col"
                 >
-                    {/* Logo */}
-                    <div className="h-11 w-11 rounded-xl bg-green-500 flex items-center justify-center mb-8">
-                        <span className="text-black font-bold text-lg">B</span>
+                    {/* Logo + Tagline */}
+                    <div className="mb-8">
+                        <div className="h-11 w-11 rounded-xl bg-green-500 flex items-center justify-center mb-3">
+                            <span className="text-black font-bold text-lg">B</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-bold italic text-white">BACKBENCHERS</span>
+                            <span className="text-[10px] font-semibold text-green-400 tracking-wide">BORN TO SAVE</span>
+                        </div>
                     </div>
 
                     {/* Title */}

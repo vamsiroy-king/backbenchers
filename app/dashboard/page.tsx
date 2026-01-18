@@ -643,8 +643,9 @@ export default function DashboardPage() {
             {/* Header - Minimal Premium */}
             <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-xl">
                 <div className="px-5 h-14 flex items-center justify-between">
-                    <div className="flex items-center">
+                    <div className="flex flex-col">
                         <span className="font-bold text-lg text-white italic tracking-tight">BACKBENCHERS</span>
+                        <span className="text-[10px] font-semibold text-green-400 tracking-wide">BORN TO SAVE</span>
                     </div>
                     <div className="flex items-center gap-2">
                         {/* City Selector */}
