@@ -315,53 +315,66 @@ export default function VerifyPage() {
                         </div>
                         <Select label="Gender" placeholder="Select" value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })} options={[{ value: "Male", label: "Male" }, { value: "Female", label: "Female" }, { value: "Other", label: "Other" }]} required />
 
-                        {/* Custom Numeric DOB Input (DD / MM / YYYY) */}
+                        {/* DOB Selection - Dropdowns (Day / Month / Year) */}
                         <div className="space-y-2">
                             <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Date of birth</label>
                             <div className="grid grid-cols-3 gap-3">
-                                <input
-                                    type="tel"
-                                    inputMode="numeric"
-                                    placeholder="DD"
-                                    maxLength={2}
-                                    value={formData.dob.split('-')[2] || ''}
-                                    onChange={e => {
-                                        const d = e.target.value.replace(/\D/g, '');
-                                        if (d.length > 2) return;
-                                        const parts = formData.dob ? formData.dob.split('-') : ['', '', ''];
-                                        // Store as YYYY-MM-DD
-                                        setFormData({ ...formData, dob: `${parts[0] || ''}-${parts[1] || ''}-${d}` });
-                                    }}
-                                    className="h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 text-center text-white placeholder:text-white/20 focus:outline-none focus:border-green-500/50 transition-colors"
-                                />
-                                <input
-                                    type="tel"
-                                    inputMode="numeric"
-                                    placeholder="MM"
-                                    maxLength={2}
-                                    value={formData.dob.split('-')[1] || ''}
-                                    onChange={e => {
-                                        const m = e.target.value.replace(/\D/g, '');
-                                        if (m.length > 2) return;
-                                        const parts = formData.dob ? formData.dob.split('-') : ['', '', ''];
-                                        setFormData({ ...formData, dob: `${parts[0] || ''}-${m}-${parts[2] || ''}` });
-                                    }}
-                                    className="h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 text-center text-white placeholder:text-white/20 focus:outline-none focus:border-green-500/50 transition-colors"
-                                />
-                                <input
-                                    type="tel"
-                                    inputMode="numeric"
-                                    placeholder="YYYY"
-                                    maxLength={4}
-                                    value={formData.dob.split('-')[0] || ''}
-                                    onChange={e => {
-                                        const y = e.target.value.replace(/\D/g, '');
-                                        if (y.length > 4) return;
-                                        const parts = formData.dob ? formData.dob.split('-') : ['', '', ''];
-                                        setFormData({ ...formData, dob: `${y}-${parts[1] || ''}-${parts[2] || ''}` });
-                                    }}
-                                    className="h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 text-center text-white placeholder:text-white/20 focus:outline-none focus:border-green-500/50 transition-colors"
-                                />
+                                {/* Day */}
+                                <div className="relative">
+                                    <select
+                                        value={formData.dob.split('-')[2] ? parseInt(formData.dob.split('-')[2]).toString() : ""}
+                                        onChange={e => {
+                                            const d = e.target.value.padStart(2, '0');
+                                            const parts = formData.dob ? formData.dob.split('-') : ['', '', ''];
+                                            setFormData({ ...formData, dob: `${parts[0] || ''}-${parts[1] || ''}-${d}` });
+                                        }}
+                                        className="w-full h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 pr-8 text-white appearance-none focus:outline-none focus:border-green-500/50 transition-colors"
+                                    >
+                                        <option value="" className="bg-[#0a0a0a]">Day</option>
+                                        {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                                            <option key={d} value={d} className="bg-[#0a0a0a]">{d}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
+                                </div>
+
+                                {/* Month */}
+                                <div className="relative">
+                                    <select
+                                        value={formData.dob.split('-')[1] ? parseInt(formData.dob.split('-')[1]).toString() : ""}
+                                        onChange={e => {
+                                            const m = e.target.value.padStart(2, '0');
+                                            const parts = formData.dob ? formData.dob.split('-') : ['', '', ''];
+                                            setFormData({ ...formData, dob: `${parts[0] || ''}-${m}-${parts[2] || ''}` });
+                                        }}
+                                        className="w-full h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 pr-8 text-white appearance-none focus:outline-none focus:border-green-500/50 transition-colors"
+                                    >
+                                        <option value="" className="bg-[#0a0a0a]">Month</option>
+                                        {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => (
+                                            <option key={m} value={i + 1} className="bg-[#0a0a0a]">{m}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
+                                </div>
+
+                                {/* Year */}
+                                <div className="relative">
+                                    <select
+                                        value={formData.dob.split('-')[0] || ""}
+                                        onChange={e => {
+                                            const y = e.target.value;
+                                            const parts = formData.dob ? formData.dob.split('-') : ['', '', ''];
+                                            setFormData({ ...formData, dob: `${y}-${parts[1] || ''}-${parts[2] || ''}` });
+                                        }}
+                                        className="w-full h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 pr-8 text-white appearance-none focus:outline-none focus:border-green-500/50 transition-colors"
+                                    >
+                                        <option value="" className="bg-[#0a0a0a]">Year</option>
+                                        {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - 15 - i).map(y => (
+                                            <option key={y} value={y} className="bg-[#0a0a0a]">{y}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
+                                </div>
                             </div>
                         </div>
                         <div className="space-y-2">
