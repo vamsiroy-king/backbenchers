@@ -422,31 +422,55 @@ export const authService = {
             // const uniqueBbId = await generateUniqueBbId();
 
             // Create student record WITHOUT BB-ID (will be generated after profile photo upload)
-            // Use UPSERT to handle re-verification/updates for existing users (fixes stuck loops)
-            const { data: student, error: insertError } = await supabase
+            // Manual Check & Update to avoid "ON CONFLICT" constraint errors
+            const { data: existingStudent } = await supabase
                 .from('students')
-                .upsert({
-                    user_id: user.id,
-                    email: googleEmail.toLowerCase(), // Google account email
-                    college_email: email, // .edu.in email
-                    name: studentData.name,
-                    dob: studentData.dob,
-                    gender: studentData.gender,
-                    phone: studentData.phone, // Mobile number with +91
-                    college: studentData.college,
-                    city: studentData.city,
-                    state: studentData.state,
-                    bb_id: null, // BB-ID will be generated ONLY after profile photo is uploaded
-                    status: 'verified', // Students are verified immediately after OTP
-                    total_savings: 0,
-                    total_redemptions: 0
-                }, { onConflict: 'user_id' })
-                .select()
-                .single();
+                .select('id')
+                .or(`user_id.eq.${user.id},college_email.eq.${email}`)
+                .maybeSingle();
 
-            if (insertError) {
-                return { success: false, error: insertError.message };
+            let student;
+            const studentDataPayload = {
+                user_id: user.id,
+                email: googleEmail.toLowerCase(),
+                college_email: email,
+                name: studentData.name,
+                dob: studentData.dob,
+                gender: studentData.gender,
+                phone: studentData.phone,
+                college: studentData.college,
+                city: studentData.city,
+                state: studentData.state,
+                bb_id: null,
+                status: 'verified',
+                total_savings: 0,
+                total_redemptions: 0
+            };
+
+            if (existingStudent) {
+                // UPDATE existing record
+                const { data: updated, error: updateError } = await supabase
+                    .from('students')
+                    .update(studentDataPayload)
+                    .eq('id', existingStudent.id)
+                    .select()
+                    .single();
+
+                if (updateError) throw updateError;
+                student = updated;
+            } else {
+                // INSERT new record
+                const { data: inserted, error: insertError } = await supabase
+                    .from('students')
+                    .insert(studentDataPayload)
+                    .select()
+                    .single();
+
+                if (insertError) throw insertError;
+                student = inserted;
             }
+
+
 
             return {
                 success: true,
