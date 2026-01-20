@@ -366,7 +366,7 @@ export default function ProfilePage() {
                         Verify your student status to unlock exclusive discounts and access your digital ID card.
                     </p>
 
-                    <Link href="/signup">
+                    <Link href="/verify?edit=true">
                         <Button className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all">
                             <ShieldCheck className="mr-2 h-5 w-5" />
                             Get Verified Now

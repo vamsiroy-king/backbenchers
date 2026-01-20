@@ -422,11 +422,12 @@ export const authService = {
             // const uniqueBbId = await generateUniqueBbId();
 
             // Create student record WITHOUT BB-ID (will be generated after profile photo upload)
+            // Use UPSERT to handle re-verification/updates for existing users (fixes stuck loops)
             const { data: student, error: insertError } = await supabase
                 .from('students')
-                .insert({
+                .upsert({
                     user_id: user.id,
-                    email: googleEmail.toLowerCase(), // Google account email (passed as param, not from session)
+                    email: googleEmail.toLowerCase(), // Google account email
                     college_email: email, // .edu.in email
                     name: studentData.name,
                     dob: studentData.dob,
@@ -436,10 +437,10 @@ export const authService = {
                     city: studentData.city,
                     state: studentData.state,
                     bb_id: null, // BB-ID will be generated ONLY after profile photo is uploaded
-                    status: 'verified', // Students are verified immediately after OTP (no admin approval needed)
+                    status: 'verified', // Students are verified immediately after OTP
                     total_savings: 0,
                     total_redemptions: 0
-                })
+                }, { onConflict: 'user_id' })
                 .select()
                 .single();
 
