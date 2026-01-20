@@ -133,7 +133,26 @@ interface LeafletMapProps {
     selectedCategory?: string;
     fitBounds?: [[number, number], [number, number]] | null;
     shouldFitBounds?: boolean;
+    forceTrigger?: number; // Prop to force re-render/zoom even if params same
     onBoundsApplied?: () => void;
+}
+
+// Component to invalidate map size on container resize (Found to fix white tile issues)
+function MapInvalidator() {
+    const map = useMap();
+    useEffect(() => {
+        const resizeObserver = new ResizeObserver(() => {
+            map.invalidateSize();
+        });
+        const container = map.getContainer();
+        resizeObserver.observe(container);
+
+        // Also force invalidate on mount after small delay
+        setTimeout(() => map.invalidateSize(), 200);
+
+        return () => resizeObserver.disconnect();
+    }, [map]);
+    return null;
 }
 
 // Component to handle initial map centering (only once, not continuous)
@@ -156,23 +175,32 @@ function MapInitializer({ center, zoom }: { center: [number, number]; zoom: numb
 function BoundsUpdater({
     bounds,
     enabled,
+    forceTrigger = 0,
     onBoundsApplied
 }: {
     bounds: [[number, number], [number, number]] | null;
     enabled: boolean;
+    forceTrigger?: number;
     onBoundsApplied?: () => void;
 }) {
     const map = useMap();
     const lastBoundsRef = useRef<string | null>(null);
+    const lastTriggerRef = useRef(0);
 
     useEffect(() => {
         if (!enabled || !bounds) return;
 
         // Create a string key to detect actual changes
         const boundsKey = JSON.stringify(bounds);
-        if (boundsKey === lastBoundsRef.current) return;
 
+        // If trigger incremented, we execute REGARDLESS of boundsKey check
+        const isForced = forceTrigger > lastTriggerRef.current;
+
+        if (!isForced && boundsKey === lastBoundsRef.current) return;
+
+        // Update refs
         lastBoundsRef.current = boundsKey;
+        if (isForced) lastTriggerRef.current = forceTrigger;
 
         // Create Leaflet bounds and fit map to them with smooth animation
         const leafletBounds = L.latLngBounds(
@@ -202,6 +230,7 @@ export default function LeafletMap({
     selectedCategory = "All",
     fitBounds = null,
     shouldFitBounds = false,
+    forceTrigger = 0,
     onBoundsApplied
 }: LeafletMapProps) {
     const mapCenter = userLocation || center;
@@ -228,11 +257,13 @@ export default function LeafletMap({
 
             {/* Map Initializer - centers only once, allows free scrolling after */}
             <MapInitializer center={mapCenter} zoom={zoom} />
+            <MapInvalidator />
 
             {/* Bounds Updater - zooms to fit all stores in category */}
             <BoundsUpdater
                 bounds={fitBounds}
                 enabled={shouldFitBounds}
+                forceTrigger={forceTrigger}
                 onBoundsApplied={onBoundsApplied}
             />
 

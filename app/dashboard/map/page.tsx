@@ -92,6 +92,7 @@ export default function MapPage() {
     // Category zoom feature - bounds to fit all stores in selected category
     const [fitBounds, setFitBounds] = useState<[[number, number], [number, number]] | null>(null);
     const [shouldFitBounds, setShouldFitBounds] = useState(false);
+    const [forceZoomTrigger, setForceZoomTrigger] = useState(0); // Trigger to force re-zoom even if bounds same
 
     // Initial Verification Check
     useEffect(() => {
@@ -399,6 +400,7 @@ export default function MapPage() {
                 selectedCategory={selectedCategory}
                 fitBounds={fitBounds}
                 shouldFitBounds={shouldFitBounds}
+                forceTrigger={forceZoomTrigger}
                 onBoundsApplied={() => setShouldFitBounds(false)}
             />
 

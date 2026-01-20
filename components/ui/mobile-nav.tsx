@@ -24,13 +24,13 @@ export function MobileNav() {
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-50"
+            className="fixed bottom-0 left-0 right-0 z-[5000]"
             style={{ transform: 'translateZ(0)', willChange: 'transform' }}
         >
-            {/* Premium Glass Nav Bar - Theme Aware */}
-            <div className={`backdrop-blur-3xl px-2 pt-2 pb-[max(env(safe-area-inset-bottom),8px)] ${isLight
-                    ? 'bg-white/95 border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]'
-                    : 'bg-black/70 border-t border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.5)]'
+            {/* Premium Glass Nav Bar - Apple Style */}
+            <div className={`backdrop-blur-xl px-2 pt-2 pb-[max(env(safe-area-inset-bottom),8px)] transition-all duration-300 ${isLight
+                ? 'bg-white/80 border-t border-gray-200'
+                : 'bg-black/60 border-t border-white/10'
                 }`}>
                 <div className="flex items-center justify-around max-w-md mx-auto">
                     {TABS.map((tab) => {
@@ -50,16 +50,16 @@ export function MobileNav() {
                                 >
                                     <div
                                         className={`p-2 rounded-xl transition-all duration-150 ${isActive
-                                                ? 'bg-green-500 shadow-lg shadow-green-500/25'
-                                                : 'bg-transparent'
+                                            ? 'bg-green-500 shadow-lg shadow-green-500/25'
+                                            : 'bg-transparent'
                                             }`}
                                     >
                                         <Icon
                                             className={`h-5 w-5 transition-colors duration-150 ${isActive
-                                                    ? 'text-white'
-                                                    : isLight
-                                                        ? 'text-gray-400'
-                                                        : 'text-white/40'
+                                                ? 'text-white'
+                                                : isLight
+                                                    ? 'text-gray-400'
+                                                    : 'text-white/40'
                                                 }`}
                                             strokeWidth={isActive ? 2.5 : 1.8}
                                         />
@@ -67,10 +67,10 @@ export function MobileNav() {
 
                                     <span
                                         className={`text-[10px] mt-0.5 font-medium transition-colors duration-150 ${isActive
-                                                ? 'text-green-500'
-                                                : isLight
-                                                    ? 'text-gray-400'
-                                                    : 'text-white/40'
+                                            ? 'text-green-500'
+                                            : isLight
+                                                ? 'text-gray-400'
+                                                : 'text-white/40'
                                             }`}
                                     >
                                         {tab.name}
