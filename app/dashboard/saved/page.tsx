@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, Store, ArrowLeft, Tag, Loader2, Bookmark } from "lucide-react";
+import { Heart, Store, ArrowLeft, Tag, Loader2, Bookmark, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -11,10 +11,25 @@ import { OfferCard } from "@/components/OfferCard";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 
+interface OnlineBrandFavorite {
+    id: string;
+    studentId: string;
+    onlineBrandId: string;
+    createdAt: string;
+    brand?: {
+        id: string;
+        name: string;
+        logo: string;
+        category: string;
+        description: string;
+    };
+}
+
 export default function SavedPage() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<'merchants' | 'offers'>('merchants');
+    const [activeTab, setActiveTab] = useState<'offline' | 'online' | 'offers'>('offline');
     const [savedMerchants, setSavedMerchants] = useState<Favorite[]>([]);
+    const [savedOnlineBrands, setSavedOnlineBrands] = useState<OnlineBrandFavorite[]>([]);
     const [savedOffers, setSavedOffers] = useState<Favorite[]>([]);
     const [loading, setLoading] = useState(true);
     const [removingId, setRemovingId] = useState<string | null>(null);
@@ -23,13 +38,17 @@ export default function SavedPage() {
         async function fetchSaved() {
             setLoading(true);
             try {
-                const [merchantsResult, offersResult] = await Promise.all([
+                const [merchantsResult, onlineBrandsResult, offersResult] = await Promise.all([
                     favoritesService.getSavedMerchants(),
+                    favoritesService.getSavedOnlineBrands(),
                     favoritesService.getSavedOffers()
                 ]);
 
                 if (merchantsResult.success && merchantsResult.data) {
                     setSavedMerchants(merchantsResult.data);
+                }
+                if (onlineBrandsResult.success && onlineBrandsResult.data) {
+                    setSavedOnlineBrands(onlineBrandsResult.data);
                 }
                 if (offersResult.success && offersResult.data) {
                     setSavedOffers(offersResult.data);
@@ -43,18 +62,24 @@ export default function SavedPage() {
         fetchSaved();
     }, []);
 
-    const handleRemove = async (favoriteId: string, type: 'merchant' | 'offer') => {
+    const handleRemove = async (favoriteId: string, type: 'merchant' | 'online' | 'offer') => {
         setRemovingId(favoriteId);
         const result = await favoritesService.remove(favoriteId);
         if (result.success) {
             if (type === 'merchant') {
                 setSavedMerchants(prev => prev.filter(f => f.id !== favoriteId));
+            } else if (type === 'online') {
+                setSavedOnlineBrands(prev => prev.filter(f => f.id !== favoriteId));
             } else {
                 setSavedOffers(prev => prev.filter(f => f.id !== favoriteId));
             }
         }
         setRemovingId(null);
     };
+
+    const totalOffline = savedMerchants.length;
+    const totalOnline = savedOnlineBrands.length;
+    const totalOffers = savedOffers.length;
 
     return (
         <div className="min-h-screen bg-[#0a0a0b] pb-24">
@@ -73,26 +98,38 @@ export default function SavedPage() {
                     </div>
                 </div>
 
-                {/* Tabs */}
+                {/* Tabs - 3 tabs now */}
                 <div className="px-5 pb-4">
                     <div className="flex bg-white/[0.04] rounded-xl p-1 border border-white/[0.06]">
                         <button
-                            onClick={() => { setActiveTab('merchants'); vibrate('light'); }}
+                            onClick={() => { setActiveTab('offline'); vibrate('light'); }}
                             className={cn(
-                                "flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all",
-                                activeTab === 'merchants' ? 'bg-white text-black shadow-lg' : 'text-white/50 hover:text-white/70'
+                                "flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5",
+                                activeTab === 'offline' ? 'bg-white text-black shadow-lg' : 'text-white/50 hover:text-white/70'
                             )}
                         >
-                            Stores ({savedMerchants.length})
+                            <Store className="h-3.5 w-3.5" />
+                            Offline ({totalOffline})
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab('online'); vibrate('light'); }}
+                            className={cn(
+                                "flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5",
+                                activeTab === 'online' ? 'bg-white text-black shadow-lg' : 'text-white/50 hover:text-white/70'
+                            )}
+                        >
+                            <Globe className="h-3.5 w-3.5" />
+                            Online ({totalOnline})
                         </button>
                         <button
                             onClick={() => { setActiveTab('offers'); vibrate('light'); }}
                             className={cn(
-                                "flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all",
+                                "flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5",
                                 activeTab === 'offers' ? 'bg-white text-black shadow-lg' : 'text-white/50 hover:text-white/70'
                             )}
                         >
-                            Offers ({savedOffers.length})
+                            <Tag className="h-3.5 w-3.5" />
+                            Offers ({totalOffers})
                         </button>
                     </div>
                 </div>
@@ -105,9 +142,10 @@ export default function SavedPage() {
                     </div>
                 ) : (
                     <AnimatePresence mode="wait">
-                        {activeTab === 'merchants' ? (
+                        {/* Offline Stores Tab */}
+                        {activeTab === 'offline' && (
                             <motion.div
-                                key="merchants"
+                                key="offline"
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: 10 }}
@@ -118,7 +156,7 @@ export default function SavedPage() {
                                         <div className="w-16 h-16 bg-white/[0.05] rounded-2xl flex items-center justify-center mx-auto mb-4">
                                             <Store className="w-7 h-7 text-white/40" />
                                         </div>
-                                        <h3 className="font-bold text-white mb-1">No saved stores</h3>
+                                        <h3 className="font-bold text-white mb-1">No saved offline stores</h3>
                                         <p className="text-sm text-white/50">
                                             Tap the heart on any store to save it here
                                         </p>
@@ -139,11 +177,11 @@ export default function SavedPage() {
                                             className="bg-white/[0.04] rounded-2xl border border-white/[0.06] p-4 flex items-center gap-4 hover:bg-white/[0.06] transition-colors"
                                         >
                                             <Link href={`/store/${fav.merchantId}`} className="flex-1 flex items-center gap-4">
-                                                <div className="w-14 h-14 rounded-xl bg-green-500/15 flex items-center justify-center overflow-hidden">
+                                                <div className="w-14 h-14 rounded-xl bg-orange-500/15 flex items-center justify-center overflow-hidden">
                                                     {fav.merchant?.logo ? (
                                                         <img src={fav.merchant.logo} alt="" className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <Store className="w-6 h-6 text-green-400" />
+                                                        <Store className="w-6 h-6 text-orange-400" />
                                                     )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
@@ -170,7 +208,79 @@ export default function SavedPage() {
                                     ))
                                 )}
                             </motion.div>
-                        ) : (
+                        )}
+
+                        {/* Online Brands Tab */}
+                        {activeTab === 'online' && (
+                            <motion.div
+                                key="online"
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                className="space-y-3"
+                            >
+                                {savedOnlineBrands.length === 0 ? (
+                                    <div className="text-center py-16">
+                                        <div className="w-16 h-16 bg-white/[0.05] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                            <Globe className="w-7 h-7 text-white/40" />
+                                        </div>
+                                        <h3 className="font-bold text-white mb-1">No saved online brands</h3>
+                                        <p className="text-sm text-white/50">
+                                            Tap the heart on any online brand to save it here
+                                        </p>
+                                        <Link href="/dashboard" className="inline-block mt-4">
+                                            <button className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/25">
+                                                Explore Online Brands
+                                            </button>
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    savedOnlineBrands.map((fav) => (
+                                        <motion.div
+                                            key={fav.id}
+                                            layout
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9 }}
+                                            className="bg-white/[0.04] rounded-2xl border border-white/[0.06] p-4 flex items-center gap-4 hover:bg-white/[0.06] transition-colors"
+                                        >
+                                            <Link href={`/dashboard/online-brand/${fav.onlineBrandId}`} className="flex-1 flex items-center gap-4">
+                                                <div className="w-14 h-14 rounded-xl bg-blue-500/15 flex items-center justify-center overflow-hidden">
+                                                    {fav.brand?.logo ? (
+                                                        <img src={fav.brand.logo} alt="" className="w-full h-full object-contain p-1" />
+                                                    ) : (
+                                                        <Globe className="w-6 h-6 text-blue-400" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-bold text-white truncate">
+                                                        {fav.brand?.name || 'Online Brand'}
+                                                    </h4>
+                                                    <p className="text-xs text-white/50 flex items-center gap-1">
+                                                        <Globe className="h-3 w-3" />
+                                                        {fav.brand?.category || 'Online'}
+                                                    </p>
+                                                </div>
+                                            </Link>
+                                            <button
+                                                onClick={() => handleRemove(fav.id, 'online')}
+                                                disabled={removingId === fav.id}
+                                                className="h-10 w-10 rounded-full bg-red-500/10 flex items-center justify-center hover:bg-red-500/20 transition-colors"
+                                            >
+                                                {removingId === fav.id ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin text-red-400" />
+                                                ) : (
+                                                    <Heart className="h-5 w-5 fill-red-500 text-red-500" />
+                                                )}
+                                            </button>
+                                        </motion.div>
+                                    ))
+                                )}
+                            </motion.div>
+                        )}
+
+                        {/* Offers Tab */}
+                        {activeTab === 'offers' && (
                             <motion.div
                                 key="offers"
                                 initial={{ opacity: 0, x: 10 }}
@@ -221,3 +331,4 @@ export default function SavedPage() {
         </div>
     );
 }
+

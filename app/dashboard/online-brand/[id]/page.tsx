@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { onlineBrandService } from "@/lib/services/online-brand.service";
+import { favoritesService } from "@/lib/services/favorites.service";
 import { OnlineBrand, OnlineOffer } from "@/lib/types";
 import { vibrate } from "@/lib/haptics";
 import { toast } from "sonner";
@@ -46,7 +47,6 @@ export default function OnlineBrandPage() {
 
     useEffect(() => {
         loadData();
-        checkAuth();
     }, [brandId]);
 
     const checkAuth = async () => {
@@ -59,24 +59,40 @@ export default function OnlineBrandPage() {
                 setStudentId(user.id);
                 // Load user-specific revealed offers from database
                 const myReveals = await onlineBrandService.getMyRevealedOffers();
+                console.log('[CouponReveal] Loaded reveals from DB:', myReveals);
                 setRevealedOffers(myReveals);
+                return myReveals;
             } else {
                 // Not logged in or not verified - no reveals to show
                 setRevealedOffers([]);
+                return [];
             }
-        } catch {
+        } catch (e) {
+            console.error('[CouponReveal] checkAuth error:', e);
             setIsVerified(false);
             setRevealedOffers([]);
+            return [];
         }
     };
 
     const loadData = async () => {
         try {
             setLoading(true);
+
+            // Load brand and offers data
             const brandData = await onlineBrandService.getBrandById(brandId);
             setBrand(brandData);
             const offersData = await onlineBrandService.getOffersByBrandId(brandId);
             setOffers(offersData);
+
+            // Check if brand is saved
+            const isSaved = await favoritesService.isOnlineBrandSaved(brandId);
+            setIsFavorite(isSaved);
+
+            // CRITICAL: Load revealed offers BEFORE setting loading to false
+            // This fixes the race condition where page renders before reveals are loaded
+            await checkAuth();
+
         } catch (error) {
             console.error("Failed to load brand data:", error);
             toast.error("Failed to load brand details");
@@ -99,10 +115,23 @@ export default function OnlineBrandPage() {
         }
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         vibrate(isFavorite ? 'light' : 'success');
-        setIsFavorite(!isFavorite);
-        toast.success(isFavorite ? "Removed from favorites" : "Added to favorites!");
+
+        // Optimistic update
+        const newState = !isFavorite;
+        setIsFavorite(newState);
+
+        // Persist to database
+        const result = await favoritesService.toggleOnlineBrand(brandId);
+        if (!result.success) {
+            // Revert on error
+            setIsFavorite(!newState);
+            toast.error(result.error || "Failed to save");
+            return;
+        }
+
+        toast.success(newState ? "Saved to favorites!" : "Removed from favorites");
     };
 
     // Smart redirect: Try app first if preferApp is true
@@ -228,12 +257,12 @@ export default function OnlineBrandPage() {
                 <div className="w-full max-w-[430px] min-h-screen bg-black">
 
                     {/* Large Hero Image - 320px like Offline Store */}
-                    <div className="relative h-[320px]">
+                    <div className="relative h-[320px] bg-[#0a0a0a]">
                         {heroImage ? (
                             <img
                                 src={heroImage}
                                 alt={brand.name}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain"
                             />
                         ) : (
                             <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] to-black flex items-center justify-center">
@@ -249,7 +278,7 @@ export default function OnlineBrandPage() {
                         {/* Gradient Overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
 
-                        {/* Top Buttons - Same as Offline */}
+                        {/* Top Buttons - Back + Share only (Save moved to action buttons) */}
                         <div className="absolute top-4 left-4 right-4 flex justify-between z-20">
                             <motion.button
                                 whileTap={{ scale: 0.9 }}
@@ -258,14 +287,9 @@ export default function OnlineBrandPage() {
                             >
                                 <ArrowLeft className="h-5 w-5 text-white" />
                             </motion.button>
-                            <div className="flex gap-2">
-                                <motion.button whileTap={{ scale: 0.9 }} onClick={handleSave} className="h-10 w-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
-                                    <Heart className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-white'}`} />
-                                </motion.button>
-                                <motion.button whileTap={{ scale: 0.9 }} onClick={handleShare} className="h-10 w-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
-                                    <Share2 className="h-5 w-5 text-white" />
-                                </motion.button>
-                            </div>
+                            <motion.button whileTap={{ scale: 0.9 }} onClick={handleShare} className="h-10 w-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                <Share2 className="h-5 w-5 text-white" />
+                            </motion.button>
                         </div>
                     </div>
 

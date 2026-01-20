@@ -369,4 +369,105 @@ export const favoritesService = {
             return { success: false, data: null, error: error.message };
         }
     },
+
+    // ==================== ONLINE BRANDS ====================
+
+    // Check if online brand is saved
+    async isOnlineBrandSaved(brandId: string): Promise<boolean> {
+        try {
+            const studentId = await getStudentId();
+            if (!studentId) return false;
+
+            const { data } = await supabase
+                .from('favorites')
+                .select('id')
+                .eq('student_id', studentId)
+                .eq('online_brand_id', brandId)
+                .maybeSingle();
+
+            return !!data;
+        } catch {
+            return false;
+        }
+    },
+
+    // Toggle save online brand
+    async toggleOnlineBrand(brandId: string): Promise<ApiResponse<boolean>> {
+        try {
+            const auth = await getStudentAuth();
+            if (!auth) {
+                return { success: false, data: null, error: 'Not authenticated as student' };
+            }
+
+            // Check if already saved
+            const { data: existing } = await supabase
+                .from('favorites')
+                .select('id')
+                .eq('student_id', auth.studentId)
+                .eq('online_brand_id', brandId)
+                .maybeSingle();
+
+            if (existing) {
+                // Unsave
+                const { error } = await supabase.from('favorites').delete().eq('id', existing.id);
+                if (error) throw error;
+                return { success: true, data: false, error: null }; // false = unsaved
+            } else {
+                // Save - include user_id for NOT NULL constraint
+                const { error } = await supabase.from('favorites').insert({
+                    student_id: auth.studentId,
+                    user_id: auth.userId,
+                    online_brand_id: brandId,
+                });
+                if (error) throw error;
+                return { success: true, data: true, error: null }; // true = saved
+            }
+        } catch (error: any) {
+            console.error('[Favorites] Toggle online brand error:', error);
+            return { success: false, data: null, error: error.message };
+        }
+    },
+
+    // Get saved online brands
+    async getSavedOnlineBrands(): Promise<ApiResponse<any[]>> {
+        try {
+            const studentId = await getStudentId();
+            if (!studentId) {
+                return { success: false, data: null, error: 'Not authenticated' };
+            }
+
+            const { data, error } = await supabase
+                .from('favorites')
+                .select(`
+                    *,
+                    online_brands (id, name, logo_url, category, description)
+                `)
+                .eq('student_id', studentId)
+                .not('online_brand_id', 'is', null)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                return { success: false, data: null, error: error.message };
+            }
+
+            // Transform to clean format
+            const transformed = (data || []).map(row => ({
+                id: row.id,
+                studentId: row.student_id,
+                onlineBrandId: row.online_brand_id,
+                createdAt: row.created_at,
+                brand: row.online_brands ? {
+                    id: row.online_brands.id,
+                    name: row.online_brands.name,
+                    logo: row.online_brands.logo_url,
+                    category: row.online_brands.category,
+                    description: row.online_brands.description,
+                } : undefined,
+            }));
+
+            return { success: true, data: transformed, error: null };
+        } catch (error: any) {
+            return { success: false, data: null, error: error.message };
+        }
+    },
 };

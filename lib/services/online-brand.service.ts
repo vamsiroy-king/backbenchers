@@ -319,12 +319,12 @@ export const onlineBrandService = {
 
             if (!student?.id) return [];
 
-            // Get all reveals for this student
+            // Get all reveals for this student from coupon_redemptions table
+            // FIXED: Was querying 'coupon_tracking' which doesn't exist - data is in 'coupon_redemptions'
             const { data: reveals, error } = await supabase
-                .from('coupon_tracking')
+                .from('coupon_redemptions')
                 .select('offer_id')
-                .eq('student_id', student.id)
-                .eq('action', 'reveal');
+                .eq('student_id', student.id);
 
             if (error) {
                 console.error('Error fetching reveals:', error);

@@ -27,6 +27,7 @@ import { OfferCard } from "@/components/OfferCard";
 import { DistrictOfferCard } from "@/components/DistrictOfferCard";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/ThemeProvider";
 
 // Hero Banner - Premium #India's 1st
 const HERO_CONTENT = {
@@ -88,8 +89,17 @@ const SEARCH_PLACEHOLDERS = [
 
 export default function DashboardPage() {
     const router = useRouter();
+    const { theme } = useTheme();
+    const isLightTheme = theme === 'light';
+
     const [heroIndex, setHeroIndex] = useState(0);
-    const [trendingTab, setTrendingTab] = useState<'online' | 'offline'>('offline');
+    // Remember trending tab selection via localStorage
+    const [trendingTab, setTrendingTab] = useState<'online' | 'offline'>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('trendingTab') as 'online' | 'offline') || 'offline';
+        }
+        return 'offline';
+    });
     const [showVerifyModal, setShowVerifyModal] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
@@ -484,7 +494,7 @@ export default function DashboardPage() {
         : [];
 
     return (
-        <div className="min-h-screen bg-black pb-32">
+        <div className={`min-h-screen pb-32 ${isLightTheme ? 'bg-gray-50' : 'bg-black'}`}>
             {/* Get Verified Modal */}
             <AnimatePresence>
                 {showVerifyModal && (
@@ -641,27 +651,27 @@ export default function DashboardPage() {
             />
 
             {/* Header - Minimal Premium */}
-            <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-xl">
+            <header className={`sticky top-0 z-40 backdrop-blur-xl ${isLightTheme ? 'bg-white/90' : 'bg-black/90'}`}>
                 <div className="px-5 h-14 flex items-center justify-between">
                     <div className="flex flex-col">
-                        <span className="font-bold text-lg text-white italic tracking-tight">BACKBENCHERS</span>
-                        <span className="text-[10px] font-semibold text-green-400 tracking-wide">BORN TO SAVE</span>
+                        <span className={`font-bold text-lg italic tracking-tight ${isLightTheme ? 'text-gray-900' : 'text-white'}`}>BACKBENCHERS</span>
+                        <span className="text-[10px] font-semibold text-green-500 tracking-wide">BORN TO SAVE</span>
                     </div>
                     <div className="flex items-center gap-2">
                         {/* City Selector */}
                         <button
                             onClick={() => setShowCitySelector(true)}
-                            className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-white/[0.04] text-xs font-medium text-white/70 transition-all border border-white/[0.06] hover:bg-white/[0.06]"
+                            className={`flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-medium transition-all border ${isLightTheme ? 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200' : 'bg-white/[0.04] text-white/70 border-white/[0.06] hover:bg-white/[0.06]'}`}
                         >
-                            <MapPin className="h-3.5 w-3.5 text-white/50" />
+                            <MapPin className={`h-3.5 w-3.5 ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`} />
                             <span className="max-w-20 truncate">{selectedCity || 'City'}</span>
                         </button>
                         {/* Notifications */}
                         <button
                             onClick={() => router.push('/dashboard/notifications')}
-                            className="h-8 w-8 rounded-full bg-white/[0.04] flex items-center justify-center relative transition-all border border-white/[0.06] hover:bg-white/[0.06]"
+                            className={`h-8 w-8 rounded-full flex items-center justify-center relative transition-all border ${isLightTheme ? 'bg-gray-100 border-gray-200 hover:bg-gray-200' : 'bg-white/[0.04] border-white/[0.06] hover:bg-white/[0.06]'}`}
                         >
-                            <Bell className="h-4 w-4 text-white/50" />
+                            <Bell className={`h-4 w-4 ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`} />
                             {unreadCount > 0 && (
                                 <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-green-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center">
                                     {unreadCount}
@@ -677,11 +687,11 @@ export default function DashboardPage() {
                 <motion.button
                     onClick={() => setShowSearch(true)}
                     whileTap={{ scale: 0.99 }}
-                    className="w-full h-12 bg-white/[0.03] rounded-xl flex items-center gap-3 px-4 hover:bg-white/[0.05] transition-colors border border-white/[0.04]"
+                    className={`w-full h-12 rounded-xl flex items-center gap-3 px-4 transition-colors border ${isLightTheme ? 'bg-white border-gray-200 hover:bg-gray-50' : 'bg-white/[0.03] border-white/[0.04] hover:bg-white/[0.05]'}`}
                 >
-                    <Search className="h-4 w-4 text-white/30 flex-shrink-0" />
+                    <Search className={`h-4 w-4 flex-shrink-0 ${isLightTheme ? 'text-gray-400' : 'text-white/30'}`} />
                     <div className="flex-1 text-left flex items-center gap-1.5 overflow-hidden">
-                        <span className="text-sm text-white/30">Search</span>
+                        <span className={`text-sm ${isLightTheme ? 'text-gray-500' : 'text-white/30'}`}>Search</span>
                         <AnimatePresence mode="wait">
                             <motion.span
                                 key={searchPlaceholderIndex}
@@ -689,7 +699,7 @@ export default function DashboardPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -6 }}
                                 transition={{ duration: 0.2 }}
-                                className="text-sm text-white/20"
+                                className={`text-sm ${isLightTheme ? 'text-gray-400' : 'text-white/20'}`}
                             >
                                 {SEARCH_PLACEHOLDERS[searchPlaceholderIndex].replace('Search ', '')}
                             </motion.span>
@@ -770,16 +780,16 @@ export default function DashboardPage() {
                 {/* Categories - Connected to Hero Fade */}
                 <section className="pb-4 -mt-4 relative z-10">
                     <div className="flex items-center justify-center mb-5">
-                        <div className="flex-1 h-px bg-white/[0.08]" />
-                        <span className="px-4 text-[10px] text-white/40 tracking-[0.2em] font-medium">SHOP BY CATEGORY</span>
-                        <div className="flex-1 h-px bg-white/[0.08]" />
+                        <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                        <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>SHOP BY CATEGORY</span>
+                        <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                     </div>
                     <div className="grid grid-cols-4 gap-2">
                         {[
-                            { name: "Food", image: "🍕", color: "from-orange-900/50 to-orange-950/80", category: "Food" },
-                            { name: "Fashion", image: "👗", color: "from-pink-900/50 to-pink-950/80", category: "Fashion" },
-                            { name: "Fitness", image: "💪", color: "from-blue-900/50 to-blue-950/80", category: "Fitness" },
-                            { name: "Beauty", image: "💄", color: "from-purple-900/50 to-purple-950/80", category: "Beauty" },
+                            { name: "Food", image: "🍕", color: isLightTheme ? "from-orange-100 to-orange-200" : "from-orange-900/50 to-orange-950/80", category: "Food" },
+                            { name: "Fashion", image: "👗", color: isLightTheme ? "from-pink-100 to-pink-200" : "from-pink-900/50 to-pink-950/80", category: "Fashion" },
+                            { name: "Fitness", image: "💪", color: isLightTheme ? "from-blue-100 to-blue-200" : "from-blue-900/50 to-blue-950/80", category: "Fitness" },
+                            { name: "Beauty", image: "💄", color: isLightTheme ? "from-purple-100 to-purple-200" : "from-purple-900/50 to-purple-950/80", category: "Beauty" },
                         ].map((cat) => (
                             <motion.div
                                 key={cat.name}
@@ -788,10 +798,10 @@ export default function DashboardPage() {
                                     vibrate('light');
                                     router.push(`/dashboard/explore?category=${cat.category}`);
                                 }}
-                                className={`aspect-square rounded-xl bg-gradient-to-br ${cat.color} border border-white/[0.06] flex flex-col items-center justify-center gap-1 hover:border-white/[0.12] transition-all cursor-pointer`}
+                                className={`aspect-square rounded-xl bg-gradient-to-br ${cat.color} border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${isLightTheme ? 'border-gray-200 hover:border-gray-300' : 'border-white/[0.06] hover:border-white/[0.12]'}`}
                             >
                                 <span className="text-2xl">{cat.image}</span>
-                                <span className="text-[10px] font-medium text-white/80">{cat.name}</span>
+                                <span className={`text-[10px] font-medium ${isLightTheme ? 'text-gray-700' : 'text-white/80'}`}>{cat.name}</span>
                             </motion.div>
                         ))}
                     </div>
@@ -848,11 +858,11 @@ export default function DashboardPage() {
                 {
                     contentSettings.showTopBrands && (
                         <section className="py-6">
-                            <div className="flex items-center gap-3 mb-5">
-                                <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                                    <Sparkles className="h-4 w-4 text-amber-400" />
-                                </div>
-                                <h2 className="text-lg font-semibold text-white tracking-tight">Top Brands</h2>
+                            {/* Section Header - Shop by Category Style */}
+                            <div className="flex items-center justify-center mb-5">
+                                <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                                <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TOP BRANDS</span>
+                                <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                             </div>
 
                             <div className="grid grid-cols-3 gap-2">
@@ -868,17 +878,17 @@ export default function DashboardPage() {
                                                 router.push(`/store/${brand.id}`);
                                             }
                                         }}
-                                        className="bg-white/[0.02] rounded-xl p-3 flex flex-col items-center gap-2 border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all"
+                                        className={`rounded-xl p-3 flex flex-col items-center gap-2 border transition-all ${isLightTheme ? 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300' : 'bg-white/[0.02] border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08]'}`}
                                     >
-                                        <div className="h-10 w-10 rounded-lg bg-white/[0.04] flex items-center justify-center overflow-hidden">
+                                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center overflow-hidden ${isLightTheme ? 'bg-gray-100' : 'bg-white/[0.04]'}`}>
                                             {brand.logo ? (
                                                 <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <Store className="h-4 w-4 text-white/30" />
+                                                <Store className={`h-4 w-4 ${isLightTheme ? 'text-gray-400' : 'text-white/30'}`} />
                                             )}
                                         </div>
-                                        <span className="text-xs font-medium text-white/80 text-center line-clamp-1">{brand.name}</span>
-                                        <span className="text-[10px] text-green-400/80">{brand.discount || brand.category}</span>
+                                        <span className={`text-xs font-medium text-center line-clamp-1 ${isLightTheme ? 'text-gray-700' : 'text-white/80'}`}>{brand.name}</span>
+                                        <span className="text-[10px] text-green-500">{brand.discount || brand.category}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -890,35 +900,38 @@ export default function DashboardPage() {
                 {
                     contentSettings.showTrending && (
                         <section id="trending-section" className="py-6">
-                            {/* Section Header - Like Real App */}
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="h-7 w-7 rounded-lg bg-green-500/10 flex items-center justify-center">
-                                        <TrendingUp className="h-3.5 w-3.5 text-green-400" />
+                            {/* Section Header - Shop by Category Style with Tabs */}
+                            <div className="flex items-center justify-center mb-4">
+                                <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                                <div className="px-4 flex items-center gap-3">
+                                    <span className={`text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TRENDING</span>
+                                    {/* Tab Switcher */}
+                                    <div className={`flex gap-1 p-0.5 rounded-full ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`}>
+                                        <button
+                                            onClick={() => { setTrendingTab('offline'); localStorage.setItem('trendingTab', 'offline'); vibrate('light'); }}
+                                            className={cn(
+                                                "px-2.5 py-1 rounded-full text-[9px] font-semibold transition-all duration-200",
+                                                trendingTab === 'offline'
+                                                    ? (isLightTheme ? 'bg-white text-gray-900 shadow-sm' : 'bg-white text-black')
+                                                    : (isLightTheme ? 'text-gray-500 hover:text-gray-700' : 'text-white/40 hover:text-white/60')
+                                            )}
+                                        >
+                                            OFFLINE
+                                        </button>
+                                        <button
+                                            onClick={() => { setTrendingTab('online'); localStorage.setItem('trendingTab', 'online'); vibrate('light'); }}
+                                            className={cn(
+                                                "px-2.5 py-1 rounded-full text-[9px] font-semibold transition-all duration-200",
+                                                trendingTab === 'online'
+                                                    ? (isLightTheme ? 'bg-white text-gray-900 shadow-sm' : 'bg-white text-black')
+                                                    : (isLightTheme ? 'text-gray-500 hover:text-gray-700' : 'text-white/40 hover:text-white/60')
+                                            )}
+                                        >
+                                            ONLINE
+                                        </button>
                                     </div>
-                                    <h2 className="text-base font-semibold text-white">Trending</h2>
                                 </div>
-                                {/* Tab Switcher - Right aligned like real app */}
-                                <div className="flex gap-1 p-1 bg-white/[0.03] rounded-full border border-white/[0.04]">
-                                    <button
-                                        onClick={() => { setTrendingTab('offline'); vibrate('light'); }}
-                                        className={cn(
-                                            "px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-200",
-                                            trendingTab === 'offline' ? 'bg-white text-black' : 'text-white/40 hover:text-white/60'
-                                        )}
-                                    >
-                                        In-Store
-                                    </button>
-                                    <button
-                                        onClick={() => { setTrendingTab('online'); vibrate('light'); }}
-                                        className={cn(
-                                            "px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-200",
-                                            trendingTab === 'online' ? 'bg-white text-black' : 'text-white/40 hover:text-white/60'
-                                        )}
-                                    >
-                                        Online
-                                    </button>
-                                </div>
+                                <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                             </div>
 
                             {/* Offers Grid - District-Quality Masonry Layout */}

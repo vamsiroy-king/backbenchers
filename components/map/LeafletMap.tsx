@@ -131,6 +131,9 @@ interface LeafletMapProps {
     center?: [number, number];
     zoom?: number;
     selectedCategory?: string;
+    fitBounds?: [[number, number], [number, number]] | null;
+    shouldFitBounds?: boolean;
+    onBoundsApplied?: () => void;
 }
 
 // Component to handle initial map centering (only once, not continuous)
@@ -149,13 +152,57 @@ function MapInitializer({ center, zoom }: { center: [number, number]; zoom: numb
     return null;
 }
 
+// Component to zoom map to fit all merchants in a category
+function BoundsUpdater({
+    bounds,
+    enabled,
+    onBoundsApplied
+}: {
+    bounds: [[number, number], [number, number]] | null;
+    enabled: boolean;
+    onBoundsApplied?: () => void;
+}) {
+    const map = useMap();
+    const lastBoundsRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (!enabled || !bounds) return;
+
+        // Create a string key to detect actual changes
+        const boundsKey = JSON.stringify(bounds);
+        if (boundsKey === lastBoundsRef.current) return;
+
+        lastBoundsRef.current = boundsKey;
+
+        // Create Leaflet bounds and fit map to them with smooth animation
+        const leafletBounds = L.latLngBounds(
+            L.latLng(bounds[0][0], bounds[0][1]),
+            L.latLng(bounds[1][0], bounds[1][1])
+        );
+
+        // Zoom with padding for better visual
+        map.flyToBounds(leafletBounds, {
+            padding: [50, 50],
+            maxZoom: 15,
+            duration: 0.8
+        });
+
+        onBoundsApplied?.();
+    }, [bounds, enabled, map, onBoundsApplied]);
+
+    return null;
+}
+
 export default function LeafletMap({
     userLocation,
     merchants,
     onMerchantClick,
     center = [12.9716, 77.5946], // Default: Bengaluru
     zoom = 14,
-    selectedCategory = "All"
+    selectedCategory = "All",
+    fitBounds = null,
+    shouldFitBounds = false,
+    onBoundsApplied
 }: LeafletMapProps) {
     const mapCenter = userLocation || center;
 
@@ -181,6 +228,13 @@ export default function LeafletMap({
 
             {/* Map Initializer - centers only once, allows free scrolling after */}
             <MapInitializer center={mapCenter} zoom={zoom} />
+
+            {/* Bounds Updater - zooms to fit all stores in category */}
+            <BoundsUpdater
+                bounds={fitBounds}
+                enabled={shouldFitBounds}
+                onBoundsApplied={onBoundsApplied}
+            />
 
             {/* User Location Marker */}
             {userLocation && (

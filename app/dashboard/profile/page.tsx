@@ -615,9 +615,9 @@ export default function ProfilePage() {
                                 </motion.div>
 
                                 {/* Name & College + Verified Badge */}
-                                <div className="flex-1 min-w-0 pt-1">
+                                <div className="flex-1 min-w-0 pt-0.5">
                                     <div className="flex items-center gap-1.5">
-                                        <h2 className={`text-base font-semibold truncate leading-tight ${isLightTheme ? 'text-gray-900' : 'text-white'}`}>
+                                        <h2 className={`text-[15px] font-bold truncate leading-tight ${isLightTheme ? 'text-gray-900' : 'text-white'}`}>
                                             {student?.name || 'Loading...'}
                                         </h2>
                                         {/* Verified checkmark beside name */}
@@ -627,10 +627,10 @@ export default function ProfilePage() {
                                             </div>
                                         )}
                                     </div>
-                                    <p className={`text-[11px] truncate mt-0.5 ${isLightTheme ? 'text-gray-600' : 'text-white/50'}`}>
+                                    <p className={`text-[11px] font-medium truncate mt-1 ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>
                                         {student?.college || 'College'}
                                     </p>
-                                    <p className={`text-[10px] mt-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/30'}`}>
+                                    <p className={`text-[10px] truncate mt-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>
                                         {student?.city || 'City'}
                                     </p>
                                 </div>
@@ -641,24 +641,24 @@ export default function ProfilePage() {
                                 <div className="flex items-end justify-between">
                                     {/* Student ID */}
                                     <div>
-                                        <p className={`text-[8px] uppercase tracking-wider mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/30'}`}>Student ID</p>
-                                        <p className="text-sm font-mono font-semibold text-green-500 tracking-wider">
+                                        <p className={`text-[9px] uppercase tracking-[0.15em] mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>Student ID</p>
+                                        <p className="text-[13px] font-mono font-bold text-green-500 tracking-wider">
                                             {hasProfileImage && student?.bbId ? student.bbId : 'PENDING'}
                                         </p>
                                     </div>
 
                                     {/* DOB */}
                                     <div className="text-center">
-                                        <p className={`text-[8px] uppercase tracking-wider mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/30'}`}>DOB</p>
-                                        <p className={`text-[10px] font-medium ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>
+                                        <p className={`text-[9px] uppercase tracking-[0.15em] mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>DOB</p>
+                                        <p className={`text-[11px] font-medium ${isLightTheme ? 'text-gray-700' : 'text-white/70'}`}>
                                             {student?.dob ? new Date(student.dob).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
                                         </p>
                                     </div>
 
                                     {/* Valid */}
                                     <div className="text-right">
-                                        <p className={`text-[8px] uppercase tracking-wider mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/30'}`}>Valid</p>
-                                        <p className={`text-[10px] font-medium ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>12/25</p>
+                                        <p className={`text-[9px] uppercase tracking-[0.15em] mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>Valid</p>
+                                        <p className={`text-[11px] font-medium ${isLightTheme ? 'text-gray-700' : 'text-white/70'}`}>12/25</p>
                                     </div>
                                 </div>
                             </div>
@@ -704,15 +704,12 @@ export default function ProfilePage() {
                 </motion.div>
             </div>
 
-            {/* Tap Hint */}
-            <motion.p
-                className="text-[11px] text-white/40 text-center mb-6 flex items-center justify-center gap-2"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ repeat: Infinity, duration: 2 }}
-            >
-                <span className="inline-block h-4 w-4 border border-white/20 rounded flex items-center justify-center text-[8px]">↻</span>
-                Tap the card to flip
-            </motion.p>
+            {/* Tap Hint - Clean static text like Shop by Category */}
+            <div className="flex items-center justify-center mb-6">
+                <div className="flex-1 h-px bg-white/[0.08]" />
+                <span className="px-4 text-[10px] text-white/40 tracking-[0.2em] font-medium">TAP TO FLIP</span>
+                <div className="flex-1 h-px bg-white/[0.08]" />
+            </div>
 
 
             {/* Savings Section - District-Quality Bold Stats */}
@@ -730,13 +727,19 @@ export default function ProfilePage() {
                                 setIsRefreshing(true);
                                 try {
                                     const txResult = await transactionService.getStudentTransactions(student.id);
+                                    const pResult = await studentService.getMyProfile();
                                     if (txResult.success && txResult.data) {
                                         setTransactions(txResult.data);
                                     }
-                                    const pResult = await studentService.getMyProfile();
                                     if (pResult.success && pResult.data) {
                                         setStudent(pResult.data);
                                     }
+                                    // Professional feedback message
+                                    const { toast } = await import('sonner');
+                                    toast.success("You're up to date", {
+                                        description: "Savings data refreshed",
+                                        duration: 2000
+                                    });
                                 } finally {
                                     setIsRefreshing(false);
                                 }
@@ -812,24 +815,7 @@ export default function ProfilePage() {
                     </button>
                 </Link>
 
-                {/* Dark Mode Toggle - Synced with theme */}
-                <button
-                    onClick={() => {
-                        const newTheme = theme === 'dark' ? 'light' : 'dark';
-                        document.documentElement.classList.toggle('dark', newTheme === 'dark');
-                        localStorage.setItem('bb-theme', newTheme);
-                        window.location.reload(); // Force refresh to sync theme
-                    }}
-                    className="w-full h-14 flex items-center justify-between px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] font-medium hover:bg-white/[0.08] transition-colors"
-                >
-                    <div className="flex items-center gap-3">
-                        <span className="text-lg">{theme === 'dark' ? '🌙' : '☀️'}</span>
-                        <span className="text-white">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
-                    </div>
-                    <div className={`relative h-6 w-11 rounded-full transition-colors ${theme === 'dark' ? 'bg-green-500' : 'bg-white/20'}`}>
-                        <div className={`absolute h-5 w-5 bg-white rounded-full top-0.5 shadow-sm transition-all ${theme === 'dark' ? 'left-[22px]' : 'left-0.5'}`} />
-                    </div>
-                </button>
+                {/* Dark Mode Toggle REMOVED - Available in Settings page only */}
 
                 <button
                     onClick={handleSignOut}

@@ -66,8 +66,19 @@ interface MerchantWithOffer {
 
 export default function MapPage() {
     const router = useRouter();
-    const [sessionActive, setSessionActive] = useState(false);
-    const [permissionStatus, setPermissionStatus] = useState<'prompt' | 'granted' | 'denied'>('prompt');
+    // Remember if user has granted location before via localStorage
+    const [sessionActive, setSessionActive] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('mapLocationGranted') === 'true';
+        }
+        return false;
+    });
+    const [permissionStatus, setPermissionStatus] = useState<'prompt' | 'granted' | 'denied'>(() => {
+        if (typeof window !== 'undefined' && localStorage.getItem('mapLocationGranted') === 'true') {
+            return 'granted';
+        }
+        return 'prompt';
+    });
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
     const [merchants, setMerchants] = useState<MerchantWithOffer[]>([]);
     const [selectedOffer, setSelectedOffer] = useState<MerchantWithOffer | null>(null);
@@ -78,11 +89,46 @@ export default function MapPage() {
     const [categories, setCategories] = useState<string[]>(["All"]);
     const [isVerified, setIsVerified] = useState(false);
 
+    // Category zoom feature - bounds to fit all stores in selected category
+    const [fitBounds, setFitBounds] = useState<[[number, number], [number, number]] | null>(null);
+    const [shouldFitBounds, setShouldFitBounds] = useState(false);
+
     // Initial Verification Check
     useEffect(() => {
         authService.getCurrentUser().then(user => {
             setIsVerified(!!(user?.role === 'student' && user?.isComplete));
         });
+    }, []);
+
+    // Auto-start location if returning user (previously granted)
+    useEffect(() => {
+        if (sessionActive && permissionStatus === 'granted') {
+            // User has returned, auto-start location tracking
+            if ("geolocation" in navigator) {
+                const geoOptions: PositionOptions = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        setUserLocation([latitude, longitude]);
+                        setViewState({ latitude, longitude, zoom: 15 });
+                    },
+                    () => {
+                        // Fall back to default location
+                        setUserLocation([12.9716, 77.5946]);
+                    },
+                    geoOptions
+                );
+                navigator.geolocation.watchPosition(
+                    (pos) => setUserLocation([pos.coords.latitude, pos.coords.longitude]),
+                    (err) => console.warn(err),
+                    geoOptions
+                );
+            } else {
+                setUserLocation([12.9716, 77.5946]);
+            }
+            // Fetch merchants immediately
+            fetchMerchants();
+        }
     }, []);
 
     // Data Fetching Logic (Unified)
@@ -165,6 +211,9 @@ export default function MapPage() {
     const startTracking = () => {
         vibrate('medium');
         setSessionActive(true);
+        // Remember that location has been granted
+        localStorage.setItem('mapLocationGranted', 'true');
+
         if (!("geolocation" in navigator)) {
             setUserLocation([12.9716, 77.5946]);
             setPermissionStatus('granted');
@@ -212,6 +261,39 @@ export default function MapPage() {
     const filteredMerchants = selectedCategory === "All"
         ? merchants
         : merchants.filter(m => m.category.toLowerCase().includes(selectedCategory.toLowerCase()));
+
+    // Calculate bounds for all merchants in a category - zoom to fit all stores
+    const calculateBoundsForCategory = (category: string) => {
+        const filtered = category === "All"
+            ? merchants
+            : merchants.filter(m => m.category.toLowerCase().includes(category.toLowerCase()));
+
+        if (filtered.length === 0) return null;
+        if (filtered.length === 1) {
+            // Single store - just center on it
+            return null;
+        }
+
+        // Calculate bounding box
+        let minLat = Infinity, maxLat = -Infinity;
+        let minLng = Infinity, maxLng = -Infinity;
+
+        filtered.forEach(m => {
+            minLat = Math.min(minLat, m.lat);
+            maxLat = Math.max(maxLat, m.lat);
+            minLng = Math.min(minLng, m.lng);
+            maxLng = Math.max(maxLng, m.lng);
+        });
+
+        // Add small padding
+        const latPadding = (maxLat - minLat) * 0.1;
+        const lngPadding = (maxLng - minLng) * 0.1;
+
+        return [
+            [minLat - latPadding, minLng - lngPadding],
+            [maxLat + latPadding, maxLng + lngPadding]
+        ] as [[number, number], [number, number]];
+    };
 
     const FILTERS = categories.map(cat => {
         const config = getCategoryConfig(cat);
@@ -290,6 +372,9 @@ export default function MapPage() {
                 center={userLocation || [viewState.latitude, viewState.longitude]}
                 zoom={viewState.zoom}
                 selectedCategory={selectedCategory}
+                fitBounds={fitBounds}
+                shouldFitBounds={shouldFitBounds}
+                onBoundsApplied={() => setShouldFitBounds(false)}
             />
 
             {/* Floating Filter Menu */}
@@ -345,7 +430,16 @@ export default function MapPage() {
                                                 setSelectedCategory(cat.id);
                                                 setSelectedOffer(null);
                                                 setIsFilterMenuOpen(false);
-                                                setViewState(prev => ({ ...prev, zoom: 13 }));
+
+                                                // Calculate bounds for this category and trigger zoom
+                                                const bounds = calculateBoundsForCategory(cat.id);
+                                                if (bounds) {
+                                                    setFitBounds(bounds);
+                                                    setShouldFitBounds(true);
+                                                } else {
+                                                    // Single store or no stores - just zoom out a bit
+                                                    setViewState(prev => ({ ...prev, zoom: 13 }));
+                                                }
                                             }}
                                             className={cn(
                                                 "h-12 w-12 rounded-full flex items-center justify-center shadow-lg transition-all border",
