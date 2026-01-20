@@ -208,6 +208,15 @@ export default function VerifyPage() {
     };
 
     const handleOtpChange = (i: number, val: string) => {
+        // Handle paste/autofill
+        if (val.length === 6) {
+            const chars = val.split("");
+            setOtp(chars);
+            setOtpError("");
+            otpRefs.current[5]?.focus();
+            handleVerifyOTP(val);
+            return;
+        }
         if (val.length > 1) return;
         const newOtp = [...otp]; newOtp[i] = val; setOtp(newOtp); setOtpError("");
         if (val && i < 5) otpRefs.current[i + 1]?.focus();
@@ -238,8 +247,8 @@ export default function VerifyPage() {
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] px-5 pt-12 pb-8">
-            {/* Header - Back button on all steps except success */}
-            {step !== "success" && (
+            {/* Header - Back button on all steps except success and photo (post-verify) */}
+            {step !== "success" && step !== "photo" && (
                 <div className="flex items-center justify-between mb-6">
                     <button onClick={goBack} className="flex items-center gap-2 text-white/50 hover:text-white transition-colors">
                         <ArrowLeft className="h-4 w-4" /><span className="text-sm">Back</span>
@@ -305,7 +314,56 @@ export default function VerifyPage() {
                             <Input label="Last name" placeholder="Doe" value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} required />
                         </div>
                         <Select label="Gender" placeholder="Select" value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })} options={[{ value: "Male", label: "Male" }, { value: "Female", label: "Female" }, { value: "Other", label: "Other" }]} required />
-                        <Input label="Date of birth" type="date" value={formData.dob} onChange={e => setFormData({ ...formData, dob: e.target.value })} required />
+
+                        {/* Custom Numeric DOB Input (DD / MM / YYYY) */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Date of birth</label>
+                            <div className="grid grid-cols-3 gap-3">
+                                <input
+                                    type="tel"
+                                    inputMode="numeric"
+                                    placeholder="DD"
+                                    maxLength={2}
+                                    value={formData.dob.split('-')[2] || ''}
+                                    onChange={e => {
+                                        const d = e.target.value.replace(/\D/g, '');
+                                        if (d.length > 2) return;
+                                        const parts = formData.dob ? formData.dob.split('-') : ['', '', ''];
+                                        // Store as YYYY-MM-DD
+                                        setFormData({ ...formData, dob: `${parts[0] || ''}-${parts[1] || ''}-${d}` });
+                                    }}
+                                    className="h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 text-center text-white placeholder:text-white/20 focus:outline-none focus:border-green-500/50 transition-colors"
+                                />
+                                <input
+                                    type="tel"
+                                    inputMode="numeric"
+                                    placeholder="MM"
+                                    maxLength={2}
+                                    value={formData.dob.split('-')[1] || ''}
+                                    onChange={e => {
+                                        const m = e.target.value.replace(/\D/g, '');
+                                        if (m.length > 2) return;
+                                        const parts = formData.dob ? formData.dob.split('-') : ['', '', ''];
+                                        setFormData({ ...formData, dob: `${parts[0] || ''}-${m}-${parts[2] || ''}` });
+                                    }}
+                                    className="h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 text-center text-white placeholder:text-white/20 focus:outline-none focus:border-green-500/50 transition-colors"
+                                />
+                                <input
+                                    type="tel"
+                                    inputMode="numeric"
+                                    placeholder="YYYY"
+                                    maxLength={4}
+                                    value={formData.dob.split('-')[0] || ''}
+                                    onChange={e => {
+                                        const y = e.target.value.replace(/\D/g, '');
+                                        if (y.length > 4) return;
+                                        const parts = formData.dob ? formData.dob.split('-') : ['', '', ''];
+                                        setFormData({ ...formData, dob: `${y}-${parts[1] || ''}-${parts[2] || ''}` });
+                                    }}
+                                    className="h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 text-center text-white placeholder:text-white/20 focus:outline-none focus:border-green-500/50 transition-colors"
+                                />
+                            </div>
+                        </div>
                         <div className="space-y-2">
                             <label className="text-xs font-medium text-white/40 uppercase tracking-wider">Mobile</label>
                             <div className="flex gap-2">
@@ -333,7 +391,7 @@ export default function VerifyPage() {
 
                 {step === "university" && (
                     <motion.form key="u" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} onSubmit={e => { e.preventDefault(); if (formData.universityId) setStep("email"); else setError("Select university"); }} className="space-y-5">
-                        <div><h1 className="text-xl font-bold text-white mb-1">Your university</h1><p className="text-sm text-white/40">{totalUniversitiesCount} available</p></div>
+                        <div><h1 className="text-xl font-bold text-white mb-1">Your university</h1><p className="text-sm text-white/40">Select your institution</p></div>
                         {error && <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400"><AlertCircle className="h-4 w-4" />{error}</div>}
                         {loadingUniversities ? <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-white/30" /></div> :
                             availableUniversities.length > 0 ? <Select label={`In ${formData.city}`} placeholder="Select" value={formData.universityId} onChange={e => { const u = availableUniversities.find(x => x.id === e.target.value); setFormData({ ...formData, universityId: e.target.value, universityName: u?.name || "" }); }} options={availableUniversities.map(u => ({ value: u.id, label: u.name + (u.shortName ? ` (${u.shortName})` : '') }))} required />

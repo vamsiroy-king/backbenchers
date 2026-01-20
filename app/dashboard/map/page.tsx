@@ -110,7 +110,8 @@ export default function MapPage() {
                     (position) => {
                         const { latitude, longitude } = position.coords;
                         setUserLocation([latitude, longitude]);
-                        setViewState({ latitude, longitude, zoom: 15 });
+                        // Do NOT zoom to user - keep city view
+                        // setViewState({ latitude, longitude, zoom: 15 });
                     },
                     () => {
                         // Fall back to default location
@@ -201,6 +202,31 @@ export default function MapPage() {
 
             setMerchants(Array.from(merchantMap.values()));
             setCategories(Array.from(categorySet));
+
+            // Initial City-Wide View: Zoom to fit ALL merchants
+            const allMerchants = Array.from(merchantMap.values());
+            if (allMerchants.length > 0) {
+                let minLat = Infinity, maxLat = -Infinity;
+                let minLng = Infinity, maxLng = -Infinity;
+
+                allMerchants.forEach(m => {
+                    minLat = Math.min(minLat, m.lat);
+                    maxLat = Math.max(maxLat, m.lat);
+                    minLng = Math.min(minLng, m.lng);
+                    maxLng = Math.max(maxLng, m.lng);
+                });
+
+                // Add padding
+                const latPadding = (maxLat - minLat) * 0.1;
+                const lngPadding = (maxLng - minLng) * 0.1;
+
+                setFitBounds([
+                    [minLat - latPadding, minLng - lngPadding],
+                    [maxLat + latPadding, maxLng + lngPadding]
+                ]);
+                setShouldFitBounds(true);
+            }
+
         } catch (error) {
             console.error('Error loading map data:', error);
         } finally {
@@ -227,7 +253,6 @@ export default function MapPage() {
             (position) => {
                 const { latitude, longitude } = position.coords;
                 setUserLocation([latitude, longitude]);
-                setViewState({ latitude, longitude, zoom: 15 });
                 setPermissionStatus('granted');
             },
             () => {

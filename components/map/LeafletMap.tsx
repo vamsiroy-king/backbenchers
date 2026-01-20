@@ -183,7 +183,7 @@ function BoundsUpdater({
         // Zoom with padding for better visual
         map.flyToBounds(leafletBounds, {
             padding: [50, 50],
-            maxZoom: 15,
+            maxZoom: 13, // Lower max zoom to keep "City View" feel
             duration: 0.8
         });
 

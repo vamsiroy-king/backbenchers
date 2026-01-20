@@ -125,7 +125,7 @@ function SignupContent() {
                         onClick={handleGoogleSignIn}
                         disabled={loading}
                         whileTap={{ scale: 0.98 }}
-                        className="w-full h-12 bg-white hover:bg-white/95 text-black font-medium rounded-xl flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50 text-[14px]"
+                        className="w-full h-12 bg-[#1a1a1a] hover:bg-[#222] text-white font-medium rounded-xl flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50 text-[14px] border border-[#333]"
                     >
                         {loading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />

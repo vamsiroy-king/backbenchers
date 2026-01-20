@@ -116,22 +116,33 @@ export default function OnlineBrandPage() {
     };
 
     const handleSave = async () => {
+        // Prevent multiple clicks
+        if (loading) return;
+
         vibrate(isFavorite ? 'light' : 'success');
 
         // Optimistic update
         const newState = !isFavorite;
         setIsFavorite(newState);
 
-        // Persist to database
-        const result = await favoritesService.toggleOnlineBrand(brandId);
-        if (!result.success) {
-            // Revert on error
-            setIsFavorite(!newState);
-            toast.error(result.error || "Failed to save");
-            return;
-        }
+        try {
+            // Persist to database
+            const result = await favoritesService.toggleOnlineBrand(brandId);
 
-        toast.success(newState ? "Saved to favorites!" : "Removed from favorites");
+            if (!result.success) {
+                console.error("Save failed:", result.error);
+                // Revert on error
+                setIsFavorite(!newState);
+                toast.error("Could not save changes. Please try again.");
+                return;
+            }
+
+            toast.success(newState ? "Saved to favorites!" : "Removed from favorites");
+        } catch (error) {
+            console.error("Save expection:", error);
+            setIsFavorite(!newState);
+            toast.error("An error occurred");
+        }
     };
 
     // Smart redirect: Try app first if preferApp is true
@@ -256,13 +267,13 @@ export default function OnlineBrandPage() {
             <div className="min-h-screen bg-black flex justify-center">
                 <div className="w-full max-w-[430px] min-h-screen bg-black">
 
-                    {/* Large Hero Image - 320px like Offline Store */}
-                    <div className="relative h-[320px] bg-[#0a0a0a]">
+                    {/* Large Hero Image - Auto height to show full image */}
+                    <div className="relative w-full h-auto bg-[#0a0a0a] min-h-[250px]">
                         {heroImage ? (
                             <img
                                 src={heroImage}
                                 alt={brand.name}
-                                className="w-full h-full object-contain"
+                                className="w-full h-auto object-contain"
                             />
                         ) : (
                             <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] to-black flex items-center justify-center">
@@ -628,9 +639,10 @@ export default function OnlineBrandPage() {
                                                     href={brand.websiteUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-green-400 text-xs hover:underline"
+                                                    className="mt-1.5 inline-flex items-center gap-2 px-3 py-1.5 bg-[#222] hover:bg-[#333] text-white rounded-lg text-xs font-medium transition-colors border border-[#333]"
                                                 >
-                                                    {brand.websiteUrl.replace(/^https?:\/\//, '')}
+                                                    Visit Website
+                                                    <ExternalLink className="h-3 w-3 text-[#666]" />
                                                 </a>
                                             </div>
                                         </div>
