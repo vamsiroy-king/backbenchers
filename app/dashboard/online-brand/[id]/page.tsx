@@ -221,12 +221,8 @@ export default function OnlineBrandPage() {
             toast.success("Copied!");
             setTimeout(() => setCopiedCode(null), 2500);
 
-            // Track copy event
-            onlineBrandService.trackAction({
-                offerId,
-                code,
-                action: 'copy'
-            });
+            // Removed trackAction('copy') per user request
+            // "reveal count should only increase when clicked the reveal button"
         }).catch(() => {
             toast.error("Failed to copy");
         });

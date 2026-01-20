@@ -176,11 +176,16 @@ export default function FaceCamera({
                 } else {
                     const face = detections[0].box;
                     const faceArea = (face.width * face.height) / (video.videoWidth * video.videoHeight);
+                    const MIN_FACE_SIZE = 0.15; // Increased to 15% - must be closer
 
                     // Check centering
                     const faceCenterX = (face.x + face.width / 2) / video.videoWidth;
                     const faceCenterY = (face.y + face.height / 2) / video.videoHeight;
-                    const isCentered = faceCenterX > 0.3 && faceCenterX < 0.7 && faceCenterY > 0.25 && faceCenterY < 0.75;
+
+                    // STRICTOR Centering Logic (User requested "hard propery strict")
+                    // Center X: 0.4 - 0.6 (Only middle 20% allowed)
+                    // Center Y: 0.35 - 0.65 (Only middle 30% allowed)
+                    const isCentered = faceCenterX > 0.4 && faceCenterX < 0.6 && faceCenterY > 0.35 && faceCenterY < 0.65;
 
                     if (faceArea < MIN_FACE_SIZE) {
                         updateStatusWithDebounce("too_far");
