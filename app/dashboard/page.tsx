@@ -811,18 +811,20 @@ export default function DashboardPage() {
                 {/* New Stores - Real App Style */}
                 {newMerchants.length > 0 && (
                     <section className="py-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2.5">
-                                <div className="h-7 w-7 rounded-lg bg-green-500/10 flex items-center justify-center">
-                                    <Sparkles className="h-3.5 w-3.5 text-green-400" />
-                                </div>
-                                <h2 className="text-base font-semibold text-white">New Stores</h2>
-                            </div>
-                            <span className="text-[11px] text-[#666]">Recently joined</span>
+                        {/* Section Header - Shop by Category Style */}
+                        <div className="flex items-center justify-center mb-5">
+                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                            <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>NEW STORES</span>
+                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                         </div>
                         <div className="flex gap-4 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-4">
                             {newMerchants.map((merchant) => (
-                                <div key={merchant.id} className="w-[180px] flex-shrink-0">
+                                <div key={merchant.id} className="w-[180px] flex-shrink-0 relative group">
+                                    {/* New Badge Ribbon */}
+                                    <div className="absolute top-2 right-2 z-10 bg-green-500 text-black text-[9px] font-bold px-2 py-0.5 rounded-full shadow-lg shadow-green-500/20 flex items-center gap-1">
+                                        <Sparkles className="h-2.5 w-2.5 fill-black" />
+                                        NEW
+                                    </div>
                                     <OfferCard
                                         offer={{
                                             id: merchant.id,

@@ -546,7 +546,18 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                                 <div className="flex-1 min-w-0">
                                                     <h4 className="text-white font-semibold text-sm">{offer.title}</h4>
                                                     <p className="text-[#666] text-xs mt-0.5">
-                                                        {offer.validUntil && `Valid till ${new Date(offer.validUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
+                                                        {offer.validUntil && (() => {
+                                                            const validUntil = new Date(offer.validUntil);
+                                                            const now = new Date();
+                                                            const diffTime = validUntil.getTime() - now.getTime();
+                                                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                                                            if (diffDays <= 0) return 'Expired';
+                                                            if (diffDays === 1) return 'Expiring today!';
+                                                            if (diffDays <= 3) return `Expiring in ${diffDays} days!`;
+                                                            if (diffDays <= 7) return `Expires in ${diffDays} days`;
+                                                            return `Valid till ${validUntil.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
+                                                        })()}
                                                     </p>
                                                 </div>
                                                 <motion.div animate={{ rotate: expandedOfferId === offer.id ? 90 : 0 }}>

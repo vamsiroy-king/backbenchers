@@ -94,6 +94,37 @@ export default function MerchantAuthCallbackPage() {
                     }
                 }
 
+                // If STILL not found in main merchants table, check pending_merchants table!
+                let pendingMerchant = null;
+                if (!merchant) {
+                    const { data: pending } = await supabase
+                        .from('pending_merchants')
+                        .select('id, status')
+                        .eq('user_id', session.user.id)
+                        .maybeSingle();
+
+                    if (pending) {
+                        pendingMerchant = pending;
+                    } else if (userEmail) {
+                        // Check pending by email
+                        const { data: pendingByEmail } = await supabase
+                            .from('pending_merchants')
+                            .select('id, status, user_id')
+                            .eq('email', userEmail)
+                            .maybeSingle();
+
+                        if (pendingByEmail) {
+                            if (pendingByEmail.user_id !== session.user.id) {
+                                await supabase
+                                    .from('pending_merchants')
+                                    .update({ user_id: session.user.id })
+                                    .eq('id', pendingByEmail.id);
+                            }
+                            pendingMerchant = pendingByEmail;
+                        }
+                    }
+                }
+
                 if (merchant) {
                     console.log("Merchant found:", merchant);
 
@@ -101,16 +132,19 @@ export default function MerchantAuthCallbackPage() {
                     if (merchant.status === 'approved') {
                         setStatus("Welcome back! Loading dashboard...");
                         router.replace("/merchant/dashboard");
-                    } else if (merchant.status === 'pending') {
-                        setStatus("Your application is pending review...");
-                        router.replace("/merchant/onboarding/pending");
                     } else if (merchant.status === 'rejected') {
                         setStatus("Redirecting...");
                         router.replace("/merchant/auth/rejected");
                     } else {
-                        // Continue onboarding
-                        router.replace("/merchant/onboarding/pending");
+                        // Any other status in main table
+                        setStatus("Loading...");
+                        router.replace("/merchant/dashboard");
                     }
+                } else if (pendingMerchant) {
+                    // Found in pending_merchants
+                    console.log("Pending application found:", pendingMerchant);
+                    setStatus("Your application is pending review...");
+                    router.replace("/merchant/onboarding/pending");
                 } else {
                     // New merchant - start onboarding
                     console.log("New merchant - starting onboarding");

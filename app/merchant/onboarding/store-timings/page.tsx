@@ -171,49 +171,14 @@ export default function StoreTimingsPage() {
                 localStorage.setItem('merchant_documents', JSON.stringify(documentsData));
             }
 
-            const { authService } = await import('@/lib/services/auth.service');
+            // Save operating hours to merchant_business
+            const currentBusinessData = JSON.parse(localStorage.getItem('merchant_business') || '{}');
+            currentBusinessData.operatingHours = operatingHours;
+            localStorage.setItem('merchant_business', JSON.stringify(currentBusinessData));
 
-            const result = await authService.completeMerchantOnboarding({
-                businessName: businessData.businessName,
-                category: businessData.category || 'General',
-                subCategory: businessData.subCategory,
-                description: businessData.description || '',
-                address: locationData.address || businessData.address || '',
-                city: locationData.city || businessData.city || '',
-                state: locationData.state || businessData.state || '',
-                pincode: locationData.pincode || businessData.pincode || '',
-                phone: businessData.phone || businessData.businessPhone || '',
-                ownerPhone: businessData.ownerPhone || '',
-                ownerName: businessData.ownerName || '',
-                gstNumber: businessData.gstNumber,
-                panNumber: businessData.panNumber,
-                logoUrl: documentsData.logo?.url,
-                coverPhotoUrl: documentsData.coverPhoto?.url,
-                storeImageUrls: documentsData.storeImages?.map((img: any) => img.url).filter(Boolean) || [],
-                latitude: locationData.latitude || mapsData.latitude || businessData.latitude,
-                longitude: locationData.longitude || mapsData.longitude || businessData.longitude,
-                googleMapsLink: locationData.googleMapsLink || mapsData.googleMapsLink || businessData.googleMapsLink,
-                googleMapsEmbed: mapsData.googleMapsEmbed,
-                operatingHours: businessData.operatingHours,
-                paymentQrUrl: documentsData.paymentQr?.url,
-            });
+            // Redirect to Offer Step
+            router.push('/merchant/onboarding/offer-step');
 
-            if (result.success) {
-                localStorage.removeItem('merchant_business');
-                localStorage.removeItem('merchant_location');
-                localStorage.removeItem('merchant_documents');
-                localStorage.removeItem('merchant_pending_email');
-                localStorage.removeItem('merchant_pending_password');
-                localStorage.removeItem('merchant_first_offer');
-                localStorage.removeItem('merchant_maps');
-
-                router.push('/merchant/onboarding/pending');
-            } else {
-                console.error('Merchant onboarding error:', result.error);
-                setError(result.error || 'Failed to submit application. Please try again.');
-                setUploading(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
         } catch (err: any) {
             console.error('Error:', err);
             setError(err?.message || 'Something went wrong. Please try again.');
@@ -221,6 +186,7 @@ export default function StoreTimingsPage() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
+
 
     const timeInputClass = "h-11 px-3 bg-[#111] border border-[#333] rounded-xl text-white text-sm font-medium outline-none focus:border-green-500/50 [color-scheme:dark]";
 
@@ -239,15 +205,19 @@ export default function StoreTimingsPage() {
                     </Link>
                     <div className="flex-1">
                         <h1 className="text-lg font-bold text-white">Store Timings</h1>
-                        <p className="text-xs text-[#666]">Step 3 of 3 • Final Step!</p>
+                        <p className="text-xs text-[#666]">Step 5 of 7 • Almost done</p>
                     </div>
                 </div>
 
                 {/* Progress Bar */}
+                {/* Progress Bar */}
                 <div className="px-5 pb-4 flex gap-2">
-                    <div className="h-1 flex-1 bg-green-500 rounded-full" />
-                    <div className="h-1 flex-1 bg-green-500 rounded-full" />
-                    <div className="h-1 flex-1 bg-green-500 rounded-full" />
+                    {[1, 2, 3, 4, 5].map(s => (
+                        <div key={s} className="h-1 flex-1 bg-green-500 rounded-full" />
+                    ))}
+                    {[6, 7].map(s => (
+                        <div key={s} className="h-1 flex-1 bg-[#222] rounded-full" />
+                    ))}
                 </div>
             </header>
 
@@ -423,8 +393,10 @@ export default function StoreTimingsPage() {
                         </>
                     ) : (
                         <>
-                            Complete Registration
-                            <ArrowRight className="h-5 w-5" />
+                            <>
+                                Continue to Offers
+                                <ArrowRight className="h-5 w-5" />
+                            </>
                         </>
                     )}
                 </motion.button>
@@ -446,8 +418,8 @@ export default function StoreTimingsPage() {
                             <div className="h-16 w-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Check className="h-8 w-8 text-green-400" />
                             </div>
-                            <h2 className="text-xl font-bold text-white">Submit Application</h2>
-                            <p className="text-sm text-[#888] mt-2">You're about to submit your merchant application for review</p>
+                            <h2 className="text-xl font-bold text-white">Confirm Timings</h2>
+                            <p className="text-sm text-[#888] mt-2">Saving your store hours and proceeding to offer setup</p>
                         </div>
 
                         {/* Terms & Conditions */}
@@ -495,7 +467,7 @@ export default function StoreTimingsPage() {
                                 {uploading ? (
                                     <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                                 ) : (
-                                    'Confirm & Submit'
+                                    'Save & Continue'
                                 )}
                             </motion.button>
                         </div>
