@@ -835,23 +835,15 @@ export const authService = {
             }
 
             // Submit to pending_merchants table (NOT main merchants table)
+            // IMPORTANT: Only include fields that actually exist in the pending_merchants table!
             const { data: application, error } = await supabase
                 .from('pending_merchants')
                 .insert({
                     user_id: userId,
                     email: userEmail,
-                    merchant_type: merchantData.merchantType || 'local_store', // chain_outlet, local_store, online_brand
-                    brand_scale: merchantData.brandScale || merchantData.brandType || 'single', // single, regional_chain, national_chain
-                    brand_id: merchantData.brandId || null, // For chain outlets
-                    outlet_name: merchantData.outletName || null, // For chain outlets
-                    outlet_role: merchantData.outletRole || null, // manager, franchise_owner, owner
-                    outlet_manager_name: merchantData.outletManagerName || null,
-                    outlet_manager_phone: merchantData.outletManagerPhone || null,
-                    outlet_area: merchantData.outletArea || null,
                     business_name: merchantData.businessName,
                     category: merchantData.category,
                     sub_category: merchantData.subCategory,
-                    brand_type: merchantData.brandScale || merchantData.brandType || 'single', // Single store, regional_chain, or national_chain
                     description: merchantData.description || '',
                     address: merchantData.address,
                     city: merchantData.city,
