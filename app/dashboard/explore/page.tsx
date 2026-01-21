@@ -153,6 +153,15 @@ export default function ExplorePage() {
         await toggleFavorite(offerId);
     };
 
+    const isOnlineBrandFavorite = (brandId: string) => isFavorite(brandId);
+
+    const handleToggleOnlineFavorite = async (e: React.MouseEvent, brandId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        vibrate('light');
+        await toggleFavorite(brandId);
+    };
+
     // --- VIEW 1: CATEGORY DETAILS ---
     if (categoryParam) {
         const categoryData = CATEGORIES.find(c => c.id === categoryParam) || { name: categoryParam, icon: "🔍", headerColor: "bg-purple-600" };
