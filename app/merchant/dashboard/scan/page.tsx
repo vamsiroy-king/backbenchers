@@ -432,65 +432,66 @@ export default function ScanPage() {
 
                         <h2 className="text-xl font-extrabold text-center mb-5">Verify Identity</h2>
 
-                        {/* Student Card */}
-                        {/* Student Card - ID Style */}
-                        <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-[2rem] p-6 text-white shadow-2xl shadow-emerald-500/30 relative overflow-hidden">
+                        {/* Student Card - Premium ID Style with LARGE Face */}
+                        <div className="bg-gradient-to-br from-[#0f0f0f] via-[#1a1a1a] to-[#0a0a0a] rounded-[2rem] p-6 text-white shadow-2xl shadow-emerald-500/10 relative overflow-hidden border border-white/[0.08]">
                             {/* Background decoration */}
-                            <div className="absolute top-0 left-0 w-full h-32 bg-white/10" />
-                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 to-teal-400" />
+                            <div className="absolute -top-20 -right-20 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl" />
+                            <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-teal-500/5 rounded-full blur-3xl" />
 
                             <div className="relative flex flex-col items-center text-center">
-                                {/* Profile Photo - Large & Central */}
-                                <div className="relative mb-4">
-                                    <div className="h-32 w-32 rounded-full p-1.5 bg-white/20 backdrop-blur-sm">
-                                        <div className="h-full w-full rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-200">
+                                {/* Profile Photo - LARGE (160px) & Central with premium frame */}
+                                <div className="relative mb-5">
+                                    <div className="h-44 w-44 rounded-3xl p-1.5 bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/30">
+                                        <div className="h-full w-full rounded-[20px] overflow-hidden border-4 border-black bg-gray-900">
                                             {hasProfilePhoto ? (
                                                 <img src={student.profileImage || ''} alt={student.name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                                                    <UserX className="h-10 w-10 text-gray-500" />
+                                                <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                                                    <UserX className="h-14 w-14 text-gray-500" />
                                                 </div>
                                             )}
                                         </div>
                                     </div>
-                                    {/* Verified Badge */}
-                                    <div className="absolute bottom-1 right-1 bg-white text-emerald-600 rounded-full p-1.5 shadow-lg border-2 border-emerald-50 text-[10px] font-bold flex items-center gap-1">
-                                        <ShieldCheck className="h-5 w-5" />
+                                    {/* Verified Badge - Larger */}
+                                    <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white rounded-2xl px-3.5 py-1.5 shadow-lg shadow-emerald-500/50 text-xs font-bold flex items-center gap-1.5 border-2 border-black">
+                                        <ShieldCheck className="h-4 w-4" />
+                                        VERIFIED
                                     </div>
                                 </div>
 
                                 {/* Name & ID */}
-                                <h3 className="font-extrabold text-2xl tracking-tight mb-1">{student.name}</h3>
-                                <div className="bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full mb-4 border border-white/10">
-                                    <span className="font-mono font-bold tracking-widest text-sm">{student.bbId}</span>
+                                <h3 className="font-extrabold text-2xl tracking-tight mb-2">{student.name}</h3>
+                                <div className="bg-white/10 backdrop-blur-md px-5 py-2 rounded-xl mb-5 border border-white/[0.08]">
+                                    <span className="font-mono font-bold tracking-widest text-sm text-emerald-400">{student.bbId}</span>
                                 </div>
-                                <p className="text-white/90 text-sm font-medium mb-6 flex items-center justify-center gap-1">
-                                    <span className="opacity-70">🎓</span> {student.college}
+                                <p className="text-white/70 text-sm font-medium mb-5 flex items-center justify-center gap-2">
+                                    <span>🎓</span> {student.college}
                                 </p>
 
                                 {/* Divider */}
-                                <div className="w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent mb-6" />
+                                <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-5" />
 
-                                {/* Details Grid */}
-                                <div className="grid grid-cols-3 gap-2 w-full">
+                                {/* Details Grid - Compact */}
+                                <div className="grid grid-cols-3 gap-3 w-full">
                                     {/* DOB */}
-                                    <div className="bg-black/20 rounded-xl p-2.5 backdrop-blur-sm">
-                                        <p className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-1">Born</p>
-                                        <p className="font-bold text-sm">
+                                    <div className="bg-white/[0.04] rounded-xl p-3 backdrop-blur-sm border border-white/[0.06]">
+                                        <p className="text-white/40 text-[9px] font-bold uppercase tracking-wider mb-1">Born</p>
+                                        <p className="font-bold text-xs text-white">
                                             {student.dob ? new Date(student.dob).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '--'}
                                         </p>
                                     </div>
 
                                     {/* Gender */}
-                                    <div className="bg-black/20 rounded-xl p-2.5 backdrop-blur-sm">
-                                        <p className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-1">Gender</p>
-                                        <p className="font-bold text-sm capitalize">{student.gender || '--'}</p>
+                                    <div className="bg-white/[0.04] rounded-xl p-3 backdrop-blur-sm border border-white/[0.06]">
+                                        <p className="text-white/40 text-[9px] font-bold uppercase tracking-wider mb-1">Gender</p>
+                                        <p className="font-bold text-xs capitalize text-white">{student.gender || '--'}</p>
                                     </div>
 
                                     {/* City */}
-                                    <div className="bg-black/20 rounded-xl p-2.5 backdrop-blur-sm">
-                                        <p className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-1">City</p>
-                                        <p className="font-bold text-sm truncate">{student.city || '--'}</p>
+                                    <div className="bg-white/[0.04] rounded-xl p-3 backdrop-blur-sm border border-white/[0.06]">
+                                        <p className="text-white/40 text-[9px] font-bold uppercase tracking-wider mb-1">City</p>
+                                        <p className="font-bold text-xs truncate text-white">{student.city || '--'}</p>
                                     </div>
                                 </div>
                             </div>

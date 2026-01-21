@@ -680,8 +680,8 @@ export default function ProfilePage() {
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                             {hasProfileImage && student?.bbId ? (
                                 <>
-                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                        <BBQRCode value={student.bbId} size={110} withLogo={true} />
+                                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 shadow-sm">
+                                        <BBQRCode value={student.bbId} size={160} withLogo={true} />
                                     </div>
                                     <p className="mt-3 font-semibold text-gray-800 text-sm">Scan to Verify</p>
                                     <p className="text-[10px] text-gray-400 mt-0.5">Show this QR at checkout</p>

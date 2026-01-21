@@ -43,11 +43,12 @@ export function GlobalRatingProvider({ children }: { children: ReactNode }) {
         init();
     }, []);
 
-    // Check for pending ratings
+    // Check for pending ratings (including dismissed ones after 24 hours)
     const checkForPendingRatings = async () => {
         if (!studentId) return;
 
-        const { data } = await supabase
+        // First, check for never-dismissed ratings
+        const { data: newRating } = await supabase
             .from("pending_ratings")
             .select("*")
             .eq("student_id", studentId)
@@ -56,11 +57,39 @@ export function GlobalRatingProvider({ children }: { children: ReactNode }) {
             .limit(1)
             .single();
 
-        if (data) {
+        if (newRating) {
             setPendingRating({
-                transactionId: data.transaction_id,
-                merchantId: data.merchant_id,
-                merchantName: data.merchant_name,
+                transactionId: newRating.transaction_id,
+                merchantId: newRating.merchant_id,
+                merchantName: newRating.merchant_name,
+            });
+            setShowModal(true);
+            return;
+        }
+
+        // If no active ratings, check for dismissed ratings older than 24 hours (retry logic)
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { data: retryRating } = await supabase
+            .from("pending_ratings")
+            .select("*")
+            .eq("student_id", studentId)
+            .not("dismissed_at", "is", null)
+            .lt("dismissed_at", twentyFourHoursAgo)  // Dismissed more than 24 hours ago
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+
+        if (retryRating) {
+            // Reset dismissed_at to null so it shows again
+            await supabase
+                .from("pending_ratings")
+                .update({ dismissed_at: null })
+                .eq("transaction_id", retryRating.transaction_id);
+
+            setPendingRating({
+                transactionId: retryRating.transaction_id,
+                merchantId: retryRating.merchant_id,
+                merchantName: retryRating.merchant_name,
             });
             setShowModal(true);
         }

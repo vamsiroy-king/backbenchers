@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { authService, isValidStudentEmail, getInvalidDomainError } from "@/lib/services/auth.service";
+import { studentService } from "@/lib/services/student.service";
 import { universityService, University } from "@/lib/services/university.service";
 import { INDIAN_STATES, getCitiesForState } from "@/lib/data/locations";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
@@ -55,6 +56,8 @@ export default function VerifyPage() {
     const [showPWAPrompt, setShowPWAPrompt] = useState(false);
     const [showCamera, setShowCamera] = useState(false);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const [photoError, setPhotoError] = useState("");
 
     const [formData, setFormData] = useState({
         firstName: "", lastName: "", gender: "", dob: "", phone: "",
@@ -500,8 +503,31 @@ export default function VerifyPage() {
                     <motion.div key="o" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} className="space-y-5">
                         <div><h1 className="text-xl font-bold text-white mb-1">Verify OTP</h1><p className="text-sm text-white/40 pointer-events-none">Code sent to <span className="text-white select-none">{formData.collegeEmail}</span></p></div>
                         {otpError && <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400"><AlertCircle className="h-4 w-4" />{otpError}</div>}
-                        <div className="flex justify-center gap-2">
-                            {otp.map((d, i) => <input key={i} ref={el => { otpRefs.current[i] = el; }} name={`otp-${i}`} type="text" inputMode="numeric" maxLength={1} value={d} onChange={e => handleOtpChange(i, e.target.value)} onKeyDown={e => { if (e.key === 'Backspace' && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus(); }} autoComplete="one-time-code" className="w-10 h-12 text-center text-lg font-bold bg-white/[0.04] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:border-green-500/50" />)}
+                        <div className="flex justify-center gap-2.5">
+                            {otp.map((d, i) => (
+                                <input
+                                    key={i}
+                                    ref={el => { otpRefs.current[i] = el; }}
+                                    name={`otp-${i}`}
+                                    id={`otp-input-${i}`}
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    maxLength={6}
+                                    value={d}
+                                    onChange={e => handleOtpChange(i, e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Backspace' && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus(); }}
+                                    onPaste={(e) => {
+                                        e.preventDefault();
+                                        const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                                        if (pastedData.length === 6) {
+                                            handleOtpChange(0, pastedData);
+                                        }
+                                    }}
+                                    autoComplete={i === 0 ? "one-time-code" : "off"}
+                                    className="w-11 h-14 text-center text-xl font-bold bg-white/[0.04] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:border-green-500/50 transition-colors"
+                                />
+                            ))}
                         </div>
                         <div className="text-center">
                             {canResend ? <button onClick={handleResend} disabled={loading} className="text-green-400 text-sm font-medium flex items-center justify-center gap-2 mx-auto"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />Resend</button> : <p className="text-white/40 text-sm">Resend in {resendTimer}s</p>}
@@ -513,13 +539,46 @@ export default function VerifyPage() {
                 {step === "photo" && (
                     <motion.div key="p" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} className="space-y-5">
                         <div><h1 className="text-xl font-bold text-white mb-1">Profile photo</h1><p className="text-sm text-white/40">Optional for offline verification</p></div>
-                        {showCamera ? <FaceCamera onCapture={img => { setCapturedImage(img); setShowCamera(false); }} onCancel={() => setShowCamera(false)} />
+                        {photoError && <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400"><AlertCircle className="h-4 w-4" />{photoError}</div>}
+                        {showCamera ? <FaceCamera onCapture={img => { setCapturedImage(img); setShowCamera(false); setPhotoError(""); }} onCancel={() => setShowCamera(false)} />
                             : capturedImage ? (
                                 <div className="space-y-4">
-                                    <div className="mx-auto h-24 w-24 rounded-full overflow-hidden border-2 border-green-500/30"><img src={capturedImage} alt="" className="w-full h-full object-cover" /></div>
+                                    <div className="mx-auto h-32 w-32 rounded-full overflow-hidden border-4 border-green-500/30 shadow-lg shadow-green-500/10">
+                                        <img src={capturedImage} alt="" className="w-full h-full object-cover" />
+                                    </div>
                                     <div className="flex gap-3">
-                                        <button onClick={() => setShowCamera(true)} className="flex-1 h-12 bg-white/[0.06] border border-white/[0.08] rounded-xl text-white">Retake</button>
-                                        <button onClick={() => { setStep("success"); setShowPWAPrompt(true); }} className="flex-1 h-12 bg-green-500 rounded-xl text-black font-semibold">Continue</button>
+                                        <button onClick={() => { setShowCamera(true); setPhotoError(""); }} disabled={uploadingPhoto} className="flex-1 h-12 bg-white/[0.06] border border-white/[0.08] rounded-xl text-white disabled:opacity-50">Retake</button>
+                                        <button
+                                            onClick={async () => {
+                                                setUploadingPhoto(true);
+                                                setPhotoError("");
+                                                try {
+                                                    // Convert base64 to File
+                                                    const blob = await (await fetch(capturedImage)).blob();
+                                                    const file = new File([blob], 'profile-onboarding.jpg', { type: 'image/jpeg' });
+
+                                                    // Upload to server
+                                                    const result = await studentService.updateProfileImage(file);
+                                                    if (result.success) {
+                                                        setStep("success");
+                                                        setShowPWAPrompt(true);
+                                                    } else {
+                                                        setPhotoError(result.error || "Failed to save photo. Please try again.");
+                                                    }
+                                                } catch (err: any) {
+                                                    console.error("Photo upload error:", err);
+                                                    setPhotoError("Failed to save photo. Please try again.");
+                                                } finally {
+                                                    setUploadingPhoto(false);
+                                                }
+                                            }}
+                                            disabled={uploadingPhoto}
+                                            className="flex-1 h-12 bg-green-500 rounded-xl text-black font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
+                                        >
+                                            {uploadingPhoto ? (
+                                                <><Loader2 className="h-4 w-4 animate-spin" />Saving...</>
+                                            ) : "Continue"}
+                                        </button>
                                     </div>
                                 </div>
                             ) : (

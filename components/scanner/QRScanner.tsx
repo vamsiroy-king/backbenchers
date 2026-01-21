@@ -10,25 +10,30 @@ interface QRScannerProps {
     isActive: boolean;
 }
 
-// High-performance scanner configuration
+// High-performance scanner configuration (PhonePe/Paytm level)
 const SCANNER_CONFIG = {
     fps: 30,                           // Maximum FPS for instant detection
-    qrbox: { width: 280, height: 280 }, // Larger scan area
+    qrbox: { width: 300, height: 300 }, // Larger scan area for easier scanning
     aspectRatio: 1.0,
     disableFlip: false,                // Allow both orientations
     formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE], // Only QR codes for speed
+    experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true // Use native detector if available (faster)
+    }
 };
 
 // Optimal camera constraints for high-quality scanning
 const CAMERA_CONSTRAINTS = {
     facingMode: "environment",
-    width: { ideal: 1920, min: 1280 },  // High resolution
-    height: { ideal: 1080, min: 720 },
+    width: { ideal: 2560, min: 1920 },  // Ultra-high resolution
+    height: { ideal: 1440, min: 1080 },
     focusMode: "continuous",            // Auto-focus continuously
+    frameRate: { ideal: 30, min: 15 },  // Smooth video feed
     advanced: [
         { zoom: 1.0 },
         { focusMode: "continuous" as any },
         { exposureMode: "continuous" as any },
+        { whiteBalanceMode: "continuous" as any },
     ] as any,
 };
 
