@@ -254,7 +254,7 @@ export default function DashboardPage() {
                 if (cachedBanners && cachedBanners.length > 0) setHeroBanners(cachedBanners);
                 if (cachedFavorites) setFavoriteIds(cachedFavorites);
 
-                // If all cache exists, stop loading immediately
+                // If all cache exists, we can still load, but let's not block UI
                 if (cachedOffers && cachedTrendingOffline && cachedTopBrands) {
                     setLoadingOffers(false);
                 }
@@ -298,16 +298,19 @@ export default function DashboardPage() {
                     }
                 }
 
-                // Fetch offers filtered by city (if not cached)
-                if (!cachedOffers) {
-                    const result = cityToUse
-                        ? await offerService.getOffersByCity(cityToUse)
-                        : await offerService.getActiveOffers();
-                    if (result.success && result.data) {
-                        setRealOffers(result.data);
-                        dashboardCache.setOffers(result.data, cityToUse || undefined);
-                    }
+                // Fetch offers filtered by city (always fetch in background to update cache)
+                // if (!cachedOffers) {  <-- REMOVED check to enable stale-while-revalidate
+                const result = cityToUse
+                    ? await offerService.getOffersByCity(cityToUse)
+                    : await offerService.getActiveOffers();
+
+                // Only update if we get valid data back. 
+                // This prevents "disappearing" if the API returns empty temporarily or on error.
+                if (result.success && result.data && result.data.length > 0) {
+                    setRealOffers(result.data);
+                    dashboardCache.setOffers(result.data, cityToUse || undefined);
                 }
+                // }
 
                 // Fetch trending offers (if not cached)
                 if (!cachedTrendingOffline || !cachedTrendingOnline) {

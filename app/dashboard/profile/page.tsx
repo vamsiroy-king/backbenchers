@@ -675,17 +675,8 @@ export default function ProfilePage() {
                             style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}
                         />
 
-                        {/* Top Industrial Accent */}
-                        <div className="absolute top-4 left-0 right-0 flex justify-between px-5 items-start">
-                            <div className="flex flex-col">
-                                <span className="text-[8px] font-mono text-[#444] tracking-widest uppercase mb-0.5">VERIFICATION_ID</span>
-                                <span className="text-[10px] font-bold text-[#666] font-mono">{student?.bbId || "PENDING"}</span>
-                            </div>
-                            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                        </div>
-
-                        {/* Content - Centered QR */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
+                        {/* Content - Centered QR Only */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
                             {hasProfileImage && student?.bbId ? (
                                 <motion.div
                                     initial={{ scale: 0.9, opacity: 0 }}
@@ -693,20 +684,9 @@ export default function ProfilePage() {
                                     transition={{ delay: 0.2 }}
                                     className="relative group"
                                 >
-                                    {/* QR Container - Industrial Frame */}
-                                    <div className="bg-white p-3 rounded-xl relative shadow-2xl shadow-green-900/10">
-                                        {/* Corner marks */}
-                                        <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-green-500/30 rounded-tl-md" />
-                                        <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-green-500/30 rounded-tr-md" />
-                                        <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-green-500/30 rounded-bl-md" />
-                                        <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-green-500/30 rounded-br-md" />
-
-                                        <BBQRCode value={student.bbId} size={150} withLogo={true} />
-                                    </div>
-
-                                    <div className="text-center mt-4 space-y-1">
-                                        <p className="font-mono font-bold text-white text-xs tracking-wider">SCAN TO VERIFY</p>
-                                        <p className="text-[9px] text-[#444] uppercase tracking-widest">OFFICIAL STUDENT ID</p>
+                                    {/* QR Container - Clean White */}
+                                    <div className="bg-white p-4 rounded-2xl shadow-2xl shadow-green-900/10">
+                                        <BBQRCode value={student.bbId} size={180} withLogo={true} />
                                     </div>
                                 </motion.div>
                             ) : (
@@ -720,14 +700,6 @@ export default function ProfilePage() {
                                     </p>
                                 </div>
                             )}
-                        </div>
-
-                        {/* Bottom Branding - Industrial Footer */}
-                        <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center">
-                            <div className="w-full px-5 flex justify-between items-end">
-                                <span className="text-[10px] font-bold text-white/20 tracking-tighter">BACKBENCHERS</span>
-                                <span className="text-[7px] font-mono text-green-500/60 tracking-[0.2em]">SECURE_ACCESS</span>
-                            </div>
                         </div>
                     </div>
                 </motion.div>
