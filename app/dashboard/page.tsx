@@ -786,22 +786,23 @@ export default function DashboardPage() {
                     </div>
                     <div className="grid grid-cols-4 gap-2">
                         {[
-                            { name: "Food", image: "🍕", color: isLightTheme ? "from-orange-100 to-orange-200" : "from-orange-900/50 to-orange-950/80", category: "Food" },
-                            { name: "Fashion", image: "👗", color: isLightTheme ? "from-pink-100 to-pink-200" : "from-pink-900/50 to-pink-950/80", category: "Fashion" },
-                            { name: "Fitness", image: "💪", color: isLightTheme ? "from-blue-100 to-blue-200" : "from-blue-900/50 to-blue-950/80", category: "Fitness" },
-                            { name: "Beauty", image: "💄", color: isLightTheme ? "from-purple-100 to-purple-200" : "from-purple-900/50 to-purple-950/80", category: "Beauty" },
+                            { line1: "Food", line2: "& Beverages", image: "🍕", color: isLightTheme ? "from-orange-100 to-orange-200" : "from-orange-900/50 to-orange-950/80", category: "Food" },
+                            { line1: "Fashion", line2: "& Apparel", image: "👗", color: isLightTheme ? "from-pink-100 to-pink-200" : "from-pink-900/50 to-pink-950/80", category: "Fashion" },
+                            { line1: "Health", line2: "& Fitness", image: "💪", color: isLightTheme ? "from-blue-100 to-blue-200" : "from-blue-900/50 to-blue-950/80", category: "Fitness" },
+                            { line1: "Skincare", line2: "& Beauty", image: "💄", color: isLightTheme ? "from-purple-100 to-purple-200" : "from-purple-900/50 to-purple-950/80", category: "Beauty" },
                         ].map((cat) => (
                             <motion.div
-                                key={cat.name}
+                                key={cat.category}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => {
                                     vibrate('light');
                                     router.push(`/dashboard/explore?category=${cat.category}`);
                                 }}
-                                className={`aspect-square rounded-xl bg-gradient-to-br ${cat.color} border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${isLightTheme ? 'border-gray-200 hover:border-gray-300' : 'border-white/[0.06] hover:border-white/[0.12]'}`}
+                                className={`aspect-square rounded-xl bg-gradient-to-br ${cat.color} border flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${isLightTheme ? 'border-gray-200 hover:border-gray-300' : 'border-white/[0.06] hover:border-white/[0.12]'}`}
                             >
-                                <span className="text-2xl">{cat.image}</span>
-                                <span className={`text-[10px] font-medium ${isLightTheme ? 'text-gray-700' : 'text-white/80'}`}>{cat.name}</span>
+                                <span className="text-2xl mb-1">{cat.image}</span>
+                                <span className={`text-[10px] font-semibold leading-tight ${isLightTheme ? 'text-gray-700' : 'text-white/90'}`}>{cat.line1}</span>
+                                <span className={`text-[8px] font-medium leading-tight ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>{cat.line2}</span>
                             </motion.div>
                         ))}
                     </div>

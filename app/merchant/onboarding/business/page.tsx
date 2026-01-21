@@ -207,12 +207,13 @@ export default function BusinessDetailsPage() {
                     {/* ===== SECTION 1: BUSINESS TYPE ===== */}
                     <section>
                         <p className={labelClass}>Business Type</p>
-                        <div className="grid grid-cols-2 gap-3 mt-3">
+                        <div className="mt-3">
+                            {/* Only Offline Store option - Online Brand coming soon */}
                             <motion.button
                                 type="button"
                                 whileTap={{ scale: 0.97 }}
                                 onClick={() => setBusinessType('offline')}
-                                className={`p-5 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${businessType === 'offline'
+                                className={`w-full p-5 rounded-2xl border-2 flex items-center gap-4 transition-all ${businessType === 'offline'
                                     ? 'border-green-500 bg-green-500/10'
                                     : 'border-[#333] bg-[#111] hover:border-[#444]'
                                     }`}
@@ -220,30 +221,15 @@ export default function BusinessDetailsPage() {
                                 <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${businessType === 'offline' ? 'bg-green-500' : 'bg-[#1a1a1a]'}`}>
                                     <Store className={`h-6 w-6 ${businessType === 'offline' ? 'text-black' : 'text-[#666]'}`} />
                                 </div>
-                                <div className="text-center">
+                                <div className="text-left flex-1">
                                     <span className="font-bold text-white text-sm block">Offline Store</span>
-                                    <span className="text-[10px] text-[#666]">Physical location</span>
-                                </div>
-                            </motion.button>
-
-                            <motion.button
-                                type="button"
-                                whileTap={{ scale: 0.97 }}
-                                onClick={() => setBusinessType('online')}
-                                className={`p-5 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${businessType === 'online'
-                                    ? 'border-green-500 bg-green-500/10'
-                                    : 'border-[#333] bg-[#111] hover:border-[#444]'
-                                    }`}
-                            >
-                                <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${businessType === 'online' ? 'bg-green-500' : 'bg-[#1a1a1a]'}`}>
-                                    <Wifi className={`h-6 w-6 ${businessType === 'online' ? 'text-black' : 'text-[#666]'}`} />
-                                </div>
-                                <div className="text-center">
-                                    <span className="font-bold text-white text-sm block">Online Brand</span>
-                                    <span className="text-[10px] text-[#666]">E-commerce / Digital</span>
+                                    <span className="text-[10px] text-[#666]">Physical location where students can visit</span>
                                 </div>
                             </motion.button>
                         </div>
+                        <p className="text-[10px] text-[#555] mt-3 text-center">
+                            Online brand registration coming soon
+                        </p>
                     </section>
 
                     {/* ===== SECTION 2: BUSINESS DETAILS ===== */}

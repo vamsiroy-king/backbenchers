@@ -9,7 +9,16 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { onlineBrandService } from "@/lib/services/online-brand.service";
 
-const CATEGORIES = ["Food", "Fashion", "Fitness", "Beauty", "Tech", "Entertainment", "Travel"];
+const CATEGORIES = [
+    "Food & Beverages",
+    "Fashion & Apparel",
+    "Health & Fitness",
+    "Skincare & Beauty",
+    "Tech & Gadgets",
+    "Entertainment",
+    "Groceries & Essentials",
+    "Travel & Lifestyle"
+];
 
 export default function NewOnlineBrandPage() {
     const router = useRouter();
@@ -30,6 +39,7 @@ export default function NewOnlineBrandPage() {
     const [offerCode, setOfferCode] = useState("");
     const [offerDescription, setOfferDescription] = useState("");
     const [offerExpiryDate, setOfferExpiryDate] = useState("");
+    const [offerTerms, setOfferTerms] = useState(""); // Terms & Conditions
 
     // Image handling
     const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -109,6 +119,7 @@ export default function NewOnlineBrandPage() {
                 code: offerCode,
                 description: offerDescription || undefined,
                 expiryDate: offerExpiryDate || undefined,
+                termsConditions: offerTerms || undefined, // NEW: T&C
                 isActive: true
             });
 
@@ -332,12 +343,26 @@ export default function NewOnlineBrandPage() {
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Expiry Date (Optional)</label>
-                            <Input
-                                type="date"
-                                value={offerExpiryDate}
-                                onChange={e => setOfferExpiryDate(e.target.value)}
+                            <div className="relative">
+                                <Input
+                                    type="date"
+                                    value={offerExpiryDate}
+                                    onChange={e => setOfferExpiryDate(e.target.value)}
+                                    min={new Date().toISOString().split('T')[0]}
+                                    className="cursor-pointer"
+                                />
+                            </div>
+                            <p className="text-xs text-muted-foreground">Leave empty if no expiry. Min: Today</p>
+                        </div>
+                        <div className="col-span-2 space-y-2">
+                            <label className="text-sm font-medium">Terms & Conditions</label>
+                            <textarea
+                                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                placeholder="e.g., Valid on orders above ₹500. Not applicable on sale items."
+                                value={offerTerms}
+                                onChange={e => setOfferTerms(e.target.value)}
                             />
-                            <p className="text-xs text-muted-foreground">Leave empty if no expiry</p>
+                            <p className="text-xs text-muted-foreground">Optional. Helps students understand the offer rules.</p>
                         </div>
                     </div>
                 </div>

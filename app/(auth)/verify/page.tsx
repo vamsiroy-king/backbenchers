@@ -9,6 +9,7 @@ import { universityService, University } from "@/lib/services/university.service
 import { INDIAN_STATES, getCitiesForState } from "@/lib/data/locations";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import FaceCamera from "@/components/FaceCamera";
+import { preloadFaceDetection } from "@/lib/services/face-preload.service";
 
 // Input component - District style
 const Input = ({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) => (
@@ -68,7 +69,11 @@ export default function VerifyPage() {
     const [resendTimer, setResendTimer] = useState(60);
     const [canResend, setCanResend] = useState(false);
 
-    useEffect(() => { universityService.getCount().then(setTotalUniversitiesCount); }, []);
+    useEffect(() => {
+        universityService.getCount().then(setTotalUniversitiesCount);
+        // Preload face detection models in background (ready by photo step)
+        preloadFaceDetection();
+    }, []);
 
     useEffect(() => {
         async function checkAuth() {
@@ -289,7 +294,7 @@ export default function VerifyPage() {
                         <p className="text-[10px] text-white/40 uppercase tracking-wider">Signed in as</p>
                         <p className="text-sm text-white truncate">{googleEmail}</p>
                     </div>
-                    <button onClick={async () => { const { supabase } = await import("@/lib/supabase"); await supabase.auth.signOut(); window.location.href = '/signup'; }} className="text-xs text-white/40 hover:text-white">Switch</button>
+                    <button onClick={async () => { const { supabase } = await import("@/lib/supabase"); authService.clearCache(); await supabase.auth.signOut(); window.location.href = '/signup'; }} className="text-xs text-white/40 hover:text-white">Switch</button>
                 </div>
             )}
 

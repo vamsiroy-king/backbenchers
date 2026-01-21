@@ -167,21 +167,21 @@ export default function CreateFirstOfferPage() {
     const currentTemplates = offerType ? QUICK_TEMPLATES[offerType as keyof typeof QUICK_TEMPLATES] || [] : [];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary/5 via-white to-emerald-50/30">
+        <div className="min-h-screen bg-black">
             {/* Header */}
-            <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100/50">
+            <header className="sticky top-0 z-40 bg-black/95 backdrop-blur-xl border-b border-[#222]">
                 <div className="px-5 h-16 flex items-center gap-4">
                     <Link href="/merchant/onboarding/store-timings">
                         <motion.button
                             whileTap={{ scale: 0.92 }}
-                            className="h-11 w-11 rounded-full bg-gray-50 flex items-center justify-center shadow-sm"
+                            className="h-11 w-11 rounded-full bg-[#1a1a1a] border border-[#333] flex items-center justify-center"
                         >
-                            <ArrowLeft className="h-5 w-5 text-gray-700" />
+                            <ArrowLeft className="h-5 w-5 text-white" />
                         </motion.button>
                     </Link>
                     <div className="flex-1">
-                        <h1 className="font-bold text-[17px] text-gray-900 tracking-tight">Create First Offer</h1>
-                        <p className="text-[11px] text-gray-400 font-medium">Step 6 of 7 • Almost there!</p>
+                        <h1 className="font-bold text-[17px] text-white tracking-tight">Create First Offer</h1>
+                        <p className="text-[11px] text-[#666] font-medium">Step 6 of 7 • Almost there!</p>
                     </div>
                 </div>
 
@@ -190,7 +190,7 @@ export default function CreateFirstOfferPage() {
                     {[1, 2, 3, 4, 5, 6, 7].map(s => (
                         <div
                             key={s}
-                            className={`h-1.5 flex-1 rounded-full transition-colors ${s <= 6 ? "bg-primary" : "bg-gray-200"}`}
+                            className={`h-1.5 flex-1 rounded-full transition-colors ${s <= 6 ? "bg-green-500" : "bg-[#222]"}`}
                         />
                     ))}
                 </div>
@@ -222,8 +222,8 @@ export default function CreateFirstOfferPage() {
                         className="space-y-6"
                     >
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900 mb-1">What type of offer?</h2>
-                            <p className="text-gray-500 text-sm">Choose how you want to reward students</p>
+                            <h2 className="text-xl font-bold text-white mb-1">What type of offer?</h2>
+                            <p className="text-[#888] text-sm">Choose how you want to reward students</p>
                         </div>
 
                         <div className="space-y-3">
@@ -233,18 +233,18 @@ export default function CreateFirstOfferPage() {
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => selectOfferType(type.id)}
                                     className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 transition-all ${offerType === type.id
-                                        ? 'border-primary bg-primary/5 shadow-sm'
-                                        : 'border-gray-100 bg-white hover:border-gray-200'
+                                        ? 'border-green-500 bg-green-500/10'
+                                        : 'border-[#333] bg-[#111] hover:border-[#444]'
                                         }`}
                                 >
                                     <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${type.color} flex items-center justify-center shadow-lg`}>
                                         <type.icon className="h-6 w-6 text-white" />
                                     </div>
                                     <div className="flex-1 text-left">
-                                        <p className="font-semibold text-gray-900">{type.name}</p>
-                                        <p className="text-xs text-gray-400">{type.description}</p>
+                                        <p className="font-semibold text-white">{type.name}</p>
+                                        <p className="text-xs text-[#666]">{type.description}</p>
                                     </div>
-                                    <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center ${offerType === type.id ? 'border-primary bg-primary' : 'border-gray-300'
+                                    <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center ${offerType === type.id ? 'border-green-500 bg-green-500' : 'border-[#444]'
                                         }`}>
                                         {offerType === type.id && <Check className="h-4 w-4 text-white" />}
                                     </div>
@@ -261,7 +261,7 @@ export default function CreateFirstOfferPage() {
                                     exit={{ opacity: 0, height: 0 }}
                                     className="space-y-3"
                                 >
-                                    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                                    <p className="text-sm font-semibold text-[#888] uppercase tracking-wider">
                                         ⚡ Quick Templates
                                     </p>
                                     <div className="grid grid-cols-2 gap-2">
@@ -271,19 +271,19 @@ export default function CreateFirstOfferPage() {
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => applyTemplate(template)}
                                                 className={`p-4 rounded-2xl border-2 text-center transition-all ${selectedTemplate === template.id
-                                                    ? 'border-primary bg-primary/5'
-                                                    : 'border-gray-100 bg-white hover:border-gray-200'
+                                                    ? 'border-green-500 bg-green-500/10'
+                                                    : 'border-[#333] bg-[#111] hover:border-[#444]'
                                                     }`}
                                             >
-                                                <p className="font-bold text-lg text-gray-900">{template.name}</p>
-                                                <p className="text-xs text-gray-400">for students</p>
+                                                <p className="font-bold text-lg text-white">{template.name}</p>
+                                                <p className="text-xs text-[#666]">for students</p>
                                             </motion.button>
                                         ))}
                                     </div>
 
                                     <button
                                         onClick={() => setStep(2)}
-                                        className="w-full py-3 text-primary font-medium text-sm"
+                                        className="w-full py-3 text-green-400 font-medium text-sm"
                                     >
                                         Or customize your own →
                                     </button>
@@ -300,58 +300,57 @@ export default function CreateFirstOfferPage() {
                         animate={{ opacity: 1, x: 0 }}
                         className="space-y-5"
                     >
-                        <button onClick={() => setStep(1)} className="flex items-center gap-2 text-gray-400 text-sm font-medium">
+                        <button onClick={() => setStep(1)} className="flex items-center gap-2 text-[#888] text-sm font-medium">
                             <ArrowLeft className="h-4 w-4" /> Back
                         </button>
 
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900 mb-1">Offer Details</h2>
-                            <p className="text-gray-500 text-sm">Set your pricing and discount</p>
+                            <h2 className="text-xl font-bold text-white mb-1">Offer Details</h2>
+                            <p className="text-[#888] text-sm">Set your pricing and discount</p>
                         </div>
 
-                        {/* Offer Name */}
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Offer Name</label>
+                            <label className="text-xs font-semibold text-[#888] uppercase tracking-wider">Offer Name</label>
                             <input
                                 type="text"
                                 value={offerData.name}
                                 onChange={(e) => setOfferData({ ...offerData, name: e.target.value })}
                                 placeholder="e.g., Student Special, Campus Deal"
-                                className="w-full h-14 bg-white rounded-2xl px-4 text-[15px] font-medium outline-none border-2 border-gray-100 focus:border-primary transition-colors"
+                                className="w-full h-14 bg-[#111] rounded-2xl px-4 text-[15px] font-medium text-white placeholder:text-[#555] outline-none border-2 border-[#333] focus:border-green-500/50 transition-colors"
                             />
                         </div>
 
                         {/* Actual Price */}
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Actual Price <span className="text-gray-400 normal-case">(what you normally charge)</span>
+                            <label className="text-xs font-semibold text-[#888] uppercase tracking-wider">
+                                Actual Price <span className="text-[#666] normal-case">(what you normally charge)</span>
                             </label>
                             <div className="relative">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 h-8 w-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                                    <IndianRupee className="h-4 w-4 text-gray-500" />
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 h-8 w-8 bg-[#222] rounded-lg flex items-center justify-center">
+                                    <IndianRupee className="h-4 w-4 text-[#888]" />
                                 </div>
                                 <input
                                     type="number"
                                     value={offerData.actualPrice}
                                     onChange={(e) => setOfferData({ ...offerData, actualPrice: e.target.value })}
                                     placeholder="500"
-                                    className="w-full h-14 bg-white rounded-2xl pl-14 pr-4 text-xl font-bold outline-none border-2 border-gray-100 focus:border-primary transition-colors"
+                                    className="w-full h-14 bg-[#111] rounded-2xl pl-14 pr-4 text-xl font-bold text-white placeholder:text-[#555] outline-none border-2 border-[#333] focus:border-green-500/50 transition-colors"
                                 />
                             </div>
                         </div>
 
-                        {/* Discount Value - FIXED: Shows correct icon based on offer type */}
+                        {/* Discount Value */}
                         {offerType !== "bogo" && (
                             <div className="space-y-2">
-                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                <label className="text-xs font-semibold text-[#888] uppercase tracking-wider">
                                     {offerType === "flat" ? "Discount Amount (₹)" : "Discount Percentage (%)"}
                                 </label>
                                 <div className="relative">
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 h-8 w-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 h-8 w-8 bg-green-500/20 rounded-lg flex items-center justify-center">
                                         {offerType === "flat" ? (
-                                            <IndianRupee className="h-4 w-4 text-primary" />
+                                            <IndianRupee className="h-4 w-4 text-green-400" />
                                         ) : (
-                                            <Percent className="h-4 w-4 text-primary" />
+                                            <Percent className="h-4 w-4 text-green-400" />
                                         )}
                                     </div>
                                     <input
@@ -359,7 +358,7 @@ export default function CreateFirstOfferPage() {
                                         value={offerData.discountValue}
                                         onChange={(e) => setOfferData({ ...offerData, discountValue: e.target.value })}
                                         placeholder={offerType === "flat" ? "100" : "15"}
-                                        className="w-full h-14 bg-white rounded-2xl pl-14 pr-4 text-xl font-bold outline-none border-2 border-gray-100 focus:border-primary transition-colors"
+                                        className="w-full h-14 bg-[#111] rounded-2xl pl-14 pr-4 text-xl font-bold text-white placeholder:text-[#555] outline-none border-2 border-[#333] focus:border-green-500/50 transition-colors"
                                     />
                                 </div>
                             </div>
@@ -368,13 +367,13 @@ export default function CreateFirstOfferPage() {
                         {/* Free Item for BOGO */}
                         {offerType === "bogo" && (
                             <div className="space-y-2">
-                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Free Item</label>
+                                <label className="text-xs font-semibold text-[#888] uppercase tracking-wider">Free Item</label>
                                 <input
                                     type="text"
                                     value={offerData.freeItemName}
                                     onChange={(e) => setOfferData({ ...offerData, freeItemName: e.target.value })}
                                     placeholder="e.g., Same item, Any drink, etc."
-                                    className="w-full h-14 bg-white rounded-2xl px-4 text-[15px] font-medium outline-none border-2 border-gray-100 focus:border-primary transition-colors"
+                                    className="w-full h-14 bg-[#111] rounded-2xl px-4 text-[15px] font-medium text-white placeholder:text-[#555] outline-none border-2 border-[#333] focus:border-green-500/50 transition-colors"
                                 />
                             </div>
                         )}
@@ -415,37 +414,37 @@ export default function CreateFirstOfferPage() {
 
                         {/* Minimum Order (Optional) */}
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Minimum Order Value <span className="text-gray-400 normal-case">(optional)</span>
+                            <label className="text-xs font-semibold text-[#888] uppercase tracking-wider">
+                                Minimum Order Value <span className="text-[#666] normal-case">(optional)</span>
                             </label>
                             <div className="relative">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 h-8 w-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                                    <IndianRupee className="h-4 w-4 text-amber-600" />
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 h-8 w-8 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                                    <IndianRupee className="h-4 w-4 text-amber-400" />
                                 </div>
                                 <input
                                     type="number"
                                     value={offerData.minOrderValue}
                                     onChange={(e) => setOfferData({ ...offerData, minOrderValue: e.target.value })}
                                     placeholder="No minimum"
-                                    className="w-full h-14 bg-white rounded-2xl pl-14 pr-4 text-lg font-medium outline-none border-2 border-gray-100 focus:border-amber-400 transition-colors"
+                                    className="w-full h-14 bg-[#111] rounded-2xl pl-14 pr-4 text-lg font-medium text-white placeholder:text-[#555] outline-none border-2 border-[#333] focus:border-amber-500/50 transition-colors"
                                 />
                             </div>
                         </div>
 
                         {/* Terms & Conditions Checkbox */}
-                        <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4">
+                        <div className="bg-amber-500/10 border-2 border-amber-500/30 rounded-2xl p-4">
                             <label className="flex items-start gap-3 cursor-pointer">
                                 <input
                                     type="checkbox"
                                     checked={agreedToTerms}
                                     onChange={(e) => setAgreedToTerms(e.target.checked)}
-                                    className="mt-1 h-5 w-5 rounded border-amber-300 text-primary focus:ring-primary"
+                                    className="mt-1 h-5 w-5 rounded border-amber-500/50 bg-[#111] text-green-500 focus:ring-green-500/50"
                                 />
                                 <div className="flex-1">
-                                    <p className="font-semibold text-gray-800 text-sm mb-2">
+                                    <p className="font-semibold text-white text-sm mb-2">
                                         I agree to the Terms & Conditions
                                     </p>
-                                    <ul className="space-y-1 text-xs text-gray-600">
+                                    <ul className="space-y-1 text-xs text-[#888]">
                                         <li>• Offers cannot be deleted, only paused</li>
                                         <li>• Minimum 2-hour wait before toggling offer status</li>
                                         <li>• Valid student ID verification is mandatory</li>
@@ -459,11 +458,11 @@ export default function CreateFirstOfferPage() {
             </main>
 
             {/* Bottom CTA */}
-            <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/95 backdrop-blur-xl border-t border-gray-100">
+            <div className="fixed bottom-0 left-0 right-0 p-5 bg-black/95 backdrop-blur-xl border-t border-[#222]">
                 <Button
                     onClick={step === 1 && offerType ? () => setStep(2) : handleSaveAndContinue}
                     disabled={step === 1 ? !offerType : (!isFormValid || loading)}
-                    className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-semibold rounded-2xl shadow-lg shadow-primary/30 disabled:opacity-40 disabled:shadow-none"
+                    className="w-full h-14 bg-green-500 hover:bg-green-400 disabled:bg-[#333] disabled:text-[#666] text-black font-bold rounded-2xl shadow-lg shadow-green-500/20 disabled:shadow-none"
                 >
                     {loading ? (
                         <>
@@ -482,7 +481,7 @@ export default function CreateFirstOfferPage() {
                         </>
                     )}
                 </Button>
-                <p className="text-center text-xs text-gray-400 mt-2">
+                <p className="text-center text-xs text-[#666] mt-2">
                     You can add more offers after setup
                 </p>
             </div>

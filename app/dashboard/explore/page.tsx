@@ -15,12 +15,12 @@ import { cn } from "@/lib/utils";
 
 // District-style categories with proper icons and screenshot-matched colors
 const CATEGORIES = [
-    { id: 'Food', name: "Food", icon: "🍕", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#A855F7]" },
-    { id: 'Fashion', name: "Fashion", icon: "👗", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#EC4899]" },
-    { id: 'Fitness', name: "Fitness", icon: "💪", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#3B82F6]" },
-    { id: 'Entertainment', name: "Fun", icon: "🎬", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#F59E0B]" },
-    { id: 'Technology', name: "Tech", icon: "💻", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#6366F1]" },
-    { id: 'Beauty', name: "Beauty", icon: "💄", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#8B5CF6]" },
+    { id: 'Food', name: "Food & Beverages", icon: "🍕", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#A855F7]" },
+    { id: 'Fashion', name: "Fashion & Apparel", icon: "👗", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#EC4899]" },
+    { id: 'Fitness', name: "Health & Fitness", icon: "💪", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#3B82F6]" },
+    { id: 'Entertainment', name: "Entertainment", icon: "🎬", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#F59E0B]" },
+    { id: 'Technology', name: "Tech & Gadgets", icon: "💻", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#6366F1]" },
+    { id: 'Beauty', name: "Skincare & Beauty", icon: "💄", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#8B5CF6]" },
 ];
 
 const SEARCH_PLACEHOLDERS = ["Search 'Sneakers'", "Search 'Coffee'", "Search 'Gym'", "Search 'Nike'"];

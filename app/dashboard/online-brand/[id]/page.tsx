@@ -151,27 +151,37 @@ export default function OnlineBrandPage() {
     const handleVisitWebsite = () => {
         vibrate('light');
 
+        // Detect device type
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isAndroid = /Android/.test(navigator.userAgent);
+
         // If preferApp is enabled, use app-first strategy
-        if (brand?.preferApp && brand?.appUrl) {
-            // Detect device type
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            const isAndroid = /Android/.test(navigator.userAgent);
+        if (brand?.preferApp && (brand?.appUrl || brand?.playstoreUrl || brand?.appstoreUrl)) {
+            // If we have a deep link, try it first
+            if (brand.appUrl) {
+                window.location.href = brand.appUrl;
 
-            // Try to open app deep link
-            window.location.href = brand.appUrl;
-
-            // After a delay, redirect to appropriate app store if app didn't open
-            setTimeout(() => {
+                // After a delay, redirect to appropriate app store if app didn't open
+                setTimeout(() => {
+                    if (isIOS && brand.appstoreUrl) {
+                        window.location.href = brand.appstoreUrl;
+                    } else if (isAndroid && brand.playstoreUrl) {
+                        window.location.href = brand.playstoreUrl;
+                    } else if (brand.playstoreUrl || brand.appstoreUrl) {
+                        window.location.href = brand.playstoreUrl || brand.appstoreUrl || '';
+                    }
+                }, 1000);
+            } else {
+                // No deep link - directly open appropriate store based on device
                 if (isIOS && brand.appstoreUrl) {
                     window.location.href = brand.appstoreUrl;
                 } else if (isAndroid && brand.playstoreUrl) {
                     window.location.href = brand.playstoreUrl;
-                } else if (brand.playstoreUrl || brand.appstoreUrl) {
-                    // Fallback to any available store URL
+                } else {
+                    // Fallback to any available store
                     window.location.href = brand.playstoreUrl || brand.appstoreUrl || '';
                 }
-                // NO website fallback when preferApp is enabled
-            }, 1000);
+            }
         } else if (brand?.websiteUrl) {
             // Default: open website (when preferApp is disabled)
             window.open(brand.websiteUrl, '_blank');
@@ -359,7 +369,7 @@ export default function OnlineBrandPage() {
                                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 rounded-xl text-black text-xs font-semibold"
                             >
                                 <Globe className="h-3.5 w-3.5" />
-                                {brand.preferApp && brand.appUrl ? 'Open App' : 'Website'}
+                                {brand.preferApp && (brand.appUrl || brand.playstoreUrl || brand.appstoreUrl) ? 'Open App' : 'Website'}
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 0.98 }}

@@ -8,6 +8,52 @@ import { rateLimiter } from './rateLimiter.service';
 // Session storage keys
 const PASSCODE_KEY = 'bb_passcode_hash';
 const DEVICE_ID_KEY = 'bb_device_id';
+const AUTH_CACHE_KEY = 'bb_auth_cache';
+const AUTH_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Auth cache interface
+interface AuthCache {
+    user: AuthUser;
+    timestamp: number;
+}
+
+// Get cached auth user (instant, no network)
+const getCachedAuthUser = (): AuthUser | null => {
+    if (typeof window === 'undefined') return null;
+    try {
+        const cached = localStorage.getItem(AUTH_CACHE_KEY);
+        if (!cached) return null;
+        const { user, timestamp }: AuthCache = JSON.parse(cached);
+        // Check if cache is still valid
+        if (Date.now() - timestamp < AUTH_CACHE_TTL) {
+            return user;
+        }
+        // Cache expired
+        localStorage.removeItem(AUTH_CACHE_KEY);
+    } catch (e) {
+        localStorage.removeItem(AUTH_CACHE_KEY);
+    }
+    return null;
+};
+
+// Set auth cache
+const setCachedAuthUser = (user: AuthUser | null): void => {
+    if (typeof window === 'undefined') return;
+    if (user) {
+        localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({
+            user,
+            timestamp: Date.now()
+        }));
+    } else {
+        localStorage.removeItem(AUTH_CACHE_KEY);
+    }
+};
+
+// Clear auth cache (on logout)
+const clearAuthCache = (): void => {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(AUTH_CACHE_KEY);
+};
 
 // Generate device ID for device-bound passcode
 const getOrCreateDeviceId = (): string => {
@@ -71,7 +117,21 @@ export const authService = {
     // SESSION MANAGEMENT
     // =============================================
 
+    // FAST: Get cached user instantly (no network call)
+    getCachedUser(): AuthUser | null {
+        return getCachedAuthUser();
+    },
+
+    // Clear auth cache (call on logout)
+    clearCache(): void {
+        clearAuthCache();
+    },
+
     async hasActiveSession(): Promise<boolean> {
+        // FAST: Check cache first
+        const cached = getCachedAuthUser();
+        if (cached && cached.isComplete) return true;
+
         // DEV MODE: Check for dev test user
         if (IS_DEV && typeof window !== 'undefined') {
             const devTestUser = localStorage.getItem('dev_test_user');
@@ -140,7 +200,7 @@ export const authService = {
         }
 
         if (student) {
-            return {
+            const authUser: AuthUser = {
                 id: student.id,
                 email: student.email,
                 name: student.name,
@@ -149,6 +209,9 @@ export const authService = {
                 isComplete: student.status !== 'pending', // Check if verification complete
                 isSuspended: student.status === 'suspended' // Check if suspended by admin
             };
+            // Cache for faster subsequent loads
+            setCachedAuthUser(authUser);
+            return authUser;
         }
 
         // Check if merchant
@@ -159,15 +222,17 @@ export const authService = {
             .maybeSingle();
 
         if (merchant) {
-            return {
+            const authUser: AuthUser = {
                 id: merchant.id,
                 email: merchant.email,
                 name: merchant.business_name,
                 role: 'merchant',
                 bbmId: merchant.bbm_id,
                 isComplete: merchant.status === 'approved',
-                isSuspended: merchant.status === 'suspended' // Check if suspended by admin
+                isSuspended: merchant.status === 'suspended'
             };
+            setCachedAuthUser(authUser);
+            return authUser;
         }
 
         // Check if admin (wrapped in try-catch for dev environments where table may not exist)
@@ -203,6 +268,8 @@ export const authService = {
     },
 
     async logout(): Promise<void> {
+        // Clear auth cache first
+        clearAuthCache();
         await supabase.auth.signOut();
         if (typeof window !== 'undefined') {
             localStorage.removeItem(PASSCODE_KEY);
@@ -781,7 +848,6 @@ export const authService = {
                     outlet_manager_name: merchantData.outletManagerName || null,
                     outlet_manager_phone: merchantData.outletManagerPhone || null,
                     outlet_area: merchantData.outletArea || null,
-                    base_city: merchantData.baseCity || null, // For regional chains
                     business_name: merchantData.businessName,
                     category: merchantData.category,
                     sub_category: merchantData.subCategory,

@@ -13,6 +13,7 @@ interface UploadedImage {
     name: string;
     preview: string;
     url?: string;
+    aspectRatio?: number; // width/height - tracks original image dimensions
 }
 
 interface CropState {
@@ -126,16 +127,32 @@ export default function DocumentsPage() {
 
         try {
             const previewUrl = URL.createObjectURL(file);
+
+            // Get image dimensions for aspect ratio (for store photos)
+            let aspectRatio: number | undefined;
+            if (type === 'store') {
+                const img = new Image();
+                await new Promise<void>((resolve) => {
+                    img.onload = () => {
+                        aspectRatio = img.width / img.height;
+                        resolve();
+                    };
+                    img.onerror = () => resolve();
+                    img.src = previewUrl;
+                });
+            }
+
             const result = await merchantService.uploadImage(type, file);
 
             if (result.success && result.data) {
-                const img: UploadedImage = {
+                const imgData: UploadedImage = {
                     id: Date.now().toString(),
                     name: file.name,
                     preview: previewUrl,
-                    url: result.data
+                    url: result.data,
+                    aspectRatio
                 };
-                callback(img);
+                callback(imgData);
             } else {
                 setError(result.error || "Failed to upload image");
                 URL.revokeObjectURL(previewUrl);
@@ -185,14 +202,20 @@ export default function DocumentsPage() {
         }
     };
 
-    // Calculate smart grid layout for store photos
-    const getStorePhotoLayout = () => {
-        const count = storeImages.length;
-        if (count === 0) return "grid-cols-2";
-        if (count === 1) return "grid-cols-2";
-        if (count === 2) return "grid-cols-2";
-        if (count <= 4) return "grid-cols-2";
-        return "grid-cols-3";
+    // Helper to get CSS class for image based on aspect ratio
+    const getImageStyle = (img: UploadedImage, index: number) => {
+        const ratio = img.aspectRatio || 1;
+
+        // Vertical photo (portrait like 9:16)
+        if (ratio < 0.8) {
+            return 'row-span-2';
+        }
+        // Horizontal photo (landscape like 16:9)
+        if (ratio > 1.2) {
+            return 'col-span-2';
+        }
+        // Square-ish
+        return '';
     };
 
     return (
@@ -433,35 +456,49 @@ export default function DocumentsPage() {
                             )}
                         </div>
 
-                        {/* Smart Grid Layout */}
-                        <div className={`grid ${getStorePhotoLayout()} gap-3`}>
-                            {storeImages.map((img, index) => (
-                                <motion.div
-                                    key={img.id}
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    layout
-                                    className={`relative rounded-xl overflow-hidden border border-[#333] ${storeImages.length === 1 ? 'aspect-video col-span-2' :
-                                        storeImages.length === 3 && index === 0 ? 'col-span-2 aspect-video' :
-                                            'aspect-square'
-                                        }`}
-                                >
-                                    <img src={img.url || img.preview} alt="Store" className="w-full h-full object-cover" />
-                                    <button
-                                        onClick={() => removeStoreImage(img.id)}
-                                        className="absolute top-2 right-2 h-7 w-7 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/80 transition-colors"
+                        {/* Responsive Grid with Smart Aspect Ratios */}
+                        <div className="grid grid-cols-2 gap-3 auto-rows-fr">
+                            {storeImages.map((img, index) => {
+                                const ratio = img.aspectRatio || 1;
+                                // Determine if image is portrait, landscape, or square
+                                const isPortrait = ratio < 0.8;
+                                const isLandscape = ratio > 1.2;
+
+                                return (
+                                    <motion.div
+                                        key={img.id}
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        layout
+                                        className={`relative rounded-xl overflow-hidden border border-[#333] bg-[#111] ${isLandscape ? 'col-span-2' : ''
+                                            }`}
+                                        style={{
+                                            // Use paddingTop trick to maintain aspect ratio
+                                            aspectRatio: isPortrait ? '3/4' : isLandscape ? '16/9' : '1/1'
+                                        }}
                                     >
-                                        <X className="h-3.5 w-3.5 text-white" />
-                                    </button>
-                                </motion.div>
-                            ))}
+                                        <img
+                                            src={img.url || img.preview}
+                                            alt="Store"
+                                            className="absolute inset-0 w-full h-full object-cover"
+                                        />
+                                        <button
+                                            onClick={() => removeStoreImage(img.id)}
+                                            className="absolute top-2 right-2 h-7 w-7 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/80 transition-colors z-10"
+                                        >
+                                            <X className="h-3.5 w-3.5 text-white" />
+                                        </button>
+                                    </motion.div>
+                                );
+                            })}
 
                             {/* Add button */}
                             {storeImages.length < 10 && (
                                 <button
                                     onClick={() => storeInputRef.current?.click()}
                                     disabled={uploading === 'store'}
-                                    className="border-2 border-dashed border-[#333] rounded-xl flex flex-col items-center justify-center gap-2 hover:border-green-500/50 hover:bg-green-500/5 transition-all aspect-square"
+                                    className="border-2 border-dashed border-[#333] rounded-xl flex flex-col items-center justify-center gap-2 hover:border-green-500/50 hover:bg-green-500/5 transition-all min-h-[140px]"
+                                    style={{ aspectRatio: '1/1' }}
                                 >
                                     {uploading === 'store' ? (
                                         <Loader2 className="h-6 w-6 animate-spin text-green-400" />

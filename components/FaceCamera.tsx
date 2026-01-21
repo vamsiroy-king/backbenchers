@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, Loader2, AlertCircle, CheckCircle, X, Sun, User } from "lucide-react";
 import { motion } from "framer-motion";
+import { isFaceDetectionReady, getFaceApi, preloadFaceDetection } from "@/lib/services/face-preload.service";
 
 // Face detection status types
 type FaceStatus =
@@ -82,10 +83,27 @@ export default function FaceCamera({
         }
     };
 
-    // Load face-api.js models
+    // Load face-api.js models (uses preloaded if available)
     useEffect(() => {
         const loadModels = async () => {
             try {
+                // Check if already preloaded (instant, no network)
+                if (isFaceDetectionReady()) {
+                    faceApiRef.current = getFaceApi();
+                    setFaceApiLoaded(true);
+                    console.log("✅ Using preloaded face detection");
+                    return;
+                }
+
+                // If not preloaded, trigger preload and wait
+                await preloadFaceDetection();
+                if (isFaceDetectionReady()) {
+                    faceApiRef.current = getFaceApi();
+                    setFaceApiLoaded(true);
+                    return;
+                }
+
+                // Fallback: load fresh if preload failed
                 const faceapi = await import("@vladmandic/face-api");
                 faceApiRef.current = faceapi;
                 const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model";
