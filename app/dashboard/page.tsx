@@ -25,6 +25,7 @@ import { BBInlineLoader, BBCardPlaceholder } from "@/components/BBLoader";
 import { MasonryGrid } from "@/components/ui/MasonryGrid";
 import { OfferCard } from "@/components/OfferCard";
 import { DistrictOfferCard } from "@/components/DistrictOfferCard";
+import { ConnectingLines } from "@/components/ui/ConnectingLines";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ThemeProvider";
@@ -902,74 +903,115 @@ export default function DashboardPage() {
                 {/* Trending Offers - Real App Style */}
                 {
                     contentSettings.showTrending && (
-                        <section id="trending-section" className="py-6">
-                            {/* Section Header - Shop by Category Style with Tabs */}
-                            <div className="flex items-center justify-center mb-4">
-                                <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                                <div className="px-4 flex items-center gap-3">
-                                    <span className={`text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TRENDING</span>
-                                    {/* Tab Switcher */}
-                                    <div className={`flex gap-1 p-0.5 rounded-full ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`}>
-                                        <button
-                                            onClick={() => { setTrendingTab('offline'); localStorage.setItem('trendingTab', 'offline'); vibrate('light'); }}
-                                            className={cn(
-                                                "px-2.5 py-1 rounded-full text-[9px] font-semibold transition-all duration-200",
-                                                trendingTab === 'offline'
-                                                    ? (isLightTheme ? 'bg-white text-gray-900 shadow-sm' : 'bg-white text-black')
-                                                    : (isLightTheme ? 'text-gray-500 hover:text-gray-700' : 'text-white/40 hover:text-white/60')
-                                            )}
-                                        >
-                                            OFFLINE
-                                        </button>
-                                        <button
-                                            onClick={() => { setTrendingTab('online'); localStorage.setItem('trendingTab', 'online'); vibrate('light'); }}
-                                            className={cn(
-                                                "px-2.5 py-1 rounded-full text-[9px] font-semibold transition-all duration-200",
-                                                trendingTab === 'online'
-                                                    ? (isLightTheme ? 'bg-white text-gray-900 shadow-sm' : 'bg-white text-black')
-                                                    : (isLightTheme ? 'text-gray-500 hover:text-gray-700' : 'text-white/40 hover:text-white/60')
-                                            )}
-                                        >
-                                            ONLINE
-                                        </button>
-                                    </div>
+                        <section className="pb-4 relative overflow-hidden">
+                            <ConnectingLines />
+
+                            <div className="flex items-center justify-between mb-4 px-2 relative z-10">
+                                <div className="flex items-center gap-2">
+                                    <TrendingUp className="h-4 w-4 text-green-400" />
+                                    <h3 className={`font-bold text-lg ${isLightTheme ? 'text-gray-900' : 'text-white'}`}>Trending Now</h3>
                                 </div>
-                                <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+
+                                {/* Toggle - Floating pill style */}
+                                <div className="flex p-1 bg-white/[0.05] rounded-full border border-white/[0.08]">
+                                    <button
+                                        onClick={() => {
+                                            setTrendingTab('offline');
+                                            if (typeof window !== 'undefined') localStorage.setItem('trendingTab', 'offline');
+                                            vibrate('light');
+                                        }}
+                                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${trendingTab === 'offline' ? 'bg-green-500 text-black shadow-lg shadow-green-500/20' : 'text-white/50 hover:text-white'}`}
+                                    >
+                                        In-Store
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setTrendingTab('online');
+                                            if (typeof window !== 'undefined') localStorage.setItem('trendingTab', 'online');
+                                            vibrate('light');
+                                        }}
+                                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${trendingTab === 'online' ? 'bg-green-500 text-black shadow-lg shadow-green-500/20' : 'text-white/50 hover:text-white'}`}
+                                    >
+                                        Online
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* Offers Grid - District-Quality Masonry Layout */}
-                            <MasonryGrid
-                                items={currentOffers.slice(0, 10)}
-                                columns={{ default: 2 }}
-                                gap={12}
-                                renderItem={(offer, index) => (
-                                    <DistrictOfferCard
-                                        offer={offer}
-                                        priority={index < 4}
-                                        onClick={() => {
-                                            if (!isVerified) {
-                                                setShowVerifyModal(true);
-                                            } else if (offer.id) {
-                                                // Redirect to new Online Brand page if it's a new system offer
-                                                if ((offer as any).isNewSystem) {
-                                                    router.push(`/dashboard/online-brand/${offer.merchantId}`);
-                                                } else {
-                                                    router.push(`/offer/${offer.id}`);
-                                                }
-                                            }
-                                        }}
-                                    />
-                                )}
-                            />
+                            {/* Horizontal Scroll Area */}
+                            <div className="flex overflow-x-auto gap-4 pb-4 -mx-5 px-5 scrollbar-hide snap-x relative z-10">
+                                {currentOffers.map((offer: any, index: number) => (
+                                    <div key={offer.id} className="min-w-[280px] snap-center">
+                                        {trendingTab === 'online' ? (
+                                            // Online Card - District Style
+                                            <div
+                                                onClick={() => {
+                                                    // Route to online brand page (NEW) or generic
+                                                    if (offer.isNewSystem) {
+                                                        router.push(`/dashboard/online-brand/${offer.merchantId}`);
+                                                    } else {
+                                                        router.push(`/offer/${offer.id}`);
+                                                    }
+                                                }}
+                                                className="bg-[#111] border border-white/[0.08] rounded-2xl p-4 relative overflow-hidden h-full active:scale-[0.98] transition-transform"
+                                            >
+                                                {/* Glow effect */}
+                                                <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full blur-2xl" />
 
-                            {/* View All Button - District Style */}
-                            <motion.button
-                                whileTap={{ scale: 0.97 }}
-                                onClick={() => router.push('/dashboard/explore')}
-                                className="w-full h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white/70 font-medium text-sm hover:bg-white/[0.06] hover:border-white/[0.12] transition-all mt-4 active:scale-95"
-                            >
-                                View All Offers →
-                            </motion.button>
+                                                <div className="flex items-start gap-3 mb-3">
+                                                    <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center p-1">
+                                                        {offer.merchantLogo ? (
+                                                            <img src={offer.merchantLogo} alt="" className="w-full h-full object-contain" />
+                                                        ) : (
+                                                            <span className="text-black font-bold text-xl">{offer.merchantName?.[0]}</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h4 className="text-white font-bold truncate">{offer.merchantName}</h4>
+                                                        <p className="text-white/50 text-xs truncate">{offer.title}</p>
+                                                    </div>
+                                                    {/* Save Heart */}
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            vibrate('light');
+                                                            // Placeholder for online fav
+                                                        }}
+                                                        className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white"
+                                                    >
+                                                        <Heart className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+
+                                                <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                                                    <p className="text-green-400 font-bold font-mono tracking-wide text-sm">
+                                                        {offer.isNewSystem ? 'VIEW CODE' : (offer.discountValue ? `${offer.discountValue}${offer.type === 'percentage' ? '%' : '₹'} OFF` : 'DEAL')}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            // Offline Card - Use existing DistrictOfferCard logic but horizontal
+                                            <div onClick={() => router.push(`/dashboard/store/${offer.merchantId}`)}>
+                                                <DistrictOfferCard
+                                                    offer={{
+                                                        ...offer,
+                                                        merchant: {
+                                                            id: offer.merchantId,
+                                                            businessName: offer.merchantName,
+                                                            city: offer.merchantCity,
+                                                            logo: offer.merchantLogo,
+                                                            category: offer.merchantCategory,
+                                                            rating: 4.8
+                                                        }
+                                                    }}
+                                                    isFavorite={favoriteIds.includes(offer.id)}
+                                                    onToggleFavorite={(e) => toggleFavorite(offer.id, e)}
+                                                    featured={index < 3}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </section>
                     )
                 }

@@ -667,38 +667,67 @@ export default function ProfilePage() {
 
                     {/* BACK of Card */}
                     <div
-                        className="absolute inset-0 rounded-2xl overflow-hidden"
+                        className="absolute inset-0 rounded-2xl overflow-hidden bg-[#0a0a0a]"
                         style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
                     >
-                        {/* Card Background */}
-                        <div className="absolute inset-0 bg-white" />
+                        {/* District-Style Background: subtle grid */}
+                        <div className="absolute inset-0 opacity-[0.03]"
+                            style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}
+                        />
 
-                        {/* Top Accent */}
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-emerald-400" />
+                        {/* Top Industrial Accent */}
+                        <div className="absolute top-4 left-0 right-0 flex justify-between px-5 items-start">
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-mono text-[#444] tracking-widest uppercase mb-0.5">VERIFICATION_ID</span>
+                                <span className="text-[10px] font-bold text-[#666] font-mono">{student?.bbId || "PENDING"}</span>
+                            </div>
+                            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                        </div>
 
-                        {/* Content - Centered QR or Selfie Prompt */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        {/* Content - Centered QR */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
                             {hasProfileImage && student?.bbId ? (
-                                <>
-                                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 shadow-sm">
-                                        <BBQRCode value={student.bbId} size={160} withLogo={true} />
+                                <motion.div
+                                    initial={{ scale: 0.9, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="relative group"
+                                >
+                                    {/* QR Container - Industrial Frame */}
+                                    <div className="bg-white p-3 rounded-xl relative shadow-2xl shadow-green-900/10">
+                                        {/* Corner marks */}
+                                        <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-green-500/30 rounded-tl-md" />
+                                        <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-green-500/30 rounded-tr-md" />
+                                        <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-green-500/30 rounded-bl-md" />
+                                        <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-green-500/30 rounded-br-md" />
+
+                                        <BBQRCode value={student.bbId} size={150} withLogo={true} />
                                     </div>
-                                    <p className="mt-3 font-semibold text-gray-800 text-sm">Scan to Verify</p>
-                                    <p className="text-[10px] text-gray-400 mt-0.5">Show this QR at checkout</p>
-                                </>
+
+                                    <div className="text-center mt-4 space-y-1">
+                                        <p className="font-mono font-bold text-white text-xs tracking-wider">SCAN TO VERIFY</p>
+                                        <p className="text-[9px] text-[#444] uppercase tracking-widest">OFFICIAL STUDENT ID</p>
+                                    </div>
+                                </motion.div>
                             ) : (
                                 <div className="text-center px-6">
-                                    <Camera className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                                    <p className="font-semibold text-gray-600 text-sm">Add Selfie to Unlock</p>
-                                    <p className="text-xs text-gray-400 mt-1">Your QR code will appear here after you add a profile photo</p>
+                                    <div className="h-20 w-20 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-4 dashed-border">
+                                        <Camera className="h-8 w-8 text-[#333]" />
+                                    </div>
+                                    <p className="font-bold text-white text-sm mb-1">Photo Required</p>
+                                    <p className="text-[10px] text-[#555] max-w-[180px] mx-auto leading-relaxed">
+                                        Upload a selfie to generate your verification QR code
+                                    </p>
                                 </div>
                             )}
                         </div>
 
-                        {/* Bottom Branding */}
-                        <div className="absolute bottom-3 left-0 right-0 flex flex-col items-center">
-                            <span className="text-[9px] font-bold italic text-gray-500">BACKBENCHERS</span>
-                            <span className="text-[7px] font-semibold text-green-500 tracking-wide">BORN TO SAVE</span>
+                        {/* Bottom Branding - Industrial Footer */}
+                        <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center">
+                            <div className="w-full px-5 flex justify-between items-end">
+                                <span className="text-[10px] font-bold text-white/20 tracking-tighter">BACKBENCHERS</span>
+                                <span className="text-[7px] font-mono text-green-500/60 tracking-[0.2em]">SECURE_ACCESS</span>
+                            </div>
                         </div>
                     </div>
                 </motion.div>

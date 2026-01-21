@@ -90,21 +90,7 @@ export default function SettingsPage() {
                             label="Notifications"
                             description="Push, email, SMS preferences"
                         />
-                        <SettingsItem
-                            icon={theme === 'dark' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-                            label="Appearance"
-                            description={theme === 'dark' ? 'Dark mode' : 'Light mode'}
-                            onClick={toggleTheme}
-                            rightElement={
-                                <div className={`relative h-6 w-11 rounded-full transition-colors ${theme === 'dark' ? 'bg-green-500' : 'bg-gray-300'}`}>
-                                    <motion.div
-                                        className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-md"
-                                        animate={{ left: theme === 'dark' ? '1.375rem' : '0.125rem' }}
-                                        transition={{ duration: 0.2 }}
-                                    />
-                                </div>
-                            }
-                        />
+
                     </div>
                 </section>
 

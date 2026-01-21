@@ -236,8 +236,16 @@ export default function ExplorePage() {
                                                 </div>
                                             </div>
 
-                                            {/* Arrow */}
-                                            <ChevronLeft className="h-5 w-5 text-[#444] rotate-180" />
+                                            {/* Arrow & Heart */}
+                                            <div className="flex flex-col items-end gap-2">
+                                                <button
+                                                    onClick={(e) => handleToggleOnlineFavorite(e, brand.id)}
+                                                    className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[#444] hover:text-white hover:bg-white/20 transition-all"
+                                                >
+                                                    <Heart className={cn("h-4 w-4", isOnlineBrandFavorite(brand.id) && "fill-red-500 text-red-500")} />
+                                                </button>
+                                                <ChevronLeft className="h-5 w-5 text-[#444] rotate-180" />
+                                            </div>
                                         </motion.div>
                                     </Link>
                                 ))

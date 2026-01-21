@@ -258,8 +258,6 @@ export const trendingService = {
                 // ONLINE: Fetch from BOTH 'offers' (legacy online) AND 'online_offers' (new)
 
                 // A. New Online Offers (Fetch active ones)
-                // We fetch MORE than needed because we might filter some out by location
-                // SIMPLIFIED QUERY: Removed relationship join that was failing
                 const { data: newOnlineData, error: newOnlineError } = await supabase
                     .from('online_offers')
                     .select('id, title, code, link, brand_id, location_scope, location_values')
@@ -277,7 +275,8 @@ export const trendingService = {
                 if (brandIds.length > 0) {
                     const { data: brandsData } = await supabase
                         .from('online_brands')
-                        .select('id, name, logo_url, category')
+                        // Join with trending columns for sorting
+                        .select('id, name, logo_url, category, trending_score, is_trending_override')
                         .in('id', brandIds);
                     (brandsData || []).forEach((b: any) => {
                         brandMap[b.id] = { name: b.name, logo_url: b.logo_url };
@@ -347,17 +346,19 @@ export const trendingService = {
                 algoOffers = [...newMapped, ...legacyMapped];
 
             } else {
-                // OFFLINE: Fetch from 'offers' only
+                // OFFLINE: Fetch from 'offers' using NEW trending_score logic
                 const { data: offlineData } = await supabase
                     .from('offers')
                     .select(`
                         id, title, discount_value, type, merchant_id,
-                        merchants!inner (business_name, city, online_store, status)
+                        merchants!inner (business_name, city, online_store, status, trending_score, is_trending_override)
                     `)
                     .eq('status', 'active')
                     .eq('merchants.status', 'approved')
                     .eq('merchants.online_store', false)
-                    .order('total_redemptions', { ascending: false })
+                    // ORDER BY: 1. Manual Override, 2. Trending Score, 3. Redemptions
+                    .order('merchants(is_trending_override)', { ascending: false })
+                    .order('merchants(trending_score)', { ascending: false })
                     .limit(slotsRemaining);
 
                 algoOffers = (offlineData || []).map((o: any) => ({
