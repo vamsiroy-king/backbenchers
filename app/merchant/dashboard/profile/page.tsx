@@ -357,7 +357,9 @@ export default function MerchantProfilePage() {
                         <p className="text-[10px] text-gray-500">Redemptions</p>
                     </div>
                     <div className="bg-blue-50 rounded-2xl p-4 text-center">
-                        <p className="text-2xl font-extrabold text-blue-600">4.8</p>
+                        <p className="text-2xl font-extrabold text-blue-600">
+                            {merchant?.rating ? merchant.rating.toFixed(1) : 'New'}
+                        </p>
                         <p className="text-[10px] text-gray-500">Rating</p>
                     </div>
                     <div className="bg-purple-50 rounded-2xl p-4 text-center">

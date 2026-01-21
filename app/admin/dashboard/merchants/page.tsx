@@ -254,6 +254,7 @@ export default function MerchantsListPage() {
                                 <th className="px-4 py-4 text-left text-xs font-semibold text-gray-500 uppercase">BBM-ID</th>
                                 <th className="px-4 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Category</th>
                                 <th className="px-4 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Location</th>
+                                <th className="px-4 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Rating</th>
                                 <th className="px-4 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
                                 <th className="px-4 py-4 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
                             </tr>
@@ -292,6 +293,14 @@ export default function MerchantsListPage() {
                                     </td>
                                     <td className="px-4 py-4">
                                         <span className="text-sm text-gray-600">{merchant.city}, {merchant.state}</span>
+                                    </td>
+                                    <td className="px-4 py-4">
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-yellow-500">★</span>
+                                            <span className="text-sm font-semibold text-gray-700">
+                                                {merchant.rating ? merchant.rating.toFixed(1) : '-'}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td className="px-4 py-4">
                                         {getStatusBadge(merchant.status)}

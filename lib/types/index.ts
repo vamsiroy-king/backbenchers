@@ -55,6 +55,8 @@ export interface Merchant {
     googleMapsEmbed?: string;
     // Payment
     paymentQrUrl?: string;
+    // Ratings
+    rating?: number;
 }
 
 export interface Offer {

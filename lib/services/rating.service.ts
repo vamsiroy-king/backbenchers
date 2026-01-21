@@ -56,11 +56,35 @@ export const ratingService = {
                 .single();
 
             if (error) {
-                // Handle duplicate rating
                 if (error.code === '23505') {
                     return { success: false, data: null, error: 'You have already rated this transaction' };
                 }
                 return { success: false, data: null, error: error.message };
+            }
+
+            // Update Merchant's Average Rating & Total Count
+            // We calculate freshly from ratings table to be accurate
+            const { count, error: countError } = await supabase
+                .from('ratings')
+                .select('*', { count: 'exact', head: true })
+                .eq('merchant_id', data.merchantId);
+
+            const { data: ratingData, error: avgError } = await supabase
+                .from('ratings')
+                .select('stars')
+                .eq('merchant_id', data.merchantId);
+
+            if (!countError && !avgError && ratingData) {
+                const totalRating = ratingData.reduce((sum, r) => sum + r.stars, 0);
+                const average = count ? totalRating / count : 0;
+
+                await supabase
+                    .from('merchants')
+                    .update({
+                        average_rating: average,
+                        total_ratings: count
+                    })
+                    .eq('id', data.merchantId);
             }
 
             return { success: true, data: mapDbToRating(rating), error: null };

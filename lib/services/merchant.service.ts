@@ -34,7 +34,8 @@ const mapDbToMerchant = (row: any): Merchant => ({
     longitude: row.longitude,
     googleMapsLink: row.google_maps_link,
     googleMapsEmbed: row.google_maps_embed,
-    paymentQrUrl: row.payment_qr_url
+    paymentQrUrl: row.payment_qr_url,
+    rating: row.average_rating || 0 // Map database column to frontend type
 });
 
 export const merchantService = {

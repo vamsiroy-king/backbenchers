@@ -107,7 +107,7 @@ export default function MerchantDashboardPage() {
                             <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-900/30 px-2.5 py-1 rounded-lg">
                                 <span className="text-yellow-500">★</span>
                                 <span className="text-[10px] font-bold text-yellow-700 dark:text-yellow-400">
-                                    {(merchant as any)?.rating?.toFixed(1) || '5.0'}
+                                    {merchant?.rating ? merchant.rating.toFixed(1) : 'New'}
                                 </span>
                             </div>
                         )}
@@ -121,7 +121,7 @@ export default function MerchantDashboardPage() {
                         </button>
                     </div>
                 </div>
-            </header>
+            </header >
 
             <main className="px-5 pt-8 space-y-6">
                 {/* Status Banner for Pending */}
@@ -310,6 +310,6 @@ export default function MerchantDashboardPage() {
                     )}
                 </div>
             </main>
-        </div>
+        </div >
     );
 }
