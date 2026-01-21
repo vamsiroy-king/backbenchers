@@ -118,16 +118,52 @@ export default function DashboardPage() {
     const [searchPlaceholderIndex, setSearchPlaceholderIndex] = useState(0);
     const heroRef = useRef<HTMLDivElement>(null);
 
-    // Real offers from database
-    const [realOffers, setRealOffers] = useState<Offer[]>([]);
-    const [loadingOffers, setLoadingOffers] = useState(true);
+    // Initialize Real Offers from Cache (Synchronous to prevent flash)
+    const [realOffers, setRealOffers] = useState<Offer[]>(() => {
+        if (typeof window !== 'undefined') {
+            const city = localStorage.getItem('selectedCity');
+            const cached = dashboardCache.getOffers(city || undefined);
+            if (cached) return cached;
+        }
+        return [];
+    });
 
-    // Trending offers from admin
-    const [trendingOnline, setTrendingOnline] = useState<Offer[]>([]);
-    const [trendingOffline, setTrendingOffline] = useState<Offer[]>([]);
+    // Initialize Loading State based on Cache existence
+    const [loadingOffers, setLoadingOffers] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const city = localStorage.getItem('selectedCity');
+            return !dashboardCache.hasCachedData(city || undefined);
+        }
+        return true;
+    });
 
-    // Top brands from admin
-    const [topBrandsData, setTopBrandsData] = useState<{ id: string; name: string; logo: string | null; category: string; discount?: string }[]>([]);
+    // Trending offers from admin - Initialize from cache
+    const [trendingOnline, setTrendingOnline] = useState<Offer[]>(() =>
+        (typeof window !== 'undefined' ? dashboardCache.getTrendingOnline() : null) || []
+    );
+    const [trendingOffline, setTrendingOffline] = useState<Offer[]>(() => {
+        if (typeof window !== 'undefined') {
+            const city = localStorage.getItem('selectedCity');
+            return dashboardCache.getTrendingOffline(city || undefined) || [];
+        }
+        return [];
+    });
+
+    // Top brands from admin - Initialize from cache
+    const [topBrandsData, setTopBrandsData] = useState<{ id: string; name: string; logo: string | null; category: string; discount?: string }[]>(() => {
+        if (typeof window !== 'undefined') {
+            const cached = dashboardCache.getTopBrands();
+            if (cached) {
+                return cached.map((b: any) => ({
+                    id: b.merchantId || b.id,
+                    name: b.merchant?.businessName || b.name || 'Unknown',
+                    logo: b.merchant?.logo || b.logo || null,
+                    category: b.merchant?.category || b.category || 'Store',
+                }));
+            }
+        }
+        return [];
+    });
 
     // New merchants for "New on BackBenchers" section
     const [newMerchants, setNewMerchants] = useState<NewMerchant[]>([]);
