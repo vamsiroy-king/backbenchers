@@ -965,7 +965,7 @@ export default function DashboardPage() {
                                                 } else if (trendingTab === 'online') {
                                                     router.push(`/offer/${offer.id}`);
                                                 } else {
-                                                    router.push(`/dashboard/store/${offer.merchantId}`);
+                                                    router.push(`/store/${offer.merchantId}`);
                                                 }
                                             }}
                                         />

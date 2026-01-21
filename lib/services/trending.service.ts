@@ -272,7 +272,7 @@ export const trendingService = {
                 }
 
                 // Fetch brand details separately if we have offers
-                let brandMap: Record<string, { name: string; logo_url: string | null }> = {};
+                let brandMap: Record<string, { name: string; logo_url: string | null; rating?: number }> = {};
                 const brandIds = [...new Set((newOnlineData || []).map((o: any) => o.brand_id).filter(Boolean))];
                 if (brandIds.length > 0) {
                     const { data: brandsData } = await supabase
@@ -317,8 +317,8 @@ export const trendingService = {
                         merchantLogo: brand.logo_url,
                         isAdminPick: false,
                         isNewSystem: true,
-                        avgRating: 4.5, // Default for now
-                        totalRatings: 100
+                        avgRating: brand.rating || 0,
+                        totalRatings: 0 // No ratings for new online system yet
                     };
                 });
 
