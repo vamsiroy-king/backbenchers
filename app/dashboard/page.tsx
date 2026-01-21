@@ -940,75 +940,35 @@ export default function DashboardPage() {
                             {/* Horizontal Scroll Area */}
                             <div className="flex overflow-x-auto gap-4 pb-4 -mx-5 px-5 scrollbar-hide snap-x relative z-10">
                                 {currentOffers.map((offer: any, index: number) => (
-                                    <div key={offer.id} className="min-w-[280px] snap-center">
-                                        {trendingTab === 'online' ? (
-                                            // Online Card - District Style
-                                            <div
-                                                onClick={() => {
-                                                    // Route to online brand page (NEW) or generic
-                                                    if (offer.isNewSystem) {
-                                                        router.push(`/dashboard/online-brand/${offer.merchantId}`);
-                                                    } else {
-                                                        router.push(`/offer/${offer.id}`);
-                                                    }
-                                                }}
-                                                className="bg-[#111] border border-white/[0.08] rounded-2xl p-4 relative overflow-hidden h-full active:scale-[0.98] transition-transform"
-                                            >
-                                                {/* Glow effect */}
-                                                <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full blur-2xl" />
-
-                                                <div className="flex items-start gap-3 mb-3">
-                                                    <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center p-1">
-                                                        {offer.merchantLogo ? (
-                                                            <img src={offer.merchantLogo} alt="" className="w-full h-full object-contain" />
-                                                        ) : (
-                                                            <span className="text-black font-bold text-xl">{offer.merchantName?.[0]}</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <h4 className="text-white font-bold truncate">{offer.merchantName}</h4>
-                                                        <p className="text-white/50 text-xs truncate">{offer.title}</p>
-                                                    </div>
-                                                    {/* Save Heart */}
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            vibrate('light');
-                                                            // Placeholder for online fav
-                                                        }}
-                                                        className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white"
-                                                    >
-                                                        <Heart className="h-4 w-4" />
-                                                    </button>
-                                                </div>
-
-                                                <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
-                                                    <p className="text-green-400 font-bold font-mono tracking-wide text-sm">
-                                                        {offer.isNewSystem ? 'VIEW CODE' : (offer.discountValue ? `${offer.discountValue}${offer.type === 'percentage' ? '%' : '₹'} OFF` : 'DEAL')}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            // Offline Card - Use existing DistrictOfferCard logic but horizontal
-                                            <div onClick={() => router.push(`/dashboard/store/${offer.merchantId}`)}>
-                                                <DistrictOfferCard
-                                                    offer={{
-                                                        ...offer,
-                                                        merchant: {
-                                                            id: offer.merchantId,
-                                                            businessName: offer.merchantName,
-                                                            city: offer.merchantCity,
-                                                            logo: offer.merchantLogo,
-                                                            category: offer.merchantCategory,
-                                                            rating: 4.8
-                                                        }
-                                                    }}
-                                                    isFavorite={favoriteIds.includes(offer.id)}
-                                                    onToggleFavorite={(e) => toggleFavorite(offer.id, e)}
-                                                    featured={index < 3}
-                                                />
-                                            </div>
-                                        )}
+                                    <div key={offer.id} className="w-[180px] flex-shrink-0 relative group snap-start">
+                                        <OfferCard
+                                            offer={{
+                                                id: offer.id,
+                                                merchantId: offer.merchantId,
+                                                merchantName: offer.merchantName,
+                                                merchantLogo: offer.merchantLogo,
+                                                title: offer.title,
+                                                description: offer.merchantCity || "Trending",
+                                                type: offer.type || "percentage",
+                                                discountValue: offer.discountValue || 0,
+                                                status: "active",
+                                                totalRedemptions: 0,
+                                                createdAt: new Date().toISOString(),
+                                                avgRating: offer.avgRating,
+                                                totalRatings: offer.totalRatings
+                                            } as any}
+                                            onClick={() => {
+                                                if (!isVerified) {
+                                                    setShowVerifyModal(true);
+                                                } else if (offer.isNewSystem) {
+                                                    router.push(`/dashboard/online-brand/${offer.merchantId}`);
+                                                } else if (trendingTab === 'online') {
+                                                    router.push(`/offer/${offer.id}`);
+                                                } else {
+                                                    router.push(`/dashboard/store/${offer.merchantId}`);
+                                                }
+                                            }}
+                                        />
                                     </div>
                                 ))}
                             </div>
