@@ -317,8 +317,9 @@ export const trendingService = {
                         merchantLogo: brand.logo_url,
                         isAdminPick: false,
                         isNewSystem: true,
+                        // Default to 0 if no rating column exists yet for online brands
                         avgRating: brand.rating || 0,
-                        totalRatings: 0 // No ratings for new online system yet
+                        totalRatings: 0
                     };
                 });
 
@@ -357,7 +358,7 @@ export const trendingService = {
                     .from('offers')
                     .select(`
                         id, title, discount_value, type, merchant_id,
-                        merchants!inner (business_name, city, online_store, status, trending_score, is_trending_override, logo, average_rating, total_ratings)
+                        merchants!inner (business_name, city, online_store, status, trending_score, is_trending_override, logo_url, average_rating, total_ratings)
                     `)
                     .eq('status', 'active')
                     .eq('merchants.status', 'approved')
@@ -375,7 +376,7 @@ export const trendingService = {
                     merchantName: o.merchants?.business_name,
                     merchantId: o.merchant_id,
                     merchantCity: o.merchants?.city,
-                    merchantLogo: o.merchants?.logo,
+                    merchantLogo: o.merchants?.logo_url,
                     isAdminPick: false,
                     avgRating: o.merchants?.average_rating,
                     totalRatings: o.merchants?.total_ratings

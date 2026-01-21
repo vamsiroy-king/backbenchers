@@ -906,13 +906,13 @@ export default function DashboardPage() {
                         <section className="pb-4 relative overflow-hidden">
                             <ConnectingLines />
 
-                            <div className="flex items-center justify-between mb-4 px-2 relative z-10">
-                                <div className="flex items-center gap-2">
-                                    <TrendingUp className="h-4 w-4 text-green-400" />
-                                    <h3 className={`font-bold text-lg ${isLightTheme ? 'text-gray-900' : 'text-white'}`}>Trending Now</h3>
-                                </div>
+                            <div className="flex items-center justify-center mb-5">
+                                <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                                <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TRENDING NOW</span>
+                                <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                            </div>
 
-                                {/* Toggle - Floating pill style */}
+                            <div className="flex justify-center mb-6 relative z-10">
                                 <div className="flex p-1 bg-white/[0.05] rounded-full border border-white/[0.08]">
                                     <button
                                         onClick={() => {
