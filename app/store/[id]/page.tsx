@@ -308,11 +308,212 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 )}
             </AnimatePresence>
 
-            {/* Mobile Container */}
-            <div className="min-h-screen bg-black flex justify-center">
-                <div className="w-full max-w-[430px] min-h-screen bg-black">
+            {/* ---------------- IMMERSIVE DESKTOP LAYOUT ---------------- */}
+            <div className="min-h-screen bg-black md:bg-[#050505]">
 
-                    {/* Large Hero Image - District Style */}
+                {/* Desktop Hero Section - FULL WIDTH */}
+                <div className="hidden md:block relative h-[50vh] min-h-[400px] w-full group">
+                    {heroImage ? (
+                        <div className="absolute inset-0">
+                            <img src={heroImage} alt={merchant.businessName} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
+                            <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700" />
+                        </div>
+                    ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-green-900/20 to-black flex items-center justify-center">
+                            <span className="text-9xl font-bold text-white/5">{merchant.businessName[0]}</span>
+                        </div>
+                    )}
+
+                    {/* Desktop Content Container Overlay */}
+                    <div className="absolute inset-0 flex flex-col justify-end pb-8">
+                        <div className="max-w-7xl mx-auto w-full px-8 flex items-end justify-between gap-8">
+                            <div className="flex items-end gap-6">
+                                {/* Logo */}
+                                <div className="h-32 w-32 rounded-2xl bg-white p-1 shadow-2xl shadow-black/50 rotate-3 transition-transform group-hover:rotate-0 duration-500">
+                                    <img src={merchant.logo || '/placeholder.png'} alt="" className="w-full h-full object-contain rounded-xl" />
+                                </div>
+
+                                {/* Text Info */}
+                                <div className="mb-2">
+                                    <h1 className="text-5xl font-bold text-white mb-2 drop-shadow-lg">{merchant.businessName}</h1>
+                                    <div className="flex items-center gap-4 text-white/80 text-sm font-medium">
+                                        <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-white">
+                                            {merchant.category}
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <MapPin className="h-4 w-4 text-green-400" />
+                                            {merchant.city}
+                                        </span>
+                                        {ratingStats.totalReviews > 0 && (
+                                            <span className="flex items-center gap-1.5 text-yellow-400">
+                                                <Star className="h-4 w-4 fill-yellow-400" />
+                                                <span className="font-bold">{ratingStats.avgRating.toFixed(1)}</span>
+                                                <span className="text-white/60">({ratingStats.totalReviews})</span>
+                                            </span>
+                                        )}
+                                        {(() => {
+                                            const status = getStoreStatus(merchant.operatingHours);
+                                            return (
+                                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${status.isOpen
+                                                    ? 'bg-green-500/20 border-green-500/30 text-green-400'
+                                                    : 'bg-red-500/20 border-red-500/30 text-red-400'}`}>
+                                                    {status.isOpen ? 'OPEN NOW' : 'CLOSED'}
+                                                </span>
+                                            );
+                                        })()}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 mb-2">
+                                <button onClick={handleCall} className="h-12 px-6 bg-white hover:bg-gray-100 text-black font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+                                    <Phone className="h-5 w-5" /> Call
+                                </button>
+                                <button onClick={handleGetDirections} className="h-12 px-6 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-green-900/50 hover:shadow-green-500/30 hover:-translate-y-1">
+                                    <Navigation className="h-5 w-5" /> Directions
+                                </button>
+                                <button onClick={handleSave} className="h-12 w-12 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-center transition-all group/btn">
+                                    <Heart className={`h-6 w-6 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-white'}`} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="w-full md:max-w-7xl md:mx-auto md:p-8">
+                    <div className="md:grid md:grid-cols-12 md:gap-8">
+
+                        {/* LEFT: TABS & CONTENT (Takes up 8 cols) */}
+                        <div className="col-span-12 lg:col-span-8">
+                            {/* Desktop Tabs */}
+                            <div className="hidden md:flex gap-8 border-b border-white/10 mb-8 px-2">
+                                {TABS.map(tab => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => { setActiveTab(tab.id); vibrate('light'); }}
+                                        className={`py-4 text-base font-bold relative transition-colors ${activeTab === tab.id ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                                    >
+                                        {tab.label}
+                                        {activeTab === tab.id && <motion.div layoutId="desktop-tab" className="absolute bottom-0 left-0 right-0 h-1 bg-green-500 rounded-t-full shadow-[0_-2px_10px_rgba(34,197,94,0.5)]" />}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Offers Content - Desktop Grid */}
+                            <div className="hidden md:block min-h-[400px]">
+                                {activeTab === 'offers' && (
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-xl font-bold text-white">Active Offers</h3>
+                                            <span className="text-sm text-green-400 font-medium bg-green-900/20 px-3 py-1 rounded-full border border-green-500/20">
+                                                {activeOffers.length} Deals Available
+                                            </span>
+                                        </div>
+
+                                        {activeOffers.length === 0 ? (
+                                            <div className="h-64 rounded-2xl border border-dashed border-white/10 flex flex-col items-center justify-center text-white/30">
+                                                <Tag className="h-12 w-12 mb-4 opacity-50" />
+                                                <p>No active offers available right now.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {activeOffers.map(offer => (
+                                                    <div key={offer.id} className="bg-[#111] hover:bg-[#161616] p-5 rounded-2xl border border-white/5 hover:border-white/10 transition-all group cursor-pointer shadow-lg shadow-black/20">
+                                                        <div className="flex justify-between items-start mb-4">
+                                                            <div className="h-14 w-14 rounded-xl bg-green-500 text-black flex flex-col items-center justify-center font-bold shadow-lg shadow-green-500/20">
+                                                                <span className="text-lg leading-none">{offer.discountValue}{offer.type === 'percentage' ? '%' : ''}</span>
+                                                                <span className="text-[10px]">OFF</span>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                {offer.finalPrice && <p className="text-2xl font-bold text-white">₹{offer.finalPrice}</p>}
+                                                                {offer.originalPrice && <p className="text-sm text-white/40 line-through">₹{offer.originalPrice}</p>}
+                                                            </div>
+                                                        </div>
+                                                        <h4 className="text-lg font-bold text-white mb-2 group-hover:text-green-400 transition-colors">{offer.title}</h4>
+                                                        <p className="text-sm text-white/50 mb-4 line-clamp-2">{offer.description}</p>
+                                                        <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                                                            <span className="text-xs font-medium text-white/40 flex items-center gap-1.5">
+                                                                <Clock className="h-3.5 w-3.5" />
+                                                                {offer.validUntil ? `Valid till ${new Date(offer.validUntil).toLocaleDateString()}` : 'Limited time'}
+                                                            </span>
+                                                            <button className="h-8 px-4 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs font-bold transition-colors">
+                                                                Details
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {activeTab === 'photos' && (
+                                    <div className="grid grid-cols-3 gap-4">
+                                        {allImages.map((img, i) => (
+                                            <div key={i} onClick={() => { setSelectedImageIndex(i); setShowImageGallery(true); }} className="aspect-square rounded-2xl overflow-hidden cursor-pointer relative group">
+                                                <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {activeTab === 'about' && merchant.description && (
+                                    <div className="bg-[#111] p-8 rounded-3xl border border-white/5">
+                                        <h3 className="text-xl font-bold text-white mb-4">About the Business</h3>
+                                        <p className="text-white/70 leading-relaxed text-lg">{merchant.description}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* RIGHT: INFO SIDEBAR (Desktop Only - Sticky) */}
+                        <div className="hidden lg:block col-span-4 space-y-6">
+                            {/* Address Card */}
+                            <div className="bg-[#111] p-6 rounded-3xl border border-white/5">
+                                <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                                    <MapPin className="h-5 w-5 text-green-500" /> Location
+                                </h3>
+                                <p className="text-white/80 mb-2">{merchant.address}</p>
+                                <p className="text-white/50 text-sm mb-4">{merchant.city}, {merchant.pinCode}</p>
+                                <button onClick={handleGetDirections} className="w-full h-10 rounded-xl bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-colors border border-white/5">
+                                    Open in Google Maps
+                                </button>
+                            </div>
+
+                            {/* Hours Card */}
+                            <div className="bg-[#111] p-6 rounded-3xl border border-white/5">
+                                <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                                    <Clock className="h-5 w-5 text-green-500" /> Operating Hours
+                                </h3>
+                                <div className="space-y-3">
+                                    {(merchant.operatingHours ? ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] : []).map(day => {
+                                        const opHours = merchant.operatingHours as any;
+                                        const hours = opHours?.[day];
+                                        const isToday = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() === day;
+                                        return (
+                                            <div key={day} className={`flex justify-between items-center text-sm py-1 border-b border-dashed border-white/5 last:border-0 ${isToday ? 'text-green-400 font-bold' : 'text-white/60'}`}>
+                                                <span className="capitalize w-24">{day}</span>
+                                                <span className="text-right flex-1">
+                                                    {hours?.closed ? <span className="text-red-400/70">Closed</span> : `${hours?.open} - ${hours?.close}`}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                    {!merchant.operatingHours && <p className="text-white/40 text-sm">Hours not available</p>}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                {/* ---------------- MOBILE LAYOUT (Unchanged) ---------------- */}
+                <div className="md:hidden">
+                    {/* Mobile Only Header (Hero & Info) */}
                     <div className="relative h-[320px]">
                         {heroImage ? (
                             <img
@@ -341,12 +542,9 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                             if (!storeStatus.isOpen) {
                                 return (
                                     <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-10">
-                                        {/* Hanging Sign */}
                                         <div className="relative">
-                                            {/* String lines */}
                                             <div className="absolute -top-8 left-1/4 w-px h-8 bg-gray-400"></div>
                                             <div className="absolute -top-8 right-1/4 w-px h-8 bg-gray-400"></div>
-                                            {/* The sign */}
                                             <div className="bg-gradient-to-br from-red-500 to-red-600 px-8 py-4 rounded-xl shadow-2xl border-2 border-red-400">
                                                 <p className="text-white/80 text-xs font-medium text-center mb-1">Temporarily</p>
                                                 <p className="text-white text-xl font-bold tracking-wide text-center">CLOSED</p>
@@ -379,7 +577,7 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                         </div>
                     </div>
 
-                    {/* Scrolling Ticker - Green BackBenchers Theme */}
+                    {/* Ticker */}
                     {bestDiscount > 0 && (
                         <div className="bg-gradient-to-r from-green-600 to-green-500 py-2.5 overflow-hidden">
                             <motion.div
@@ -399,11 +597,9 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                         </div>
                     )}
 
-                    {/* Store Info Section - Adidas Style */}
+                    {/* Store Info */}
                     <div className="px-4 pt-4 pb-4 border-b border-[#222]">
-                        {/* Logo + Name + Details - LEFT ALIGNED like Adidas */}
                         <div className="flex items-start gap-3 mb-4">
-                            {/* Square Logo - LEFT aligned */}
                             <div className="h-14 w-14 rounded-xl bg-black flex items-center justify-center flex-shrink-0 overflow-hidden border border-[#333]">
                                 {merchant.logo ? (
                                     <img src={merchant.logo} alt="" className="w-full h-full object-cover" />
@@ -411,12 +607,9 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                     <span className="text-white font-bold text-2xl">{merchant.businessName[0]}</span>
                                 )}
                             </div>
-
-                            {/* Store Info - LEFT aligned */}
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-0.5">
                                     <h1 className="text-lg font-bold text-white">{merchant.businessName}</h1>
-                                    {/* Rating Badge - Visible in Header */}
                                     {ratingStats.totalReviews > 0 && (
                                         <div className="flex items-center gap-1 bg-yellow-500/20 px-2 py-0.5 rounded-full">
                                             <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
@@ -424,12 +617,8 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                         </div>
                                     )}
                                 </div>
-                                <p className="text-xs text-[#888] mb-0.5 leading-relaxed">
-                                    {merchant.address}, {merchant.city}
-                                </p>
-                                <p className="text-xs text-[#666] mb-1">
-                                    {merchant.category}
-                                </p>
+                                <p className="text-xs text-[#888] mb-0.5 leading-relaxed">{merchant.address}, {merchant.city}</p>
+                                <p className="text-xs text-[#666] mb-1">{merchant.category}</p>
                                 <div className="flex items-center gap-2 text-xs">
                                     {(() => {
                                         const status = getStoreStatus(merchant.operatingHours);
@@ -438,279 +627,236 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                                 <span className={`font-medium ${status.isOpen ? 'text-green-400' : 'text-red-400'}`}>
                                                     {status.isOpen ? 'Open' : 'Closed'}
                                                 </span>
-                                                {status.isOpen && status.closingTime && (
-                                                    <span className="text-[#555]">• Closes {status.closingTime}</span>
-                                                )}
-                                                {!status.isOpen && status.openingTime && (
-                                                    <span className="text-[#555]">• Opens {status.openingTime}</span>
-                                                )}
+                                                {status.isOpen && status.closingTime && <span className="text-[#555]">• Closes {status.closingTime}</span>}
+                                                {!status.isOpen && status.openingTime && <span className="text-[#555]">• Opens {status.openingTime}</span>}
                                             </>
                                         );
                                     })()}
-                                    {ratingStats.totalReviews > 0 && (
-                                        <span className="text-[#555]">• {ratingStats.totalReviews} reviews</span>
-                                    )}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Action Buttons - Clean alignment with equal spacing */}
                         <div className="flex gap-3">
-                            <motion.button
-                                whileTap={{ scale: 0.98 }}
-                                transition={{ duration: 0.05 }}
-                                onClick={handleCall}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333] text-white text-xs font-medium"
-                            >
-                                <Phone className="h-3.5 w-3.5" />
-                                Call
+                            <motion.button whileTap={{ scale: 0.98 }} onClick={handleCall} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333] text-white text-xs font-medium">
+                                <Phone className="h-3.5 w-3.5" /> Call
                             </motion.button>
-                            <motion.button
-                                whileTap={{ scale: 0.98 }}
-                                transition={{ duration: 0.05 }}
-                                onClick={handleGetDirections}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 rounded-xl text-black text-xs font-semibold"
-                            >
-                                <Navigation className="h-3.5 w-3.5" />
-                                Directions
+                            <motion.button whileTap={{ scale: 0.98 }} onClick={handleGetDirections} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 rounded-xl text-black text-xs font-semibold">
+                                <Navigation className="h-3.5 w-3.5" /> Directions
                             </motion.button>
-                            <motion.button
-                                whileTap={{ scale: 0.98 }}
-                                transition={{ duration: 0.05 }}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333] text-white text-xs font-medium"
-                            >
-                                <Store className="h-3.5 w-3.5" />
-                                More
+                            <motion.button whileTap={{ scale: 0.98 }} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a1a1a] rounded-xl border border-[#333] text-white text-xs font-medium">
+                                <Store className="h-3.5 w-3.5" /> More
                             </motion.button>
                         </div>
                     </div>
 
-                    {/* Tabs - District Style */}
-                    <div className="border-b border-[#222] px-4">
-                        <div className="flex gap-6 justify-center">
-                            {TABS.map(tab => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => { setActiveTab(tab.id); vibrate('light'); }}
-                                    className={`py-3 text-sm font-medium relative ${activeTab === tab.id ? 'text-white' : 'text-[#666]'}`}
-                                >
-                                    {tab.label}
-                                    {activeTab === tab.id && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />}
-                                </button>
-                            ))}
+                    {/* Tabs Container */}
+                    <div className="md:bg-black md:rounded-3xl md:border md:border-[#222]">
+                        <div className="border-b border-[#222] px-4">
+                            <div className="flex gap-6 justify-center md:justify-start">
+                                {TABS.map(tab => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => { setActiveTab(tab.id); vibrate('light'); }}
+                                        className={`py-3 text-sm font-medium relative ${activeTab === tab.id ? 'text-white' : 'text-[#666]'}`}
+                                    >
+                                        {tab.label}
+                                        {activeTab === tab.id && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Tab Content */}
-                    <div className="py-4 pb-24">
-                        {activeTab === 'offers' && (
-                            <div className="space-y-3 px-4">
-                                <p className="text-[10px] text-[#555] uppercase tracking-wider mb-3">In-store deals applied at billing counter</p>
+                        {/* Tab Content */}
+                        <div className="py-4 pb-24 md:pb-6 md:px-4">
+                            {activeTab === 'offers' && (
+                                <div className="space-y-3 px-4 md:px-0">
+                                    <p className="text-[10px] text-[#555] uppercase tracking-wider mb-3">In-store deals applied at billing counter</p>
 
-                                {/* Subtle verification note for non-verified users */}
-                                {isVerified === false && (
-                                    <Link href="/signup">
-                                        <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-3 mb-4 flex items-center gap-3">
-                                            <div className="h-9 w-9 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                                                <QrCode className="h-4 w-4 text-green-400" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-white text-xs font-medium">Get verified for your QR pass</p>
-                                                <p className="text-[#555] text-[10px]">Show at checkout for discount</p>
-                                            </div>
-                                            <ChevronRight className="h-4 w-4 text-[#444] flex-shrink-0" />
-                                        </div>
-                                    </Link>
-                                )}
-
-                                {activeOffers.length === 0 ? (
-                                    <div className="text-center py-10">
-                                        <Tag className="h-8 w-8 text-[#333] mx-auto mb-2" />
-                                        <p className="text-[#555] text-xs">No active offers</p>
-                                    </div>
-                                ) : (
-                                    activeOffers.map(offer => (
-                                        <motion.div
-                                            key={offer.id}
-                                            whileTap={{ scale: 0.98 }}
-                                            onClick={() => setExpandedOfferId(expandedOfferId === offer.id ? null : offer.id)}
-                                            className="bg-[#111] rounded-xl p-4 border border-[#222] cursor-pointer"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-12 w-12 rounded-xl bg-green-500 flex flex-col items-center justify-center flex-shrink-0">
-                                                    <span className="text-black font-bold text-sm">
-                                                        {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
-                                                    </span>
-                                                    <span className="text-black text-[8px] font-medium">OFF</span>
+                                    {/* Subtle verification note for non-verified users */}
+                                    {isVerified === false && (
+                                        <Link href="/signup">
+                                            <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-3 mb-4 flex items-center gap-3">
+                                                <div className="h-9 w-9 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                                                    <QrCode className="h-4 w-4 text-green-400" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <h4 className="text-white font-semibold text-sm">{offer.title}</h4>
-                                                    <p className="text-[#666] text-xs mt-0.5">
-                                                        {offer.validUntil && (() => {
-                                                            const validUntil = new Date(offer.validUntil);
-                                                            const now = new Date();
-                                                            const diffTime = validUntil.getTime() - now.getTime();
-                                                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                                                            if (diffDays <= 0) return 'Expired';
-                                                            if (diffDays === 1) return 'Expiring today!';
-                                                            if (diffDays <= 3) return `Expiring in ${diffDays} days!`;
-                                                            if (diffDays <= 7) return `Expires in ${diffDays} days`;
-                                                            return `Valid till ${validUntil.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
-                                                        })()}
-                                                    </p>
+                                                    <p className="text-white text-xs font-medium">Get verified for your QR pass</p>
+                                                    <p className="text-[#555] text-[10px]">Show at checkout for discount</p>
                                                 </div>
-                                                <motion.div animate={{ rotate: expandedOfferId === offer.id ? 90 : 0 }}>
-                                                    <ChevronRight className="h-5 w-5 text-[#444]" />
-                                                </motion.div>
+                                                <ChevronRight className="h-4 w-4 text-[#444] flex-shrink-0" />
                                             </div>
+                                        </Link>
+                                    )}
 
-                                            {/* Expanded Details */}
-                                            <AnimatePresence>
-                                                {expandedOfferId === offer.id && (
-                                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                                                        <div className="pt-4 mt-4 border-t border-[#222] space-y-3">
-                                                            {offer.description && <p className="text-[#888] text-xs leading-relaxed">{offer.description}</p>}
-
-                                                            {/* Price Display */}
-                                                            <div className="flex items-center gap-3">
-                                                                {offer.originalPrice && offer.finalPrice && (
-                                                                    <>
-                                                                        <span className="text-[#555] text-sm line-through">₹{offer.originalPrice}</span>
-                                                                        <span className="text-white text-lg font-bold">₹{offer.finalPrice}</span>
-                                                                    </>
-                                                                )}
-                                                                <span className="text-green-400 text-xs font-medium">
-                                                                    {offer.type === 'percentage'
-                                                                        ? `Save ${offer.discountValue}%`
-                                                                        : `Save ₹${offer.discountAmount || offer.discountValue}`
-                                                                    }
-                                                                </span>
-                                                            </div>
-
-                                                            {/* Terms */}
-                                                            <div className="bg-[#0a0a0a] rounded-lg p-3 border border-[#1a1a1a]">
-                                                                <p className="text-[10px] text-[#555] uppercase tracking-wider mb-2">Terms & Conditions</p>
-                                                                <ul className="space-y-1">
-                                                                    <li className="text-[#666] text-[11px] flex items-start gap-1.5">
-                                                                        <span className="text-green-500 mt-0.5">•</span>
-                                                                        <span>Valid for verified students only</span>
-                                                                    </li>
-                                                                    <li className="text-[#666] text-[11px] flex items-start gap-1.5">
-                                                                        <span className="text-green-500 mt-0.5">•</span>
-                                                                        <span>Show student ID at billing</span>
-                                                                    </li>
-                                                                    <li className="text-[#666] text-[11px] flex items-start gap-1.5">
-                                                                        <span className="text-green-500 mt-0.5">•</span>
-                                                                        <span>Cannot be combined with other offers</span>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-
-                                                            <div className="flex gap-2 flex-wrap">
-                                                                <span className="text-[10px] bg-green-500/10 text-green-400 px-2.5 py-1 rounded-full font-medium">
-                                                                    {offer.type === 'percentage' ? `${offer.discountValue}% OFF` : `₹${offer.discountValue} OFF`}
-                                                                </span>
-                                                                <span className="text-[10px] bg-[#1a1a1a] text-[#888] px-2.5 py-1 rounded-full flex items-center gap-1">
-                                                                    <Tag className="h-2.5 w-2.5" />
-                                                                    Show at store
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </motion.div>
-                                    ))
-                                )}
-                            </div>
-                        )}
-
-                        {activeTab === 'photos' && (
-                            <div className="space-y-3">
-                                <p className="text-[10px] text-[#555] uppercase tracking-wider mb-3">Store gallery</p>
-
-                                {allImages.length === 0 ? (
-                                    <div className="text-center py-10">
-                                        <div className="h-12 w-12 rounded-xl bg-[#1a1a1a] flex items-center justify-center mx-auto mb-2">
-                                            <Camera className="h-5 w-5 text-[#444]" />
-                                        </div>
-                                        <p className="text-[#555] text-xs">No photos yet</p>
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {allImages.map((img, i) => (
-                                            <motion.div
-                                                key={i}
-                                                whileTap={{ scale: 0.97 }}
-                                                onClick={() => { setSelectedImageIndex(i); setShowImageGallery(true); }}
-                                                className="aspect-square rounded-xl overflow-hidden bg-[#1a1a1a] cursor-pointer"
-                                            >
-                                                <img src={img} alt="" className="w-full h-full object-cover" />
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {activeTab === 'about' && (
-                            <div className="space-y-3">
-                                {merchant.description && (
-                                    <p className="text-[#888] text-sm leading-relaxed">{merchant.description}</p>
-                                )}
-
-                                <div className="bg-[#111] rounded-xl p-4 border border-[#222]">
-                                    <div className="flex items-start gap-3">
-                                        <MapPin className="h-5 w-5 text-[#666] mt-0.5 flex-shrink-0" />
-                                        <div>
-                                            <p className="text-white text-sm font-medium">{merchant.address}</p>
-                                            <p className="text-[#666] text-xs mt-0.5">{merchant.city}, {merchant.pinCode}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Operating Hours Table - Full Week - Always Show */}
-                                <div className="bg-[#111] rounded-xl p-4 border border-[#222]">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <Clock className="h-4 w-4 text-green-400" />
-                                        <p className="text-white text-sm font-medium">Operating Hours</p>
-                                    </div>
-                                    {merchant.operatingHours ? (
-                                        <div className="space-y-2">
-                                            {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
-                                                const opHours = merchant.operatingHours as Record<string, { open?: string; close?: string; closed?: boolean }> | undefined;
-                                                const hours = opHours?.[day];
-                                                const isToday = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() === day;
-                                                return (
-                                                    <div key={day} className={`flex justify-between items-center py-1.5 ${isToday ? 'bg-green-500/10 -mx-2 px-2 rounded-lg' : ''}`}>
-                                                        <span className={`text-xs capitalize ${isToday ? 'text-green-400 font-medium' : 'text-[#888]'}`}>
-                                                            {day.charAt(0).toUpperCase() + day.slice(1)}
-                                                            {isToday && <span className="ml-1 text-[10px]">(Today)</span>}
-                                                        </span>
-                                                        <span className={`text-xs font-mono ${hours?.closed ? 'text-red-400' : isToday ? 'text-white font-medium' : 'text-[#aaa]'}`}>
-                                                            {hours?.closed ? 'Closed' : hours?.open && hours?.close ? `${hours.open} - ${hours.close}` : 'Not set'}
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
+                                    {activeOffers.length === 0 ? (
+                                        <div className="text-center py-10">
+                                            <Tag className="h-8 w-8 text-[#333] mx-auto mb-2" />
+                                            <p className="text-[#555] text-xs">No active offers</p>
                                         </div>
                                     ) : (
-                                        <p className="text-[#555] text-xs">Hours not available. Contact store for timing.</p>
+                                        activeOffers.map(offer => (
+                                            <motion.div
+                                                key={offer.id}
+                                                whileTap={{ scale: 0.98 }}
+                                                onClick={() => setExpandedOfferId(expandedOfferId === offer.id ? null : offer.id)}
+                                                className="bg-[#111] rounded-xl p-4 border border-[#222] cursor-pointer hover:border-[#333] transition-colors"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-12 w-12 rounded-xl bg-green-500 flex flex-col items-center justify-center flex-shrink-0">
+                                                        <span className="text-black font-bold text-sm">
+                                                            {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
+                                                        </span>
+                                                        <span className="text-black text-[8px] font-medium">OFF</span>
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h4 className="text-white font-semibold text-sm">{offer.title}</h4>
+                                                        <p className="text-[#666] text-xs mt-0.5">
+                                                            {offer.validUntil && (() => {
+                                                                const validUntil = new Date(offer.validUntil);
+                                                                const now = new Date();
+                                                                const diffTime = validUntil.getTime() - now.getTime();
+                                                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                                                                if (diffDays <= 0) return 'Expired';
+                                                                if (diffDays === 1) return 'Expiring today!';
+                                                                if (diffDays <= 3) return `Expiring in ${diffDays} days!`;
+                                                                if (diffDays <= 7) return `Expires in ${diffDays} days`;
+                                                                return `Valid till ${validUntil.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
+                                                            })()}
+                                                        </p>
+                                                    </div>
+                                                    <motion.div animate={{ rotate: expandedOfferId === offer.id ? 90 : 0 }}>
+                                                        <ChevronRight className="h-5 w-5 text-[#444]" />
+                                                    </motion.div>
+                                                </div>
+
+                                                <AnimatePresence>
+                                                    {expandedOfferId === offer.id && (
+                                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                                                            <div className="pt-4 mt-4 border-t border-[#222] space-y-3">
+                                                                {offer.description && <p className="text-[#888] text-xs leading-relaxed">{offer.description}</p>}
+                                                                <div className="flex items-center gap-3">
+                                                                    {offer.originalPrice && offer.finalPrice && (
+                                                                        <>
+                                                                            <span className="text-[#555] text-sm line-through">₹{offer.originalPrice}</span>
+                                                                            <span className="text-white text-lg font-bold">₹{offer.finalPrice}</span>
+                                                                        </>
+                                                                    )}
+                                                                    <span className="text-green-400 text-xs font-medium">
+                                                                        {offer.type === 'percentage'
+                                                                            ? `Save ${offer.discountValue}%`
+                                                                            : `Save ₹${offer.discountAmount || offer.discountValue}`
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                                <div className="bg-[#0a0a0a] rounded-lg p-3 border border-[#1a1a1a]">
+                                                                    <p className="text-[10px] text-[#555] uppercase tracking-wider mb-2">Terms & Conditions</p>
+                                                                    <ul className="space-y-1">
+                                                                        <li className="text-[#666] text-[11px] flex items-start gap-1.5"><span className="text-green-500 mt-0.5">•</span><span>Valid for verified students only</span></li>
+                                                                        <li className="text-[#666] text-[11px] flex items-start gap-1.5"><span className="text-green-500 mt-0.5">•</span><span>Show student ID at billing</span></li>
+                                                                        <li className="text-[#666] text-[11px] flex items-start gap-1.5"><span className="text-green-500 mt-0.5">•</span><span>Cannot be combined with other offers</span></li>
+                                                                    </ul>
+                                                                </div>
+                                                                <div className="flex gap-2 flex-wrap">
+                                                                    <span className="text-[10px] bg-green-500/10 text-green-400 px-2.5 py-1 rounded-full font-medium">{offer.type === 'percentage' ? `${offer.discountValue}% OFF` : `₹${offer.discountValue} OFF`}</span>
+                                                                    <span className="text-[10px] bg-[#1a1a1a] text-[#888] px-2.5 py-1 rounded-full flex items-center gap-1"><Tag className="h-2.5 w-2.5" />Show at store</span>
+                                                                </div>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </motion.div>
+                                        ))
                                     )}
                                 </div>
+                            )}
 
-                                <div className="bg-[#111] rounded-xl p-4 border border-[#222]">
-                                    <div className="flex items-center gap-3">
-                                        <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                                        <div>
-                                            <p className="text-white text-sm font-medium">{ratingStats.avgRating > 0 ? ratingStats.avgRating.toFixed(1) : 'New'}</p>
-                                            <p className="text-[#666] text-xs">{ratingStats.totalReviews} reviews</p>
+                            {activeTab === 'photos' && (
+                                <div className="space-y-3 px-4 md:px-0">
+                                    <p className="text-[10px] text-[#555] uppercase tracking-wider mb-3">Store gallery</p>
+                                    {allImages.length === 0 ? (
+                                        <div className="text-center py-10">
+                                            <div className="h-12 w-12 rounded-xl bg-[#1a1a1a] flex items-center justify-center mx-auto mb-2">
+                                                <Camera className="h-5 w-5 text-[#444]" />
+                                            </div>
+                                            <p className="text-[#555] text-xs">No photos yet</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                            {allImages.map((img, i) => (
+                                                <motion.div
+                                                    key={i}
+                                                    whileTap={{ scale: 0.97 }}
+                                                    onClick={() => { setSelectedImageIndex(i); setShowImageGallery(true); }}
+                                                    className="aspect-square rounded-xl overflow-hidden bg-[#1a1a1a] cursor-pointer relative group"
+                                                >
+                                                    <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === 'about' && (
+                                <div className="space-y-3 px-4 md:px-0">
+                                    {merchant.description && (
+                                        <p className="text-[#888] text-sm leading-relaxed">{merchant.description}</p>
+                                    )}
+
+                                    <div className="bg-[#111] rounded-xl p-4 border border-[#222]">
+                                        <div className="flex items-start gap-3">
+                                            <MapPin className="h-5 w-5 text-[#666] mt-0.5 flex-shrink-0" />
+                                            <div>
+                                                <p className="text-white text-sm font-medium">{merchant.address}</p>
+                                                <p className="text-[#666] text-xs mt-0.5">{merchant.city}, {merchant.pinCode}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Mobile Operating Hours (Desktop uses left panel) */}
+                                    <div className="md:hidden bg-[#111] rounded-xl p-4 border border-[#222]">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <Clock className="h-4 w-4 text-green-400" />
+                                            <p className="text-white text-sm font-medium">Operating Hours</p>
+                                        </div>
+                                        {merchant.operatingHours ? (
+                                            <div className="space-y-2">
+                                                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
+                                                    const opHours = merchant.operatingHours as any;
+                                                    const hours = opHours?.[day];
+                                                    const isToday = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() === day;
+                                                    return (
+                                                        <div key={day} className={`flex justify-between items-center py-1.5 ${isToday ? 'bg-green-500/10 -mx-2 px-2 rounded-lg' : ''}`}>
+                                                            <span className={`text-xs capitalize ${isToday ? 'text-green-400 font-medium' : 'text-[#888]'}`}>
+                                                                {day}
+                                                                {isToday && <span className="ml-1 text-[10px]">(Today)</span>}
+                                                            </span>
+                                                            <span className={`text-xs font-mono ${hours?.closed ? 'text-red-400' : isToday ? 'text-white font-medium' : 'text-[#aaa]'}`}>
+                                                                {hours?.closed ? 'Closed' : hours?.open && hours?.close ? `${hours.open} - ${hours.close}` : 'Not set'}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <p className="text-[#555] text-xs">Hours not available</p>
+                                        )}
+                                    </div>
+
+                                    <div className="bg-[#111] rounded-xl p-4 border border-[#222]">
+                                        <div className="flex items-center gap-3">
+                                            <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                                            <div>
+                                                <p className="text-white text-sm font-medium">{ratingStats.avgRating > 0 ? ratingStats.avgRating.toFixed(1) : 'New'}</p>
+                                                <p className="text-[#666] text-xs">{ratingStats.totalReviews} reviews</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

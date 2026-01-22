@@ -726,7 +726,7 @@ export default function DashboardPage() {
 
                 {/* Hero Banner - NEW COMPONENT */}
                 {contentSettings.showHeroBanners && (
-                    <div className="-mx-5">
+                    <div className="-mx-5 md:mx-0 md:rounded-2xl overflow-hidden mb-6">
                         <HeroCarousel banners={heroBanners} />
                     </div>
                 )}
@@ -738,12 +738,19 @@ export default function DashboardPage() {
                         <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>SHOP BY CATEGORY</span>
                         <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                     </div>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 md:grid-cols-8 gap-2 md:gap-4">
                         {[
                             { line1: "Food", line2: "& Beverages", image: "🍕", color: isLightTheme ? "from-orange-100 to-orange-200" : "from-orange-900/50 to-orange-950/80", category: "Food" },
                             { line1: "Fashion", line2: "& Apparel", image: "👗", color: isLightTheme ? "from-pink-100 to-pink-200" : "from-pink-900/50 to-pink-950/80", category: "Fashion" },
                             { line1: "Health", line2: "& Fitness", image: "💪", color: isLightTheme ? "from-blue-100 to-blue-200" : "from-blue-900/50 to-blue-950/80", category: "Fitness" },
                             { line1: "Skincare", line2: "& Beauty", image: "💄", color: isLightTheme ? "from-purple-100 to-purple-200" : "from-purple-900/50 to-purple-950/80", category: "Beauty" },
+                            // Duplicate for desktop fill (optional, or just keeps 4) - Let's keep 4 on desktop too but wide? No, looks weird. 
+                            // Actually, let's keep it centered or spread.
+                            // For now, let's just make them bigger on desktop or keep 4 cols but centered?
+                            // User asked for responsive layouts. grid-cols-4 on 7xl is huge cards.
+                            // Let's stick to grid-cols-4 md:grid-cols-4 lg:grid-cols-8 if we had more. 
+                            // Since we only have 4 items, let's keep grid-cols-4 but constrain width?
+                            // Or better, let's just let them match the design.
                         ].map((cat) => (
                             <motion.div
                                 key={cat.category}
@@ -771,9 +778,10 @@ export default function DashboardPage() {
                             <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>NEW STORES</span>
                             <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                         </div>
-                        <div className="flex gap-4 overflow-x-auto hide-scrollbar -mx-5 px-5 pb-4">
+                        {/* Mobile: Horizontal Scroll, Desktop: Grid */}
+                        <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 pb-4 gap-4 md:grid md:grid-cols-4 lg:grid-cols-5 md:mx-0 md:px-0 md:overflow-visible">
                             {newMerchants.map((merchant) => (
-                                <div key={merchant.id} className="w-[180px] flex-shrink-0 relative group">
+                                <div key={merchant.id} className="w-[180px] md:w-auto flex-shrink-0 relative group">
                                     {/* New Badge Ribbon */}
                                     <div className="absolute top-2 right-2 z-10 bg-green-500 text-black text-[9px] font-bold px-2 py-0.5 rounded-full shadow-lg shadow-green-500/20 flex items-center gap-1">
                                         <Sparkles className="h-2.5 w-2.5 fill-black" />
@@ -822,7 +830,7 @@ export default function DashboardPage() {
                                 <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-4">
                                 {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
                                     <motion.button
                                         key={brand.id}

@@ -6,7 +6,8 @@ import { Plus, ArrowLeft, Trash2, Edit, Eye, EyeOff, Save, X, Loader2, Image as 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { heroBannerService, HeroBanner } from "@/lib/services/heroBanner.service";
-import { INDIAN_STATES, CITIES_BY_STATE } from "@/lib/data/locations";
+import { INDIAN_STATES, CITIES_BY_STATE, IndianState } from "@/lib/data/locations";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 
 const GRADIENT_PRESETS = [
     { name: "Green", value: "from-green-500 to-emerald-600" },
@@ -43,6 +44,7 @@ export default function HeroBannersPage() {
         logoUrl: "",
         bannerType: "promotion",
         coverageType: "pan_india",
+        selectedState: "" as IndianState | "",
         selectedCities: [] as string[],
         startDate: new Date().toISOString().split('T')[0],
         endDate: "",
@@ -75,6 +77,7 @@ export default function HeroBannersPage() {
             logoUrl: "",
             bannerType: "promotion",
             coverageType: "pan_india",
+            selectedState: "",
             selectedCities: [],
             startDate: new Date().toISOString().split('T')[0],
             endDate: "",
@@ -95,6 +98,7 @@ export default function HeroBannersPage() {
             logoUrl: banner.logoUrl || "",
             bannerType: banner.bannerType,
             coverageType: banner.coverageType,
+            selectedState: "", // Reset state selector on edit, or try to infer if needed (optional)
             selectedCities: banner.cityIds || [],
             startDate: banner.startDate.split('T')[0],
             endDate: banner.endDate ? banner.endDate.split('T')[0] : "",
@@ -355,28 +359,24 @@ export default function HeroBannersPage() {
                                     />
                                 </div>
 
-                                {/* Image & Logo URLs */}
+                                {/* Image & Logo Upload */}
                                 <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 block mb-1">Image URL</label>
-                                        <input
-                                            type="text"
-                                            value={form.imageUrl}
-                                            onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                                            placeholder="https://..."
-                                            className="w-full h-11 bg-gray-100 dark:bg-gray-800 rounded-xl px-4 text-xs outline-none dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 block mb-1">Logo URL</label>
-                                        <input
-                                            type="text"
-                                            value={form.logoUrl}
-                                            onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
-                                            placeholder="https://..."
-                                            className="w-full h-11 bg-gray-100 dark:bg-gray-800 rounded-xl px-4 text-xs outline-none dark:text-white"
-                                        />
-                                    </div>
+                                    <ImageUpload
+                                        label="Banner Image"
+                                        value={form.imageUrl}
+                                        onChange={(url) => setForm({ ...form, imageUrl: url })}
+                                        bucketName="campaigns"
+                                        folderPath="hero-banners"
+                                        aspectRatio="video"
+                                    />
+                                    <ImageUpload
+                                        label="Partner Logo"
+                                        value={form.logoUrl}
+                                        onChange={(url) => setForm({ ...form, logoUrl: url })}
+                                        bucketName="campaigns"
+                                        folderPath="logos"
+                                        aspectRatio="square"
+                                    />
                                 </div>
 
                                 {/* CTA Text & Link */}
@@ -453,25 +453,52 @@ export default function HeroBannersPage() {
                                 </div>
 
                                 {form.coverageType === 'city_specific' && (
-                                    <div>
-                                        <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 block mb-2">Select Cities</label>
-                                        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                                            {allCities.slice(0, 20).map((city) => (
-                                                <button
-                                                    key={city}
-                                                    onClick={() => {
-                                                        if (form.selectedCities.includes(city)) {
-                                                            setForm({ ...form, selectedCities: form.selectedCities.filter(c => c !== city) });
-                                                        } else {
-                                                            setForm({ ...form, selectedCities: [...form.selectedCities, city] });
-                                                        }
-                                                    }}
-                                                    className={`px-3 py-1.5 rounded-full text-xs font-medium ${form.selectedCities.includes(city) ? 'bg-primary text-white' : 'bg-white dark:bg-gray-700 dark:text-white'}`}
-                                                >
-                                                    {city}
-                                                </button>
-                                            ))}
+                                    <div className="space-y-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 block mb-1">1. Select State</label>
+                                            <select
+                                                value={form.selectedState}
+                                                onChange={(e) => setForm({ ...form, selectedState: e.target.value as IndianState, selectedCities: [] })} // Reset cities when state changes
+                                                className="w-full h-10 bg-white dark:bg-gray-900 rounded-lg px-2 text-xs outline-none border border-gray-200 dark:border-gray-700"
+                                            >
+                                                <option value="">-- Choose State --</option>
+                                                {INDIAN_STATES.map(state => (
+                                                    <option key={state} value={state}>{state}</option>
+                                                ))}
+                                            </select>
                                         </div>
+
+                                        {form.selectedState && (
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 block mb-1">2. Select Cities in {form.selectedState}</label>
+                                                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                                                    {CITIES_BY_STATE[form.selectedState]?.map((city) => (
+                                                        <button
+                                                            key={city}
+                                                            onClick={() => {
+                                                                // Toggle city selection
+                                                                if (form.selectedCities.includes(city)) {
+                                                                    setForm({ ...form, selectedCities: form.selectedCities.filter(c => c !== city) });
+                                                                } else {
+                                                                    setForm({ ...form, selectedCities: [...(form.selectedCities), city] });
+                                                                }
+                                                            }}
+                                                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${form.selectedCities.includes(city)
+                                                                    ? 'bg-primary border-primary text-white shadow-sm'
+                                                                    : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 dark:text-gray-300 hover:border-primary/50'
+                                                                }`}
+                                                        >
+                                                            {city}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                {form.selectedCities.length > 0 && (
+                                                    <p className="text-[10px] text-gray-500 mt-2">
+                                                        Selected: {form.selectedCities.join(", ")}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

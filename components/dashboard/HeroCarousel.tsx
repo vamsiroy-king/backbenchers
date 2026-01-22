@@ -12,10 +12,11 @@ interface HeroCarouselProps {
     autoScrollInterval?: number;
 }
 
-export function HeroCarousel({ banners, autoScrollInterval = 4000 }: HeroCarouselProps) {
+export function HeroCarousel({ banners, autoScrollInterval = 5000 }: HeroCarouselProps) {
     const router = useRouter();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState<'left' | 'right'>('left');
+    const [isDragging, setIsDragging] = useState(false);
 
     // Default fallback banners if none provided
     const displayBanners = banners.length > 0 ? banners : [
@@ -45,7 +46,7 @@ export function HeroCarousel({ banners, autoScrollInterval = 4000 }: HeroCarouse
     ];
 
     useEffect(() => {
-        if (displayBanners.length <= 1) return;
+        if (displayBanners.length <= 1 || isDragging) return;
 
         const interval = setInterval(() => {
             setDirection('left');
@@ -53,20 +54,31 @@ export function HeroCarousel({ banners, autoScrollInterval = 4000 }: HeroCarouse
         }, autoScrollInterval);
 
         return () => clearInterval(interval);
-    }, [displayBanners.length, autoScrollInterval]);
+    }, [displayBanners.length, autoScrollInterval, isDragging]);
 
-    const handleSwipe = (swipeInfo: { offset: { x: number }; velocity: { x: number } }) => {
-        const swipeThreshold = 50;
-        if (swipeInfo.offset.x < -swipeThreshold) {
-            setDirection('left');
-            setCurrentIndex((prev) => (prev + 1) % displayBanners.length);
-        } else if (swipeInfo.offset.x > swipeThreshold) {
-            setDirection('right');
-            setCurrentIndex((prev) => (prev - 1 + displayBanners.length) % displayBanners.length);
+    const paginate = (newDirection: number) => {
+        setDirection(newDirection > 0 ? 'left' : 'right');
+        setCurrentIndex((prev) => (prev + newDirection + displayBanners.length) % displayBanners.length);
+    };
+
+    const swipeConfidenceThreshold = 10000;
+    const swipePower = (offset: number, velocity: number) => {
+        return Math.abs(offset) * velocity;
+    };
+
+    const handleDragEnd = (e: any, { offset, velocity }: any) => {
+        setIsDragging(false);
+        const swipe = swipePower(offset.x, velocity.x);
+
+        if (swipe < -swipeConfidenceThreshold) {
+            paginate(1);
+        } else if (swipe > swipeConfidenceThreshold) {
+            paginate(-1);
         }
     };
 
     const handleBannerClick = (banner: HeroBanner) => {
+        if (isDragging) return; // Prevent click on drag
         vibrate('light');
         if (banner.ctaLink) {
             router.push(banner.ctaLink);
@@ -75,69 +87,94 @@ export function HeroCarousel({ banners, autoScrollInterval = 4000 }: HeroCarouse
 
     const currentBanner = displayBanners[currentIndex];
 
+    // Animation Variants
+    const variants = {
+        enter: (direction: 'left' | 'right') => ({
+            x: direction === 'left' ? 1000 : -1000,
+            opacity: 0
+        }),
+        center: {
+            zIndex: 1,
+            x: 0,
+            opacity: 1
+        },
+        exit: (direction: 'left' | 'right') => ({
+            zIndex: 0,
+            x: direction === 'left' ? -1000 : 1000,
+            opacity: 0
+        })
+    };
+
     return (
-        <div className="relative overflow-hidden w-full touch-pan-y">
+        <div className="relative overflow-hidden w-full touch-pan-y py-4">
             <div className="mx-5 relative z-10">
-                <AnimatePresence mode="wait" initial={false} custom={direction}>
+                <AnimatePresence mode="popLayout" initial={false} custom={direction}>
                     <motion.div
                         key={currentBanner.id}
                         custom={direction}
-                        initial={{ opacity: 0, x: direction === 'left' ? 100 : -100 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: direction === 'left' ? -100 : 100 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        variants={variants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{
+                            x: { type: "spring", stiffness: 300, damping: 30 },
+                            opacity: { duration: 0.2 }
+                        }}
                         drag="x"
                         dragConstraints={{ left: 0, right: 0 }}
                         dragElastic={1}
-                        onDragEnd={(e, info) => handleSwipe(info)}
+                        onDragStart={() => setIsDragging(true)}
+                        onDragEnd={handleDragEnd}
                         onClick={() => handleBannerClick(currentBanner)}
                         className={`
-                            relative w-full aspect-[2/1] min-h-[180px] max-h-[220px] rounded-2xl 
+                            relative w-full aspect-[2/1] min-h-[190px] max-h-[230px] rounded-2xl 
                             bg-gradient-to-br ${currentBanner.backgroundGradient || 'from-[#111] to-black'} 
                             flex flex-col items-center justify-center text-center p-6 
-                            border border-white/5 shadow-2xl overflow-hidden cursor-pointer
+                            shadow-2xl overflow-hidden cursor-pointer select-none
+                            ring-1 ring-white/10
                         `}
                     >
                         {/* Background Image (Cover) */}
                         {currentBanner.imageUrl && (
-                            <div className="absolute inset-0 z-0 opacity-40">
+                            <div className="absolute inset-0 z-0">
                                 <img
                                     src={currentBanner.imageUrl}
                                     className="w-full h-full object-cover"
                                     alt=""
+                                    draggable={false}
                                 />
-                                <div className="absolute inset-0 bg-black/60" /> {/* Dark overlay */}
+                                <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px]" /> {/* Premium blur overlay */}
                             </div>
                         )}
 
                         {/* Content Container */}
-                        <div className="relative z-10 flex flex-col items-center gap-3 w-full">
+                        <div className="relative z-10 flex flex-col items-center gap-3 w-full max-w-sm">
 
                             {/* Logo or Badge (Optional) */}
                             {currentBanner.logoUrl ? (
-                                <div className="h-10 w-10 bg-white rounded-lg p-1.5 flex items-center justify-center shadow-lg mb-1">
-                                    <img src={currentBanner.logoUrl} alt="" className="w-full h-full object-contain" />
+                                <div className="h-12 w-12 bg-white rounded-xl p-2 flex items-center justify-center shadow-lg mb-1 ring-4 ring-black/20">
+                                    <img src={currentBanner.logoUrl} alt="" className="w-full h-full object-contain" draggable={false} />
                                 </div>
                             ) : currentBanner.bannerType === 'new_store' && (
-                                <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full mb-1">
-                                    <span className="text-[10px] font-bold text-green-500 tracking-wider uppercase">NEW PARTNER</span>
+                                <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full mb-1 backdrop-blur-md">
+                                    <span className="text-[10px] font-bold text-green-400 tracking-wider uppercase drop-shadow-sm">NEW PARTNER</span>
                                 </div>
                             )}
 
                             {/* Text */}
-                            <div className="space-y-1">
-                                <h2 className="text-white font-bold text-xl md:text-2xl tracking-tight leading-tight">
+                            <div className="space-y-1.5">
+                                <h2 className="text-white font-extrabold text-2xl md:text-3xl tracking-tight leading-none drop-shadow-md">
                                     {currentBanner.title}
                                 </h2>
                                 {currentBanner.subtitle && (
-                                    <p className="text-white/70 text-xs md:text-sm font-medium leading-relaxed max-w-[280px]">
+                                    <p className="text-white/80 text-xs md:text-sm font-medium leading-relaxed max-w-[280px] drop-shadow-sm">
                                         {currentBanner.subtitle}
                                     </p>
                                 )}
                             </div>
 
                             {/* CTA Button */}
-                            <button className="mt-2 px-6 py-2 bg-white text-black text-xs font-bold rounded-full transition-transform active:scale-95 flex items-center gap-1 group">
+                            <button className="mt-3 px-6 py-2.5 bg-white/95 hover:bg-white text-black text-xs font-bold rounded-full transition-all active:scale-95 flex items-center gap-1.5 group backdrop-blur shadow-[0_0_20px_rgba(255,255,255,0.3)]">
                                 {currentBanner.ctaText}
                                 <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                             </button>
@@ -148,13 +185,17 @@ export function HeroCarousel({ banners, autoScrollInterval = 4000 }: HeroCarouse
 
             {/* Pagination Dots */}
             {displayBanners.length > 1 && (
-                <div className="flex justify-center gap-1.5 mt-4">
+                <div className="flex justify-center gap-2 mt-5">
                     {displayBanners.map((_, idx) => (
-                        <div
+                        <button
                             key={idx}
+                            onClick={() => {
+                                setDirection(idx > currentIndex ? 'left' : 'right');
+                                setCurrentIndex(idx);
+                            }}
                             className={`
                                 h-1.5 rounded-full transition-all duration-300 
-                                ${idx === currentIndex ? 'w-6 bg-green-500' : 'w-1.5 bg-white/20'}
+                                ${idx === currentIndex ? 'w-6 bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'w-1.5 bg-white/20'}
                             `}
                         />
                     ))}
