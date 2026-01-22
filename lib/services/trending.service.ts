@@ -278,10 +278,10 @@ export const trendingService = {
                     const { data: brandsData } = await supabase
                         .from('online_brands')
                         // Join with trending columns for sorting
-                        .select('id, name, logo_url, category, trending_score, is_trending_override')
+                        .select('id, name, logo, logo_url, category, trending_score, is_trending_override')
                         .in('id', brandIds);
                     (brandsData || []).forEach((b: any) => {
-                        brandMap[b.id] = { name: b.name, logo_url: b.logo_url };
+                        brandMap[b.id] = { name: b.name, logo_url: b.logo_url || b.logo };
                     });
                 }
 
@@ -358,7 +358,7 @@ export const trendingService = {
                     .from('offers')
                     .select(`
                         id, title, discount_value, type, merchant_id,
-                        merchants!inner (business_name, city, online_store, status, trending_score, is_trending_override, logo_url, average_rating, total_ratings)
+                        merchants!inner (business_name, city, online_store, status, trending_score, is_trending_override, logo, logo_url, average_rating, total_ratings)
                     `)
                     .eq('status', 'active')
                     .eq('merchants.status', 'approved')
@@ -376,7 +376,7 @@ export const trendingService = {
                     merchantName: o.merchants?.business_name,
                     merchantId: o.merchant_id,
                     merchantCity: o.merchants?.city,
-                    merchantLogo: o.merchants?.logo_url,
+                    merchantLogo: o.merchants?.logo_url || o.merchants?.logo,
                     isAdminPick: false,
                     avgRating: o.merchants?.average_rating,
                     totalRatings: o.merchants?.total_ratings
