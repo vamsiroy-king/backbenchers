@@ -5,6 +5,7 @@ interface CachedData<T> {
     data: T;
     timestamp: number;
     city?: string;
+    version?: string;
 }
 
 interface DashboardCache {
@@ -31,10 +32,17 @@ let cache: DashboardCache = {
     favoriteIds: null,
 };
 
+// Cache version - increment this to invalidate all client caches
+const CACHE_VERSION = 'v2';
+
 // Check if cache is valid
 function isValid<T>(cached: CachedData<T> | null, currentCity?: string): boolean {
     if (!cached) return false;
     const now = Date.now();
+
+    // Check version
+    if (cached.version !== CACHE_VERSION) return false;
+
     if (now - cached.timestamp > CACHE_EXPIRY) return false;
     if (currentCity && cached.city && cached.city !== currentCity) return false;
     return true;
@@ -47,7 +55,7 @@ export const dashboardCache = {
     },
 
     setOffers(data: any[], city?: string): void {
-        cache.offers = { data, timestamp: Date.now(), city };
+        cache.offers = { data, timestamp: Date.now(), city, version: CACHE_VERSION };
     },
 
     getTrendingOffline(city?: string): any[] | null {
@@ -55,7 +63,7 @@ export const dashboardCache = {
     },
 
     setTrendingOffline(data: any[], city?: string): void {
-        cache.trendingOffline = { data, timestamp: Date.now(), city };
+        cache.trendingOffline = { data, timestamp: Date.now(), city, version: CACHE_VERSION };
     },
 
     getTrendingOnline(): any[] | null {
@@ -63,7 +71,7 @@ export const dashboardCache = {
     },
 
     setTrendingOnline(data: any[]): void {
-        cache.trendingOnline = { data, timestamp: Date.now() };
+        cache.trendingOnline = { data, timestamp: Date.now(), version: CACHE_VERSION };
     },
 
     getTopBrands(): any[] | null {
@@ -71,7 +79,7 @@ export const dashboardCache = {
     },
 
     setTopBrands(data: any[]): void {
-        cache.topBrands = { data, timestamp: Date.now() };
+        cache.topBrands = { data, timestamp: Date.now(), version: CACHE_VERSION };
     },
 
     getNewMerchants(city?: string): any[] | null {
@@ -79,7 +87,7 @@ export const dashboardCache = {
     },
 
     setNewMerchants(data: any[], city?: string): void {
-        cache.newMerchants = { data, timestamp: Date.now(), city };
+        cache.newMerchants = { data, timestamp: Date.now(), city, version: CACHE_VERSION };
     },
 
     getHeroBanners(city?: string): any[] | null {
@@ -87,7 +95,7 @@ export const dashboardCache = {
     },
 
     setHeroBanners(data: any[], city?: string): void {
-        cache.heroBanners = { data, timestamp: Date.now(), city };
+        cache.heroBanners = { data, timestamp: Date.now(), city, version: CACHE_VERSION };
     },
 
     getFavoriteIds(): string[] | null {
@@ -95,7 +103,7 @@ export const dashboardCache = {
     },
 
     setFavoriteIds(data: string[]): void {
-        cache.favoriteIds = { data, timestamp: Date.now() };
+        cache.favoriteIds = { data, timestamp: Date.now(), version: CACHE_VERSION };
     },
 
     updateFavoriteIds(offerId: string, isFavorite: boolean): void {

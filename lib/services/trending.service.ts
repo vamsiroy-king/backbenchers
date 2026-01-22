@@ -304,12 +304,25 @@ export const trendingService = {
                     return false;
                 });
 
+                const extractDiscount = (title: string, desc?: string): number => {
+                    const text = (title + ' ' + (desc || '')).toLowerCase();
+                    const percentMatch = text.match(/(\d+)\s*%/);
+                    if (percentMatch) return parseInt(percentMatch[1]);
+                    const amountMatch = text.match(/(?:rs\.?|₹)\s*(\d+)/);
+                    if (amountMatch) return parseInt(amountMatch[1]);
+                    const flatMatch = text.match(/flat\s*(\d+)/);
+                    if (flatMatch) return parseInt(flatMatch[1]);
+                    return 0;
+                };
+
                 const newMapped = filteredNewOffers.map((o: any) => {
                     const brand = brandMap[o.brand_id] || { name: 'Online Brand', logo_url: null };
+                    const discountVal = extractDiscount(o.title, o.link);
+
                     return {
                         id: o.id,
                         title: o.title,
-                        discountValue: 0, // New online system doesn't have discount_value
+                        discountValue: discountVal,
                         type: 'coupon', // Default type for coupon-based offers
                         merchantName: brand.name,
                         merchantId: o.brand_id, // Use brand_id as merchantId
