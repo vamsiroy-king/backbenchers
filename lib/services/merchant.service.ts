@@ -192,15 +192,42 @@ export const merchantService = {
                 .maybeSingle();
 
             if (data) {
-                // Fetch store images for approved merchants
-                const { data: images } = await supabase
+                // Fetch store images for approved merchants (from relational table)
+                const { data: relationalImages } = await supabase
                     .from('merchant_store_images')
                     .select('image_url')
                     .eq('merchant_id', id)
                     .order('display_order');
 
                 const merchant = mapDbToMerchant(data);
-                merchant.storeImages = images?.map(img => img.image_url) || [];
+
+                // HYBRID FALLBACK STRATEGY FOR IMAGES:
+                // 1. Try relational table 'merchant_store_images' (New System)
+                // 2. If empty, try legacy 'store_images' column (Old System/Seeds)
+                if (relationalImages && relationalImages.length > 0) {
+                    merchant.storeImages = relationalImages.map(img => img.image_url);
+                } else if (data.store_images) {
+                    // Handle legacy store_images (could be JSON string or Array)
+                    try {
+                        merchant.storeImages = typeof data.store_images === 'string'
+                            ? JSON.parse(data.store_images)
+                            : data.store_images;
+                    } catch (e) {
+                        console.error('Error parsing legacy store_images:', e);
+                        merchant.storeImages = [];
+                    }
+                } else {
+                    merchant.storeImages = [];
+                }
+
+                // Ensure operatingHours is parsed if it comes as a string (defensive coding)
+                if (typeof merchant.operatingHours === 'string') {
+                    try {
+                        merchant.operatingHours = JSON.parse(merchant.operatingHours as unknown as string);
+                    } catch (e) {
+                        // Keep as is if parsing fails, or set null
+                    }
+                }
 
                 return { success: true, data: merchant, error: null };
             }
@@ -305,14 +332,35 @@ export const merchantService = {
             }
 
             // Fetch store images
-            const { data: images } = await supabase
+            const { data: relationalImages } = await supabase
                 .from('merchant_store_images')
                 .select('image_url')
                 .eq('merchant_id', data.id)
                 .order('display_order');
 
             const merchant = mapDbToMerchant(data);
-            merchant.storeImages = images?.map(img => img.image_url) || [];
+
+            // HYBRID FALLBACK STRATEGY FOR IMAGES:
+            if (relationalImages && relationalImages.length > 0) {
+                merchant.storeImages = relationalImages.map(img => img.image_url);
+            } else if (data.store_images) {
+                try {
+                    merchant.storeImages = typeof data.store_images === 'string'
+                        ? JSON.parse(data.store_images)
+                        : data.store_images;
+                } catch (e) {
+                    merchant.storeImages = [];
+                }
+            } else {
+                merchant.storeImages = [];
+            }
+
+            // Ensure operatingHours is parsed
+            if (typeof merchant.operatingHours === 'string') {
+                try {
+                    merchant.operatingHours = JSON.parse(merchant.operatingHours as unknown as string);
+                } catch (e) { }
+            }
 
             return { success: true, data: merchant, error: null };
         } catch (error: any) {
