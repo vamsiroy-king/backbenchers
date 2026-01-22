@@ -215,7 +215,7 @@ export default function HeroBannersPage() {
                         {/* Banner Preview - Updated to match Student View */}
                         <div className={`h-32 bg-gradient-to-br ${banner.backgroundGradient} p-4 flex flex-col items-center justify-center text-center relative overflow-hidden`}>
                             {banner.imageUrl && (
-                                <div className="absolute inset-0 z-0 opacity-40">
+                                <div className="absolute inset-0 z-0 opacity-100">
                                     <img src={banner.imageUrl} className="w-full h-full object-cover" alt="" />
                                     <div className="absolute inset-0 bg-black/60" />
                                 </div>
@@ -316,7 +316,7 @@ export default function HeroBannersPage() {
                                 {/* Preview */}
                                 <div className={`h-40 bg-gradient-to-br ${form.backgroundGradient} rounded-2xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden ring-4 ring-gray-100 dark:ring-gray-800`}>
                                     {form.imageUrl && (
-                                        <div className="absolute inset-0 z-0 opacity-40">
+                                        <div className="absolute inset-0 z-0 opacity-100">
                                             <img src={form.imageUrl} className="w-full h-full object-cover" alt="" />
                                             <div className="absolute inset-0 bg-black/60" />
                                         </div>
@@ -403,19 +403,21 @@ export default function HeroBannersPage() {
                                     </div>
                                 </div>
 
-                                {/* Gradient */}
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 block mb-2">Background Color</label>
-                                    <div className="flex gap-2 flex-wrap">
-                                        {GRADIENT_PRESETS.map((g) => (
-                                            <button
-                                                key={g.value}
-                                                onClick={() => setForm({ ...form, backgroundGradient: g.value })}
-                                                className={`h-10 w-16 rounded-xl bg-gradient-to-r ${g.value} ${form.backgroundGradient === g.value ? 'ring-2 ring-offset-2 ring-primary' : ''}`}
-                                            />
-                                        ))}
+                                {/* Gradient - Only show if no image */}
+                                {!form.imageUrl && (
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 block mb-2">Background Color</label>
+                                        <div className="flex gap-2 flex-wrap">
+                                            {GRADIENT_PRESETS.map((g) => (
+                                                <button
+                                                    key={g.value}
+                                                    onClick={() => setForm({ ...form, backgroundGradient: g.value })}
+                                                    className={`h-10 w-16 rounded-xl bg-gradient-to-r ${g.value} ${form.backgroundGradient === g.value ? 'ring-2 ring-offset-2 ring-primary' : ''}`}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 {/* Rest of the form (Banner Type, Coverage, Dates, Save) */}
                                 <div>
@@ -484,8 +486,8 @@ export default function HeroBannersPage() {
                                                                 }
                                                             }}
                                                             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${form.selectedCities.includes(city)
-                                                                    ? 'bg-primary border-primary text-white shadow-sm'
-                                                                    : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 dark:text-gray-300 hover:border-primary/50'
+                                                                ? 'bg-primary border-primary text-white shadow-sm'
+                                                                : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 dark:text-gray-300 hover:border-primary/50'
                                                                 }`}
                                                         >
                                                             {city}
