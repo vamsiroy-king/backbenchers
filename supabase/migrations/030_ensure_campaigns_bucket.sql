@@ -1,6 +1,5 @@
--- Ensure campaigns bucket exists and has correct settings
-INSERT INTO storage.buckets (id, name, public, avif_autodetection_enabled, file_size_limit, allowed_mime_types)
-VALUES ('campaigns', 'campaigns', true, true, 5242880, ARRAY['image/*'])
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('campaigns', 'campaigns', true, 5242880, ARRAY['image/*'])
 ON CONFLICT (id) DO UPDATE SET 
     public = true, 
     file_size_limit = 5242880, 
