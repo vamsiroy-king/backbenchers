@@ -137,6 +137,9 @@ export default function HeroBannersPage() {
         if (result.success) {
             await fetchBanners();
             setShowModal(false);
+        } else {
+            console.error("Save failed:", result.error);
+            alert(`Failed to save banner: ${result.error}`);
         }
         setSaving(false);
     };
