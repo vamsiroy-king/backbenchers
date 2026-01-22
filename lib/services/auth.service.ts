@@ -275,6 +275,7 @@ export const authService = {
             localStorage.removeItem(PASSCODE_KEY);
             localStorage.removeItem(DEVICE_ID_KEY);
             localStorage.removeItem('dev_test_user'); // Clear dev test user
+            localStorage.removeItem('onboarding_state'); // Clear verification form state (CRITICAL fix)
         }
     },
 

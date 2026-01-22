@@ -48,7 +48,7 @@ const Progress = ({ current, total }: { current: number; total: number }) => (
 
 export default function VerifyPage() {
     const router = useRouter();
-    const [step, setStep] = useState<"intro" | "details" | "location" | "university" | "email" | "otp" | "photo" | "success">("intro");
+    const [step, setStep] = useState<"intro" | "details" | "location" | "university" | "email" | "otp" | "photo" | "success">("details");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [checkingAuth, setCheckingAuth] = useState(true);
@@ -131,7 +131,7 @@ export default function VerifyPage() {
             const saved = localStorage.getItem('onboarding_state');
             if (saved) {
                 const p = JSON.parse(saved);
-                if (p.googleEmail === googleEmail && p.step !== 'success') {
+                if (p.googleEmail === googleEmail && p.step !== 'success' && p.step !== 'intro') {
                     setStep(p.step);
                     setFormData(prev => ({ ...prev, ...p.formData }));
                 }
@@ -184,12 +184,12 @@ export default function VerifyPage() {
         }
     }, [formData.phone, step]);
 
-    const stepIndex = ["intro", "details", "location", "university", "email", "otp", "photo"].indexOf(step);
+    const stepIndex = ["details", "location", "university", "email", "otp", "photo"].indexOf(step);
     const goBack = () => {
-        if (step === "intro") {
-            // Go back to landing
+        if (step === "details") {
+            // Go back to landing/home instead of intro
             window.location.href = '/';
-        } else if (step === "details") setStep("intro");
+        }
         else if (step === "location") setStep("details");
         else if (step === "university") setStep("location");
         else if (step === "email") setStep("university");
@@ -306,64 +306,7 @@ export default function VerifyPage() {
             )}
 
             <AnimatePresence mode="wait">
-                {step === "intro" && (
-                    <motion.div
-                        key="intro"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
-                        className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 text-center"
-                    >
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-green-500/20 blur-3xl rounded-full" />
-                            <div className="relative h-24 w-24 bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] rounded-3xl border border-white/[0.08] flex items-center justify-center shadow-2xl">
-                                <span className="text-4xl">👋</span>
-                            </div>
-                            <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-green-500 rounded-full flex items-center justify-center border-[3px] border-[#0a0a0a]">
-                                <Check className="h-4 w-4 text-black" />
-                            </div>
-                        </div>
 
-                        <div className="space-y-2 max-w-xs mx-auto">
-                            <h1 className="text-3xl font-bold text-white tracking-tight">Let's get verified</h1>
-                            <p className="text-white/50 text-sm leading-relaxed">
-                                Join 5,000+ students saving money at top brands near you.
-                            </p>
-                        </div>
-
-                        {/* Account Card */}
-                        <div className="w-full max-w-sm bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 flex items-center gap-4 text-left">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                {googleEmail?.charAt(0).toUpperCase() || "S"}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Continuing as</p>
-                                <p className="text-sm font-medium text-white truncate">{googleEmail}</p>
-                            </div>
-                            <Check className="h-5 w-5 text-green-500" />
-                        </div>
-
-                        <div className="w-full max-w-sm space-y-3">
-                            <button
-                                onClick={() => setStep("details")}
-                                className="w-full h-14 bg-green-500 hover:bg-green-400 text-black font-bold text-lg rounded-2xl shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2 group"
-                            >
-                                Start Verification
-                                <ArrowLeft className="h-5 w-5 rotate-180 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    const { supabase } = await import("@/lib/supabase");
-                                    await authService.logout();
-                                    window.location.href = '/signup';
-                                }}
-                                className="text-sm text-white/30 hover:text-white transition-colors"
-                            >
-                                Not you? Switch account
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
 
                 {step === "details" && (
                     <motion.form key="d" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} onSubmit={async (e) => {
