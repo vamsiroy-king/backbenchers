@@ -33,7 +33,8 @@ let cache: DashboardCache = {
 };
 
 // Cache version - increment this to invalidate all client caches
-const CACHE_VERSION = 'v2';
+const CACHE_KEY = 'dashboard_data';
+const CACHE_VERSION = 'v3'; // Increment to force fresh fetch
 
 // Check if cache is valid
 function isValid<T>(cached: CachedData<T> | null, currentCity?: string): boolean {

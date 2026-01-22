@@ -25,7 +25,7 @@ import { BBInlineLoader, BBCardPlaceholder } from "@/components/BBLoader";
 import { MasonryGrid } from "@/components/ui/MasonryGrid";
 import { OfferCard } from "@/components/OfferCard";
 import { DistrictOfferCard } from "@/components/DistrictOfferCard";
-import { ConnectingLines } from "@/components/ui/ConnectingLines";
+import { TrendingSection } from "@/components/dashboard/TrendingSection";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ThemeProvider";
@@ -94,13 +94,7 @@ export default function DashboardPage() {
     const isLightTheme = theme === 'light';
 
     const [heroIndex, setHeroIndex] = useState(0);
-    // Remember trending tab selection via localStorage
-    const [trendingTab, setTrendingTab] = useState<'online' | 'offline'>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('trendingTab') as 'online' | 'offline') || 'offline';
-        }
-        return 'offline';
-    });
+
     const [showVerifyModal, setShowVerifyModal] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
@@ -490,24 +484,6 @@ export default function DashboardPage() {
         ? realOffers.filter(o => o.merchantCity?.toLowerCase() === selectedCity.toLowerCase())
         : realOffers;
 
-    // Group by merchant - show each merchant once with their best discount
-    const groupByMerchant = (offersList: Offer[]) => {
-        const merchantMap = new Map<string, Offer>();
-        offersList.forEach(offer => {
-            const merchantId = offer.merchantId || '';
-            const existing = merchantMap.get(merchantId);
-            if (!existing || (offer.discountValue || 0) > (existing.discountValue || 0)) {
-                merchantMap.set(merchantId, offer);
-            }
-        });
-        return Array.from(merchantMap.values());
-    };
-
-    const currentOffers = trendingTab === 'online'
-        ? groupByMerchant(trendingOnline.length > 0 ? trendingOnline : ONLINE_OFFERS as any)
-        : groupByMerchant(cityFilteredTrendingOffline.length > 0
-            ? cityFilteredTrendingOffline
-            : (cityFilteredRealOffers.length > 0 ? cityFilteredRealOffers : OFFLINE_OFFERS as any));
 
     // Enhanced search: merge local items with real offers from database
     const filteredItems = searchQuery.length > 0
@@ -939,79 +915,16 @@ export default function DashboardPage() {
                     )
                 }
 
-                {/* Trending Offers - Real App Style */}
+                {/* Trending Offers - Redesigned Component */}
                 {
                     contentSettings.showTrending && (
-                        <section className="pb-4 relative overflow-hidden">
-                            <ConnectingLines />
-
-                            <div className="flex items-center justify-center mb-5">
-                                <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                                <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TRENDING NOW</span>
-                                <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                            </div>
-
-                            <div className="flex justify-center mb-6 relative z-10">
-                                <div className="flex p-1 bg-white/[0.05] rounded-full border border-white/[0.08]">
-                                    <button
-                                        onClick={() => {
-                                            setTrendingTab('offline');
-                                            if (typeof window !== 'undefined') localStorage.setItem('trendingTab', 'offline');
-                                            vibrate('light');
-                                        }}
-                                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${trendingTab === 'offline' ? 'bg-green-500 text-black shadow-lg shadow-green-500/20' : 'text-white/50 hover:text-white'}`}
-                                    >
-                                        In-Store
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setTrendingTab('online');
-                                            if (typeof window !== 'undefined') localStorage.setItem('trendingTab', 'online');
-                                            vibrate('light');
-                                        }}
-                                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${trendingTab === 'online' ? 'bg-green-500 text-black shadow-lg shadow-green-500/20' : 'text-white/50 hover:text-white'}`}
-                                    >
-                                        Online
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Horizontal Scroll Area */}
-                            <div className="flex overflow-x-auto gap-4 pb-4 -mx-5 px-5 scrollbar-hide snap-x relative z-10">
-                                {currentOffers.map((offer: any, index: number) => (
-                                    <div key={offer.id} className="w-[180px] flex-shrink-0 relative group snap-start">
-                                        <OfferCard
-                                            offer={{
-                                                id: offer.id,
-                                                merchantId: offer.merchantId,
-                                                merchantName: offer.merchantName,
-                                                merchantLogo: offer.merchantLogo,
-                                                title: offer.title,
-                                                description: offer.merchantCity || "Trending",
-                                                type: offer.type || "percentage",
-                                                discountValue: offer.discountValue || 0,
-                                                status: "active",
-                                                totalRedemptions: 0,
-                                                createdAt: new Date().toISOString(),
-                                                avgRating: offer.avgRating,
-                                                totalRatings: offer.totalRatings
-                                            } as any}
-                                            onClick={() => {
-                                                if (!isVerified) {
-                                                    setShowVerifyModal(true);
-                                                } else if (offer.isNewSystem) {
-                                                    router.push(`/dashboard/online-brand/${offer.merchantId}`);
-                                                } else if (trendingTab === 'online') {
-                                                    router.push(`/offer/${offer.id}`);
-                                                } else {
-                                                    router.push(`/store/${offer.merchantId}`);
-                                                }
-                                            }}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
+                        <TrendingSection
+                            onlineOffers={trendingOnline}
+                            offlineOffers={trendingOffline}
+                            isVerified={isVerified}
+                            onVerifyClick={() => setShowVerifyModal(true)}
+                            city={selectedCity}
+                        />
                     )
                 }
             </main >
