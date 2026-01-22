@@ -309,35 +309,35 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
             </AnimatePresence>
 
             {/* ---------------- IMMERSIVE DESKTOP LAYOUT ---------------- */}
-            <div className="min-h-screen bg-black md:bg-[#050505]">
+            <div className="min-h-screen bg-black md:bg-[#050505] pb-20">
 
-                {/* Desktop Hero Section - FULL WIDTH */}
-                <div className="hidden md:block relative h-[50vh] min-h-[400px] w-full group">
+                {/* Desktop Hero Section - Refined Height & Overlay */}
+                <div className="hidden md:block relative h-[40vh] min-h-[350px] max-h-[500px] w-full group overflow-hidden">
                     {heroImage ? (
                         <div className="absolute inset-0">
-                            <img src={heroImage} alt={merchant.businessName} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
-                            <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700" />
+                            <img src={heroImage} alt={merchant.businessName} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/50 to-transparent" />
+                            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-500" />
                         </div>
                     ) : (
-                        <div className="absolute inset-0 bg-gradient-to-br from-green-900/20 to-black flex items-center justify-center">
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#111] to-black flex items-center justify-center">
                             <span className="text-9xl font-bold text-white/5">{merchant.businessName[0]}</span>
                         </div>
                     )}
 
                     {/* Desktop Content Container Overlay */}
-                    <div className="absolute inset-0 flex flex-col justify-end pb-8">
+                    <div className="absolute inset-0 flex flex-col justify-end pb-10">
                         <div className="max-w-7xl mx-auto w-full px-8 flex items-end justify-between gap-8">
                             <div className="flex items-end gap-6">
                                 {/* Logo */}
-                                <div className="h-32 w-32 rounded-2xl bg-white p-1 shadow-2xl shadow-black/50 rotate-3 transition-transform group-hover:rotate-0 duration-500">
+                                <div className="h-32 w-32 rounded-2xl bg-white p-1 shadow-2xl shadow-black/50">
                                     <img src={merchant.logo || '/placeholder.png'} alt="" className="w-full h-full object-contain rounded-xl" />
                                 </div>
 
                                 {/* Text Info */}
                                 <div className="mb-2">
-                                    <h1 className="text-5xl font-bold text-white mb-2 drop-shadow-lg">{merchant.businessName}</h1>
-                                    <div className="flex items-center gap-4 text-white/80 text-sm font-medium">
+                                    <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">{merchant.businessName}</h1>
+                                    <div className="flex items-center gap-4 text-white/90 text-sm font-medium">
                                         <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-white">
                                             {merchant.category}
                                         </span>
@@ -357,7 +357,7 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                             return (
                                                 <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${status.isOpen
                                                     ? 'bg-green-500/20 border-green-500/30 text-green-400'
-                                                    : 'bg-red-500/20 border-red-500/30 text-red-400'}`}>
+                                                    : 'bg-red-500/20 border-red-500/30 text-red-500'}`}>
                                                     {status.isOpen ? 'OPEN NOW' : 'CLOSED'}
                                                 </span>
                                             );
@@ -368,14 +368,14 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
 
                             {/* Action Buttons */}
                             <div className="flex gap-3 mb-2">
-                                <button onClick={handleCall} className="h-12 px-6 bg-white hover:bg-gray-100 text-black font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
-                                    <Phone className="h-5 w-5" /> Call
+                                <button onClick={handleCall} className="h-11 px-6 bg-white hover:bg-gray-100 text-black font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                                    <Phone className="h-4 w-4" /> Call
                                 </button>
-                                <button onClick={handleGetDirections} className="h-12 px-6 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-green-900/50 hover:shadow-green-500/30 hover:-translate-y-1">
-                                    <Navigation className="h-5 w-5" /> Directions
+                                <button onClick={handleGetDirections} className="h-11 px-6 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-green-900/20 hover:shadow-green-500/30 hover:-translate-y-0.5">
+                                    <Navigation className="h-4 w-4" /> Directions
                                 </button>
-                                <button onClick={handleSave} className="h-12 w-12 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-center transition-all group/btn">
-                                    <Heart className={`h-6 w-6 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-white'}`} />
+                                <button onClick={handleSave} className="h-11 w-11 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-center transition-all">
+                                    <Heart className={`h-5 w-5 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-white'}`} />
                                 </button>
                             </div>
                         </div>
@@ -383,8 +383,8 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 </div>
 
                 {/* Main Content Area */}
-                <div className="w-full md:max-w-7xl md:mx-auto md:p-8">
-                    <div className="md:grid md:grid-cols-12 md:gap-8">
+                <div className="w-full md:max-w-7xl md:mx-auto md:px-8 mt-8">
+                    <div className="md:grid md:grid-cols-12 md:gap-8 items-start">
 
                         {/* LEFT: TABS & CONTENT (Takes up 8 cols) */}
                         <div className="col-span-12 lg:col-span-8">
@@ -393,11 +393,11 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                 {TABS.map(tab => (
                                     <button
                                         key={tab.id}
-                                        onClick={() => { setActiveTab(tab.id); vibrate('light'); }}
-                                        className={`py-4 text-base font-bold relative transition-colors ${activeTab === tab.id ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                                        onClick={() => { setActiveTab(tab.id); }}
+                                        className={`py-4 text-sm font-bold relative transition-colors ${activeTab === tab.id ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
                                     >
                                         {tab.label}
-                                        {activeTab === tab.id && <motion.div layoutId="desktop-tab" className="absolute bottom-0 left-0 right-0 h-1 bg-green-500 rounded-t-full shadow-[0_-2px_10px_rgba(34,197,94,0.5)]" />}
+                                        {activeTab === tab.id && <motion.div layoutId="desktop-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500" />}
                                     </button>
                                 ))}
                             </div>
@@ -407,8 +407,8 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                 {activeTab === 'offers' && (
                                     <div className="space-y-6">
                                         <div className="flex items-center justify-between">
-                                            <h3 className="text-xl font-bold text-white">Active Offers</h3>
-                                            <span className="text-sm text-green-400 font-medium bg-green-900/20 px-3 py-1 rounded-full border border-green-500/20">
+                                            <h3 className="text-lg font-bold text-white">Active Offers</h3>
+                                            <span className="text-xs text-green-400 font-medium bg-green-900/10 px-3 py-1 rounded-full border border-green-500/20">
                                                 {activeOffers.length} Deals Available
                                             </span>
                                         </div>
@@ -421,26 +421,26 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                         ) : (
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {activeOffers.map(offer => (
-                                                    <div key={offer.id} className="bg-[#111] hover:bg-[#161616] p-5 rounded-2xl border border-white/5 hover:border-white/10 transition-all group cursor-pointer shadow-lg shadow-black/20">
+                                                    <div key={offer.id} className="bg-[#111] hover:bg-[#161616] p-5 rounded-2xl border border-white/5 hover:border-white/10 transition-all group cursor-pointer shadow-sm">
                                                         <div className="flex justify-between items-start mb-4">
-                                                            <div className="h-14 w-14 rounded-xl bg-green-500 text-black flex flex-col items-center justify-center font-bold shadow-lg shadow-green-500/20">
-                                                                <span className="text-lg leading-none">{offer.discountValue}{offer.type === 'percentage' ? '%' : ''}</span>
-                                                                <span className="text-[10px]">OFF</span>
+                                                            <div className="h-12 w-12 rounded-lg bg-green-500 text-black flex flex-col items-center justify-center font-bold shadow-md shadow-green-500/10">
+                                                                <span className="text-base leading-none">{offer.discountValue}{offer.type === 'percentage' ? '%' : ''}</span>
+                                                                <span className="text-[9px]">OFF</span>
                                                             </div>
                                                             <div className="text-right">
-                                                                {offer.finalPrice && <p className="text-2xl font-bold text-white">₹{offer.finalPrice}</p>}
-                                                                {offer.originalPrice && <p className="text-sm text-white/40 line-through">₹{offer.originalPrice}</p>}
+                                                                {offer.finalPrice && <p className="text-xl font-bold text-white">₹{offer.finalPrice}</p>}
+                                                                {offer.originalPrice && <p className="text-xs text-white/40 line-through">₹{offer.originalPrice}</p>}
                                                             </div>
                                                         </div>
-                                                        <h4 className="text-lg font-bold text-white mb-2 group-hover:text-green-400 transition-colors">{offer.title}</h4>
-                                                        <p className="text-sm text-white/50 mb-4 line-clamp-2">{offer.description}</p>
+                                                        <h4 className="text-base font-bold text-white mb-2 group-hover:text-green-400 transition-colors line-clamp-1">{offer.title}</h4>
+                                                        <p className="text-xs text-white/50 mb-4 line-clamp-2 min-h-[2.5em]">{offer.description}</p>
                                                         <div className="flex items-center justify-between pt-4 border-t border-white/5">
                                                             <span className="text-xs font-medium text-white/40 flex items-center gap-1.5">
-                                                                <Clock className="h-3.5 w-3.5" />
+                                                                <Clock className="h-3 w-3" />
                                                                 {offer.validUntil ? `Valid till ${new Date(offer.validUntil).toLocaleDateString()}` : 'Limited time'}
                                                             </span>
-                                                            <button className="h-8 px-4 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs font-bold transition-colors">
-                                                                Details
+                                                            <button className="h-7 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-white text-[10px] font-bold transition-colors">
+                                                                View
                                                             </button>
                                                         </div>
                                                     </div>
@@ -452,58 +452,72 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
 
                                 {activeTab === 'photos' && (
                                     <div className="grid grid-cols-3 gap-4">
-                                        {allImages.map((img, i) => (
-                                            <div key={i} onClick={() => { setSelectedImageIndex(i); setShowImageGallery(true); }} className="aspect-square rounded-2xl overflow-hidden cursor-pointer relative group">
+                                        {allImages.length > 0 ? allImages.map((img, i) => (
+                                            <div key={i} onClick={() => { setSelectedImageIndex(i); setShowImageGallery(true); }} className="aspect-square rounded-xl overflow-hidden cursor-pointer relative group bg-[#111]">
                                                 <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                                             </div>
-                                        ))}
+                                        )) : (
+                                            <div className="col-span-3 py-12 text-center text-white/30 border border-white/5 rounded-2xl bg-[#111]">
+                                                <Camera className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                                                No photos available
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
-                                {activeTab === 'about' && merchant.description && (
+                                {activeTab === 'about' && (
                                     <div className="bg-[#111] p-8 rounded-3xl border border-white/5">
-                                        <h3 className="text-xl font-bold text-white mb-4">About the Business</h3>
-                                        <p className="text-white/70 leading-relaxed text-lg">{merchant.description}</p>
+                                        <h3 className="text-lg font-bold text-white mb-4">About the Business</h3>
+                                        {merchant.description ? (
+                                            <p className="text-white/70 leading-relaxed text-base">{merchant.description}</p>
+                                        ) : (
+                                            <p className="text-white/30 italic">No description available.</p>
+                                        )}
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* RIGHT: INFO SIDEBAR (Desktop Only - Sticky) */}
-                        <div className="hidden lg:block col-span-4 space-y-6">
+                        <div className="hidden lg:block col-span-4 space-y-6 sticky top-24">
                             {/* Address Card */}
                             <div className="bg-[#111] p-6 rounded-3xl border border-white/5">
-                                <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-                                    <MapPin className="h-5 w-5 text-green-500" /> Location
+                                <h3 className="text-white font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider text-white/50">
+                                    <MapPin className="h-4 w-4" /> Location
                                 </h3>
-                                <p className="text-white/80 mb-2">{merchant.address}</p>
-                                <p className="text-white/50 text-sm mb-4">{merchant.city}, {merchant.pinCode}</p>
-                                <button onClick={handleGetDirections} className="w-full h-10 rounded-xl bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-colors border border-white/5">
+                                <p className="text-white/90 mb-1 font-medium">{merchant.businessName}</p>
+                                <p className="text-white/60 mb-1 text-sm">{merchant.address}</p>
+                                <p className="text-white/60 text-sm mb-4">{merchant.city}, {merchant.pinCode}</p>
+                                <button onClick={handleGetDirections} className="w-full h-10 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold transition-colors border border-white/5 flex items-center justify-center gap-2">
                                     Open in Google Maps
                                 </button>
                             </div>
 
                             {/* Hours Card */}
                             <div className="bg-[#111] p-6 rounded-3xl border border-white/5">
-                                <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-                                    <Clock className="h-5 w-5 text-green-500" /> Operating Hours
+                                <h3 className="text-white font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider text-white/50">
+                                    <Clock className="h-4 w-4" /> Operating Hours
                                 </h3>
                                 <div className="space-y-3">
-                                    {(merchant.operatingHours ? ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] : []).map(day => {
+                                    {merchant.operatingHours ? ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
                                         const opHours = merchant.operatingHours as any;
                                         const hours = opHours?.[day];
                                         const isToday = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() === day;
                                         return (
-                                            <div key={day} className={`flex justify-between items-center text-sm py-1 border-b border-dashed border-white/5 last:border-0 ${isToday ? 'text-green-400 font-bold' : 'text-white/60'}`}>
+                                            <div key={day} className={`flex justify-between items-center text-sm py-1 border-b border-white/5 last:border-0 ${isToday ? 'text-green-400 font-bold' : 'text-white/60'}`}>
                                                 <span className="capitalize w-24">{day}</span>
                                                 <span className="text-right flex-1">
-                                                    {hours?.closed ? <span className="text-red-400/70">Closed</span> : `${hours?.open} - ${hours?.close}`}
+                                                    {hours?.closed ? <span className="text-red-400/70">Closed</span> : `${hours?.open || '9:00 AM'} - ${hours?.close || '9:00 PM'}`}
                                                 </span>
                                             </div>
                                         );
-                                    })}
-                                    {!merchant.operatingHours && <p className="text-white/40 text-sm">Hours not available</p>}
+                                    }) : (
+                                        <div className="text-center py-4">
+                                            <p className="text-white/40 text-sm italic">Hours not available</p>
+                                            <p className="text-white/20 text-xs mt-1">Contact store for timings</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

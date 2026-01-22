@@ -29,5 +29,5 @@ USING ( bucket_id = 'merchant-store-images' );
 
 CREATE POLICY "Merchant Delete Store Images"
 ON storage.objects FOR DELETE
-TO authenticatedand 
+TO authenticated 
 USING ( bucket_id = 'merchant-store-images' );

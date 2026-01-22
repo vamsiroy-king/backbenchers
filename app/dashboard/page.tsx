@@ -738,19 +738,13 @@ export default function DashboardPage() {
                         <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>SHOP BY CATEGORY</span>
                         <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                     </div>
-                    <div className="grid grid-cols-4 md:grid-cols-8 gap-2 md:gap-4">
+                    {/* Fixed: Use flex for desktop to prevent huge stretched cards */}
+                    <div className="grid grid-cols-4 gap-2 md:flex md:justify-center md:gap-6">
                         {[
                             { line1: "Food", line2: "& Beverages", image: "🍕", color: isLightTheme ? "from-orange-100 to-orange-200" : "from-orange-900/50 to-orange-950/80", category: "Food" },
                             { line1: "Fashion", line2: "& Apparel", image: "👗", color: isLightTheme ? "from-pink-100 to-pink-200" : "from-pink-900/50 to-pink-950/80", category: "Fashion" },
                             { line1: "Health", line2: "& Fitness", image: "💪", color: isLightTheme ? "from-blue-100 to-blue-200" : "from-blue-900/50 to-blue-950/80", category: "Fitness" },
                             { line1: "Skincare", line2: "& Beauty", image: "💄", color: isLightTheme ? "from-purple-100 to-purple-200" : "from-purple-900/50 to-purple-950/80", category: "Beauty" },
-                            // Duplicate for desktop fill (optional, or just keeps 4) - Let's keep 4 on desktop too but wide? No, looks weird. 
-                            // Actually, let's keep it centered or spread.
-                            // For now, let's just make them bigger on desktop or keep 4 cols but centered?
-                            // User asked for responsive layouts. grid-cols-4 on 7xl is huge cards.
-                            // Let's stick to grid-cols-4 md:grid-cols-4 lg:grid-cols-8 if we had more. 
-                            // Since we only have 4 items, let's keep grid-cols-4 but constrain width?
-                            // Or better, let's just let them match the design.
                         ].map((cat) => (
                             <motion.div
                                 key={cat.category}
@@ -759,11 +753,11 @@ export default function DashboardPage() {
                                     vibrate('light');
                                     router.push(`/dashboard/explore?category=${cat.category}`);
                                 }}
-                                className={`aspect-square rounded-xl bg-gradient-to-br ${cat.color} border flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${isLightTheme ? 'border-gray-200 hover:border-gray-300' : 'border-white/[0.06] hover:border-white/[0.12]'}`}
+                                className={`aspect-square rounded-xl bg-gradient-to-br ${cat.color} border flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${isLightTheme ? 'border-gray-200 hover:border-gray-300' : 'border-white/[0.06] hover:border-white/[0.12]'} md:w-28 md:h-28`}
                             >
-                                <span className="text-2xl mb-1">{cat.image}</span>
-                                <span className={`text-[10px] font-semibold leading-tight ${isLightTheme ? 'text-gray-700' : 'text-white/90'}`}>{cat.line1}</span>
-                                <span className={`text-[8px] font-medium leading-tight ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>{cat.line2}</span>
+                                <span className="text-2xl mb-1 md:text-3xl">{cat.image}</span>
+                                <span className={`text-[10px] font-semibold leading-tight ${isLightTheme ? 'text-gray-700' : 'text-white/90'} md:text-xs`}>{cat.line1}</span>
+                                <span className={`text-[8px] font-medium leading-tight ${isLightTheme ? 'text-gray-500' : 'text-white/50'} md:text-[10px]`}>{cat.line2}</span>
                             </motion.div>
                         ))}
                     </div>
@@ -778,7 +772,7 @@ export default function DashboardPage() {
                             <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>NEW STORES</span>
                             <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                         </div>
-                        {/* Mobile: Horizontal Scroll, Desktop: Grid */}
+                        {/* Mobile: Horizontal Scroll, Desktop: Grid with max width to avoid stretch */}
                         <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 pb-4 gap-4 md:grid md:grid-cols-4 lg:grid-cols-5 md:mx-0 md:px-0 md:overflow-visible">
                             {newMerchants.map((merchant) => (
                                 <div key={merchant.id} className="w-[180px] md:w-auto flex-shrink-0 relative group">
@@ -830,7 +824,7 @@ export default function DashboardPage() {
                                 <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                             </div>
 
-                            <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-4">
+                            <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:justify-center md:gap-4">
                                 {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
                                     <motion.button
                                         key={brand.id}
@@ -843,9 +837,9 @@ export default function DashboardPage() {
                                                 router.push(`/store/${brand.id}`);
                                             }
                                         }}
-                                        className={`rounded-xl p-3 flex flex-col items-center gap-2 border transition-all ${isLightTheme ? 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300' : 'bg-white/[0.02] border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08]'}`}
+                                        className={`rounded-xl p-3 flex flex-col items-center gap-2 border transition-all ${isLightTheme ? 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300' : 'bg-white/[0.02] border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08]'} md:w-32 md:p-4`}
                                     >
-                                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center overflow-hidden ${isLightTheme ? 'bg-gray-100' : 'bg-white/[0.04]'}`}>
+                                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center overflow-hidden ${isLightTheme ? 'bg-gray-100' : 'bg-white/[0.04]'} md:h-12 md:w-12`}>
                                             {brand.logo ? (
                                                 <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
                                             ) : (
