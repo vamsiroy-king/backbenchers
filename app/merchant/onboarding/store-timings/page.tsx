@@ -8,6 +8,10 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+import { authService } from "@/lib/services/auth.service";
+
+// ... (imports remain)
+
 const DAYS = [
     { id: "monday", label: "Mon" },
     { id: "tuesday", label: "Tue" },
@@ -153,7 +157,7 @@ export default function StoreTimingsPage() {
 
         setUploading(true);
         setError(null);
-        setShowConfirmation(false);
+        // setShowConfirmation(false); // keep modal open while loading
 
         try {
             let qrUrl = null;
@@ -166,24 +170,73 @@ export default function StoreTimingsPage() {
             const documentsData = JSON.parse(localStorage.getItem('merchant_documents') || '{}');
             const mapsData = JSON.parse(localStorage.getItem('merchant_maps') || '{}');
 
-            if (qrUrl) {
-                documentsData.paymentQr = { url: qrUrl };
-                localStorage.setItem('merchant_documents', JSON.stringify(documentsData));
+            // Final object construction
+            const result = await authService.completeMerchantOnboarding({
+                businessName: businessData.businessName,
+                category: businessData.category || 'General',
+                subCategory: businessData.subCategory,
+                brandType: businessData.brandType || 'single',
+                brandScale: businessData.brandScale || businessData.brandType || 'single',
+                merchantType: businessData.merchantType || 'local_store',
+                brandId: businessData.brandId,
+                brandName: businessData.brandName,
+                outletName: businessData.outletName,
+                outletRole: businessData.outletRole,
+                outletManagerName: businessData.outletManagerName,
+                outletManagerPhone: businessData.outletManagerPhone,
+                outletArea: locationData.area || businessData.outletArea,
+                baseCity: businessData.baseCity,
+                baseState: businessData.baseState,
+                description: businessData.description || '',
+                address: locationData.address || businessData.address || '',
+                city: locationData.city || businessData.city || '',
+                state: locationData.state || businessData.state || '',
+                pincode: locationData.pincode || businessData.pincode || '',
+                phone: businessData.phone || businessData.businessPhone || '',
+                ownerPhone: businessData.ownerPhone || '',
+                ownerName: businessData.ownerName || '',
+                gstNumber: businessData.gstNumber,
+                panNumber: businessData.panNumber,
+                // Images
+                logoUrl: documentsData.logo?.url,
+                coverPhotoUrl: documentsData.coverPhoto?.url,
+                storeImageUrls: documentsData.storeImages?.map((img: any) => img.url).filter(Boolean) || [],
+                // Location
+                latitude: locationData.latitude || mapsData.latitude || businessData.latitude,
+                longitude: locationData.longitude || mapsData.longitude || businessData.longitude,
+                googleMapsLink: locationData.googleMapsLink || mapsData.googleMapsLink || businessData.googleMapsLink,
+                googleMapsEmbed: mapsData.googleMapsEmbed,
+                // Operating hours (current state + saved default)
+                operatingHours: operatingHours,
+                // Payment QR
+                paymentQrUrl: qrUrl || documentsData.paymentQr?.url,
+            });
+
+            if (result.success) {
+                // Clear onboarding data
+                localStorage.removeItem('merchant_business');
+                localStorage.removeItem('merchant_location');
+                localStorage.removeItem('merchant_documents');
+                localStorage.removeItem('merchant_maps');
+
+                // Redirect to pending page
+                router.push('/merchant/onboarding/pending');
+            } else {
+                let errorMessage = result.error || "Failed to create merchant account";
+                if (errorMessage.includes('merchants_owner_phone_unique') || errorMessage.includes('owner_phone')) {
+                    errorMessage = "A merchant with this phone number already exists.";
+                }
+                setError(errorMessage);
+                setShowConfirmation(false);
             }
-
-            // Save operating hours to merchant_business
-            const currentBusinessData = JSON.parse(localStorage.getItem('merchant_business') || '{}');
-            currentBusinessData.operatingHours = operatingHours;
-            localStorage.setItem('merchant_business', JSON.stringify(currentBusinessData));
-
-            // Redirect to Offer Step
-            router.push('/merchant/onboarding/offer-step');
 
         } catch (err: any) {
             console.error('Error:', err);
             setError(err?.message || 'Something went wrong. Please try again.');
-            setUploading(false);
+            setShowConfirmation(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -205,18 +258,14 @@ export default function StoreTimingsPage() {
                     </Link>
                     <div className="flex-1">
                         <h1 className="text-lg font-bold text-white">Store Timings</h1>
-                        <p className="text-xs text-[#666]">Step 5 of 7 • Almost done</p>
+                        <p className="text-xs text-[#666]">Final Step</p>
                     </div>
                 </div>
 
                 {/* Progress Bar */}
-                {/* Progress Bar */}
                 <div className="px-5 pb-4 flex gap-2">
-                    {[1, 2, 3, 4, 5].map(s => (
+                    {[1, 2, 3].map(s => (
                         <div key={s} className="h-1 flex-1 bg-green-500 rounded-full" />
-                    ))}
-                    {[6, 7].map(s => (
-                        <div key={s} className="h-1 flex-1 bg-[#222] rounded-full" />
                     ))}
                 </div>
             </header>
@@ -394,14 +443,14 @@ export default function StoreTimingsPage() {
                     ) : (
                         <>
                             <>
-                                Continue to Offers
+                                Submit Application
                                 <ArrowRight className="h-5 w-5" />
                             </>
                         </>
                     )}
                 </motion.button>
                 <p className="text-center text-xs text-[#555] mt-3">
-                    You can update these later in settings
+                    Store hours will be shown on your profile
                 </p>
             </div>
 
@@ -419,7 +468,7 @@ export default function StoreTimingsPage() {
                                 <Check className="h-8 w-8 text-green-400" />
                             </div>
                             <h2 className="text-xl font-bold text-white">Confirm Timings</h2>
-                            <p className="text-sm text-[#888] mt-2">Saving your store hours and proceeding to offer setup</p>
+                            <p className="text-sm text-[#888] mt-2">Saving your store hours and submitting application</p>
                         </div>
 
                         {/* Terms & Conditions */}
@@ -467,7 +516,7 @@ export default function StoreTimingsPage() {
                                 {uploading ? (
                                     <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                                 ) : (
-                                    'Save & Continue'
+                                    'Submit Application'
                                 )}
                             </motion.button>
                         </div>

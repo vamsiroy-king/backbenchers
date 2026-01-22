@@ -915,8 +915,8 @@ export default function DashboardPage() {
                     )
                 }
 
-                {/* Trending Offers - Redesigned Component */}
-                {
+                {/* Trending Offers - Redesigned Component (Removed as per user request) */}
+                {/* {
                     contentSettings.showTrending && (
                         <TrendingSection
                             onlineOffers={trendingOnline}
@@ -926,7 +926,7 @@ export default function DashboardPage() {
                             city={selectedCity}
                         />
                     )
-                }
+                } */}
             </main >
 
 

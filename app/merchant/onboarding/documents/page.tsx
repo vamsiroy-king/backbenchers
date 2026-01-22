@@ -180,11 +180,22 @@ export default function DocumentsPage() {
         e.target.value = '';
     };
 
-    const handleStoreImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file && storeImages.length < 10) {
-            handleFileUpload(file, 'store', (img) => {
-                setStoreImages([...storeImages, img]);
+    const handleStoreImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        // Process files sequentially to avoid overwhelming
+        let currentCount = storeImages.length;
+
+        for (const file of files) {
+            if (currentCount >= 10) break;
+
+            await new Promise<void>((resolve) => {
+                handleFileUpload(file, 'store', (img) => {
+                    setStoreImages(prev => [...prev, img]);
+                    currentCount++;
+                    resolve();
+                });
             });
         }
         e.target.value = '';
@@ -223,7 +234,7 @@ export default function DocumentsPage() {
             {/* Hidden file inputs */}
             <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoSelect} />
             <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverSelect} />
-            <input ref={storeInputRef} type="file" accept="image/*" className="hidden" onChange={handleStoreImageSelect} />
+            <input ref={storeInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleStoreImageSelect} />
 
             {/* Image Cropper Modal */}
             <AnimatePresence>

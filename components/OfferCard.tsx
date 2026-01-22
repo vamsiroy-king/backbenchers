@@ -184,6 +184,16 @@ export function OfferCard({
                         />
                     </motion.button>
                 )}
+
+
+                {/* Rating - Bottom Right Overlay */}
+                {(offer as any).avgRating > 0 && (
+                    <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-md flex items-center gap-1">
+                        <span className="text-white text-[10px] font-bold">{(offer as any).avgRating?.toFixed(1)}</span>
+                        <Star className="h-2 w-2 text-yellow-400 fill-yellow-400" />
+                        <span className="text-white/60 text-[9px]">({(offer as any).totalRatings})</span>
+                    </div>
+                )}
             </div>
 
             {/* Content */}
@@ -191,14 +201,6 @@ export function OfferCard({
                 <h3 className="font-semibold text-white text-[14px] truncate">
                     {offer.merchantName || 'Merchant'}
                 </h3>
-                {/* Rating Display */}
-                {(offer as any).avgRating > 0 && (
-                    <div className="flex items-center gap-1 mt-1">
-                        <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
-                        <span className="text-yellow-400 text-xs font-medium">{(offer as any).avgRating?.toFixed(1)}</span>
-                        <span className="text-[#555] text-xs">({(offer as any).totalRatings})</span>
-                    </div>
-                )}
                 <p className="text-[#666] text-[12px] truncate mt-0.5">
                     {offer.title}
                 </p>
@@ -209,7 +211,7 @@ export function OfferCard({
                     </div>
                 )}
             </div>
-        </motion.div>
+        </motion.div >
     );
 }
 
