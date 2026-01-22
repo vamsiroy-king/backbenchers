@@ -26,6 +26,7 @@ import { MasonryGrid } from "@/components/ui/MasonryGrid";
 import { OfferCard } from "@/components/OfferCard";
 import { DistrictOfferCard } from "@/components/DistrictOfferCard";
 import { TrendingSection } from "@/components/dashboard/TrendingSection";
+import { HeroCarousel } from "@/components/dashboard/HeroCarousel";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ThemeProvider";
@@ -698,7 +699,7 @@ export default function DashboardPage() {
                 </div>
             </header>
 
-            <main className="space-y-2 px-5 pt-4 pb-4">
+            <main className="space-y-4 px-5 pt-4 pb-4">
                 {/* Minimal Search Bar */}
                 <motion.button
                     onClick={() => setShowSearch(true)}
@@ -723,78 +724,15 @@ export default function DashboardPage() {
                     </div>
                 </motion.button>
 
-                {/* Hero Banner - Touch/Swipe Carousel */}
+                {/* Hero Banner - NEW COMPONENT */}
                 {contentSettings.showHeroBanners && (
-                    <div
-                        className="relative -mx-5 overflow-hidden touch-pan-y"
-                        onTouchStart={(e) => {
-                            const touch = e.touches[0];
-                            (e.currentTarget as any).startX = touch.clientX;
-                        }}
-                        onTouchEnd={(e) => {
-                            const target = e.currentTarget as any;
-                            if (!target.startX) return;
-                            const touch = e.changedTouches[0];
-                            const diff = target.startX - touch.clientX;
-                            const count = heroBanners.length > 0 ? heroBanners.length : 3;
-                            if (diff > 50) {
-                                // Swipe left on screen = go to next banner
-                                setSwipeDirection('left');
-                                setCurrentBannerIndex((prev) => (prev + 1) % count);
-                            } else if (diff < -50) {
-                                // Swipe right on screen = go to previous banner
-                                setSwipeDirection('right');
-                                setCurrentBannerIndex((prev) => (prev - 1 + count) % count);
-                            }
-                            target.startX = null;
-                        }}
-                    >
-                        <AnimatePresence mode="wait">
-                            {(heroBanners.length > 0 ? heroBanners : [
-                                { id: '1', title: 'END OF SEASON', highlight: 'SALE', subtitle: 'Up to 60% Off + Rewards up to ₹10,000', ctaText: 'Go out and shop', bgColor: 'from-slate-800 via-slate-900 to-black' },
-                                { id: '2', title: 'FLASH', highlight: 'DEALS', subtitle: 'Limited time offers nearby', ctaText: 'View All', bgColor: 'from-orange-900 via-orange-950 to-black' },
-                                { id: '3', title: 'NEW', highlight: 'DROPS', subtitle: 'Fresh deals every week', ctaText: 'Check Out', bgColor: 'from-emerald-900 via-emerald-950 to-black' },
-                            ]).map((banner: any, index: number) =>
-                                index === currentBannerIndex && (
-                                    <motion.div
-                                        key={banner.id}
-                                        initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
-                                        transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                                        className={`mx-5 min-h-[220px] rounded-t-2xl rounded-b-none bg-gradient-to-br ${banner.bgColor || 'from-slate-800 to-black'} p-6 flex flex-col justify-center items-center text-center relative overflow-hidden cursor-grab active:cursor-grabbing`}
-                                    >
-                                        {/* Decorative Elements */}
-                                        <div className="absolute -left-10 -top-10 w-32 h-32 bg-white/5 rounded-full blur-3xl" />
-                                        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-3xl" />
-
-                                        {/* Content */}
-                                        <div className="relative z-10">
-                                            <p className="text-white/60 text-xs tracking-[0.2em] mb-1">{banner.title}</p>
-                                            <h2 className="text-white text-4xl font-black tracking-tight mb-2">{banner.highlight}</h2>
-                                            {banner.subtitle && (
-                                                <p className="text-white/70 text-sm mb-4">{banner.subtitle}</p>
-                                            )}
-                                            <button
-                                                onClick={handleOfferClick}
-                                                className="bg-white text-black font-semibold px-5 py-2.5 rounded-full text-xs shadow-lg hover:shadow-xl transition-shadow"
-                                            >
-                                                {banner.ctaText} →
-                                            </button>
-                                        </div>
-
-                                        {/* Bottom Fade - Seamless connection to categories */}
-                                        <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
-                                        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-green-900/20 via-transparent to-transparent opacity-40 mix-blend-screen pointer-events-none" />
-                                    </motion.div>
-                                )
-                            )}
-                        </AnimatePresence>
+                    <div className="-mx-5">
+                        <HeroCarousel banners={heroBanners} />
                     </div>
                 )}
 
                 {/* Categories - Connected to Hero Fade */}
-                <section className="pb-4 -mt-4 relative z-10">
+                <section className="pb-4 relative z-10">
                     <div className="flex items-center justify-center mb-5">
                         <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                         <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>SHOP BY CATEGORY</span>
