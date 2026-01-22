@@ -274,20 +274,22 @@ export default function ExplorePage() {
     return (
         <div className="min-h-screen bg-black pb-32">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-black/95 backdrop-blur-xl border-b border-[#111] px-5 py-4 space-y-4">
-                <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555]" />
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-12 bg-[#1a1a1a] rounded-2xl pl-11 pr-4 text-[15px] text-white placeholder-[#555] focus:outline-none focus:ring-1 focus:ring-[#333] transition-all"
-                        placeholder={SEARCH_PLACEHOLDERS[placeholderIndex]}
-                    />
+            <header className="sticky top-0 z-50 bg-black/95 backdrop-blur-xl border-b border-[#111]">
+                <div className="max-w-7xl mx-auto px-5 py-4 space-y-4">
+                    <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555]" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full h-12 bg-[#1a1a1a] rounded-2xl pl-11 pr-4 text-[15px] text-white placeholder-[#555] focus:outline-none focus:ring-1 focus:ring-[#333] transition-all"
+                            placeholder={SEARCH_PLACEHOLDERS[placeholderIndex]}
+                        />
+                    </div>
                 </div>
             </header>
 
-            <main className="py-2 space-y-8">
+            <main className="py-2 space-y-8 max-w-7xl mx-auto w-full">
 
                 {/* Categories - RESTORED GRID */}
                 <section className="px-5 pt-4">
@@ -297,7 +299,7 @@ export default function ExplorePage() {
                         <div className="flex-1 h-px bg-[#222]" />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 gap-3 md:grid-cols-6 md:gap-4">
                         {CATEGORIES.map((cat) => (
                             <motion.button
                                 key={cat.id}
@@ -406,7 +408,7 @@ export default function ExplorePage() {
                         <div className="flex-1 h-px bg-[#222]" />
                     </div>
 
-                    <div className="grid grid-cols-1 gap-5">
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-6">
                         {engagingContent.length > 0 ? engagingContent.map(offer => (
                             <OfferCard
                                 key={offer.id}

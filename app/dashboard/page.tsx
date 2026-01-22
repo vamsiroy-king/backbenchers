@@ -669,7 +669,7 @@ export default function DashboardPage() {
 
             {/* Header - Minimal Premium */}
             <header className={`sticky top-0 z-40 backdrop-blur-xl ${isLightTheme ? 'bg-white/90' : 'bg-black/90'}`}>
-                <div className="px-5 h-14 flex items-center justify-between">
+                <div className="max-w-7xl mx-auto px-5 h-14 flex items-center justify-between">
                     <div className="flex flex-col">
                         <span className={`font-bold text-lg italic tracking-tight ${isLightTheme ? 'text-gray-900' : 'text-white'}`}>BACKBENCHERS</span>
                         <span className="text-[10px] font-semibold text-green-500 tracking-wide">BORN TO SAVE</span>
@@ -699,7 +699,7 @@ export default function DashboardPage() {
                 </div>
             </header>
 
-            <main className="space-y-4 px-5 pt-4 pb-4">
+            <main className="max-w-7xl mx-auto space-y-4 px-5 pt-4 pb-4">
                 {/* Minimal Search Bar */}
                 <motion.button
                     onClick={() => setShowSearch(true)}

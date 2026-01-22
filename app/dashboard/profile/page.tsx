@@ -498,7 +498,7 @@ export default function ProfilePage() {
                 )}
             </AnimatePresence>
 
-            <header className="py-6 flex justify-between items-center">
+            <header className="py-6 flex justify-between items-center max-w-5xl mx-auto w-full">
                 <h1 className="text-xl font-bold text-white">My ID</h1>
                 <Link href="/dashboard/settings">
                     <button className="h-10 w-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.08] transition-colors">
@@ -507,326 +507,340 @@ export default function ProfilePage() {
                 </Link>
             </header>
 
-            {/* Profile Photo Warning */}
-            {
-                !hasProfileImage && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-orange-500/10 rounded-2xl p-4 mb-4 flex items-start gap-3 border border-orange-500/20"
-                    >
-                        <AlertCircle className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                            <p className="text-sm font-semibold text-orange-300">Profile Photo Required</p>
-                            <p className="text-xs text-orange-400/80 mt-1">
-                                Add a selfie to use offline discounts. Without it, merchants cannot verify you.
-                            </p>
-                            <div className="flex gap-2 mt-3">
-                                <Button
-                                    onClick={openCameraModal}
-                                    size="sm"
-                                    className="h-8 bg-orange-500 text-white text-xs font-semibold rounded-lg hover:bg-orange-600"
-                                >
-                                    <Camera className="h-3 w-3 mr-1" /> Add Selfie
-                                </Button>
-                                <Button
-                                    onClick={() => setShowInfoModal(true)}
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-8 text-xs font-semibold rounded-lg border-white/20 text-white/70 hover:bg-white/[0.05]"
-                                >
-                                    <Info className="h-3 w-3 mr-1" /> Why?
-                                </Button>
-                            </div>
-                        </div>
-                    </motion.div>
-                )
-            }
+            <div className="max-w-5xl mx-auto w-full">
+                <div className="md:grid md:grid-cols-2 md:gap-8 items-start">
+                    {/* Left Column: ID Card */}
+                    <div className="space-y-6">
 
-            {/* Premium Credit-Card Style ID */}
-            <div
-                className="relative w-full aspect-[1.586/1] mb-4 cursor-pointer"
-                style={{ perspective: "1200px" }}
-                onClick={() => setIsFlipped(!isFlipped)}
-            >
-                <motion.div
-                    className="w-full h-full relative"
-                    animate={{ rotateY: isFlipped ? 180 : 0 }}
-                    transition={{ type: "spring", damping: 30, stiffness: 200, mass: 0.8 }}
-                    style={{ transformStyle: "preserve-3d" }}
-                >
-                    {/* FRONT of Card */}
-                    <div
-                        className="absolute inset-0 rounded-2xl overflow-hidden"
-                        style={{ backfaceVisibility: "hidden" }}
-                    >
-                        {/* Card Background - Theme aware: Dark premium / Light white+green */}
-                        <div className={`absolute inset-0 ${isLightTheme ? 'bg-gradient-to-br from-white to-green-50' : 'bg-gradient-to-br from-[#111111] to-[#0a0a0a]'}`} />
-
-                        {/* Subtle metallic sheen - static, ultra-minimal */}
-                        <div
-                            className="absolute inset-0 opacity-20"
-                            style={{
-                                background: 'linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)',
-                            }}
-                        />
-
-                        {/* Subtle edge glow */}
-                        <div className="absolute inset-0 rounded-2xl" style={{
-                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.3)'
-                        }} />
-
-                        {/* Clean border */}
-                        <div className={`absolute inset-0 rounded-2xl border ${isLightTheme ? 'border-green-200' : 'border-white/[0.08]'}`} />
-
-
-                        {/* Card Content */}
-                        <div className="relative h-full p-5 flex flex-col">
-
-                            {/* Header Row - Brand: Left corner position */}
-                            <div className="flex items-center justify-between mb-auto">
-                                <div className="flex flex-col">
-                                    <span className={`text-sm font-bold italic tracking-tight ${isLightTheme ? 'text-gray-800' : 'text-white'}`}>BACKBENCHERS</span>
-                                    <span className={`text-[10px] font-semibold tracking-wide ${isLightTheme ? 'text-green-600' : 'text-green-400'}`}>BORN TO SAVE</span>
-                                </div>
-                            </div>
-
-                            {/* Main Content - Photo + Info */}
-                            <div className="flex gap-4 items-start">
-                                {/* Profile Photo */}
+                        {/* Profile Photo Warning */}
+                        {
+                            !hasProfileImage && (
                                 <motion.div
-                                    whileHover={{ scale: 1.02 }}
-                                    className="h-16 w-16 rounded-xl bg-white/5 border border-white/10 overflow-hidden flex-shrink-0"
-                                    onClick={(e) => {
-                                        if (!hasProfileImage) {
-                                            e.stopPropagation();
-                                            openCameraModal();
-                                        }
-                                    }}
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="bg-orange-500/10 rounded-2xl p-4 mb-4 flex items-start gap-3 border border-orange-500/20"
                                 >
-                                    {profileImage ? (
-                                        <img src={profileImage} alt="User" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex flex-col items-center justify-center bg-white/5">
-                                            <Camera className="h-4 w-4 text-white/30" />
-                                            <span className="text-[6px] text-white/30 mt-0.5">ADD</span>
+                                    <AlertCircle className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-orange-300">Profile Photo Required</p>
+                                        <p className="text-xs text-orange-400/80 mt-1">
+                                            Add a selfie to use offline discounts. Without it, merchants cannot verify you.
+                                        </p>
+                                        <div className="flex gap-2 mt-3">
+                                            <Button
+                                                onClick={openCameraModal}
+                                                size="sm"
+                                                className="h-8 bg-orange-500 text-white text-xs font-semibold rounded-lg hover:bg-orange-600"
+                                            >
+                                                <Camera className="h-3 w-3 mr-1" /> Add Selfie
+                                            </Button>
+                                            <Button
+                                                onClick={() => setShowInfoModal(true)}
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-8 text-xs font-semibold rounded-lg border-white/20 text-white/70 hover:bg-white/[0.05]"
+                                            >
+                                                <Info className="h-3 w-3 mr-1" /> Why?
+                                            </Button>
                                         </div>
-                                    )}
+                                    </div>
                                 </motion.div>
+                            )
+                        }
 
-                                {/* Name & College + Verified Badge */}
-                                <div className="flex-1 min-w-0 pt-0.5">
-                                    <div className="flex items-center gap-1.5">
-                                        <h2 className={`text-[15px] font-bold truncate leading-tight ${isLightTheme ? 'text-gray-900' : 'text-white'}`}>
-                                            {student?.name || 'Loading...'}
-                                        </h2>
-                                        {/* Verified checkmark beside name */}
-                                        {hasProfileImage && (
-                                            <div className="h-4 w-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                                                <Check className="h-2.5 w-2.5 text-white" />
+                        {/* Premium Credit-Card Style ID */}
+                        <div
+                            className="relative w-full aspect-[1.586/1] mb-4 cursor-pointer"
+                            style={{ perspective: "1200px" }}
+                            onClick={() => setIsFlipped(!isFlipped)}
+                        >
+                            <motion.div
+                                className="w-full h-full relative"
+                                animate={{ rotateY: isFlipped ? 180 : 0 }}
+                                transition={{ type: "spring", damping: 30, stiffness: 200, mass: 0.8 }}
+                                style={{ transformStyle: "preserve-3d" }}
+                            >
+                                {/* FRONT of Card */}
+                                <div
+                                    className="absolute inset-0 rounded-2xl overflow-hidden"
+                                    style={{ backfaceVisibility: "hidden" }}
+                                >
+                                    {/* Card Background - Theme aware: Dark premium / Light white+green */}
+                                    <div className={`absolute inset-0 ${isLightTheme ? 'bg-gradient-to-br from-white to-green-50' : 'bg-gradient-to-br from-[#111111] to-[#0a0a0a]'}`} />
+
+                                    {/* Subtle metallic sheen - static, ultra-minimal */}
+                                    <div
+                                        className="absolute inset-0 opacity-20"
+                                        style={{
+                                            background: 'linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)',
+                                        }}
+                                    />
+
+                                    {/* Subtle edge glow */}
+                                    <div className="absolute inset-0 rounded-2xl" style={{
+                                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.3)'
+                                    }} />
+
+                                    {/* Clean border */}
+                                    <div className={`absolute inset-0 rounded-2xl border ${isLightTheme ? 'border-green-200' : 'border-white/[0.08]'}`} />
+
+
+                                    {/* Card Content */}
+                                    <div className="relative h-full p-5 flex flex-col">
+
+                                        {/* Header Row - Brand: Left corner position */}
+                                        <div className="flex items-center justify-between mb-auto">
+                                            <div className="flex flex-col">
+                                                <span className={`text-sm font-bold italic tracking-tight ${isLightTheme ? 'text-gray-800' : 'text-white'}`}>BACKBENCHERS</span>
+                                                <span className={`text-[10px] font-semibold tracking-wide ${isLightTheme ? 'text-green-600' : 'text-green-400'}`}>BORN TO SAVE</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Main Content - Photo + Info */}
+                                        <div className="flex gap-4 items-start">
+                                            {/* Profile Photo */}
+                                            <motion.div
+                                                whileHover={{ scale: 1.02 }}
+                                                className="h-16 w-16 rounded-xl bg-white/5 border border-white/10 overflow-hidden flex-shrink-0"
+                                                onClick={(e) => {
+                                                    if (!hasProfileImage) {
+                                                        e.stopPropagation();
+                                                        openCameraModal();
+                                                    }
+                                                }}
+                                            >
+                                                {profileImage ? (
+                                                    <img src={profileImage} alt="User" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex flex-col items-center justify-center bg-white/5">
+                                                        <Camera className="h-4 w-4 text-white/30" />
+                                                        <span className="text-[6px] text-white/30 mt-0.5">ADD</span>
+                                                    </div>
+                                                )}
+                                            </motion.div>
+
+                                            {/* Name & College + Verified Badge */}
+                                            <div className="flex-1 min-w-0 pt-0.5">
+                                                <div className="flex items-center gap-1.5">
+                                                    <h2 className={`text-[15px] font-bold truncate leading-tight ${isLightTheme ? 'text-gray-900' : 'text-white'}`}>
+                                                        {student?.name || 'Loading...'}
+                                                    </h2>
+                                                    {/* Verified checkmark beside name */}
+                                                    {hasProfileImage && (
+                                                        <div className="h-4 w-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                                                            <Check className="h-2.5 w-2.5 text-white" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className={`text-[11px] font-medium truncate mt-1 ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>
+                                                    {student?.college || 'College'}
+                                                </p>
+                                                <p className={`text-[10px] truncate mt-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>
+                                                    {student?.city || 'City'}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Bottom Section - ID & Details */}
+                                        <div className={`mt-auto pt-3 border-t ${isLightTheme ? 'border-green-200' : 'border-white/[0.06]'}`}>
+                                            <div className="flex items-end justify-between">
+                                                {/* Student ID */}
+                                                <div>
+                                                    <p className={`text-[9px] uppercase tracking-[0.15em] mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>Student ID</p>
+                                                    <p className="text-[13px] font-mono font-bold text-green-500 tracking-wider">
+                                                        {hasProfileImage && student?.bbId ? student.bbId : 'PENDING'}
+                                                    </p>
+                                                </div>
+
+                                                {/* DOB */}
+                                                <div className="text-center">
+                                                    <p className={`text-[9px] uppercase tracking-[0.15em] mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>DOB</p>
+                                                    <p className={`text-[11px] font-medium ${isLightTheme ? 'text-gray-700' : 'text-white/70'}`}>
+                                                        {student?.dob ? new Date(student.dob).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
+                                                    </p>
+                                                </div>
+
+                                                {/* Valid */}
+                                                <div className="text-right">
+                                                    <p className={`text-[9px] uppercase tracking-[0.15em] mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>Valid</p>
+                                                    <p className={`text-[11px] font-medium ${isLightTheme ? 'text-gray-700' : 'text-white/70'}`}>12/25</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* BACK of Card */}
+                                <div
+                                    className="absolute inset-0 rounded-2xl overflow-hidden bg-[#0a0a0a]"
+                                    style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+                                >
+                                    {/* District-Style Background: subtle grid */}
+                                    <div className="absolute inset-0 opacity-[0.03]"
+                                        style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}
+                                    />
+
+                                    {/* Content - Centered QR Only */}
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        {hasProfileImage && student?.bbId ? (
+                                            <motion.div
+                                                initial={{ scale: 0.9, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                transition={{ delay: 0.2 }}
+                                                className="relative group"
+                                            >
+                                                {/* QR Container - Clean White */}
+                                                <div className="bg-white p-4 rounded-2xl shadow-2xl shadow-green-900/10">
+                                                    <BBQRCode value={student.bbId} size={180} withLogo={true} />
+                                                </div>
+                                            </motion.div>
+                                        ) : (
+                                            <div className="text-center px-6">
+                                                <div className="h-20 w-20 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-4 dashed-border">
+                                                    <Camera className="h-8 w-8 text-[#333]" />
+                                                </div>
+                                                <p className="font-bold text-white text-sm mb-1">Photo Required</p>
+                                                <p className="text-[10px] text-[#555] max-w-[180px] mx-auto leading-relaxed">
+                                                    Upload a selfie to generate your verification QR code
+                                                </p>
                                             </div>
                                         )}
                                     </div>
-                                    <p className={`text-[11px] font-medium truncate mt-1 ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>
-                                        {student?.college || 'College'}
-                                    </p>
-                                    <p className={`text-[10px] truncate mt-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>
-                                        {student?.city || 'City'}
-                                    </p>
                                 </div>
-                            </div>
-
-                            {/* Bottom Section - ID & Details */}
-                            <div className={`mt-auto pt-3 border-t ${isLightTheme ? 'border-green-200' : 'border-white/[0.06]'}`}>
-                                <div className="flex items-end justify-between">
-                                    {/* Student ID */}
-                                    <div>
-                                        <p className={`text-[9px] uppercase tracking-[0.15em] mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>Student ID</p>
-                                        <p className="text-[13px] font-mono font-bold text-green-500 tracking-wider">
-                                            {hasProfileImage && student?.bbId ? student.bbId : 'PENDING'}
-                                        </p>
-                                    </div>
-
-                                    {/* DOB */}
-                                    <div className="text-center">
-                                        <p className={`text-[9px] uppercase tracking-[0.15em] mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>DOB</p>
-                                        <p className={`text-[11px] font-medium ${isLightTheme ? 'text-gray-700' : 'text-white/70'}`}>
-                                            {student?.dob ? new Date(student.dob).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'}
-                                        </p>
-                                    </div>
-
-                                    {/* Valid */}
-                                    <div className="text-right">
-                                        <p className={`text-[9px] uppercase tracking-[0.15em] mb-0.5 ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>Valid</p>
-                                        <p className={`text-[11px] font-medium ${isLightTheme ? 'text-gray-700' : 'text-white/70'}`}>12/25</p>
-                                    </div>
-                                </div>
-                            </div>
+                            </motion.div>
                         </div>
-                    </div>
 
-                    {/* BACK of Card */}
-                    <div
-                        className="absolute inset-0 rounded-2xl overflow-hidden bg-[#0a0a0a]"
-                        style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-                    >
-                        {/* District-Style Background: subtle grid */}
-                        <div className="absolute inset-0 opacity-[0.03]"
-                            style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}
-                        />
+                        {/* Tap Hint - Clean static text like Shop by Category */}
+                        <div className="flex items-center justify-center mb-6">
+                            <div className="flex-1 h-px bg-white/[0.08]" />
+                            <span className="px-4 text-[10px] text-white/40 tracking-[0.2em] font-medium">TAP TO FLIP</span>
+                            <div className="flex-1 h-px bg-white/[0.08]" />
+                        </div>
 
-                        {/* Content - Centered QR Only */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            {hasProfileImage && student?.bbId ? (
-                                <motion.div
-                                    initial={{ scale: 0.9, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    transition={{ delay: 0.2 }}
-                                    className="relative group"
+                    </div> {/* End Left Column */}
+
+                    {/* Right Column: Stats & Savings */}
+                    <div>
+
+
+
+                        {/* Savings Section - District-Quality Bold Stats */}
+                        <div className="bg-white/[0.03] rounded-2xl p-6 mb-6 border border-white/[0.06]">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="h-9 w-9 bg-green-500/15 rounded-lg flex items-center justify-center">
+                                        <Wallet className="h-5 w-5 text-green-400" />
+                                    </div>
+                                    <h3 className="font-semibold text-white">Your Savings</h3>
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        if (student && !isRefreshing) {
+                                            setIsRefreshing(true);
+                                            try {
+                                                const txResult = await transactionService.getStudentTransactions(student.id);
+                                                const pResult = await studentService.getMyProfile();
+                                                if (txResult.success && txResult.data) {
+                                                    setTransactions(txResult.data);
+                                                }
+                                                if (pResult.success && pResult.data) {
+                                                    setStudent(pResult.data);
+                                                }
+                                                // Professional feedback message
+                                                const { toast } = await import('sonner');
+                                                toast.success("You're up to date", {
+                                                    description: "Savings data refreshed",
+                                                    duration: 2000
+                                                });
+                                            } finally {
+                                                setIsRefreshing(false);
+                                            }
+                                        }
+                                    }}
+                                    disabled={isRefreshing}
+                                    className="h-8 w-8 bg-white/[0.05] rounded-full flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50 hover:bg-white/[0.1]"
                                 >
-                                    {/* QR Container - Clean White */}
-                                    <div className="bg-white p-4 rounded-2xl shadow-2xl shadow-green-900/10">
-                                        <BBQRCode value={student.bbId} size={180} withLogo={true} />
+                                    <RefreshCcw className={`h-4 w-4 text-white/50 ${isRefreshing ? 'animate-spin' : ''}`} />
+                                </button>
+                            </div>
+
+                            <div className="text-center mb-4">
+                                <p className="text-xs text-white/50">Total Saved</p>
+                                <p className="text-6xl font-black text-white tracking-tight mt-1">
+                                    ₹{Math.round(savingsStats.total).toLocaleString('en-IN')}
+                                </p>
+                                <p className="text-xs text-white/50 mt-1">from {totalRedemptions} redemptions</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                                <div className="bg-white/[0.04] rounded-xl p-3 text-center border border-white/[0.06]">
+                                    <div className="flex items-center justify-center gap-1 mb-1">
+                                        <Store className="h-4 w-4 text-orange-400" />
+                                        <span className="text-xs text-white/50">Offline</span>
                                     </div>
-                                </motion.div>
-                            ) : (
-                                <div className="text-center px-6">
-                                    <div className="h-20 w-20 rounded-2xl bg-[#111] border border-[#222] flex items-center justify-center mx-auto mb-4 dashed-border">
-                                        <Camera className="h-8 w-8 text-[#333]" />
+                                    <p className="font-bold text-2xl text-white">₹{Math.round(savingsStats.offline).toLocaleString('en-IN')}</p>
+                                </div>
+                                <div className="bg-white/[0.04] rounded-xl p-3 text-center border border-white/[0.06]">
+                                    <div className="flex items-center justify-center gap-1 mb-1">
+                                        <Globe className="h-4 w-4 text-blue-400" />
+                                        <span className="text-xs text-white/50">Online</span>
                                     </div>
-                                    <p className="font-bold text-white text-sm mb-1">Photo Required</p>
-                                    <p className="text-[10px] text-[#555] max-w-[180px] mx-auto leading-relaxed">
-                                        Upload a selfie to generate your verification QR code
-                                    </p>
+                                    <p className="font-bold text-2xl text-white">₹{Math.round(savingsStats.online).toLocaleString('en-IN')}</p>
+                                </div>
+                            </div>
+
+                            {/* Recent Transactions */}
+                            {transactions.length > 0 && (
+                                <div className="bg-white/[0.04] rounded-xl p-3 border border-white/[0.06]">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs text-white/50">Recent Activity</span>
+                                        <TrendingUp className="h-4 w-4 text-green-400" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        {transactions.slice(0, 3).map((tx: Transaction, i: number) => (
+                                            <div key={tx.id} className="flex justify-between items-center text-sm">
+                                                <span className="text-white/70 truncate max-w-[150px]">{tx.merchantName}</span>
+                                                <span className="text-green-400 font-semibold">₹{tx.discountAmount}</span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
+
+                            {transactions.length > 0 && (
+                                <p className="text-xs text-white/40 text-center mt-3">
+                                    Last: {transactions[0]?.merchantName}
+                                </p>
+                            )}
                         </div>
-                    </div>
-                </motion.div>
-            </div>
 
-            {/* Tap Hint - Clean static text like Shop by Category */}
-            <div className="flex items-center justify-center mb-6">
-                <div className="flex-1 h-px bg-white/[0.08]" />
-                <span className="px-4 text-[10px] text-white/40 tracking-[0.2em] font-medium">TAP TO FLIP</span>
-                <div className="flex-1 h-px bg-white/[0.08]" />
-            </div>
+                        {/* Actions */}
+                        <div className="space-y-3">
+                            {/* Saved Items */}
+                            <Link href="/dashboard/saved">
+                                <button className="w-full h-14 flex items-center justify-between px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] font-medium hover:bg-white/[0.08] transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-lg">❤️</span>
+                                        <span className="text-white">Saved</span>
+                                    </div>
+                                    <span className="text-white/30">→</span>
+                                </button>
+                            </Link>
 
+                            {/* Dark Mode Toggle REMOVED - Available in Settings page only */}
 
-            {/* Savings Section - District-Quality Bold Stats */}
-            <div className="bg-white/[0.03] rounded-2xl p-6 mb-6 border border-white/[0.06]">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2.5">
-                        <div className="h-9 w-9 bg-green-500/15 rounded-lg flex items-center justify-center">
-                            <Wallet className="h-5 w-5 text-green-400" />
+                            <button
+                                onClick={handleSignOut}
+                                className="w-full h-14 flex items-center justify-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-medium hover:bg-red-500/20 transition-colors"
+                            >
+                                <LogOut className="h-5 w-5" />
+                                Sign Out
+                            </button>
                         </div>
-                        <h3 className="font-semibold text-white">Your Savings</h3>
-                    </div>
-                    <button
-                        onClick={async () => {
-                            if (student && !isRefreshing) {
-                                setIsRefreshing(true);
-                                try {
-                                    const txResult = await transactionService.getStudentTransactions(student.id);
-                                    const pResult = await studentService.getMyProfile();
-                                    if (txResult.success && txResult.data) {
-                                        setTransactions(txResult.data);
-                                    }
-                                    if (pResult.success && pResult.data) {
-                                        setStudent(pResult.data);
-                                    }
-                                    // Professional feedback message
-                                    const { toast } = await import('sonner');
-                                    toast.success("You're up to date", {
-                                        description: "Savings data refreshed",
-                                        duration: 2000
-                                    });
-                                } finally {
-                                    setIsRefreshing(false);
-                                }
-                            }
-                        }}
-                        disabled={isRefreshing}
-                        className="h-8 w-8 bg-white/[0.05] rounded-full flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50 hover:bg-white/[0.1]"
-                    >
-                        <RefreshCcw className={`h-4 w-4 text-white/50 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    </button>
-                </div>
-
-                <div className="text-center mb-4">
-                    <p className="text-xs text-white/50">Total Saved</p>
-                    <p className="text-6xl font-black text-white tracking-tight mt-1">
-                        ₹{Math.round(savingsStats.total).toLocaleString('en-IN')}
-                    </p>
-                    <p className="text-xs text-white/50 mt-1">from {totalRedemptions} redemptions</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="bg-white/[0.04] rounded-xl p-3 text-center border border-white/[0.06]">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                            <Store className="h-4 w-4 text-orange-400" />
-                            <span className="text-xs text-white/50">Offline</span>
-                        </div>
-                        <p className="font-bold text-2xl text-white">₹{Math.round(savingsStats.offline).toLocaleString('en-IN')}</p>
-                    </div>
-                    <div className="bg-white/[0.04] rounded-xl p-3 text-center border border-white/[0.06]">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                            <Globe className="h-4 w-4 text-blue-400" />
-                            <span className="text-xs text-white/50">Online</span>
-                        </div>
-                        <p className="font-bold text-2xl text-white">₹{Math.round(savingsStats.online).toLocaleString('en-IN')}</p>
-                    </div>
-                </div>
-
-                {/* Recent Transactions */}
-                {transactions.length > 0 && (
-                    <div className="bg-white/[0.04] rounded-xl p-3 border border-white/[0.06]">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-white/50">Recent Activity</span>
-                            <TrendingUp className="h-4 w-4 text-green-400" />
-                        </div>
-                        <div className="space-y-2">
-                            {transactions.slice(0, 3).map((tx: Transaction, i: number) => (
-                                <div key={tx.id} className="flex justify-between items-center text-sm">
-                                    <span className="text-white/70 truncate max-w-[150px]">{tx.merchantName}</span>
-                                    <span className="text-green-400 font-semibold">₹{tx.discountAmount}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {transactions.length > 0 && (
-                    <p className="text-xs text-white/40 text-center mt-3">
-                        Last: {transactions[0]?.merchantName}
-                    </p>
-                )}
-            </div>
-
-            {/* Actions */}
-            <div className="space-y-3">
-                {/* Saved Items */}
-                <Link href="/dashboard/saved">
-                    <button className="w-full h-14 flex items-center justify-between px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] font-medium hover:bg-white/[0.08] transition-colors">
-                        <div className="flex items-center gap-3">
-                            <span className="text-lg">❤️</span>
-                            <span className="text-white">Saved</span>
-                        </div>
-                        <span className="text-white/30">→</span>
-                    </button>
-                </Link>
-
-                {/* Dark Mode Toggle REMOVED - Available in Settings page only */}
-
-                <button
-                    onClick={handleSignOut}
-                    className="w-full h-14 flex items-center justify-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-medium hover:bg-red-500/20 transition-colors"
-                >
-                    <LogOut className="h-5 w-5" />
-                    Sign Out
-                </button>
-            </div>
-        </div >
+                    </div> {/* End Right Column */}
+                </div> {/* End Grid */}
+            </div> {/* End Container */}
+        </div>
     );
 }
 
