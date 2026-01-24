@@ -61,13 +61,15 @@ export default function TrendingOffersPage() {
                     merchantBbmId: 'ONLINE',
                     merchantLogo: o.brandLogo,
                     // Add other required Offer fields with defaults
+                    merchantId: o.brand_id || 'ONLINE', // Required by Offer type
+                    createdAt: o.createdAt, // Required by Offer type
                     validFrom: o.createdAt,
                     validUntil: o.expiryDate,
                     status: o.isActive ? 'active' : 'inactive',
                     branches: [],
                     termsConditions: o.termsConditions,
                     totalRedemptions: o.redemptionCount || 0
-                } as Offer));
+                } as unknown as Offer)); // Type cast via unknown to force compat if needed, but adding fields is better
                 mappedOffers = [...mappedOffers, ...mappedOnline];
             }
 
