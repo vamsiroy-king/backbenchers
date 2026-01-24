@@ -1,102 +1,113 @@
 "use client";
 
 import { useState } from "react";
-import { Lock, Shield, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-export default function AdminAuthPage() {
+export default function AdminLoginPage() {
     const router = useRouter();
-    const [secret, setSecret] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [secret, setSecret] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
-        setLoading(true);
-
-        if (!secret.trim()) {
-            setError('Please enter the admin secret');
-            setLoading(false);
+        if (!secret) {
+            toast.error("Please enter the admin secret");
             return;
         }
 
-        // Redirect with secret in URL - middleware will validate and set cookie
-        window.location.href = `/admin?secret=${encodeURIComponent(secret)}`;
+        setIsLoading(true);
+
+        try {
+            const response = await fetch("/api/auth/admin-login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ secret }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                toast.success("Access Granted. Subdomain confirmed.");
+                router.push("/admin/dashboard");
+                router.refresh();
+            } else {
+                toast.error(data.error || "Access Denied");
+                setSecret(""); // Clear secret on failure
+            }
+        } catch (error) {
+            toast.error("Network error. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
-        <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
-                {/* Security Badge */}
-                <div className="flex justify-center mb-8">
-                    <div className="bg-red-500/20 p-4 rounded-full">
-                        <Shield className="h-12 w-12 text-red-400" />
+        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+            {/* Background Gradient */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-900 via-black to-black opacity-50 z-0" />
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="w-full max-w-md z-10"
+            >
+                <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+                    <div className="flex flex-col items-center mb-8">
+                        <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/10">
+                            <ShieldCheck className="w-6 h-6 text-white" />
+                        </div>
+                        <h1 className="text-2xl font-bold text-white tracking-tight">
+                            Admin Access
+                        </h1>
+                        <p className="text-zinc-500 text-sm mt-2 text-center">
+                            Enter your secure credential to verify identity.
+                        </p>
                     </div>
-                </div>
 
-                {/* Header */}
-                <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-white mb-2">
-                        Admin Access Required
-                    </h1>
-                    <p className="text-gray-400 text-sm">
-                        This area is protected. Enter the admin secret to continue.
-                    </p>
-                </div>
-
-                {/* Warning */}
-                <div className="bg-red-950/50 border border-red-800 rounded-xl p-4 mb-6 flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-red-300 text-xs">
-                        Unauthorized access attempts are logged and may result in IP blocking.
-                    </p>
-                </div>
-
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-gray-400 text-sm mb-2">
-                            Admin Secret
-                        </label>
+                    <form onSubmit={handleLogin} className="space-y-4">
                         <div className="relative">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
-                            <input
+                            <Lock className="absolute left-3 top-3 h-5 w-5 text-zinc-500" />
+                            <Input
                                 type="password"
+                                placeholder="Admin Secret Key"
                                 value={secret}
                                 onChange={(e) => setSecret(e.target.value)}
-                                placeholder="Enter secret key..."
-                                className="w-full bg-gray-900 border border-gray-800 rounded-xl py-3 px-12 text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition-colors"
+                                className="pl-10 h-12 bg-black/50 border-white/10 text-white placeholder:text-zinc-600 focus:ring-white/20 focus:border-white/20 transition-all font-mono"
+                                autoComplete="off"
                                 autoFocus
                             />
                         </div>
+
+                        <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full h-12 bg-white text-black hover:bg-zinc-200 font-medium text-base transition-all active:scale-[0.98]"
+                        >
+                            {isLoading ? (
+                                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    Verify Access <ArrowRight className="w-4 h-4" />
+                                </div>
+                            )}
+                        </Button>
+                    </form>
+
+                    <div className="mt-8 text-center">
+                        <p className="text-xs text-zinc-700 font-mono">
+                            SECURE CONNECTION • ENCRYPTED ENDPOINT
+                        </p>
                     </div>
-
-                    {error && (
-                        <p className="text-red-400 text-sm text-center">{error}</p>
-                    )}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
-                    >
-                        {loading ? (
-                            <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        ) : (
-                            <>
-                                <Shield className="h-5 w-5" />
-                                Authenticate
-                            </>
-                        )}
-                    </button>
-                </form>
-
-                {/* Footer */}
-                <p className="text-gray-600 text-xs text-center mt-8">
-                    Backbenchers Admin Panel v1.0
-                </p>
-            </div>
+                </div>
+            </motion.div>
         </div>
     );
 }

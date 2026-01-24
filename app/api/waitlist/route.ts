@@ -1,34 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { z } from 'zod';
+
+// Zod Schema for Waitlist Input
+const waitlistSchema = z.object({
+    email: z.string().email("Invalid email address").toLowerCase().trim(),
+    userType: z.enum(['student', 'merchant', 'admin']).default('student'),
+    source: z.string().max(50).default('coming_soon')
+});
 
 export async function POST(request: NextRequest) {
     try {
-        const { email, userType = 'student', source = 'coming_soon' } = await request.json();
+        const body = await request.json();
 
-        if (!email) {
-            return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+        // 1. Zod Validation
+        const result = waitlistSchema.safeParse(body);
+        if (!result.success) {
+            return NextResponse.json({
+                error: result.error.issues[0].message
+            }, { status: 400 });
         }
 
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
-        }
+        const { email, userType, source } = result.data;
 
-        // Insert into waitlist
+        // 2. Insert into DB
         const { data, error } = await supabase
             .from('waitlist')
             .insert({
-                email: email.toLowerCase().trim(),
+                email,
                 user_type: userType,
-                source: source,
+                source,
             })
             .select()
             .single();
 
         if (error) {
-            // Check for duplicate email
-            if (error.code === '23505') {
+            if (error.code === '23505') { // Unique constraint code
                 return NextResponse.json({
                     success: true,
                     message: 'You are already on the waitlist!'
@@ -51,8 +58,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-    // This could be used by admin to get waitlist count
     try {
+        // Admin-only check could go here, but for now it's just a count
         const { count, error } = await supabase
             .from('waitlist')
             .select('*', { count: 'exact', head: true });

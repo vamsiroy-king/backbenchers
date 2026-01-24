@@ -1,24 +1,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-    Flame, Plus, Trash2, Loader2, Search, ArrowUp, ArrowDown, Store, Check
+    Flame, Plus, Trash2, Loader2, Search, ArrowUp, ArrowDown, Store, Check,
+    Globe, ShoppingBag
 } from "lucide-react";
 import { offerService } from "@/lib/services/offer.service";
 import { trendingService } from "@/lib/services/trending.service";
 import { Offer } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function TrendingOffersPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+
+    // Data State
     const [allOffers, setAllOffers] = useState<Offer[]>([]);
     const [trendingOnline, setTrendingOnline] = useState<Offer[]>([]);
     const [trendingOffline, setTrendingOffline] = useState<Offer[]>([]);
+
+    // UI State
     const [searchQuery, setSearchQuery] = useState("");
     const [showAddModal, setShowAddModal] = useState(false);
-    const [addingTo, setAddingTo] = useState<'online' | 'offline'>('offline');
-    const [saveSuccess, setSaveSuccess] = useState(false);
+    const [activeSection, setActiveSection] = useState<'online' | 'offline'>('offline');
 
     useEffect(() => {
         fetchData();
@@ -27,42 +34,27 @@ export default function TrendingOffersPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            // Fetch all offers
-            const offersResult = await offerService.getActiveOffers();
+            // Parallel fetch
+            const [offersResult, trendingResult] = await Promise.all([
+                offerService.getActiveOffers(),
+                trendingService.getAll()
+            ]);
+
             if (offersResult.success && offersResult.data) {
                 setAllOffers(offersResult.data);
             }
 
-            // Fetch current trending from database
-            const trendingResult = await trendingService.getAll();
             if (trendingResult.success && trendingResult.data) {
-                const offlineItems = trendingResult.data
-                    .filter(t => t.section === 'offline' && t.offer)
-                    .map(t => ({
-                        id: t.offer!.id,
-                        title: t.offer!.title,
-                        discountValue: t.offer!.discountValue,
-                        type: t.offer!.type,
-                        merchantName: t.offer!.merchantName,
-                        merchantId: t.offer!.merchantId,
-                    } as Offer));
+                const mapTrending = (section: string) => trendingResult.data!
+                    .filter(t => t.section === section && t.offer)
+                    .map(t => ({ ...t.offer!, position: t.position } as Offer)); // Type cast for simplicity
 
-                const onlineItems = trendingResult.data
-                    .filter(t => t.section === 'online' && t.offer)
-                    .map(t => ({
-                        id: t.offer!.id,
-                        title: t.offer!.title,
-                        discountValue: t.offer!.discountValue,
-                        type: t.offer!.type,
-                        merchantName: t.offer!.merchantName,
-                        merchantId: t.offer!.merchantId,
-                    } as Offer));
-
-                setTrendingOffline(offlineItems);
-                setTrendingOnline(onlineItems);
+                setTrendingOffline(mapTrending('offline'));
+                setTrendingOnline(mapTrending('online'));
             }
         } catch (error) {
             console.error('Error fetching data:', error);
+            toast.error("Failed to load trending data");
         } finally {
             setLoading(false);
         }
@@ -71,7 +63,6 @@ export default function TrendingOffersPage() {
     const handleSaveChanges = async () => {
         setSaving(true);
         try {
-            // Build array of all trending offers with positions
             const allTrending = [
                 ...trendingOffline.map((offer, index) => ({
                     offerId: offer.id,
@@ -87,303 +78,298 @@ export default function TrendingOffersPage() {
 
             const result = await trendingService.saveAll(allTrending);
             if (result.success) {
-                setSaveSuccess(true);
-                setTimeout(() => setSaveSuccess(false), 3000);
+                toast.success("Trending lists updated successfully");
+            } else {
+                toast.error("Failed to save changes");
             }
         } catch (error) {
-            console.error('Error saving trending:', error);
+            toast.error("An error occurred while saving");
         } finally {
             setSaving(false);
         }
     };
 
-    const moveUp = (list: Offer[], index: number, setter: (offers: Offer[]) => void) => {
-        if (index === 0) return;
+    // List Management Helpers
+    const moveItem = (list: Offer[], index: number, direction: 'up' | 'down', setter: Function) => {
         const newList = [...list];
-        [newList[index - 1], newList[index]] = [newList[index], newList[index - 1]];
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= newList.length) return;
+
+        [newList[index], newList[targetIndex]] = [newList[targetIndex], newList[index]];
         setter(newList);
     };
 
-    const moveDown = (list: Offer[], index: number, setter: (offers: Offer[]) => void) => {
-        if (index === list.length - 1) return;
-        const newList = [...list];
-        [newList[index], newList[index + 1]] = [newList[index + 1], newList[index]];
-        setter(newList);
+    const removeItem = (list: Offer[], id: string, setter: Function) => {
+        setter(list.filter(o => o.id !== id));
     };
 
-    const removeFromTrending = (list: Offer[], offerId: string, setter: (offers: Offer[]) => void) => {
-        setter(list.filter(o => o.id !== offerId));
-    };
+    const addItem = (offer: Offer) => {
+        const targetList = activeSection === 'online' ? trendingOnline : trendingOffline;
+        const setter = activeSection === 'online' ? setTrendingOnline : setTrendingOffline;
 
-    const addToTrending = (offer: Offer) => {
-        if (addingTo === 'online') {
-            if (!trendingOnline.find(o => o.id === offer.id)) {
-                setTrendingOnline([...trendingOnline, offer]);
-            }
-        } else {
-            if (!trendingOffline.find(o => o.id === offer.id)) {
-                setTrendingOffline([...trendingOffline, offer]);
-            }
+        if (targetList.find(o => o.id === offer.id)) {
+            toast.warning("Offer is already in this list");
+            return;
         }
-        setShowAddModal(false);
+
+        setter([...targetList, offer]);
+        toast.success("Added to list");
+        // Don't close modal to allow multiple adds
     };
 
+    // Filter offers for the Add Modal
     const filteredOffers = allOffers.filter(offer => {
-        // Exclude offers already in EITHER trending list (offer can only be in one section)
-        const inOffline = trendingOffline.some(o => o.id === offer.id);
-        const inOnline = trendingOnline.some(o => o.id === offer.id);
-        if (inOffline || inOnline) return false;
+        // Exclude currently selected offers
+        const isOffline = trendingOffline.some(o => o.id === offer.id);
+        const isOnline = trendingOnline.some(o => o.id === offer.id);
+        if (isOffline || isOnline) return false;
 
-        // Filter by search query (title, merchant name, or BBM-ID)
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            const matchesTitle = offer.title.toLowerCase().includes(query);
-            const matchesMerchant = offer.merchantName?.toLowerCase().includes(query);
-            const matchesBbmId = offer.merchantBbmId?.toLowerCase().includes(query);
-            const matchesMerchantId = offer.merchantId?.toLowerCase().includes(query);
-            return matchesTitle || matchesMerchant || matchesBbmId || matchesMerchantId;
-        }
-
-        return true; // Show all if no search query
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+            offer.title.toLowerCase().includes(q) ||
+            offer.merchantName?.toLowerCase().includes(q) ||
+            offer.merchantBbmId?.toLowerCase().includes(q)
+        );
     });
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-[60vh]">
-                <Loader2 className="h-10 w-10 animate-spin text-purple-500" />
-            </div>
-        );
-    }
-
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
+        <div className="space-y-6 pb-20 animate-in fade-in duration-500">
+            {/* Page Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                        <Flame className="h-7 w-7 text-orange-500" />
-                        Trending Offers
+                    <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                        <Flame className="h-8 w-8 text-orange-500" />
+                        Trending Manager
                     </h1>
-                    <p className="text-sm text-gray-500 mt-1">Curate the offers shown on the student home carousel</p>
+                    <p className="text-gray-400 mt-1">Curate the student home screen carousel</p>
                 </div>
+
                 <button
                     onClick={handleSaveChanges}
-                    disabled={saving}
-                    className={`h-10 px-4 rounded-xl font-medium flex items-center gap-2 transition-colors ${saveSuccess
-                        ? 'bg-green-500 text-white'
-                        : 'bg-purple-600 hover:bg-purple-700 text-white'
-                        }`}
+                    disabled={saving || loading}
+                    className="bg-primary text-black font-bold px-6 py-2.5 rounded-xl hover:bg-green-400 transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-primary/20"
                 >
-                    {saving ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : saveSuccess ? (
-                        <Check className="h-4 w-4" />
-                    ) : null}
-                    {saveSuccess ? 'Saved!' : saving ? 'Saving...' : 'Save Changes'}
+                    {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
+                    {saving ? "Publishing..." : "Publish Changes"}
                 </button>
             </div>
 
-            {/* Two Sections */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Offline Trending */}
-                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                    <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-orange-500 to-red-500 text-white">
-                        <div>
-                            <h3 className="font-bold">Offline / In-Store Offers</h3>
-                            <p className="text-xs opacity-80">{trendingOffline.length} offers in carousel</p>
-                        </div>
-                        <button
-                            onClick={() => { setAddingTo('offline'); setShowAddModal(true); }}
-                            className="h-8 w-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-colors"
-                        >
-                            <Plus className="h-5 w-5" />
-                        </button>
-                    </div>
-                    <div className="divide-y divide-gray-50">
-                        {trendingOffline.length > 0 ? (
-                            trendingOffline.map((offer, index) => (
-                                <div key={offer.id} className="p-4 flex items-center gap-4 hover:bg-gray-50">
-                                    <div className="flex flex-col gap-1">
-                                        <button
-                                            onClick={() => moveUp(trendingOffline, index, setTrendingOffline)}
-                                            className="h-6 w-6 rounded hover:bg-gray-200 flex items-center justify-center disabled:opacity-30"
-                                            disabled={index === 0}
-                                        >
-                                            <ArrowUp className="h-4 w-4 text-gray-500" />
-                                        </button>
-                                        <button
-                                            onClick={() => moveDown(trendingOffline, index, setTrendingOffline)}
-                                            className="h-6 w-6 rounded hover:bg-gray-200 flex items-center justify-center disabled:opacity-30"
-                                            disabled={index === trendingOffline.length - 1}
-                                        >
-                                            <ArrowDown className="h-4 w-4 text-gray-500" />
-                                        </button>
-                                    </div>
-                                    <div className="h-12 w-12 bg-gray-100 rounded-xl flex items-center justify-center text-xl font-bold text-gray-300">
-                                        {index + 1}
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-semibold text-sm">{offer.title}</h4>
-                                        <p className="text-xs text-gray-500">{offer.merchantName}</p>
-                                    </div>
-                                    <span className="text-sm font-bold text-green-600">
-                                        {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
-                                    </span>
-                                    <button
-                                        onClick={() => removeFromTrending(trendingOffline, offer.id, setTrendingOffline)}
-                                        className="h-8 w-8 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="p-8 text-center text-gray-400">
-                                <Flame className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                                <p>No offline offers in trending</p>
-                                <button
-                                    onClick={() => { setAddingTo('offline'); setShowAddModal(true); }}
-                                    className="mt-2 text-purple-600 text-sm font-medium"
-                                >
-                                    + Add offers
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
+            {/* Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Offline Section */}
+                <TrendingSection
+                    title="Offline / In-Store"
+                    description="Physical stores & restaurants"
+                    icon={Store}
+                    color="orange"
+                    items={trendingOffline}
+                    loading={loading}
+                    onMoveUp={(idx) => moveItem(trendingOffline, idx, 'up', setTrendingOffline)}
+                    onMoveDown={(idx) => moveItem(trendingOffline, idx, 'down', setTrendingOffline)}
+                    onRemove={(id) => removeItem(trendingOffline, id, setTrendingOffline)}
+                    onAdd={() => { setActiveSection('offline'); setShowAddModal(true); }}
+                />
 
-                {/* Online Trending */}
-                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                    <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                        <div>
-                            <h3 className="font-bold">Online Offers</h3>
-                            <p className="text-xs opacity-80">{trendingOnline.length} offers in carousel</p>
-                        </div>
-                        <button
-                            onClick={() => { setAddingTo('online'); setShowAddModal(true); }}
-                            className="h-8 w-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-colors"
+                {/* Online Section */}
+                <TrendingSection
+                    title="Online Offers"
+                    description="E-commerce & Digital Services"
+                    icon={Globe}
+                    color="blue"
+                    items={trendingOnline}
+                    loading={loading}
+                    onMoveUp={(idx) => moveItem(trendingOnline, idx, 'up', setTrendingOnline)}
+                    onMoveDown={(idx) => moveItem(trendingOnline, idx, 'down', setTrendingOnline)}
+                    onRemove={(id) => removeItem(trendingOnline, id, setTrendingOnline)}
+                    onAdd={() => { setActiveSection('online'); setShowAddModal(true); }}
+                />
+            </div>
+
+            {/* Add Offer Modal */}
+            <AnimatePresence>
+                {showAddModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-gray-900 border border-gray-800 rounded-3xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl"
                         >
-                            <Plus className="h-5 w-5" />
-                        </button>
-                    </div>
-                    <div className="divide-y divide-gray-50">
-                        {trendingOnline.length > 0 ? (
-                            trendingOnline.map((offer, index) => (
-                                <div key={offer.id} className="p-4 flex items-center gap-4 hover:bg-gray-50">
-                                    <div className="flex flex-col gap-1">
-                                        <button
-                                            onClick={() => moveUp(trendingOnline, index, setTrendingOnline)}
-                                            className="h-6 w-6 rounded hover:bg-gray-200 flex items-center justify-center disabled:opacity-30"
-                                            disabled={index === 0}
-                                        >
-                                            <ArrowUp className="h-4 w-4 text-gray-500" />
-                                        </button>
-                                        <button
-                                            onClick={() => moveDown(trendingOnline, index, setTrendingOnline)}
-                                            className="h-6 w-6 rounded hover:bg-gray-200 flex items-center justify-center disabled:opacity-30"
-                                            disabled={index === trendingOnline.length - 1}
-                                        >
-                                            <ArrowDown className="h-4 w-4 text-gray-500" />
-                                        </button>
-                                    </div>
-                                    <div className="h-12 w-12 bg-gray-100 rounded-xl flex items-center justify-center text-xl font-bold text-gray-300">
-                                        {index + 1}
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-semibold text-sm">{offer.title}</h4>
-                                        <p className="text-xs text-gray-500">{offer.merchantName}</p>
-                                    </div>
-                                    <span className="text-sm font-bold text-green-600">
-                                        {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
-                                    </span>
-                                    <button
-                                        onClick={() => removeFromTrending(trendingOnline, offer.id, setTrendingOnline)}
-                                        className="h-8 w-8 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
+                            {/* Modal Header */}
+                            <div className="p-6 border-b border-gray-800 flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                        <Plus className="h-5 w-5 text-primary" />
+                                        Add to {activeSection === 'online' ? 'Online' : 'Offline'} Trending
+                                    </h2>
+                                    <p className="text-sm text-gray-400">Select offers to feature in this section</p>
                                 </div>
-                            ))
-                        ) : (
-                            <div className="p-8 text-center text-gray-400">
-                                <Flame className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                                <p>No online offers in trending</p>
                                 <button
-                                    onClick={() => { setAddingTo('online'); setShowAddModal(true); }}
-                                    className="mt-2 text-purple-600 text-sm font-medium"
+                                    onClick={() => setShowAddModal(false)}
+                                    className="h-8 w-8 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors"
                                 >
-                                    + Add offers
+                                    ✕
                                 </button>
                             </div>
-                        )}
+
+                            {/* Search */}
+                            <div className="p-4 bg-gray-900/50">
+                                <div className="relative">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search by title, merchant, or ID..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full bg-gray-800 text-white rounded-xl pl-12 pr-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium placeholder:text-gray-600"
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            {/* List */}
+                            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                                {filteredOffers.length > 0 ? (
+                                    filteredOffers.map(offer => (
+                                        <motion.button
+                                            key={offer.id}
+                                            layout
+                                            onClick={() => addItem(offer)}
+                                            className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 border border-transparent hover:border-gray-700 transition-all group text-left"
+                                        >
+                                            <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center border border-gray-800 group-hover:border-gray-600">
+                                                {offer.merchantLogo ? (
+                                                    <img src={offer.merchantLogo} alt="" className="h-8 w-8 object-contain" />
+                                                ) : (
+                                                    <Store className="h-6 w-6 text-gray-600" />
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-bold text-white truncate">{offer.title}</h4>
+                                                <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                    <span>{offer.merchantName}</span>
+                                                    {offer.type === 'percentage' ? (
+                                                        <span className="bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded">{offer.discountValue}% OFF</span>
+                                                    ) : (
+                                                        <span className="bg-green-500/10 text-green-400 px-1.5 py-0.5 rounded">₹{offer.discountValue} OFF</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Plus className="h-5 w-5" />
+                                            </div>
+                                        </motion.button>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-12 text-gray-500">
+                                        No matching offers found
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
                     </div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
+function TrendingSection({ title, description, icon: Icon, color, items, loading, onMoveUp, onMoveDown, onRemove, onAdd }: any) {
+    const isOnline = color === 'blue';
+    return (
+        <div className="bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden flex flex-col h-[600px]">
+            <div className={cn(
+                "p-6 border-b border-gray-800 bg-gradient-to-r",
+                isOnline ? "from-blue-900/20 to-indigo-900/20" : "from-orange-900/20 to-red-900/20"
+            )}>
+                <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                        <div className={cn(
+                            "p-2 rounded-lg",
+                            isOnline ? "bg-blue-500/20 text-blue-500" : "bg-orange-500/20 text-orange-500"
+                        )}>
+                            <Icon className="h-6 w-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold text-white">{title}</h2>
+                            <p className="text-xs text-gray-400">{description}</p>
+                        </div>
+                    </div>
+                    <span className="bg-gray-800 text-gray-300 px-2.5 py-1 rounded-lg text-xs font-mono">
+                        {items?.length || 0} Slots
+                    </span>
                 </div>
             </div>
 
-            {/* Add Modal */}
-            {showAddModal && (
-                <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-                    <motion.div
-                        initial={{ scale: 0.95, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-hidden"
-                    >
-                        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                            <h3 className="font-bold">Add to {addingTo === 'online' ? 'Online' : 'Offline'} Trending</h3>
-                            <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600">
-                                ✕
-                            </button>
-                        </div>
-                        <div className="p-4">
-                            <div className="relative mb-4">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search by offer title, merchant name, or BBM-ID..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full h-11 pl-10 pr-4 bg-gray-100 rounded-xl text-sm outline-none"
-                                />
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                {loading ? (
+                    [1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full bg-gray-800 rounded-2xl" />)
+                ) : items.length > 0 ? (
+                    items.map((offer: Offer, idx: number) => (
+                        <div key={offer.id} className="group relative bg-gray-800/40 hover:bg-gray-800 border border-transparent hover:border-gray-700 rounded-2xl p-4 flex items-center gap-4 transition-all">
+                            {/* Rank Badge */}
+                            <div className="absolute -left-1 -top-1 h-6 w-6 bg-gray-700 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg z-10 border border-gray-600">
+                                {idx + 1}
+                            </div>
+
+                            {/* Image Placeholder */}
+                            <div className="h-12 w-12 bg-gray-900 rounded-xl flex items-center justify-center border border-gray-800 text-gray-600">
+                                <ShoppingBag className="h-5 w-5" />
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-bold text-white truncate">{offer.title}</h4>
+                                <p className="text-xs text-gray-500 truncate">{offer.merchantName}</p>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex flex-col gap-1">
+                                    <button
+                                        onClick={() => onMoveUp(idx)}
+                                        disabled={idx === 0}
+                                        className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white disabled:opacity-30"
+                                    >
+                                        <ArrowUp className="h-3 w-3" />
+                                    </button>
+                                    <button
+                                        onClick={() => onMoveDown(idx)}
+                                        disabled={idx === items.length - 1}
+                                        className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white disabled:opacity-30"
+                                    >
+                                        <ArrowDown className="h-3 w-3" />
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={() => onRemove(offer.id)}
+                                    className="p-2 hover:bg-red-500/10 rounded-lg text-gray-500 hover:text-red-500 transition-colors ml-1"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
                             </div>
                         </div>
-                        <div className="max-h-96 overflow-y-auto divide-y divide-gray-50">
-                            {filteredOffers.length > 0 ? (
-                                filteredOffers.map((offer) => (
-                                    <button
-                                        key={offer.id}
-                                        onClick={() => addToTrending(offer)}
-                                        className="w-full p-4 flex items-center gap-4 hover:bg-gray-50 text-left"
-                                    >
-                                        <div className="h-10 w-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                                            <Store className="h-5 w-5 text-gray-400" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="font-semibold text-sm truncate">{offer.title}</h4>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                <p className="text-xs text-gray-500 truncate">{offer.merchantName}</p>
-                                                {offer.merchantBbmId && (
-                                                    <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-mono">
-                                                        {offer.merchantBbmId}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <span className="text-sm font-bold text-green-600 whitespace-nowrap">
-                                            {offer.type === 'percentage' ? `${offer.discountValue}%` : `₹${offer.discountValue}`}
-                                        </span>
-                                    </button>
-                                ))
-                            ) : (
-                                <div className="p-8 text-center text-gray-400">
-                                    <Store className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                                    <p className="text-sm font-medium">No offers found</p>
-                                    <p className="text-xs mt-1">Create offers in the Merchants section first</p>
-                                </div>
-                            )}
+                    ))
+                ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-gray-500 space-y-4">
+                        <div className="h-16 w-16 rounded-full bg-gray-800/50 flex items-center justify-center">
+                            <Icon className="h-8 w-8 opacity-20" />
                         </div>
-                    </motion.div>
-                </div>
-            )}
+                        <p className="text-sm">No offers featured yet</p>
+                    </div>
+                )}
+            </div>
+
+            <div className="p-4 border-t border-gray-800 bg-gray-900">
+                <button
+                    onClick={onAdd}
+                    className="w-full py-3 rounded-xl border border-dashed border-gray-700 text-gray-400 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all flex items-center justify-center gap-2 font-medium text-sm"
+                >
+                    <Plus className="h-4 w-4" />
+                    Add Offer
+                </button>
+            </div>
         </div>
     );
 }

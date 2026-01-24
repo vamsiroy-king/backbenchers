@@ -5,9 +5,18 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
     try {
-        // Simple polling endpoint
-        // You can secure this by checking headers if needed
-        // const authHeader = request.headers.get('authorization');
+        // SECURITY: Verify Cron Secret
+        const authHeader = request.headers.get('authorization');
+        const cronSecret = process.env.CRON_SECRET;
+
+        // Verify the secret (Standard "Bearer <token>" format or just raw token)
+        if (
+            process.env.NODE_ENV !== 'development' &&
+            (!cronSecret || authHeader !== `Bearer ${cronSecret}`)
+        ) {
+            console.error('[Cron] Unauthorized access attempt');
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
         console.log('[Cron] Refreshing trending offers...');
         const { error } = await supabase.rpc('refresh_trending_offers');

@@ -125,36 +125,11 @@ CREATE POLICY "Anyone can read online_offers"
 ON public.online_offers FOR SELECT 
 USING (true);
 
--- 4D. Create WRITE policies (authenticated users = admins)
-CREATE POLICY "Authenticated can insert online_brands" 
-ON public.online_brands FOR INSERT 
-TO authenticated
-WITH CHECK (true);
+-- 4D. WRITE POLICIES (Secure: STRICTLY Service Role / Admin API only)
+-- We DO NOT create any INSERT/UPDATE/DELETE policies for 'authenticated'.
+-- This ensures students cannot modify data via the browser console.
+-- Admin operations must use the Service Role Key (server-side) to bypass RLS.
 
-CREATE POLICY "Authenticated can update online_brands" 
-ON public.online_brands FOR UPDATE 
-TO authenticated
-USING (true);
-
-CREATE POLICY "Authenticated can delete online_brands" 
-ON public.online_brands FOR DELETE 
-TO authenticated
-USING (true);
-
-CREATE POLICY "Authenticated can insert online_offers" 
-ON public.online_offers FOR INSERT 
-TO authenticated
-WITH CHECK (true);
-
-CREATE POLICY "Authenticated can update online_offers" 
-ON public.online_offers FOR UPDATE 
-TO authenticated
-USING (true);
-
-CREATE POLICY "Authenticated can delete online_offers" 
-ON public.online_offers FOR DELETE 
-TO authenticated
-USING (true);
 
 -- ================================================================
 -- SECTION 5: GRANT PERMISSIONS

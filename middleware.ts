@@ -3,7 +3,11 @@ import type { NextRequest } from 'next/server';
 
 // Admin authentication secret - Change this to a strong secret!
 // Set via environment variable for security
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'backbenchers-admin-2024-secret';
+// SECURITY: Do not use hardcoded secrets. Admin access requires this ENV variable.
+const ADMIN_SECRET = process.env.ADMIN_SECRET;
+if (!ADMIN_SECRET && process.env.NODE_ENV === 'production') {
+    console.error('CRITICAL: ADMIN_SECRET is not set in environment variables. Admin access is disabled.');
+}
 
 // Cookie name for admin session
 const ADMIN_SESSION_COOKIE = 'bb_admin_session';
@@ -48,25 +52,12 @@ export function middleware(request: NextRequest) {
     // ADMIN SUBDOMAIN: admin.backbenchers.app
     if (hostname.startsWith('admin.')) {
         // === ADMIN AUTHENTICATION ===
-        // Check for admin auth cookie or secret in URL
+        // Check for admin auth cookie
         const adminSession = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
-        const secretParam = url.searchParams.get('secret');
 
-        // Allow the admin-auth page (login page)
-        if (pathname === '/admin-auth') {
+        // Allow the admin-auth page (login page) and the login API
+        if (pathname === '/admin-auth' || pathname === '/api/auth/admin-login') {
             return NextResponse.next();
-        }
-
-        // If secret is provided in URL, set cookie and redirect
-        if (secretParam === ADMIN_SECRET) {
-            const response = NextResponse.redirect(new URL('/admin/dashboard', request.url));
-            response.cookies.set(ADMIN_SESSION_COOKIE, 'authenticated', {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'strict',
-                maxAge: 60 * 60 * 24 * 7, // 7 days
-            });
-            return response;
         }
 
         // Check if authenticated
@@ -92,8 +83,18 @@ export function middleware(request: NextRequest) {
     }
 
     // MAIN DOMAIN: backbenchers.app (Student App)
-    // Block access to admin and merchant routes
-    if (pathname.startsWith('/admin')) {
+    // Block access to admin routes AND admin APIs
+    // CRITICAL SECURITY FIX: Explicitly block /api/admin on public domains
+    if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
+        // Return 404 for API routes to hide them completely
+        if (pathname.startsWith('/api/')) {
+            return new NextResponse(null, { status: 404 });
+        }
+        // Redirect UI routes
+        url.pathname = '/dashboard';
+        return NextResponse.redirect(url);
+    }
+    if (pathname.startsWith('/merchant')) {
         url.pathname = '/dashboard';
         return NextResponse.redirect(url);
     }

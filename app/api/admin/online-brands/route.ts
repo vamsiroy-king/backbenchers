@@ -5,8 +5,23 @@ import { createClient } from '@supabase/supabase-js';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// Helper to verify admin session
+async function verifyAdminSession(request: NextRequest): Promise<boolean> {
+    const adminSession = request.cookies.get('bb_admin_session')?.value;
+    return adminSession === 'authenticated';
+}
+
 export async function POST(request: NextRequest) {
     try {
+        // DEFENSE IN DEPTH: Verify session cookie
+        const isAdmin = await verifyAdminSession(request);
+        if (!isAdmin) {
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized - Admin access required' },
+                { status: 401 }
+            );
+        }
+
         // Create admin client inside the handler to ensure env vars are available
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

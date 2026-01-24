@@ -18,6 +18,7 @@ import { useNotifications } from "@/lib/hooks/useNotifications";
 import { getNextPendingRatingFromDB, dismissPendingRating, deletePendingRating } from "@/lib/services/pendingRatings";
 import { CitySelector } from "@/components/CitySelector";
 import { RatingModal } from "@/components/RatingModal";
+import Image from "next/image";
 import { Offer } from "@/lib/types";
 import { dashboardCache } from "@/lib/services/cache.service";
 import { HeartButton } from "@/components/HeartButton";
@@ -741,10 +742,10 @@ export default function DashboardPage() {
                     {/* Fixed: Use flex for desktop to prevent huge stretched cards */}
                     <div className="grid grid-cols-4 gap-2 md:flex md:justify-center md:gap-6">
                         {[
-                            { line1: "Food", line2: "& Beverages", image: "🍕", color: isLightTheme ? "from-orange-100 to-orange-200" : "from-orange-900/50 to-orange-950/80", category: "Food" },
-                            { line1: "Fashion", line2: "& Apparel", image: "👗", color: isLightTheme ? "from-pink-100 to-pink-200" : "from-pink-900/50 to-pink-950/80", category: "Fashion" },
-                            { line1: "Health", line2: "& Fitness", image: "💪", color: isLightTheme ? "from-blue-100 to-blue-200" : "from-blue-900/50 to-blue-950/80", category: "Fitness" },
-                            { line1: "Skincare", line2: "& Beauty", image: "💄", color: isLightTheme ? "from-purple-100 to-purple-200" : "from-purple-900/50 to-purple-950/80", category: "Beauty" },
+                            { line1: "Food", line2: "& Beverages", image: "/assets/categories/food_ultra.png", color: isLightTheme ? "from-orange-100 to-orange-200" : "from-orange-900/50 to-orange-950/80", category: "Food" },
+                            { line1: "Fashion", line2: "& Apparel", image: "/assets/categories/fashion_ultra.png", color: isLightTheme ? "from-pink-100 to-pink-200" : "from-pink-900/50 to-pink-950/80", category: "Fashion" },
+                            { line1: "Health", line2: "& Fitness", image: "/assets/categories/fitness_ultra.png", color: isLightTheme ? "from-blue-100 to-blue-200" : "from-blue-900/50 to-blue-950/80", category: "Fitness" },
+                            { line1: "Skincare", line2: "& Beauty", image: "/assets/categories/beauty_ultra.png", color: isLightTheme ? "from-purple-100 to-purple-200" : "from-purple-900/50 to-purple-950/80", category: "Beauty" },
                         ].map((cat) => (
                             <motion.div
                                 key={cat.category}
@@ -753,11 +754,22 @@ export default function DashboardPage() {
                                     vibrate('light');
                                     router.push(`/dashboard/explore?category=${cat.category}`);
                                 }}
-                                className={`aspect-square rounded-xl bg-gradient-to-br ${cat.color} border flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${isLightTheme ? 'border-gray-200 hover:border-gray-300' : 'border-white/[0.06] hover:border-white/[0.12]'} md:w-28 md:h-28`}
+                                className={`aspect-square rounded-xl bg-gradient-to-br ${cat.color} border flex flex-col items-center justify-center relative overflow-hidden transition-all cursor-pointer ${isLightTheme ? 'border-gray-200 hover:border-gray-300' : 'border-white/[0.06] hover:border-white/[0.12]'} md:w-28 md:h-28`}
                             >
-                                <span className="text-2xl mb-1 md:text-3xl">{cat.image}</span>
-                                <span className={`text-[10px] font-semibold leading-tight ${isLightTheme ? 'text-gray-700' : 'text-white/90'} md:text-xs`}>{cat.line1}</span>
-                                <span className={`text-[8px] font-medium leading-tight ${isLightTheme ? 'text-gray-500' : 'text-white/50'} md:text-[10px]`}>{cat.line2}</span>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="relative w-full h-full mix-blend-screen opacity-100">
+                                        <Image
+                                            src={cat.image}
+                                            alt={cat.category}
+                                            fill
+                                            className="object-cover scale-110"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="relative z-10 flex flex-col items-center justify-end h-full pb-2 md:pb-3 w-full bg-gradient-to-t from-black/80 via-black/20 to-transparent">
+                                    <span className="text-[11px] font-bold leading-tight text-white drop-shadow-md md:text-sm">{cat.line1}</span>
+                                    <span className="text-[9px] font-medium leading-tight text-white/90 drop-shadow-sm md:text-[10px]">{cat.line2}</span>
+                                </div>
                             </motion.div>
                         ))}
                     </div>

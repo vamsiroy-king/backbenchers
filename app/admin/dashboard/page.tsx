@@ -12,73 +12,50 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { studentService } from "@/lib/services/student.service";
 import { merchantService } from "@/lib/services/merchant.service";
-import { offerService } from "@/lib/services/offer.service";
-import { transactionService } from "@/lib/services/transaction.service";
-import { analyticsService, TopMerchant, CityDistribution, CategoryPerformance } from "@/lib/services/analytics.service";
+import { analyticsService, TopMerchant, CityDistribution, CategoryPerformance, DashboardStats } from "@/lib/services/analytics.service";
 import { Merchant } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export default function AdminDashboardPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [signingOut, setSigningOut] = useState(false);
-    const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'merchants'>('overview');
-    const [stats, setStats] = useState({
-        students: { total: 0, verified: 0, pending: 0, suspended: 0 },
-        merchants: { total: 0, approved: 0, pending: 0, rejected: 0 },
-        offers: { total: 0, active: 0, paused: 0 },
-        transactions: { total: 0, today: 0, week: 0, totalSavings: 0 }
-    });
+
+    // Data State
+    const [stats, setStats] = useState<DashboardStats | null>(null);
     const [pendingMerchants, setPendingMerchants] = useState<Merchant[]>([]);
     const [topMerchants, setTopMerchants] = useState<TopMerchant[]>([]);
     const [cityDistribution, setCityDistribution] = useState<CityDistribution[]>([]);
     const [categoryPerformance, setCategoryPerformance] = useState<CategoryPerformance[]>([]);
-    const [dateRange, setDateRange] = useState('7');
 
-    // Sign out handler
-    const handleSignOut = async () => {
-        setSigningOut(true);
-        try {
-            await fetch('/api/admin/signout', { method: 'POST' });
-            // Redirect to auth page
-            window.location.href = '/admin-auth';
-        } catch (error) {
-            console.error('Sign out failed:', error);
-            setSigningOut(false);
-        }
-    };
+    const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'merchants'>('overview');
+    const [dateRange, setDateRange] = useState('7');
 
     useEffect(() => {
         async function fetchData() {
             try {
                 setLoading(true);
 
-                // Core stats
-                const [studentStats, merchantStats, offerStats, txStats] = await Promise.all([
-                    studentService.getStats(),
-                    merchantService.getStats(),
-                    offerService.getStats(),
-                    transactionService.getStats()
-                ]);
-
-                setStats({
-                    students: studentStats,
-                    merchants: merchantStats,
-                    offers: offerStats,
-                    transactions: txStats
-                });
-
-                // Pending merchants
-                const pendingResult = await merchantService.getAll({ status: 'pending' });
-                if (pendingResult.success && pendingResult.data) {
-                    setPendingMerchants(pendingResult.data.slice(0, 5));
-                }
-
-                // Analytics data
-                const [topMerchantsData, cityData, categoryData] = await Promise.all([
+                // Parallel Data Fetching
+                const [
+                    dashboardStats,
+                    pendingResult,
+                    topMerchantsData,
+                    cityData,
+                    categoryData
+                ] = await Promise.all([
+                    analyticsService.getDashboardStats(),
+                    merchantService.getAll({ status: 'pending' }),
                     analyticsService.getTopMerchants(10),
                     analyticsService.getCityDistribution(),
                     analyticsService.getCategoryPerformance()
                 ]);
+
+                setStats(dashboardStats);
+
+                if (pendingResult.success && pendingResult.data) {
+                    setPendingMerchants(pendingResult.data.slice(0, 5));
+                }
 
                 setTopMerchants(topMerchantsData);
                 setCityDistribution(cityData);
@@ -93,35 +70,29 @@ export default function AdminDashboardPage() {
         fetchData();
     }, [dateRange]);
 
-    // Calculate totals for analytics
-    const totalCityStudents = cityDistribution.reduce((sum, c) => sum + c.studentsCount, 0);
-    const totalCityMerchants = cityDistribution.reduce((sum, c) => sum + c.merchantsCount, 0);
-    const totalCategoryTx = categoryPerformance.reduce((sum, c) => sum + c.transactionsCount, 0);
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-[60vh]">
-                <div className="text-center">
-                    <Loader2 className="h-12 w-12 animate-spin text-green-400 mx-auto mb-4" />
-                    <p className="text-[#888]">Loading dashboard...</p>
-                </div>
-            </div>
-        );
-    }
+    // Helpers
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        }).format(amount);
+    };
 
     return (
-        <div className="space-y-6 pb-8">
-            {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="space-y-8 pb-8 animate-in fade-in duration-500">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-                    <p className="text-sm text-[#888] mt-1">Complete platform overview and analytics</p>
+                    <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard</h1>
+                    <p className="text-gray-400 mt-1">Real-time overview of the Backbenchers ecosystem</p>
                 </div>
-                <div className="flex items-center gap-3">
+
+                <div className="flex items-center gap-3 bg-gray-900/50 p-1 rounded-xl border border-gray-800">
                     <select
                         value={dateRange}
                         onChange={(e) => setDateRange(e.target.value)}
-                        className="h-10 px-4 bg-[#111] border border-[#333] rounded-xl text-white text-sm font-medium outline-none focus:border-green-500/50"
+                        className="bg-transparent text-sm text-white font-medium px-3 py-1.5 outline-none cursor-pointer"
                     >
                         <option value="7">Last 7 days</option>
                         <option value="30">Last 30 days</option>
@@ -131,553 +102,369 @@ export default function AdminDashboardPage() {
                 </div>
             </div>
 
-            {/* Tab Navigation */}
-            <div className="flex gap-2 border-b border-[#333] pb-3">
-                {[
-                    { id: 'overview', label: 'Overview', icon: BarChart3 },
-                    { id: 'analytics', label: 'Analytics', icon: PieChart },
-                    { id: 'merchants', label: 'Merchants', icon: Store }
-                ].map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id
-                            ? 'bg-green-500/10 text-green-400'
-                            : 'text-[#888] hover:bg-[#1a1a1a]'
-                            }`}
-                    >
-                        <tab.icon className="h-4 w-4" />
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
+            {/* Main Content Tabs */}
+            <div className="space-y-6">
+                {/* Custom Tab Switcher */}
+                <div className="flex p-1 bg-gray-900/50 backdrop-blur-md rounded-xl border border-gray-800 w-fit">
+                    {[
+                        { id: 'overview', label: 'Overview', icon: BarChart3 },
+                        { id: 'analytics', label: 'Analytics', icon: PieChart },
+                        { id: 'merchants', label: 'Merchants', icon: Store }
+                    ].map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id as any)}
+                            className={cn(
+                                "flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                                activeTab === tab.id
+                                    ? "bg-primary text-black shadow-lg shadow-primary/20"
+                                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                            )}
+                        >
+                            <tab.icon className="h-4 w-4" />
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
 
-            <AnimatePresence mode="wait">
-                {/* OVERVIEW TAB */}
-                {activeTab === 'overview' && (
-                    <motion.div
-                        key="overview"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="space-y-6"
-                    >
-                        {/* Key Metrics Row */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                            {/* Total Revenue */}
-                            <motion.div
-                                whileHover={{ y: -2 }}
-                                className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg shadow-green-500/20"
-                            >
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="h-10 w-10 bg-[#111]/20 rounded-xl flex items-center justify-center">
-                                        <DollarSign className="h-5 w-5" />
-                                    </div>
-                                    <span className="text-xs bg-[#111]/20 px-2 py-1 rounded-lg">+12%</span>
+                <AnimatePresence mode="wait">
+                    {activeTab === 'overview' && (
+                        <motion.div
+                            key="overview"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="space-y-6"
+                        >
+                            {/* Hero Stats */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <StatsCard
+                                    label="Total Revenue"
+                                    value={stats ? formatCurrency(stats.totalRevenue) : null}
+                                    subValue="+12.5% vs last period"
+                                    icon={DollarSign}
+                                    color="green"
+                                    loading={loading}
+                                />
+                                <StatsCard
+                                    label="Student Savings"
+                                    value={stats ? formatCurrency(stats.totalSavings) : null}
+                                    subValue={`${stats?.totalTransactions} transactions`}
+                                    icon={PiggyBank}
+                                    color="blue"
+                                    loading={loading}
+                                />
+                                <StatsCard
+                                    label="Active Students"
+                                    value={stats ? stats.totalStudents.toLocaleString() : null}
+                                    subValue={`${stats?.verifiedStudents} verified`}
+                                    icon={Users}
+                                    color="purple"
+                                    loading={loading}
+                                />
+                                <StatsCard
+                                    label="Today's Activity"
+                                    value={stats ? stats.todayTransactions.toString() : null}
+                                    subValue="Redemptions today"
+                                    icon={Activity}
+                                    color="orange"
+                                    loading={loading}
+                                />
+                            </div>
+
+                            {/* Alert Section (Only if needed) */}
+                            {(!loading && (pendingMerchants.length > 0 || (stats?.pendingStudents || 0) > 0)) && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {pendingMerchants.length > 0 && (
+                                        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 bg-yellow-500/20 rounded-xl flex items-center justify-center text-yellow-500">
+                                                    <Store className="h-5 w-5" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-yellow-500">Pending Merchants</h3>
+                                                    <p className="text-xs text-yellow-500/80">{pendingMerchants.length} requests waiting review</p>
+                                                </div>
+                                            </div>
+                                            <Link href="/admin/dashboard/merchants">
+                                                <button className="bg-yellow-500 text-black text-xs font-bold px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors">
+                                                    Review
+                                                </button>
+                                            </Link>
+                                        </div>
+                                    )}
+                                    {(stats?.pendingStudents || 0) > 0 && (
+                                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-500">
+                                                    <Users className="h-5 w-5" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-blue-500">Pending Students</h3>
+                                                    <p className="text-xs text-blue-500/80">{stats?.pendingStudents} ID cards waiting</p>
+                                                </div>
+                                            </div>
+                                            <Link href="/admin/dashboard/students">
+                                                <button className="bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                                                    Verify
+                                                </button>
+                                            </Link>
+                                        </div>
+                                    )}
                                 </div>
-                                <p className="text-2xl font-bold">₹{(stats.transactions.totalSavings * 1.5).toLocaleString()}</p>
-                                <p className="text-sm opacity-80 mt-1">Total Revenue</p>
-                            </motion.div>
+                            )}
 
-                            {/* Student Savings */}
-                            <motion.div
-                                whileHover={{ y: -2 }}
-                                className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20"
-                            >
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="h-10 w-10 bg-[#111]/20 rounded-xl flex items-center justify-center">
-                                        <PiggyBank className="h-5 w-5" />
-                                    </div>
-                                    <span className="text-xs bg-[#111]/20 px-2 py-1 rounded-lg">+8%</span>
-                                </div>
-                                <p className="text-2xl font-bold">₹{stats.transactions.totalSavings.toLocaleString()}</p>
-                                <p className="text-sm opacity-80 mt-1">Student Savings</p>
-                            </motion.div>
+                            {/* Secondary Stats */}
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                <MiniStatCard
+                                    label="Verified Students"
+                                    value={stats?.verifiedStudents}
+                                    total={stats?.totalStudents}
+                                    icon={UserCheck}
+                                    color="blue"
+                                    loading={loading}
+                                />
+                                <MiniStatCard
+                                    label="Active Merchants"
+                                    value={stats?.approvedMerchants}
+                                    total={stats?.totalMerchants}
+                                    icon={Store}
+                                    color="purple"
+                                    loading={loading}
+                                />
+                                <MiniStatCard
+                                    label="Live Offers"
+                                    value={stats?.activeOffers}
+                                    total={stats?.totalOffers}
+                                    icon={Tag}
+                                    color="orange"
+                                    loading={loading}
+                                />
+                                <MiniStatCard
+                                    label="Transactions"
+                                    value={stats?.totalTransactions}
+                                    subLabel="Lifetime"
+                                    icon={Wallet}
+                                    color="green"
+                                    loading={loading}
+                                />
+                            </div>
+                        </motion.div>
+                    )}
 
-                            {/* Active Users */}
-                            <motion.div
-                                whileHover={{ y: -2 }}
-                                className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-5 text-white shadow-lg shadow-purple-500/20"
-                            >
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="h-10 w-10 bg-[#111]/20 rounded-xl flex items-center justify-center">
-                                        <Users className="h-5 w-5" />
+                    {activeTab === 'analytics' && (
+                        <motion.div
+                            key="analytics"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="space-y-6"
+                        >
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* City Distribution */}
+                                <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+                                    <div className="p-5 border-b border-gray-800">
+                                        <h3 className="font-bold text-white flex items-center gap-2">
+                                            <MapPin className="h-4 w-4 text-primary" />
+                                            Geographic Distribution
+                                        </h3>
                                     </div>
-                                    <span className="text-xs bg-[#111]/20 px-2 py-1 rounded-lg">{stats.students.pending} pending</span>
-                                </div>
-                                <p className="text-2xl font-bold">{stats.students.total.toLocaleString()}</p>
-                                <p className="text-sm opacity-80 mt-1">Total Students</p>
-                            </motion.div>
-
-                            {/* Today's Transactions */}
-                            <motion.div
-                                whileHover={{ y: -2 }}
-                                className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-5 text-white shadow-lg shadow-orange-500/20"
-                            >
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="h-10 w-10 bg-[#111]/20 rounded-xl flex items-center justify-center">
-                                        <Activity className="h-5 w-5" />
-                                    </div>
-                                    <span className="text-xs bg-[#111]/20 px-2 py-1 rounded-lg">{stats.transactions.week} this week</span>
-                                </div>
-                                <p className="text-2xl font-bold">{stats.transactions.today}</p>
-                                <p className="text-sm opacity-80 mt-1">Today's Redemptions</p>
-                            </motion.div>
-                        </div>
-
-                        {/* Stats Cards */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                            <Link href="/admin/dashboard/students">
-                                <div className="bg-[#111] rounded-xl p-5 border border-[#333] hover:border-[#444] transition-all cursor-pointer">
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="h-10 w-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
-                                            <UserCheck className="h-5 w-5 text-blue-400" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-2xl font-bold text-white">{stats.students.verified}</p>
-                                            <p className="text-xs text-[#888]">Verified Students</p>
-                                        </div>
-                                    </div>
-                                    <div className="h-1.5 bg-[#222] rounded-full overflow-hidden">
-                                        <div className="h-full bg-blue-500 rounded-full" style={{ width: `${stats.students.total > 0 ? (stats.students.verified / stats.students.total) * 100 : 0}%` }} />
-                                    </div>
-                                </div>
-                            </Link>
-
-                            <Link href="/admin/dashboard/merchants">
-                                <div className="bg-[#111] rounded-xl p-5 border border-[#333] hover:border-[#444] transition-all cursor-pointer">
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="h-10 w-10 bg-purple-500/10 rounded-xl flex items-center justify-center">
-                                            <Store className="h-5 w-5 text-purple-400" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-2xl font-bold text-white">{stats.merchants.approved}</p>
-                                            <p className="text-xs text-[#888]">Active Merchants</p>
-                                        </div>
-                                    </div>
-                                    <div className="h-1.5 bg-[#222] rounded-full overflow-hidden">
-                                        <div className="h-full bg-purple-500 rounded-full" style={{ width: `${stats.merchants.total > 0 ? (stats.merchants.approved / stats.merchants.total) * 100 : 0}%` }} />
-                                    </div>
-                                </div>
-                            </Link>
-
-                            <Link href="/admin/dashboard/offers">
-                                <div className="bg-[#111] rounded-xl p-5 border border-[#333] hover:border-[#444] transition-all cursor-pointer">
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="h-10 w-10 bg-orange-500/10 rounded-xl flex items-center justify-center">
-                                            <Tag className="h-5 w-5 text-orange-400" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-2xl font-bold text-white">{stats.offers.active}</p>
-                                            <p className="text-xs text-[#888]">Active Offers</p>
-                                        </div>
-                                    </div>
-                                    <div className="h-1.5 bg-[#222] rounded-full overflow-hidden">
-                                        <div className="h-full bg-orange-500 rounded-full" style={{ width: `${stats.offers.total > 0 ? (stats.offers.active / stats.offers.total) * 100 : 0}%` }} />
+                                    <div className="p-5 space-y-4">
+                                        {loading ? (
+                                            [1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full bg-gray-800" />)
+                                        ) : cityDistribution.length > 0 ? (
+                                            cityDistribution.slice(0, 6).map((item, idx) => (
+                                                <div key={item.city} className="flex items-center gap-4">
+                                                    <span className="text-xs font-mono text-gray-500 w-4">0{idx + 1}</span>
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between text-sm mb-1.5">
+                                                            <span className="text-white font-medium">{item.city}</span>
+                                                            <span className="text-gray-400 text-xs">{item.studentsCount} students</span>
+                                                        </div>
+                                                        <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-primary"
+                                                                style={{ width: `${(item.studentsCount / (stats?.totalStudents || 1)) * 100}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-10 text-gray-500">No geo data available</div>
+                                        )}
                                     </div>
                                 </div>
-                            </Link>
 
-                            <Link href="/admin/dashboard/transactions">
-                                <div className="bg-[#111] rounded-xl p-5 border border-[#333] hover:border-[#444] transition-all cursor-pointer">
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="h-10 w-10 bg-green-500/10 rounded-xl flex items-center justify-center">
-                                            <Wallet className="h-5 w-5 text-green-400" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-2xl font-bold text-white">{stats.transactions.total}</p>
-                                            <p className="text-xs text-[#888]">Total Transactions</p>
-                                        </div>
+                                {/* Category Performance */}
+                                <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+                                    <div className="p-5 border-b border-gray-800">
+                                        <h3 className="font-bold text-white flex items-center gap-2">
+                                            <PieChart className="h-4 w-4 text-orange-500" />
+                                            Category Performance
+                                        </h3>
                                     </div>
-                                    <div className="flex items-center gap-1 text-xs text-green-400">
-                                        <ArrowUpRight className="h-3 w-3" />
-                                        {stats.transactions.week} this week
+                                    <div className="p-5 grid gap-4">
+                                        {loading ? (
+                                            [1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full bg-gray-800" />)
+                                        ) : categoryPerformance.length > 0 ? (
+                                            categoryPerformance.slice(0, 4).map((cat) => (
+                                                <div key={cat.category} className="bg-gray-800/50 p-4 rounded-xl flex items-center justify-between">
+                                                    <div>
+                                                        <h4 className="font-bold text-white text-sm">{cat.category}</h4>
+                                                        <p className="text-xs text-gray-400 mt-1">{cat.transactionsCount} transactions</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="font-mono text-green-400 font-bold">{formatCurrency(cat.revenue)}</p>
+                                                        <p className="text-xs text-gray-500">Revenue</p>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-10 text-gray-500">No category data available</div>
+                                        )}
                                     </div>
                                 </div>
-                            </Link>
-                        </div>
+                            </div>
+                        </motion.div>
+                    )}
 
-                        {/* Pending Approvals & Alerts */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* Pending Approvals */}
-                            <div className="bg-[#111] rounded-2xl border border-[#333] overflow-hidden">
-                                <div className="p-5 border-b border-[#333] flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 bg-yellow-100 rounded-xl flex items-center justify-center">
-                                            <Clock className="h-5 w-5 text-yellow-600" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-white">Pending Approvals</h3>
-                                            <p className="text-xs text-[#888]">{stats.merchants.pending} merchants waiting</p>
-                                        </div>
-                                    </div>
-                                    <Link href="/admin/dashboard/merchants" className="text-sm text-purple-600 font-semibold hover:underline flex items-center gap-1">
-                                        View all <ChevronRight className="h-4 w-4" />
+                    {activeTab === 'merchants' && (
+                        <motion.div
+                            key="merchants"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                        >
+                            <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+                                <div className="p-5 border-b border-gray-800 flex justify-between items-center">
+                                    <h3 className="font-bold text-white flex items-center gap-2">
+                                        <Award className="h-4 w-4 text-yellow-500" />
+                                        Leaderboard
+                                    </h3>
+                                    <Link href="/admin/dashboard/merchants" className="text-xs text-primary hover:underline">
+                                        View All Merchants
                                     </Link>
                                 </div>
-
-                                {pendingMerchants.length > 0 ? (
-                                    <div className="divide-y divide-[#222]">
-                                        {pendingMerchants.slice(0, 4).map((merchant) => (
-                                            <div key={merchant.id} className="p-4 hover:bg-[#1a1a1a] transition-colors">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="h-10 w-10 bg-[#1a1a1a] rounded-xl flex items-center justify-center overflow-hidden">
-                                                            {merchant.logo ? (
-                                                                <img src={merchant.logo} alt="" className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <Store className="h-5 w-5 text-[#666]" />
-                                                            )}
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="font-semibold text-white text-sm">{merchant.businessName}</h4>
-                                                            <p className="text-xs text-[#888]">{merchant.category} • {merchant.city}</p>
-                                                        </div>
-                                                    </div>
-                                                    <Link href={`/admin/dashboard/merchants/${merchant.id}`}>
-                                                        <button className="h-8 px-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-medium flex items-center gap-1 transition-colors">
-                                                            <Eye className="h-3 w-3" /> Review
-                                                        </button>
-                                                    </Link>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="p-8 text-center">
-                                        <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                            <Check className="h-6 w-6 text-green-600" />
-                                        </div>
-                                        <p className="text-[#888] text-sm">No pending approvals! 🎉</p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Alerts & Notifications */}
-                            <div className="bg-[#111] rounded-2xl border border-[#333] overflow-hidden">
-                                <div className="p-5 border-b border-[#333]">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 bg-red-100 rounded-xl flex items-center justify-center">
-                                            <AlertTriangle className="h-5 w-5 text-red-600" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-white">Alerts</h3>
-                                            <p className="text-xs text-[#888]">Items requiring attention</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="p-4 space-y-3">
-                                    {stats.merchants.pending > 0 && (
-                                        <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-xl">
-                                            <div className="h-8 w-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                                                <Clock className="h-4 w-4 text-yellow-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className="text-sm font-medium text-white">{stats.merchants.pending} merchants pending approval</p>
-                                                <p className="text-xs text-[#888]">Review and approve to activate</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {stats.students.pending > 0 && (
-                                        <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl">
-                                            <div className="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                                <Users className="h-4 w-4 text-blue-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className="text-sm font-medium text-white">{stats.students.pending} students pending</p>
-                                                <p className="text-xs text-[#888]">Awaiting verification</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {stats.students.suspended > 0 && (
-                                        <div className="flex items-center gap-3 p-3 bg-red-50 rounded-xl">
-                                            <div className="h-8 w-8 bg-red-100 rounded-lg flex items-center justify-center">
-                                                <AlertTriangle className="h-4 w-4 text-red-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className="text-sm font-medium text-white">{stats.students.suspended} suspended students</p>
-                                                <p className="text-xs text-[#888]">Account access blocked</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {stats.merchants.pending === 0 && stats.students.pending === 0 && stats.students.suspended === 0 && (
-                                        <div className="text-center py-6">
-                                            <Check className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                                            <p className="text-sm text-[#888]">All clear! No alerts.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Quick Actions */}
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                            <Link href="/admin/dashboard/hero-banners">
-                                <motion.div whileHover={{ y: -2 }} className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-5 text-white cursor-pointer">
-                                    <Image className="h-7 w-7 mb-2" />
-                                    <h4 className="font-bold text-sm">Hero Banners</h4>
-                                    <p className="text-xs opacity-80">Manage banners</p>
-                                </motion.div>
-                            </Link>
-                            <Link href="/admin/dashboard/trending">
-                                <motion.div whileHover={{ y: -2 }} className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-5 text-white cursor-pointer">
-                                    <TrendingUp className="h-7 w-7 mb-2" />
-                                    <h4 className="font-bold text-sm">Trending</h4>
-                                    <p className="text-xs opacity-80">Curate offers</p>
-                                </motion.div>
-                            </Link>
-                            <Link href="/admin/dashboard/top-brands">
-                                <motion.div whileHover={{ y: -2 }} className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-5 text-white cursor-pointer">
-                                    <Award className="h-7 w-7 mb-2" />
-                                    <h4 className="font-bold text-sm">Top Brands</h4>
-                                    <p className="text-xs opacity-80">Feature merchants</p>
-                                </motion.div>
-                            </Link>
-                            <Link href="/admin/dashboard/students">
-                                <motion.div whileHover={{ y: -2 }} className="bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl p-5 text-white cursor-pointer">
-                                    <Users className="h-7 w-7 mb-2" />
-                                    <h4 className="font-bold text-sm">Students</h4>
-                                    <p className="text-xs opacity-80">{stats.students.total} total</p>
-                                </motion.div>
-                            </Link>
-                            <Link href="/admin/dashboard/settings">
-                                <motion.div whileHover={{ y: -2 }} className="bg-gradient-to-br from-gray-700 to-gray-900 rounded-2xl p-5 text-white cursor-pointer">
-                                    <Tag className="h-7 w-7 mb-2" />
-                                    <h4 className="font-bold text-sm">Settings</h4>
-                                    <p className="text-xs opacity-80">Configure</p>
-                                </motion.div>
-                            </Link>
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* ANALYTICS TAB */}
-                {activeTab === 'analytics' && (
-                    <motion.div
-                        key="analytics"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="space-y-6"
-                    >
-                        {/* City Distribution */}
-                        <div className="bg-[#111] rounded-2xl border border-[#333] overflow-hidden">
-                            <div className="p-5 border-b border-[#333]">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 bg-indigo-100 rounded-xl flex items-center justify-center">
-                                        <MapPin className="h-5 w-5 text-indigo-600" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-white">City Distribution</h3>
-                                        <p className="text-xs text-[#888]">Students and merchants by city</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-5">
-                                {cityDistribution.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {cityDistribution.slice(0, 8).map((city, index) => (
-                                            <div key={city.city} className="flex items-center gap-4">
-                                                <span className="text-sm font-medium text-[#888] w-6">{index + 1}</span>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <span className="font-semibold text-white">{city.city || 'Unknown'}</span>
-                                                        <span className="text-sm text-[#888]">
-                                                            {city.studentsCount} students • {city.merchantsCount} merchants
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex gap-1">
-                                                        <div
-                                                            className="h-2 bg-blue-500 rounded-full"
-                                                            style={{ width: `${totalCityStudents > 0 ? (city.studentsCount / totalCityStudents) * 100 : 0}%`, minWidth: city.studentsCount > 0 ? '4px' : '0' }}
-                                                        />
-                                                        <div
-                                                            className="h-2 bg-purple-500 rounded-full"
-                                                            style={{ width: `${totalCityMerchants > 0 ? (city.merchantsCount / totalCityMerchants) * 100 : 0}%`, minWidth: city.merchantsCount > 0 ? '4px' : '0' }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-center text-[#888] py-8">No city data available</p>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Category Performance */}
-                        <div className="bg-[#111] rounded-2xl border border-[#333] overflow-hidden">
-                            <div className="p-5 border-b border-[#333]">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                                        <PieChart className="h-5 w-5 text-orange-600" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-white">Category Performance</h3>
-                                        <p className="text-xs text-[#888]">Merchants and transactions by category</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-5">
-                                {categoryPerformance.length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {categoryPerformance.map((cat) => (
-                                            <div key={cat.category} className="bg-[#1a1a1a] rounded-xl p-4">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <span className="font-semibold text-white">{cat.category}</span>
-                                                    <span className="text-xs bg-[#111] px-2 py-1 rounded-lg text-[#888]">
-                                                        {cat.merchantsCount} merchants
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-4 text-sm">
-                                                    <div>
-                                                        <p className="text-[#888]">Offers</p>
-                                                        <p className="font-bold text-white">{cat.offersCount}</p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[#888]">Transactions</p>
-                                                        <p className="font-bold text-white">{cat.transactionsCount}</p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[#888]">Revenue</p>
-                                                        <p className="font-bold text-green-600">₹{cat.revenue.toLocaleString()}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-center text-[#888] py-8">No category data available</p>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Platform Summary */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="bg-blue-50 rounded-xl p-5">
-                                <p className="text-sm text-blue-600 mb-1">Total Students</p>
-                                <p className="text-3xl font-bold text-blue-900">{stats.students.total}</p>
-                                <p className="text-xs text-blue-500 mt-1">{stats.students.verified} verified</p>
-                            </div>
-                            <div className="bg-purple-50 rounded-xl p-5">
-                                <p className="text-sm text-purple-600 mb-1">Total Merchants</p>
-                                <p className="text-3xl font-bold text-purple-900">{stats.merchants.total}</p>
-                                <p className="text-xs text-purple-500 mt-1">{stats.merchants.approved} approved</p>
-                            </div>
-                            <div className="bg-orange-50 rounded-xl p-5">
-                                <p className="text-sm text-orange-600 mb-1">Total Offers</p>
-                                <p className="text-3xl font-bold text-orange-900">{stats.offers.total}</p>
-                                <p className="text-xs text-orange-500 mt-1">{stats.offers.active} active</p>
-                            </div>
-                            <div className="bg-green-50 rounded-xl p-5">
-                                <p className="text-sm text-green-600 mb-1">Total Savings</p>
-                                <p className="text-3xl font-bold text-green-900">₹{(stats.transactions.totalSavings / 1000).toFixed(1)}K</p>
-                                <p className="text-xs text-green-500 mt-1">Generated for students</p>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* MERCHANTS TAB */}
-                {activeTab === 'merchants' && (
-                    <motion.div
-                        key="merchants"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="space-y-6"
-                    >
-                        {/* Top Performing Merchants */}
-                        <div className="bg-[#111] rounded-2xl border border-[#333] overflow-hidden">
-                            <div className="p-5 border-b border-[#333] flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 bg-yellow-100 rounded-xl flex items-center justify-center">
-                                        <Award className="h-5 w-5 text-yellow-600" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-white">Top Performing Merchants</h3>
-                                        <p className="text-xs text-[#888]">Ranked by transaction volume</p>
-                                    </div>
-                                </div>
-                                <Link href="/admin/dashboard/merchants" className="text-sm text-purple-600 font-semibold hover:underline flex items-center gap-1">
-                                    View all <ChevronRight className="h-4 w-4" />
-                                </Link>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-[#1a1a1a]">
-                                        <tr>
-                                            <th className="text-left text-xs font-semibold text-[#888] px-5 py-3">Rank</th>
-                                            <th className="text-left text-xs font-semibold text-[#888] px-5 py-3">Merchant</th>
-                                            <th className="text-left text-xs font-semibold text-[#888] px-5 py-3">City</th>
-                                            <th className="text-left text-xs font-semibold text-[#888] px-5 py-3">Category</th>
-                                            <th className="text-right text-xs font-semibold text-[#888] px-5 py-3">Transactions</th>
-                                            <th className="text-right text-xs font-semibold text-[#888] px-5 py-3">Revenue</th>
-                                            <th className="text-right text-xs font-semibold text-[#888] px-5 py-3">Rating</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-[#222]">
-                                        {topMerchants.map((merchant, index) => (
-                                            <tr key={merchant.merchantId} className="hover:bg-[#1a1a1a] transition-colors">
-                                                <td className="px-5 py-4">
-                                                    <span className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700' :
-                                                        index === 1 ? 'bg-[#1a1a1a] text-[#aaa]' :
-                                                            index === 2 ? 'bg-orange-100 text-orange-700' :
-                                                                'bg-[#1a1a1a] text-[#888]'
-                                                        }`}>
-                                                        {index + 1}
-                                                    </span>
-                                                </td>
-                                                <td className="px-5 py-4">
-                                                    <span className="font-semibold text-white">{merchant.businessName}</span>
-                                                </td>
-                                                <td className="px-5 py-4 text-[#888] text-sm">{merchant.city}</td>
-                                                <td className="px-5 py-4">
-                                                    <span className="text-xs bg-[#1a1a1a] px-2 py-1 rounded-lg text-[#aaa]">{merchant.category}</span>
-                                                </td>
-                                                <td className="px-5 py-4 text-right font-semibold text-white">{merchant.transactionCount}</td>
-                                                <td className="px-5 py-4 text-right font-semibold text-green-600">₹{merchant.revenue.toLocaleString()}</td>
-                                                <td className="px-5 py-4 text-right">
-                                                    <span className="flex items-center justify-end gap-1 text-sm">
-                                                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                                                        {merchant.avgRating.toFixed(1)}
-                                                    </span>
-                                                </td>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="bg-gray-800/50 text-gray-400 font-medium">
+                                            <tr>
+                                                <th className="px-6 py-3">Rank</th>
+                                                <th className="px-6 py-3">Merchant</th>
+                                                <th className="px-6 py-3">City</th>
+                                                <th className="px-6 py-3 text-right">Revenue</th>
+                                                <th className="px-6 py-3 text-right">Rating</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                                {topMerchants.length === 0 && (
-                                    <div className="text-center py-12 text-[#888]">
-                                        No merchant data available yet
-                                    </div>
-                                )}
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-800">
+                                            {loading ? (
+                                                [1, 2, 3, 4, 5].map(i => (
+                                                    <tr key={i}>
+                                                        <td colSpan={5} className="px-6 py-4"><Skeleton className="h-8 w-full bg-gray-800" /></td>
+                                                    </tr>
+                                                ))
+                                            ) : topMerchants.length > 0 ? (
+                                                topMerchants.map((m, idx) => (
+                                                    <tr key={m.merchantId} className="hover:bg-gray-800/30 transition-colors">
+                                                        <td className="px-6 py-4 font-mono text-gray-500">#{idx + 1}</td>
+                                                        <td className="px-6 py-4 font-medium text-white">{m.businessName}</td>
+                                                        <td className="px-6 py-4 text-gray-400">{m.city}</td>
+                                                        <td className="px-6 py-4 text-right text-green-400 font-mono">{formatCurrency(m.revenue)}</td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <span className="inline-flex items-center gap-1 bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded text-xs font-bold">
+                                                                {m.avgRating.toFixed(1)} <Star className="h-3 w-3 fill-current" />
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">No data found</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+        </div>
+    );
+}
 
-                        {/* Merchant Stats Grid */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="bg-[#111] rounded-xl p-5 border border-[#333]">
-                                <p className="text-sm text-[#888] mb-1">Total Merchants</p>
-                                <p className="text-3xl font-bold text-white">{stats.merchants.total}</p>
-                            </div>
-                            <div className="bg-[#111] rounded-xl p-5 border border-[#333]">
-                                <p className="text-sm text-[#888] mb-1">Approved</p>
-                                <p className="text-3xl font-bold text-green-600">{stats.merchants.approved}</p>
-                            </div>
-                            <div className="bg-[#111] rounded-xl p-5 border border-[#333]">
-                                <p className="text-sm text-[#888] mb-1">Pending</p>
-                                <p className="text-3xl font-bold text-yellow-600">{stats.merchants.pending}</p>
-                            </div>
-                            <div className="bg-[#111] rounded-xl p-5 border border-[#333]">
-                                <p className="text-sm text-[#888] mb-1">Rejected</p>
-                                <p className="text-3xl font-bold text-red-600">{stats.merchants.rejected}</p>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+// Stats Card Components
+function StatsCard({ label, value, subValue, icon: Icon, color, loading }: any) {
+    const colorStyles = {
+        green: "from-green-500/20 to-emerald-500/5 border-green-500/20 text-green-500",
+        blue: "from-blue-500/20 to-indigo-500/5 border-blue-500/20 text-blue-500",
+        purple: "from-purple-500/20 to-pink-500/5 border-purple-500/20 text-purple-500",
+        orange: "from-orange-500/20 to-red-500/5 border-orange-500/20 text-orange-500",
+    };
+
+    return (
+        <div className={cn(
+            "relative overflow-hidden rounded-2xl p-6 border bg-gradient-to-br backdrop-blur-xl transition-all hover:scale-[1.02]",
+            // @ts-ignore
+            colorStyles[color] || colorStyles.green
+        )}>
+            <div className="relative z-10">
+                <div className="flex justify-between items-start mb-4">
+                    <div className={cn("p-3 rounded-xl bg-white/5")}>
+                        <Icon className="h-6 w-6" />
+                    </div>
+                    {/* Decorative trend indicator could go here */}
+                </div>
+                <div>
+                    <p className="text-sm font-medium opacity-70 mb-1">{label}</p>
+                    {loading ? (
+                        <Skeleton className="h-8 w-24 bg-white/10 mb-2" />
+                    ) : (
+                        <h3 className="text-3xl font-bold tracking-tight text-white mb-1">{value || '0'}</h3>
+                    )}
+                    <p className="text-xs opacity-50">{subValue}</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function MiniStatCard({ label, value, total, subLabel, icon: Icon, color, loading }: any) {
+    return (
+        <div className="bg-gray-900 border border-gray-800 p-5 rounded-2xl hover:border-gray-700 transition-colors">
+            <div className="flex items-center gap-3 mb-3">
+                <Icon className={cn("h-4 w-4",
+                    color === 'blue' ? "text-blue-500" :
+                        color === 'purple' ? "text-purple-500" :
+                            color === 'orange' ? "text-orange-500" : "text-green-500"
+                )} />
+                <span className="text-sm text-gray-400 font-medium">{label}</span>
+            </div>
+            {loading ? (
+                <Skeleton className="h-8 w-20 bg-gray-800" />
+            ) : (
+                <div className="flex items-end justify-between">
+                    <span className="text-2xl font-bold text-white">{value?.toLocaleString() || '0'}</span>
+                    <span className="text-xs text-gray-500 mb-1">
+                        {subLabel || (total ? `${Math.round(((value || 0) / total) * 100)}%` : '')}
+                    </span>
+                </div>
+            )}
+            {total && !loading && (
+                <div className="h-1 bg-gray-800 rounded-full mt-3 overflow-hidden">
+                    <div
+                        className={cn("h-full rounded-full",
+                            color === 'blue' ? "bg-blue-500" :
+                                color === 'purple' ? "bg-purple-500" :
+                                    color === 'orange' ? "bg-orange-500" : "bg-green-500"
+                        )}
+                        style={{ width: `${Math.min(((value || 0) / total) * 100, 100)}%` }}
+                    />
+                </div>
+            )}
         </div>
     );
 }

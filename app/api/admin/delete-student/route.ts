@@ -4,8 +4,20 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
+// Helper to verify admin session
+async function verifyAdminSession(request: NextRequest): Promise<boolean> {
+    const adminSession = request.cookies.get('bb_admin_session')?.value;
+    return adminSession === 'authenticated';
+}
+
 export async function DELETE(request: NextRequest) {
     try {
+        // DEFENSE IN DEPTH: Verify session cookie
+        const isAdmin = await verifyAdminSession(request);
+        if (!isAdmin) {
+            return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
+        }
+
         // Create admin client inside function to ensure env vars are loaded
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

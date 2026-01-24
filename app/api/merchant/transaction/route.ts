@@ -1,26 +1,53 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { z } from 'zod';
+
+// Transaction Validation Schema
+const transactionSchema = z.object({
+    studentId: z.string().uuid(),
+    studentBbId: z.string().optional(),
+    studentName: z.string().min(1),
+    merchantId: z.string().uuid(),
+    merchantBbmId: z.string().optional(),
+    merchantName: z.string().min(1),
+    offerId: z.string().uuid(),
+    offerTitle: z.string().min(1),
+    originalAmount: z.coerce.number().min(0, "Amount cannot be negative"),
+    discountAmount: z.coerce.number().min(0, "Discount cannot be negative"),
+    finalAmount: z.coerce.number().min(0, "Final amount cannot be negative"),
+    paymentMethod: z.enum(['cash', 'upi', 'card', 'other']).default('cash')
+});
 
 export async function POST(request: Request) {
     try {
         const body = await request.json();
 
-        // 1. Validate Payload
-        // Ensure numbers are valid (NaN protection)
+        // 1. Zod Validation & Parsing
+        const result = transactionSchema.safeParse(body);
+        if (!result.success) {
+            console.error('[API] Validation Failed:', result.error.format());
+            return NextResponse.json({
+                success: false,
+                error: 'Invalid Request: ' + result.error.issues[0].message
+            }, { status: 400 });
+        }
+
+        const data = result.data;
+
         const payload = {
-            student_id: body.studentId,
-            student_bb_id: body.studentBbId || '',
-            student_name: body.studentName,
-            merchant_id: body.merchantId,
-            merchant_bbm_id: body.merchantBbmId || '',
-            merchant_name: body.merchantName,
-            offer_id: body.offerId,
-            offer_title: body.offerTitle,
-            original_amount: Number(body.originalAmount) || 0,
-            discount_amount: Number(body.discountAmount) || 0,
-            final_amount: Number(body.finalAmount) || 0,
-            savings_amount: Number(body.discountAmount) || 0, // Same as discount
-            payment_method: body.paymentMethod || 'cash'
+            student_id: data.studentId,
+            student_bb_id: data.studentBbId || '',
+            student_name: data.studentName,
+            merchant_id: data.merchantId,
+            merchant_bbm_id: data.merchantBbmId || '',
+            merchant_name: data.merchantName,
+            offer_id: data.offerId,
+            offer_title: data.offerTitle,
+            original_amount: data.originalAmount,
+            discount_amount: data.discountAmount,
+            final_amount: data.finalAmount,
+            savings_amount: data.discountAmount, // Same as discount
+            payment_method: data.paymentMethod
         };
 
         console.log('[API] Recording Transaction:', { ...payload, student_name: 'REDACTED' });

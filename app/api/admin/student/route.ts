@@ -8,23 +8,12 @@ const supabaseAdmin = createClient(
     { auth: { persistSession: false } }
 );
 
-// Note: This API is called from admin dashboard which already has authenticated session
-// The /api/admin/* routes are protected by the admin layout auth check
-// For extra security, you can add JWT verification here if needed
-async function verifyAdminExists(): Promise<boolean> {
+// Note: This API is protected by Middleware (blocks access on public domain)
+// AND by this internal session check (Defense in Depth)
+async function verifyAdminSession(request: NextRequest): Promise<boolean> {
     try {
-        // Verify at least one admin exists in the system
-        const { data: admins, error } = await supabaseAdmin
-            .from('admins')
-            .select('id')
-            .limit(1);
-
-        if (error || !admins || admins.length === 0) {
-            console.error('[Admin API] No admins found or error:', error);
-            return false;
-        }
-
-        return true;
+        const adminSession = request.cookies.get('bb_admin_session')?.value;
+        return adminSession === 'authenticated';
     } catch (error) {
         console.error('[Admin API] Auth verification error:', error);
         return false;
@@ -35,10 +24,10 @@ async function verifyAdminExists(): Promise<boolean> {
 // PATCH - Update student status (suspend/reinstate/verify)
 export async function PATCH(request: NextRequest) {
     try {
-        const isAdmin = await verifyAdminExists();
+        const isAdmin = await verifyAdminSession(request);
         if (!isAdmin) {
             return NextResponse.json(
-                { success: false, error: 'Unauthorized - Admin access required' },
+                { success: false, error: 'Unauthorized - Invalid Admin Session' },
                 { status: 401 }
             );
         }
@@ -91,7 +80,7 @@ export async function PATCH(request: NextRequest) {
 // DELETE - Delete a student permanently
 export async function DELETE(request: NextRequest) {
     try {
-        const isAdmin = await verifyAdminExists();
+        const isAdmin = await verifyAdminSession(request);
         if (!isAdmin) {
             return NextResponse.json(
                 { success: false, error: 'Unauthorized - Admin access required' },

@@ -6,13 +6,6 @@ export const onlineBrandService = {
 
     /**
      * Get all active online brands, optionally filtered by category and student location.
-     * Location filtering logic:
-     * - PAN_INDIA offers: Show to ALL students
-     * - STATES offers: Only show if student's state is in location_values
-     * - CITIES offers: Only show if student's city is in location_values
-     * 
-     * @param category - Optional category filter (e.g., "Food")
-     * @param studentLocation - Optional { city, state } of the student
      */
     async getAllBrands(category?: string, studentLocation?: { city?: string; state?: string }) {
         let query = supabase
@@ -22,7 +15,6 @@ export const onlineBrandService = {
             .order('name');
 
         if (category) {
-            // Use wildcard pattern for partial matching (e.g., "Food" matches "Food & Beverages")
             query = query.ilike('category', `%${category}%`);
         }
 
@@ -31,12 +23,10 @@ export const onlineBrandService = {
 
         const brands = (data || []).map(mapBrandFromDb);
 
-        // If no location filter specified, return all brands
         if (!studentLocation?.city && !studentLocation?.state) {
             return brands;
         }
 
-        // Filter brands that have at least one offer available for this location
         const brandsWithOffers = await Promise.all(
             brands.map(async (brand) => {
                 const offers = await this.getOffersForLocation(brand.id, studentLocation);
@@ -44,14 +34,9 @@ export const onlineBrandService = {
             })
         );
 
-        const result = brandsWithOffers.filter((b): b is OnlineBrand => b !== null);
-        return result;
+        return brandsWithOffers.filter((b): b is OnlineBrand => b !== null);
     },
 
-    /**
-     * Get offers for a brand that are available for the student's location.
-     * PAN_INDIA offers are always included.
-     */
     async getOffersForLocation(brandId: string, studentLocation?: { city?: string; state?: string }) {
         const { data, error } = await supabase
             .from('online_offers')
@@ -64,34 +49,22 @@ export const onlineBrandService = {
 
         const offers = data || [];
 
-        // If no location filter, return all offers
         if (!studentLocation?.city && !studentLocation?.state) {
             return offers.map(mapOfferFromDb);
         }
 
-        // Filter based on location_scope
         const filteredOffers = offers.filter(offer => {
             const scope = (offer.location_scope || 'PAN_INDIA').toUpperCase();
             const locationValues: string[] = offer.location_values || [];
 
-            // PAN_INDIA: Available to everyone - ALWAYS return true
-            if (scope === 'PAN_INDIA' || !offer.location_scope) {
-                return true;
-            }
+            if (scope === 'PAN_INDIA' || !offer.location_scope) return true;
 
-            // STATES: Check if student's state is in the list
             if ((scope === 'STATES' || scope === 'STATE') && studentLocation.state) {
-                return locationValues.some(
-                    v => v.toLowerCase() === studentLocation.state!.toLowerCase()
-                );
+                return locationValues.some(v => v.toLowerCase() === studentLocation.state!.toLowerCase());
             }
 
-            // CITIES: Check if student's city is in the list (Robust matching)
             if ((scope === 'CITIES' || scope === 'CITY') && studentLocation.city) {
-                const match = locationValues.some(
-                    v => v.trim().toLowerCase() === studentLocation.city!.trim().toLowerCase()
-                );
-                return match;
+                return locationValues.some(v => v.trim().toLowerCase() === studentLocation.city!.trim().toLowerCase());
             }
 
             return false;
@@ -112,7 +85,6 @@ export const onlineBrandService = {
     },
 
     async createBrand(brand: Partial<OnlineBrand>) {
-        // Map to DB columns (snake_case)
         const dbBrand = {
             name: brand.name,
             category: brand.category,
@@ -120,15 +92,13 @@ export const onlineBrandService = {
             cover_image_url: brand.coverImageUrl,
             description: brand.description,
             website_url: brand.websiteUrl,
-            app_url: brand.appUrl, // App deep link
-            prefer_app: brand.preferApp ?? false, // Prefer app toggle
-            playstore_url: brand.playstoreUrl, // Google Play Store URL
-            appstore_url: brand.appstoreUrl, // Apple App Store URL
+            app_url: brand.appUrl,
+            prefer_app: brand.preferApp ?? false,
+            playstore_url: brand.playstoreUrl,
+            appstore_url: brand.appstoreUrl,
             is_active: brand.isActive ?? true
         };
 
-        // Use Admin API to bypass RLS (since admin might be in guest mode on localhost)
-        // Use origin to support both main domain and admin subdomain
         const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
         const response = await fetch(`${baseUrl}/api/admin/online-brands`, {
             method: 'POST',
@@ -137,7 +107,6 @@ export const onlineBrandService = {
         });
 
         const result = await response.json();
-
         if (!response.ok || !result.success) {
             throw new Error(result.error || 'Failed to create brand');
         }
@@ -154,7 +123,6 @@ export const onlineBrandService = {
             .eq('brand_id', brandId)
             .order('created_at', { ascending: false });
 
-        // Only filter by is_active if not including inactive (for admin views)
         if (!includeInactive) {
             query = query.eq('is_active', true);
         }
@@ -165,24 +133,20 @@ export const onlineBrandService = {
     },
 
     async createOffer(offer: Partial<OnlineOffer>) {
-        // Map frontend fields to actual Database columns found in supabase_online_brands.sql
-        // Cast to any because frontend form sends camelCase properties that might not be in the strict Type
         const input: any = offer;
         const dbOffer = {
             brand_id: input.brandId,
             title: input.title,
             description: input.description,
-            code: input.couponCode || input.code, // Map couponCode or code to code
-            link: input.offerLink || input.link,  // Map offerLink or link to link
-            expiry_date: input.validUntil, // Map validUntil to expiry_date
+            code: input.couponCode || input.code,
+            link: input.offerLink || input.link,
+            expiry_date: input.validUntil,
             location_scope: input.locationScope || 'PAN_INDIA',
             location_values: input.locationValues || [],
             redemption_type: input.redemptionType || 'CODE_REVEAL',
             is_active: offer.isActive ?? true
         };
 
-        // Use Admin API to bypass RLS
-        // Use origin to support both main domain and admin subdomain
         const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
         const response = await fetch(`${baseUrl}/api/admin/online-offers`, {
             method: 'POST',
@@ -191,7 +155,6 @@ export const onlineBrandService = {
         });
 
         const result = await response.json();
-
         if (!response.ok || !result.success) {
             throw new Error(result.error || 'Failed to create offer');
         }
@@ -200,45 +163,30 @@ export const onlineBrandService = {
     },
 
     async deleteOffer(offerId: string) {
-        const { error } = await supabase
-            .from('online_offers')
-            .delete()
-            .eq('id', offerId);
-
+        const { error } = await supabase.from('online_offers').delete().eq('id', offerId);
         if (error) throw error;
     },
 
     async toggleOfferStatus(offerId: string, isActive: boolean) {
-        const { error } = await supabase
-            .from('online_offers')
-            .update({ is_active: isActive })
-            .eq('id', offerId);
-
+        const { error } = await supabase.from('online_offers').update({ is_active: isActive }).eq('id', offerId);
         if (error) throw error;
     },
 
     async uploadImage(file: File, path: 'logo' | 'cover'): Promise<string> {
         const fileExt = file.name.split('.').pop();
-        // Use 'merchant-stores' bucket which is guaranteed to exist
-        // We use the admin API so we can bypass RLS restrictions
         const uniqueId = Math.random().toString(36).substring(7);
         const fileName = `online-brands/${path}-${Date.now()}-${uniqueId}.${fileExt}`;
-
-        // Prepare FormData for API
         const formData = new FormData();
         formData.append('file', file);
-        // CRITICAL FIX: Use the existing bucket
         formData.append('bucket', 'merchant-stores');
         formData.append('path', fileName);
 
-        // Use API Route to bypass Client RLS
         const response = await fetch('/api/admin/upload', {
             method: 'POST',
             body: formData,
         });
 
         const result = await response.json();
-
         if (!response.ok || !result.success) {
             throw new Error(result.error || 'Upload failed via Admin API');
         }
@@ -248,9 +196,6 @@ export const onlineBrandService = {
 
     // ==================== TRACKING ====================
 
-    /**
-     * Track when a student reveals a coupon code
-     */
     async trackReveal(params: {
         studentId?: string;
         offerId: string;
@@ -264,10 +209,7 @@ export const onlineBrandService = {
             const response = await fetch(`${baseUrl}/api/tracking`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...params,
-                    action: 'reveal'
-                })
+                body: JSON.stringify({ ...params, action: 'reveal' })
             });
             const result = await response.json();
             return result.success;
@@ -277,9 +219,6 @@ export const onlineBrandService = {
         }
     },
 
-    /**
-     * Track copy, click-through, or self-reported redemption
-     */
     async trackAction(params: {
         studentId?: string;
         offerId: string;
@@ -301,41 +240,55 @@ export const onlineBrandService = {
         }
     },
 
-    /**
-     * Get all offer IDs that the current user has revealed (from database)
-     * Returns empty array if not logged in
-     */
     async getMyRevealedOffers(): Promise<string[]> {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session?.user?.id) return [];
-
-            // Get student ID
-            const { data: student } = await supabase
-                .from('students')
-                .select('id')
-                .eq('user_id', session.user.id)
-                .maybeSingle();
-
+            const { data: student } = await supabase.from('students').select('id').eq('user_id', session.user.id).maybeSingle();
             if (!student?.id) return [];
-
-            // Get all reveals for this student from coupon_redemptions table
-            // FIXED: Was querying 'coupon_tracking' which doesn't exist - data is in 'coupon_redemptions'
-            const { data: reveals, error } = await supabase
-                .from('coupon_redemptions')
-                .select('offer_id')
-                .eq('student_id', student.id);
-
-            if (error) {
-                console.error('Error fetching reveals:', error);
-                return [];
-            }
-
+            const { data: reveals, error } = await supabase.from('coupon_redemptions').select('offer_id').eq('student_id', student.id);
+            if (error) { console.error('Error fetching reveals:', error); return []; }
             return (reveals || []).map(r => r.offer_id);
         } catch (error) {
             console.error('getMyRevealedOffers error:', error);
             return [];
         }
+    },
+
+    async getStudentRedemptions(studentId: string) {
+        const { data, error } = await supabase
+            .from('coupon_redemptions')
+            .select(`
+                *,
+                offer:online_offers (
+                    title,
+                    code,
+                    description,
+                    brand:online_brands (
+                        name,
+                        logo_url
+                    )
+                )
+            `)
+            .eq('student_id', studentId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching student redemptions:', error);
+            return [];
+        }
+
+        return data.map((item: any) => ({
+            id: item.id,
+            offerId: item.offer_id,
+            codeUsed: item.code_used,
+            revealedAt: item.revealed_at,
+            status: item.status,
+            offerTitle: item.offer?.title,
+            offerCode: item.offer?.code,
+            brandName: item.offer?.brand?.name,
+            brandLogo: item.offer?.brand?.logo_url
+        }));
     }
 };
 
@@ -349,10 +302,10 @@ function mapBrandFromDb(row: any): OnlineBrand {
         coverImageUrl: row.cover_image_url,
         description: row.description,
         websiteUrl: row.website_url,
-        appUrl: row.app_url, // App deep link
-        preferApp: row.prefer_app ?? false, // Prefer app toggle
-        playstoreUrl: row.playstore_url, // Google Play Store URL
-        appstoreUrl: row.appstore_url, // Apple App Store URL
+        appUrl: row.app_url,
+        preferApp: row.prefer_app ?? false,
+        playstoreUrl: row.playstore_url,
+        appstoreUrl: row.appstore_url,
         isActive: row.is_active,
         createdAt: row.created_at
     };
@@ -370,7 +323,6 @@ function mapOfferFromDb(row: any): OnlineOffer {
         redemptionType: row.redemption_type || 'CODE_REVEAL',
         isActive: row.is_active,
         createdAt: row.created_at,
-        // Tracking fields
         revealCount: row.reveal_count || 0,
         redemptionCount: row.redemption_count || 0,
         termsConditions: row.terms_conditions,

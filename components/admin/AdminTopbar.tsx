@@ -3,6 +3,7 @@
 import { Bell, Search, User, ChevronDown, LogOut, Settings } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { notificationService } from "@/lib/services/notification.service";
 import Link from "next/link";
 
 interface AdminTopbarProps {
@@ -30,13 +31,39 @@ export function AdminTopbar({ sidebarCollapsed = false }: AdminTopbarProps) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const notifications = [
-        { id: 1, title: "New merchant signup", message: "Cafe Corner requested approval", time: "2 min ago", unread: true },
-        { id: 2, title: "Student verified", message: "John Doe completed verification", time: "15 min ago", unread: true },
-        { id: 3, title: "Offer created", message: "Pizza Place added 20% off deal", time: "1 hour ago", unread: false },
-    ];
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
 
-    const unreadCount = notifications.filter(n => n.unread).length;
+    // Fetch initial notifications and subscribe to real-time updates
+    useEffect(() => {
+        loadNotifications();
+
+        // Subscribe to real-time events
+        const unsubscribe = notificationService.subscribeToNotifications((newNotif) => {
+            setNotifications(prev => [newNotif, ...prev]);
+            setUnreadCount(prev => prev + 1);
+            // Optionally play a sound here
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, []);
+
+    const loadNotifications = async () => {
+        const result = await notificationService.getMyNotifications();
+        if (result.success && result.data) {
+            setNotifications(result.data);
+            const count = await notificationService.getUnreadCount();
+            setUnreadCount(count);
+        }
+    };
+
+    const handleMarkAsRead = async () => {
+        await notificationService.markAllAsRead();
+        setUnreadCount(0);
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    };
 
     return (
         <header
@@ -62,7 +89,12 @@ export function AdminTopbar({ sidebarCollapsed = false }: AdminTopbarProps) {
                 {/* Notifications */}
                 <div ref={notifRef} className="relative">
                     <button
-                        onClick={() => setShowNotifications(!showNotifications)}
+                        onClick={() => {
+                            setShowNotifications(!showNotifications);
+                            if (!showNotifications && unreadCount > 0) {
+                                handleMarkAsRead();
+                            }
+                        }}
                         className="h-10 w-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center relative transition-colors"
                     >
                         <Bell className="h-5 w-5 text-gray-600" />
@@ -81,30 +113,46 @@ export function AdminTopbar({ sidebarCollapsed = false }: AdminTopbarProps) {
                                 exit={{ opacity: 0, y: 10 }}
                                 className="absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
                             >
-                                <div className="p-4 border-b border-gray-100">
+                                <div className="p-4 border-b border-gray-100 flex justify-between items-center">
                                     <h3 className="font-bold">Notifications</h3>
+                                    {unreadCount > 0 && (
+                                        <button onClick={handleMarkAsRead} className="text-xs text-primary font-medium hover:underline">
+                                            Mark all read
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="max-h-80 overflow-y-auto">
-                                    {notifications.map((notif) => (
-                                        <div
-                                            key={notif.id}
-                                            className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${notif.unread ? "bg-primary/5" : ""}`}
-                                        >
-                                            <div className="flex items-start gap-3">
-                                                <div className={`h-2 w-2 rounded-full mt-2 ${notif.unread ? "bg-primary" : "bg-transparent"}`} />
-                                                <div className="flex-1">
-                                                    <p className="font-semibold text-sm">{notif.title}</p>
-                                                    <p className="text-xs text-gray-500">{notif.message}</p>
-                                                    <p className="text-[10px] text-gray-400 mt-1">{notif.time}</p>
+                                    {notifications.length > 0 ? (
+                                        notifications.map((notif) => (
+                                            <div
+                                                key={notif.id}
+                                                className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${!notif.isRead ? "bg-primary/5" : ""}`}
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    <div className={`h-2 w-2 rounded-full mt-2 ${!notif.isRead ? "bg-primary" : "bg-transparent"}`} />
+                                                    <div className="flex-1">
+                                                        <p className="font-semibold text-sm">{notif.title}</p>
+                                                        <p className="text-xs text-gray-500">{notif.body}</p>
+                                                        <p className="text-[10px] text-gray-400 mt-1">
+                                                            {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-8 text-center text-gray-400">
+                                            <Bell className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                                            <p className="text-xs">No notifications yet</p>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                                 <div className="p-3 border-t border-gray-100">
-                                    <button className="w-full text-sm text-primary font-semibold hover:underline">
-                                        View all notifications
-                                    </button>
+                                    <Link href="/admin/dashboard/notifications">
+                                        <button className="w-full text-sm text-primary font-semibold hover:underline">
+                                            View all activity
+                                        </button>
+                                    </Link>
                                 </div>
                             </motion.div>
                         )}
