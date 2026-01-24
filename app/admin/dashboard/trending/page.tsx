@@ -12,6 +12,7 @@ import { Offer } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { onlineBrandService } from "@/lib/services/online-brand.service";
 
 export default function TrendingOffersPage() {
     const [loading, setLoading] = useState(true);
@@ -35,14 +36,42 @@ export default function TrendingOffersPage() {
         setLoading(true);
         try {
             // Parallel fetch
-            const [offersResult, trendingResult] = await Promise.all([
+            const [offersResult, trendingResult, onlineOffersResult] = await Promise.all([
                 offerService.getActiveOffers(),
-                trendingService.getAll()
+                trendingService.getAll(),
+                onlineBrandService.getAllOffers()
             ]);
 
+            let mappedOffers: Offer[] = [];
+
+            // Map Offline Offers
             if (offersResult.success && offersResult.data) {
-                setAllOffers(offersResult.data);
+                mappedOffers = [...mappedOffers, ...offersResult.data];
             }
+
+            // Map Online Offers
+            if (onlineOffersResult) { // onlineOffersResult is array directly
+                const mappedOnline = onlineOffersResult.map((o: any) => ({
+                    id: o.id,
+                    title: o.title,
+                    description: o.description,
+                    discountValue: o.maxDiscount || 0, // Approximate
+                    type: 'online',
+                    merchantName: o.brandName,
+                    merchantBbmId: 'ONLINE',
+                    merchantLogo: o.brandLogo,
+                    // Add other required Offer fields with defaults
+                    validFrom: o.createdAt,
+                    validUntil: o.expiryDate,
+                    status: o.isActive ? 'active' : 'inactive',
+                    branches: [],
+                    termsConditions: o.termsConditions,
+                    totalRedemptions: o.redemptionCount || 0
+                } as Offer));
+                mappedOffers = [...mappedOffers, ...mappedOnline];
+            }
+
+            setAllOffers(mappedOffers);
 
             if (trendingResult.success && trendingResult.data) {
                 const mapTrending = (section: string) => trendingResult.data!

@@ -162,6 +162,31 @@ export const onlineBrandService = {
         return mapOfferFromDb(result.data);
     },
 
+    /**
+     * Get ALL online offers with brand details (for Admin search)
+     */
+    async getAllOffers() {
+        const { data, error } = await supabase
+            .from('online_offers')
+            .select(`
+                *,
+                brand:online_brands (
+                    name,
+                    logo_url
+                )
+            `)
+            .eq('is_active', true)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return (data || []).map(row => ({
+            ...mapOfferFromDb(row),
+            brandName: row.brand?.name,
+            brandLogo: row.brand?.logo_url
+        }));
+    },
+
     async deleteOffer(offerId: string) {
         const { error } = await supabase.from('online_offers').delete().eq('id', offerId);
         if (error) throw error;

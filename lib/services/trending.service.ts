@@ -8,6 +8,7 @@ export interface TrendingOffer {
     position: number;
     createdAt: string;
     // Joined offer data
+    // Joined offer data
     offer?: {
         id: string;
         title: string;
@@ -16,25 +17,52 @@ export interface TrendingOffer {
         merchantName?: string;
         merchantId: string;
         merchantCity?: string;
+        merchantLogo?: string;
     };
 }
 
-const transformTrendingOffer = (row: any): TrendingOffer => ({
-    id: row.id,
-    offerId: row.offer_id,
-    section: row.section,
-    position: row.position,
-    createdAt: row.created_at,
-    offer: row.offers ? {
-        id: row.offers.id,
-        title: row.offers.title,
-        discountValue: row.offers.discount_value,
-        type: row.offers.type,
-        merchantName: row.offers.merchants?.business_name,
-        merchantId: row.offers.merchant_id,
-        merchantCity: row.offers.merchants?.city,
-    } : undefined,
-});
+const transformTrendingOffer = (row: any): TrendingOffer => {
+    // Check if it's an online offer
+    if (row.online_offers) {
+        return {
+            id: row.id,
+            offerId: row.online_offer_id,
+            section: row.section || 'online',
+            position: row.position,
+            createdAt: row.created_at,
+            offer: {
+                id: row.online_offers.id,
+                title: row.online_offers.title,
+                // Parse discount from title if not explicit (Online offers might vary)
+                discountValue: 0,
+                type: 'online_coupon',
+                merchantName: row.online_offers.brand?.name || 'Online Brand',
+                merchantId: row.online_offers.brand_id,
+                merchantCity: 'Online',
+                merchantLogo: row.online_offers.brand?.logo_url,
+            }
+        };
+    }
+
+    // Default to offline offer
+    return {
+        id: row.id,
+        offerId: row.offer_id,
+        section: row.section || 'offline',
+        position: row.position,
+        createdAt: row.created_at,
+        offer: row.offers ? {
+            id: row.offers.id,
+            title: row.offers.title,
+            discountValue: row.offers.discount_value,
+            type: row.offers.type,
+            merchantName: row.offers.merchants?.business_name,
+            merchantId: row.offers.merchant_id,
+            merchantCity: row.offers.merchants?.city,
+            merchantLogo: row.offers.merchants?.logo_url,
+        } : undefined,
+    };
+};
 
 export const trendingService = {
     // Get all trending offers
@@ -53,7 +81,18 @@ export const trendingService = {
                         merchant_id,
                         merchants (
                             business_name,
-                            city
+                            city,
+                            logo_url
+                        )
+                    ),
+                    online_offers (
+                        id,
+                        title,
+                        code,
+                        brand_id,
+                        brand:online_brands (
+                            name,
+                            logo_url
                         )
                     )
                 `)
@@ -91,7 +130,18 @@ export const trendingService = {
                         merchant_id,
                         merchants (
                             business_name,
-                            city
+                            city,
+                            logo_url
+                        )
+                    ),
+                    online_offers (
+                        id,
+                        title,
+                        code,
+                        brand_id,
+                        brand:online_brands (
+                            name,
+                            logo_url
                         )
                     )
                 `)
@@ -115,13 +165,22 @@ export const trendingService = {
     // Add offer to trending
     async add(offerId: string, section: 'online' | 'offline', position: number): Promise<ApiResponse<TrendingOffer>> {
         try {
+            const payload: any = {
+                section,
+                position,
+            };
+
+            if (section === 'online') {
+                payload.online_offer_id = offerId;
+                payload.offer_id = null; // Explicitly null
+            } else {
+                payload.offer_id = offerId;
+                payload.online_offer_id = null;
+            }
+
             const { data, error } = await supabase
                 .from('trending_offers')
-                .insert({
-                    offer_id: offerId,
-                    section,
-                    position,
-                })
+                .insert(payload)
                 .select()
                 .single();
 
@@ -174,13 +233,16 @@ export const trendingService = {
             // Insert new entries
             if (offers.length > 0) {
                 console.log('[Trending] Inserting new entries...');
+                const payload = offers.map(o => ({
+                    offer_id: o.section === 'offline' ? o.offerId : null,
+                    online_offer_id: o.section === 'online' ? o.offerId : null,
+                    section: o.section,
+                    position: o.position,
+                }));
+
                 const { data, error } = await supabase
                     .from('trending_offers')
-                    .insert(offers.map(o => ({
-                        offer_id: o.offerId,
-                        section: o.section,
-                        position: o.position,
-                    })))
+                    .insert(payload)
                     .select();
 
                 if (error) {

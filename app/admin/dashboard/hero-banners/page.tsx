@@ -163,132 +163,176 @@ export default function HeroBannersPage() {
     const allCities = Object.values(CITIES_BY_STATE).flat();
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-black pb-32 pt-12">
+        <div className="min-h-screen bg-black pb-32">
             {/* Header */}
-            <header className="sticky top-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800">
-                <div className="px-4 h-14 flex items-center gap-3">
-                    <Link href="/admin/dashboard">
-                        <button className="h-9 w-9 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                            <ArrowLeft className="h-4 w-4 dark:text-white" />
-                        </button>
-                    </Link>
-                    <div className="flex-1">
-                        <h1 className="font-extrabold text-lg dark:text-white">Hero Banners</h1>
-                        <p className="text-xs text-gray-500">{banners.length} banners</p>
+            <div className="pt-8 px-6 pb-6 border-b border-gray-800 bg-gradient-to-b from-gray-900 to-black">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 max-w-7xl mx-auto">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="h-10 w-10 rounded-xl bg-purple-500/20 text-purple-500 flex items-center justify-center border border-purple-500/30">
+                                <ImageIcon className="h-6 w-6" />
+                            </div>
+                            <h1 className="text-3xl font-bold tracking-tight text-white">Hero Banners</h1>
+                        </div>
+                        <p className="text-gray-400 max-w-2xl">
+                            Manage the rotating banners on the student home screen. Create visuals that drive engagement and clicks.
+                        </p>
                     </div>
-                    <Button onClick={openCreateModal} className="h-9 bg-primary text-white rounded-xl text-sm">
-                        <Plus className="h-4 w-4 mr-1" /> Add
+
+                    <Button onClick={openCreateModal} className="h-11 px-6 bg-white text-black hover:bg-gray-200 font-bold rounded-xl shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] transition-all">
+                        <Plus className="h-5 w-5 mr-2" /> Create Banner
                     </Button>
                 </div>
-            </header>
+            </div>
 
-            <main className="px-4 pt-4 space-y-4">
-                {/* Preview of what students see */}
-                <div className="bg-gradient-to-r from-primary to-emerald-500 rounded-2xl p-4 text-white">
-                    <p className="text-sm font-medium opacity-80 mb-1">📱 Student Home Preview</p>
-                    <p className="text-xs opacity-60">These banners appear in the scrollable hero section</p>
+            <main className="px-6 py-8 max-w-7xl mx-auto space-y-8">
+                {/* Visual Preview Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 border border-gray-800 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-32 bg-purple-500/10 blur-[100px] rounded-full" />
+                        <div className="relative z-10">
+                            <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                                <Eye className="h-5 w-5 text-purple-400" />
+                                Live Preview
+                            </h2>
+                            <p className="text-gray-400 text-sm mb-6">
+                                This is exactly how the carousel looks on the mobile app. Swiping supported.
+                            </p>
+
+                            {/* Fake Phone Screen Carousel */}
+                            <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-hide">
+                                {banners.filter(b => b.isActive).length > 0 ? (
+                                    banners.filter(b => b.isActive).map(banner => (
+                                        <div key={banner.id} className="min-w-[280px] h-[160px] rounded-2xl overflow-hidden snap-center shadow-2xl relative shrink-0 transform transition-transform hover:scale-[1.02]">
+                                            <div className={`absolute inset-0 bg-gradient-to-br ${banner.backgroundGradient}`} />
+                                            {banner.imageUrl && <img src={banner.imageUrl} className="absolute inset-0 w-full h-full object-cover" />}
+                                            <div className="absolute inset-0 bg-black/40" />
+                                            <div className="absolute bottom-4 left-4 right-4">
+                                                <p className="text-white font-bold text-lg leading-tight shadow-sm">{banner.title}</p>
+                                                {banner.subtitle && <p className="text-white/80 text-xs mt-1 truncate">{banner.subtitle}</p>}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="w-full h-[160px] rounded-2xl bg-gray-800/50 border-2 border-dashed border-gray-700 flex items-center justify-center text-gray-500 text-sm">
+                                        No active banners to preview
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-gray-900/50 rounded-3xl p-6 border border-gray-800 flex flex-col justify-center">
+                        <h3 className="font-bold text-white mb-4">Quick Stats</h3>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl">
+                                <span className="text-gray-400 text-sm">Total Banners</span>
+                                <span className="text-white font-mono font-bold">{banners.length}</span>
+                            </div>
+                            <div className="flex items-center justify-between p-3 bg-green-900/20 border border-green-900/30 rounded-xl">
+                                <span className="text-green-400 text-sm">Active Now</span>
+                                <span className="text-white font-mono font-bold">{banners.filter(b => b.isActive).length}</span>
+                            </div>
+                            <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-900/30 rounded-xl">
+                                <span className="text-blue-400 text-sm">Pan India</span>
+                                <span className="text-white font-mono font-bold">{banners.filter(b => b.coverageType === 'pan_india').length}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Loading */}
                 {loading && (
                     <div className="flex justify-center py-12">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
                     </div>
                 )}
 
-                {/* Banners List */}
-                {!loading && banners.length === 0 && (
-                    <div className="text-center py-16">
-                        <ImageIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                        <p className="text-gray-500 mb-4">No hero banners yet</p>
-                        <Button onClick={openCreateModal} className="bg-primary text-white">
-                            <Plus className="h-4 w-4 mr-2" /> Create First Banner
-                        </Button>
-                    </div>
-                )}
-
-                {!loading && banners.map((banner, index) => (
-                    <motion.div
-                        key={banner.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className={`bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 ${!banner.isActive ? 'opacity-60' : ''}`}
-                    >
-                        {/* Banner Preview - Updated to match Student View */}
-                        <div className={`h-32 bg-gradient-to-br ${banner.backgroundGradient} p-4 flex flex-col items-center justify-center text-center relative overflow-hidden`}>
-                            {banner.imageUrl && (
-                                <div className="absolute inset-0 z-0 opacity-100">
-                                    <img src={banner.imageUrl} className="w-full h-full object-cover" alt="" />
-                                    <div className="absolute inset-0 bg-black/60" />
-                                </div>
-                            )}
-                            <div className="relative z-10">
-                                {(banner.logoUrl || banner.isAutoGenerated) && (
-                                    <div className="mx-auto mb-2 h-6 w-6 bg-white/10 rounded flex items-center justify-center">
-                                        {banner.logoUrl ? <img src={banner.logoUrl} className="h-4 w-4 object-contain" /> : <span className="text-[8px] text-white">LOGO</span>}
+                {/* Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {!loading && banners.map((banner, index) => (
+                        <motion.div
+                            key={banner.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className={`bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 ${!banner.isActive ? 'opacity-60' : ''}`}
+                        >
+                            {/* Banner Preview - Updated to match Student View */}
+                            <div className={`h-32 bg-gradient-to-br ${banner.backgroundGradient} p-4 flex flex-col items-center justify-center text-center relative overflow-hidden`}>
+                                {banner.imageUrl && (
+                                    <div className="absolute inset-0 z-0 opacity-100">
+                                        <img src={banner.imageUrl} className="w-full h-full object-cover" alt="" />
+                                        <div className="absolute inset-0 bg-black/60" />
                                     </div>
                                 )}
-                                <p className="text-white font-bold text-lg leading-tight">{banner.title}</p>
-                                {banner.subtitle && <p className="text-white/80 text-xs mt-1">{banner.subtitle}</p>}
-                            </div>
-                        </div>
-
-                        {/* Banner Info */}
-                        <div className="p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="text-lg">{BANNER_TYPES.find(t => t.value === banner.bannerType)?.emoji}</span>
-                                <span className="text-sm font-medium dark:text-white">{BANNER_TYPES.find(t => t.value === banner.bannerType)?.label}</span>
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${banner.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                                    {banner.isActive ? 'Active' : 'Inactive'}
-                                </span>
-                                {banner.isAutoGenerated && (
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">Auto</span>
-                                )}
-                            </div>
-
-                            <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
-                                <span className="flex items-center gap-1">
-                                    <MapPin className="h-3 w-3" />
-                                    {banner.coverageType === 'pan_india' ? 'All India' : `${banner.cityIds?.length || 0} cities`}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    {new Date(banner.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                                    {banner.endDate && ` - ${new Date(banner.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
-                                </span>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => toggleActive(banner)}
-                                    className="flex-1 h-9 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-medium flex items-center justify-center gap-1"
-                                >
-                                    {banner.isActive ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                                    <span className="dark:text-white">{banner.isActive ? 'Hide' : 'Show'}</span>
-                                </button>
-                                <button
-                                    onClick={() => openEditModal(banner)}
-                                    className="h-9 w-9 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center"
-                                >
-                                    <Edit className="h-4 w-4 dark:text-white" />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(banner.id)}
-                                    disabled={deleting === banner.id}
-                                    className="h-9 w-9 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center justify-center"
-                                >
-                                    {deleting === banner.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin text-red-500" />
-                                    ) : (
-                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                <div className="relative z-10">
+                                    {(banner.logoUrl || banner.isAutoGenerated) && (
+                                        <div className="mx-auto mb-2 h-6 w-6 bg-white/10 rounded flex items-center justify-center">
+                                            {banner.logoUrl ? <img src={banner.logoUrl} className="h-4 w-4 object-contain" /> : <span className="text-[8px] text-white">LOGO</span>}
+                                        </div>
                                     )}
-                                </button>
+                                    <p className="text-white font-bold text-lg leading-tight">{banner.title}</p>
+                                    {banner.subtitle && <p className="text-white/80 text-xs mt-1">{banner.subtitle}</p>}
+                                </div>
                             </div>
-                        </div>
-                    </motion.div>
-                ))}
+
+                            {/* Banner Info */}
+                            <div className="p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-lg">{BANNER_TYPES.find(t => t.value === banner.bannerType)?.emoji}</span>
+                                    <span className="text-sm font-medium dark:text-white">{BANNER_TYPES.find(t => t.value === banner.bannerType)?.label}</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${banner.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                        {banner.isActive ? 'Active' : 'Inactive'}
+                                    </span>
+                                    {banner.isAutoGenerated && (
+                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">Auto</span>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                                    <span className="flex items-center gap-1">
+                                        <MapPin className="h-3 w-3" />
+                                        {banner.coverageType === 'pan_india' ? 'All India' : `${banner.cityIds?.length || 0} cities`}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <Calendar className="h-3 w-3" />
+                                        {new Date(banner.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                                        {banner.endDate && ` - ${new Date(banner.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
+                                    </span>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => toggleActive(banner)}
+                                        className="flex-1 h-9 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-medium flex items-center justify-center gap-1"
+                                    >
+                                        {banner.isActive ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                                        <span className="dark:text-white">{banner.isActive ? 'Hide' : 'Show'}</span>
+                                    </button>
+                                    <button
+                                        onClick={() => openEditModal(banner)}
+                                        className="h-9 w-9 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center"
+                                    >
+                                        <Edit className="h-4 w-4 dark:text-white" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(banner.id)}
+                                        disabled={deleting === banner.id}
+                                        className="h-9 w-9 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center justify-center"
+                                    >
+                                        {deleting === banner.id ? (
+                                            <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+                                        ) : (
+                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
             </main>
 
             {/* Create/Edit Modal */}

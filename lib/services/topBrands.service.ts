@@ -9,30 +9,56 @@ export interface TopBrand {
     isActive: boolean;
     createdAt: string;
     // Joined merchant data
+    // Joined merchant data
     merchant?: {
         id: string;
         businessName: string;
         category: string;
         city: string;
         logo: string | null;
+        isOnline?: boolean;
     };
 }
 
-const transformTopBrand = (row: any): TopBrand => ({
-    id: row.id,
-    merchantId: row.merchant_id,
-    logoUrl: row.logo_url,
-    position: row.display_order, // Mapped from display_order
-    isActive: row.is_active,
-    createdAt: row.created_at,
-    merchant: row.merchants ? {
-        id: row.merchants.id,
-        businessName: row.merchants.business_name,
-        category: row.merchants.category,
-        city: row.merchants.city,
-        logo: row.merchants.logo_url, // Fixed: use logo_url not logo
-    } : undefined,
-});
+const transformTopBrand = (row: any): TopBrand => {
+    // Check for online brand
+    if (row.online_brands) {
+        return {
+            id: row.id,
+            merchantId: row.online_brand_id,
+            logoUrl: row.online_brands.logo_url,
+            position: row.display_order,
+            isActive: row.is_active,
+            createdAt: row.created_at,
+            merchant: {
+                id: row.online_brands.id,
+                businessName: row.online_brands.name,
+                category: row.online_brands.category || 'Online',
+                city: 'Online',
+                logo: row.online_brands.logo_url,
+                isOnline: true
+            }
+        };
+    }
+
+    // Default to offline merchant
+    return {
+        id: row.id,
+        merchantId: row.merchant_id,
+        logoUrl: row.logo_url,
+        position: row.display_order,
+        isActive: row.is_active,
+        createdAt: row.created_at,
+        merchant: row.merchants ? {
+            id: row.merchants.id,
+            businessName: row.merchants.business_name,
+            category: row.merchants.category,
+            city: row.merchants.city,
+            logo: row.merchants.logo_url,
+            isOnline: false
+        } : undefined,
+    };
+};
 
 export const topBrandsService = {
     // Get all top brands
@@ -48,6 +74,12 @@ export const topBrandsService = {
                         business_name,
                         category,
                         city,
+                        logo_url
+                    ),
+                    online_brands (
+                        id,
+                        name,
+                        category,
                         logo_url
                     )
                 `)
@@ -72,14 +104,24 @@ export const topBrandsService = {
     },
 
     // Add merchant to top brands
-    async add(merchantId: string, position: number): Promise<ApiResponse<TopBrand>> {
+    async add(merchantId: string, position: number, isOnline: boolean = false): Promise<ApiResponse<TopBrand>> {
         try {
+            const payload: any = {
+                display_order: position,
+                is_active: true
+            };
+
+            if (isOnline) {
+                payload.online_brand_id = merchantId;
+                payload.merchant_id = null;
+            } else {
+                payload.merchant_id = merchantId;
+                payload.online_brand_id = null;
+            }
+
             const { data, error } = await supabase
                 .from('featured_brands')
-                .insert({
-                    merchant_id: merchantId,
-                    display_order: position,
-                })
+                .insert(payload)
                 .select()
                 .single();
 
@@ -112,7 +154,8 @@ export const topBrandsService = {
     },
 
     // Save all top brands (replace all)
-    async saveAll(brands: { merchantId: string; position: number }[]): Promise<ApiResponse<void>> {
+    // Updated to accept an array of objects that include isOnline flag
+    async saveAll(brands: { merchantId: string; position: number; isOnline?: boolean }[]): Promise<ApiResponse<void>> {
         try {
             console.log('[TopBrands] Saving', brands.length, 'brands...');
 
@@ -132,13 +175,16 @@ export const topBrandsService = {
             // Insert new entries
             if (brands.length > 0) {
                 console.log('[TopBrands] Inserting new entries...');
+                const payload = brands.map(b => ({
+                    merchant_id: b.isOnline ? null : b.merchantId,
+                    online_brand_id: b.isOnline ? b.merchantId : null,
+                    display_order: b.position,
+                    is_active: true,
+                }));
+
                 const { data, error } = await supabase
                     .from('featured_brands')
-                    .insert(brands.map(b => ({
-                        merchant_id: b.merchantId,
-                        display_order: b.position,
-                        is_active: true,
-                    })))
+                    .insert(payload)
                     .select();
 
                 if (error) {
