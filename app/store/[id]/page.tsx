@@ -312,12 +312,21 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
             <div className="min-h-screen bg-black md:bg-[#050505] pb-20">
 
                 {/* Desktop Hero Section - Refined Height & Overlay */}
-                <div className="hidden md:block relative h-[40vh] min-h-[350px] max-h-[500px] w-full group overflow-hidden">
+                <div className="hidden md:block relative h-[50vh] min-h-[400px] max-h-[600px] w-full group overflow-hidden">
+                    {/* Back Button (Desktop) */}
+                    <div className="absolute top-8 left-8 z-50">
+                        <Link href="/dashboard">
+                            <button className="h-10 w-10 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center transition-all group/back">
+                                <ArrowLeft className="h-5 w-5 text-white group-hover/back:-translate-x-0.5 transition-transform" />
+                            </button>
+                        </Link>
+                    </div>
+
                     {heroImage ? (
                         <div className="absolute inset-0">
                             <img src={heroImage} alt={merchant.businessName} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/50 to-transparent" />
-                            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-500" />
+                            {/* Reduced Gradient Opacity */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/30" />
                         </div>
                     ) : (
                         <div className="absolute inset-0 bg-gradient-to-br from-[#111] to-black flex items-center justify-center">
@@ -328,15 +337,15 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                     {/* Desktop Content Container Overlay */}
                     <div className="absolute inset-0 flex flex-col justify-end pb-10">
                         <div className="max-w-7xl mx-auto w-full px-8 flex items-end justify-between gap-8">
-                            <div className="flex items-end gap-6">
+                            <div className="flex items-end gap-6 text-shadow-sm">
                                 {/* Logo */}
-                                <div className="h-32 w-32 rounded-2xl bg-white p-1 shadow-2xl shadow-black/50">
+                                <div className="h-32 w-32 rounded-2xl bg-white p-1 shadow-2xl shadow-black/50 shrink-0">
                                     <img src={merchant.logo || '/placeholder.png'} alt="" className="w-full h-full object-contain rounded-xl" />
                                 </div>
 
                                 {/* Text Info */}
                                 <div className="mb-2">
-                                    <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">{merchant.businessName}</h1>
+                                    <h1 className="text-5xl font-extrabold text-white mb-2 drop-shadow-lg tracking-tight">{merchant.businessName}</h1>
                                     <div className="flex items-center gap-4 text-white/90 text-sm font-medium">
                                         <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-white">
                                             {merchant.category}
@@ -368,10 +377,17 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
 
                             {/* Action Buttons */}
                             <div className="flex gap-3 mb-2">
-                                <button onClick={handleCall} className="h-11 px-6 bg-white hover:bg-gray-100 text-black font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                                <button
+                                    onClick={handleCall}
+                                    disabled={!merchant.ownerPhone && !merchant.phone}
+                                    className={`h-11 px-6 font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg hover:-translate-y-0.5
+                                        ${(!merchant.ownerPhone && !merchant.phone)
+                                            ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                                            : 'bg-white hover:bg-gray-100 text-black hover:shadow-xl'}`}
+                                >
                                     <Phone className="h-4 w-4" /> Call
                                 </button>
-                                <button onClick={handleGetDirections} className="h-11 px-6 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-green-900/20 hover:shadow-green-500/30 hover:-translate-y-0.5">
+                                <button onClick={handleGetDirections} className="h-11 px-6 bg-green-600 hover:bg-green-500 text-black font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-green-900/20 hover:shadow-green-500/30 hover:-translate-y-0.5">
                                     <Navigation className="h-4 w-4" /> Directions
                                 </button>
                                 <button onClick={handleSave} className="h-11 w-11 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-center transition-all">

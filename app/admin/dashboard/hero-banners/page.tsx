@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, ArrowLeft, Trash2, Edit, Eye, EyeOff, Save, X, Loader2, Image as ImageIcon, MapPin, Calendar } from "lucide-react";
+import { Plus, ArrowLeft, Trash2, Edit, Eye, EyeOff, Save, X, Loader2, Image as ImageIcon, MapPin, Calendar, Heart } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { heroBannerService, HeroBanner } from "@/lib/services/heroBanner.service";
@@ -361,31 +361,62 @@ export default function HeroBannersPage() {
 
                             <div className="p-4 space-y-4">
                                 {/* Preview */}
-                                {/* Preview */}
-                                <div className={`h-40 bg-gradient-to-br ${form.backgroundGradient} rounded-2xl overflow-hidden relative ring-4 ring-gray-100 dark:ring-gray-800 shadow-xl`}>
+                                {/* Preview - District Style "CHAI" Card */}
+                                <div className={`h-48 w-full rounded-3xl overflow-hidden relative shadow-2xl ring-1 ring-white/10 group`}>
+                                    {/* 1. Dynamic Background */}
+                                    <div className={`absolute inset-0 bg-gradient-to-br ${form.backgroundGradient}`} />
+
+                                    {/* 2. Big Background Text (Typography) - e.g. "OFFER" */}
+                                    <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none">
+                                        <h1 className="text-[8rem] font-black text-white/5 tracking-tighter scale-150 select-none uppercase truncate">
+                                            {form.bannerType || 'OFFER'}
+                                        </h1>
+                                    </div>
+
+                                    {/* 3. Main Hero Image (Background or Cutout) */}
                                     {form.imageUrl && (
                                         <div className="absolute inset-0 z-0">
-                                            <img src={form.imageUrl} className="w-full h-full object-cover" alt="" />
-                                            <div className="absolute inset-0 bg-black/50" />
+                                            <img
+                                                src={form.imageUrl}
+                                                className="w-full h-full object-cover mix-blend-overlay opacity-80"
+                                                alt=""
+                                            />
+                                            {/* Gradient fade at bottom for readability */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
                                         </div>
                                     )}
-                                    <div className="absolute inset-0 z-10 p-6 flex flex-col items-center justify-center text-center">
-                                        {/* Logo Display */}
-                                        {form.logoUrl ? (
-                                            <div className="h-10 w-10 bg-white rounded-lg p-1.5 flex items-center justify-center shadow-lg mb-2">
-                                                <img src={form.logoUrl} className="w-full h-full object-contain" alt="Logo" />
-                                            </div>
-                                        ) : (
-                                            <div className="h-8 w-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mb-2 border border-white/30">
-                                                <span className="text-[10px] text-white font-bold">LOGO</span>
-                                            </div>
-                                        )}
 
-                                        <p className="text-white font-bold text-xl leading-tight drop-shadow-md">{form.title || 'Banner Title'}</p>
-                                        {form.subtitle && <p className="text-white/90 text-xs mt-1 drop-shadow-sm">{form.subtitle}</p>}
+                                    {/* 4. Top Badges */}
+                                    <div className="absolute top-4 left-4 z-20 flex gap-2">
+                                        <div className="bg-white text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                                            {form.ctaText || 'Special Offer'}
+                                        </div>
+                                    </div>
+                                    <div className="absolute top-4 right-4 z-20">
+                                        <div className="h-8 w-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center border border-white/10">
+                                            <Heart className="h-4 w-4 text-white" />
+                                        </div>
+                                    </div>
 
-                                        <div className="mt-3 bg-white text-black text-[10px] font-bold px-4 py-1.5 rounded-full flex items-center gap-1 shadow-lg">
-                                            {form.ctaText || 'Button'} <span>→</span>
+                                    {/* 5. Bottom Info Section */}
+                                    <div className="absolute bottom-0 left-0 right-0 p-5 z-20 flex items-center gap-4">
+                                        {/* Logo */}
+                                        <div className="h-12 w-12 rounded-xl bg-white p-1 shadow-lg shrink-0">
+                                            {form.logoUrl ? (
+                                                <img src={form.logoUrl} className="w-full h-full object-contain rounded-lg" alt="Logo" />
+                                            ) : (
+                                                <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center text-[8px] font-bold text-gray-400">LOGO</div>
+                                            )}
+                                        </div>
+
+                                        {/* Text Info */}
+                                        <div className="flex-1 min-w-0 text-left">
+                                            <h3 className="text-white font-bold text-lg leading-tight truncate drop-shadow-md">
+                                                {form.title || 'Brand Name'}
+                                            </h3>
+                                            <p className="text-white/80 text-xs font-medium truncate mt-0.5">
+                                                {form.subtitle || 'Description goes here'}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
