@@ -361,24 +361,32 @@ export default function HeroBannersPage() {
 
                             <div className="p-4 space-y-4">
                                 {/* Preview */}
-                                <div className={`h-40 bg-gradient-to-br ${form.backgroundGradient} rounded-2xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden ring-4 ring-gray-100 dark:ring-gray-800`}>
+                                {/* Preview */}
+                                <div className={`h-40 bg-gradient-to-br ${form.backgroundGradient} rounded-2xl overflow-hidden relative ring-4 ring-gray-100 dark:ring-gray-800 shadow-xl`}>
                                     {form.imageUrl && (
-                                        <div className="absolute inset-0 z-0 opacity-100">
+                                        <div className="absolute inset-0 z-0">
                                             <img src={form.imageUrl} className="w-full h-full object-cover" alt="" />
-                                            <div className="absolute inset-0 bg-black/60" />
+                                            <div className="absolute inset-0 bg-black/50" />
                                         </div>
                                     )}
-                                    <div className="relative z-10 flex flex-col items-center w-full">
-                                        {form.logoUrl && (
-                                            <div className="h-8 w-8 bg-white rounded-lg p-1 flex items-center justify-center shadow-lg mb-2">
-                                                <img src={form.logoUrl} className="w-full h-full object-contain" />
+                                    <div className="absolute inset-0 z-10 p-6 flex flex-col items-center justify-center text-center">
+                                        {/* Logo Display */}
+                                        {form.logoUrl ? (
+                                            <div className="h-10 w-10 bg-white rounded-lg p-1.5 flex items-center justify-center shadow-lg mb-2">
+                                                <img src={form.logoUrl} className="w-full h-full object-contain" alt="Logo" />
+                                            </div>
+                                        ) : (
+                                            <div className="h-8 w-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mb-2 border border-white/30">
+                                                <span className="text-[10px] text-white font-bold">LOGO</span>
                                             </div>
                                         )}
-                                        <p className="text-white font-bold text-2xl leading-tight">{form.title || 'Banner Title'}</p>
-                                        {form.subtitle && <p className="text-white/80 text-sm mt-1">{form.subtitle}</p>}
-                                        <button className="bg-white text-black font-bold px-5 py-2 rounded-full text-xs mt-3 flex items-center gap-1">
+
+                                        <p className="text-white font-bold text-xl leading-tight drop-shadow-md">{form.title || 'Banner Title'}</p>
+                                        {form.subtitle && <p className="text-white/90 text-xs mt-1 drop-shadow-sm">{form.subtitle}</p>}
+
+                                        <div className="mt-3 bg-white text-black text-[10px] font-bold px-4 py-1.5 rounded-full flex items-center gap-1 shadow-lg">
                                             {form.ctaText || 'Button'} <span>→</span>
-                                        </button>
+                                        </div>
                                     </div>
                                 </div>
 
