@@ -47,7 +47,7 @@ export default function TrendingOffersPage() {
             if (trendingResult.success && trendingResult.data) {
                 const mapTrending = (section: string) => trendingResult.data!
                     .filter(t => t.section === section && t.offer)
-                    .map(t => ({ ...t.offer!, position: t.position } as Offer)); // Type cast for simplicity
+                    .map(t => ({ ...t.offer!, position: t.position } as unknown as Offer)); // Type cast for simplicity
 
                 setTrendingOffline(mapTrending('offline'));
                 setTrendingOnline(mapTrending('online'));
