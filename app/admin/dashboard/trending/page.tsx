@@ -165,9 +165,9 @@ export default function TrendingOffersPage() {
                     color="orange"
                     items={trendingOffline}
                     loading={loading}
-                    onMoveUp={(idx) => moveItem(trendingOffline, idx, 'up', setTrendingOffline)}
-                    onMoveDown={(idx) => moveItem(trendingOffline, idx, 'down', setTrendingOffline)}
-                    onRemove={(id) => removeItem(trendingOffline, id, setTrendingOffline)}
+                    onMoveUp={(idx: number) => moveItem(trendingOffline, idx, 'up', setTrendingOffline)}
+                    onMoveDown={(idx: number) => moveItem(trendingOffline, idx, 'down', setTrendingOffline)}
+                    onRemove={(id: string) => removeItem(trendingOffline, id, setTrendingOffline)}
                     onAdd={() => { setActiveSection('offline'); setShowAddModal(true); }}
                 />
 
@@ -179,9 +179,9 @@ export default function TrendingOffersPage() {
                     color="blue"
                     items={trendingOnline}
                     loading={loading}
-                    onMoveUp={(idx) => moveItem(trendingOnline, idx, 'up', setTrendingOnline)}
-                    onMoveDown={(idx) => moveItem(trendingOnline, idx, 'down', setTrendingOnline)}
-                    onRemove={(id) => removeItem(trendingOnline, id, setTrendingOnline)}
+                    onMoveUp={(idx: number) => moveItem(trendingOnline, idx, 'up', setTrendingOnline)}
+                    onMoveDown={(idx: number) => moveItem(trendingOnline, idx, 'down', setTrendingOnline)}
+                    onRemove={(id: string) => removeItem(trendingOnline, id, setTrendingOnline)}
                     onAdd={() => { setActiveSection('online'); setShowAddModal(true); }}
                 />
             </div>
