@@ -9,7 +9,7 @@ export default function SentryTestPage() {
             <p className="text-zinc-400">Click the button below to trigger a test error.</p>
 
             <Button
-                variant="destructive"
+                variant="default"
                 onClick={() => {
                     // @ts-ignore
                     myUndefinedFunction();
