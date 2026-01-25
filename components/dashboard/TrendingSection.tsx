@@ -39,18 +39,10 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
 
     return (
         <section className="pb-8 relative overflow-hidden">
-            {/* Section Header - Premium Style */}
-            <div className="flex items-center justify-center mb-6 px-4">
+            {/* Section Header - Standardized */}
+            <div className="flex items-center justify-center mb-6">
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
-                <div className="mx-4 flex flex-col items-center">
-                    <div className="flex items-center gap-2 bg-white/[0.03] px-4 py-2 rounded-full border border-white/[0.06]">
-                        <div className="relative">
-                            <TrendingUp className="h-4 w-4 text-green-500" />
-                            <Sparkles className="absolute -top-1 -right-1 h-2 w-2 text-yellow-400" />
-                        </div>
-                        <span className="text-xs tracking-[0.15em] font-bold text-white/80 uppercase">Trending Now</span>
-                    </div>
-                </div>
+                <span className="px-4 text-[10px] tracking-[0.2em] font-medium text-white/40 uppercase">TRENDING NOW</span>
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
             </div>
 

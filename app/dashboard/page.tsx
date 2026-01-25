@@ -757,46 +757,7 @@ export default function DashboardPage() {
                 )}
 
                 {/* Top Brands Marquee - SCROLL LINKED */}
-                {contentSettings.showTopBrands && (topBrandsState.online.length > 0 || topBrandsState.offline.length > 0) && (
-                    <section className="mb-8">
-                        {/* Header */}
-                        <div className="flex items-center justify-center mb-5">
-                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                            <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TOP BRANDS</span>
-                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                        </div>
 
-                        <div className="space-y-4">
-                            {/* Row 1: Online Brands (Left) */}
-                            {topBrandsState.online.length > 0 && (
-                                <ScrollVelocityMarquee direction="left" speed={1.5}>
-                                    {topBrandsState.online.map((brand) => (
-                                        <div key={`on-${brand.id}`} className="flex flex-col items-center gap-2 w-20 flex-shrink-0 cursor-pointer" onClick={() => router.push(`/dashboard/online-brand/${brand.id}`)}>
-                                            <div className="h-16 w-16 rounded-2xl bg-white p-2 shadow-sm border border-black/5 flex items-center justify-center overflow-hidden">
-                                                <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" />
-                                            </div>
-                                            <span className={`text-[10px] font-medium truncate w-full text-center ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>{brand.name}</span>
-                                        </div>
-                                    ))}
-                                </ScrollVelocityMarquee>
-                            )}
-
-                            {/* Row 2: Offline Brands (Right) */}
-                            {topBrandsState.offline.length > 0 && (
-                                <ScrollVelocityMarquee direction="right" speed={1.5}>
-                                    {topBrandsState.offline.map((brand) => (
-                                        <div key={`off-${brand.id}`} className="flex flex-col items-center gap-2 w-20 flex-shrink-0 cursor-pointer" onClick={() => router.push(`/store/${brand.id}`)}>
-                                            <div className="h-16 w-16 rounded-2xl bg-white p-2 shadow-sm border border-black/5 flex items-center justify-center overflow-hidden">
-                                                <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" />
-                                            </div>
-                                            <span className={`text-[10px] font-medium truncate w-full text-center ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>{brand.name}</span>
-                                        </div>
-                                    ))}
-                                </ScrollVelocityMarquee>
-                            )}
-                        </div>
-                    </section>
-                )}
 
                 {/* Categories - Connected to Hero Fade */}
                 <section className="pb-4 relative z-10">
@@ -841,6 +802,56 @@ export default function DashboardPage() {
                     </div>
                 </section>
 
+                {/* Top Brands - District Design Grid (Moved Here) */}
+                {contentSettings.showTopBrands && (topBrandsState.online.length > 0 || topBrandsState.offline.length > 0) && (
+                    <section className="mb-8">
+                        {/* Header */}
+                        <div className="flex items-center justify-center mb-5">
+                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                            <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TOP BRANDS</span>
+                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                        </div>
+
+                        {/* District Style Grid */}
+                        <div className="grid grid-cols-4 gap-4 px-2">
+                            {[...topBrandsState.online, ...topBrandsState.offline].slice(0, 8).map((brand) => (
+                                <motion.div
+                                    key={brand.id}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => {
+                                        vibrate('light');
+                                        if (brand.category === 'Online' || brand.category === 'Startups/Apps') {
+                                            router.push(`/dashboard/online-brand/${brand.id}`);
+                                        } else {
+                                            router.push(`/store/${brand.id}`);
+                                        }
+                                    }}
+                                    className="flex flex-col items-center gap-2 cursor-pointer"
+                                >
+                                    <div className={`h-[72px] w-[72px] rounded-[24px] p-3 flex items-center justify-center shadow-sm border transition-all ${isLightTheme
+                                        ? 'bg-white border-gray-100 shadow-gray-200/50'
+                                        : 'bg-[#161616] border-white/[0.06] shadow-black/40'
+                                        }`}>
+                                        <div className="relative w-full h-full">
+                                            <Image
+                                                src={brand.logo}
+                                                alt={brand.name}
+                                                fill
+                                                className="object-contain p-1"
+                                                sizes="72px"
+                                            />
+                                        </div>
+                                    </div>
+                                    <span className={`text-[10px] font-medium text-center line-clamp-1 w-full px-1 ${isLightTheme ? 'text-gray-600' : 'text-white/60'
+                                        }`}>
+                                        {brand.name}
+                                    </span>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
                 {/* New Stores - Real App Style */}
                 {newMerchants.length > 0 && (
                     <section className="py-6">
@@ -853,7 +864,7 @@ export default function DashboardPage() {
                         {/* Mobile: Horizontal Scroll, Desktop: Grid with max width to avoid stretch */}
                         <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 pb-4 gap-4 md:grid md:grid-cols-4 lg:grid-cols-5 md:mx-0 md:px-0 md:overflow-visible">
                             {newMerchants.map((merchant) => (
-                                <div key={merchant.id} className="w-[260px] md:w-auto flex-shrink-0 relative group">
+                                <div key={merchant.id} className="w-[180px] md:w-auto flex-shrink-0 relative group">
                                     {/* New Badge Ribbon */}
                                     <div className="absolute top-2 right-2 z-10 bg-green-500 text-black text-[9px] font-bold px-2 py-0.5 rounded-full shadow-lg shadow-green-500/20 flex items-center gap-1">
                                         <Sparkles className="h-2.5 w-2.5 fill-black" />

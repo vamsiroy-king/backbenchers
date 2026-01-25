@@ -135,7 +135,10 @@ export function TrendingPosterCard({
                             <span className="text-2xl">%</span>
                         </>
                     ) : (
-                        offer.discountValue
+                        <>
+                            <span className="text-2xl align-top mt-1">₹</span>
+                            <span className="text-[40px]">{offer.discountValue}</span>
+                        </>
                     )}
                     <br />
                     <span className="text-lg font-bold text-white/80 tracking-wide">OFF</span>
