@@ -154,10 +154,10 @@ export default function TrendingOffersPage() {
         if (activeSection === 'offline') {
             // Only allow offline offers (from real merchants)
             // Online offers usually have merchantBbmId='ONLINE' or type='online'
-            if (offer.merchantBbmId === 'ONLINE' || offer.type === 'online') return false;
+            if (offer.merchantBbmId === 'ONLINE' || (offer.type as string) === 'online') return false;
         } else {
             // Only allow online offers
-            if (offer.merchantBbmId !== 'ONLINE' && offer.type !== 'online') return false;
+            if (offer.merchantBbmId !== 'ONLINE' && (offer.type as string) !== 'online') return false;
         }
 
         // 2. Exclude currently selected offers
