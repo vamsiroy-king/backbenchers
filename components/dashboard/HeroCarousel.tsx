@@ -150,10 +150,17 @@ export function HeroCarousel({ banners, autoScrollInterval = 5000 }: HeroCarouse
                         {/* Content Container */}
                         <div className="relative z-10 flex flex-col items-center gap-3 w-full max-w-sm">
 
-                            {/* Logo or Badge (Optional) */}
+                            {/* Logo & Partnership Tag */}
                             {currentBanner.logoUrl ? (
-                                <div className="h-12 w-12 bg-white rounded-xl p-2 flex items-center justify-center shadow-lg mb-1 ring-4 ring-black/20">
-                                    <img src={currentBanner.logoUrl} alt="" className="w-full h-full object-contain" draggable={false} />
+                                <div className="flex flex-col items-center gap-2 mb-1">
+                                    <div className="h-14 w-14 relative flex items-center justify-center filter drop-shadow-xl">
+                                        <img src={currentBanner.logoUrl} alt="" className="w-full h-full object-contain" draggable={false} />
+                                    </div>
+                                    <div className="px-3 py-0.5 bg-white/10 border border-white/5 rounded-full backdrop-blur-md">
+                                        <span className="text-[9px] font-bold text-white/90 tracking-widest uppercase flex items-center gap-1.5">
+                                            BACKBENCHERS <span className="text-white/40">✕</span> {currentBanner.organizerName || 'PARTNER'}
+                                        </span>
+                                    </div>
                                 </div>
                             ) : currentBanner.bannerType === 'new_store' && (
                                 <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full mb-1 backdrop-blur-md">

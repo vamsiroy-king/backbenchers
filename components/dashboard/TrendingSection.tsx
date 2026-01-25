@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Store, Globe, Sparkles } from 'lucide-react';
-import { TrendingOfferCard } from './TrendingOfferCard';
-import { OfflineTicketCard } from './OfflineTicketCard';
+import { TrendingPosterCard } from './TrendingPosterCard';
 
 interface TrendingSectionProps {
     onlineOffers: any[];
@@ -129,28 +128,10 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
                                     transition={{ duration: 0.3 }}
-                                    className="snap-center"
+                                    className="snap-center transform-gpu"
                                 >
-                                    {activeTab === 'offline' ? (
-                                        <div className="mr-3">
-                                            <OfflineTicketCard
-                                                offer={{
-                                                    id: offer.id,
-                                                    title: offer.title,
-                                                    discountValue: offer.discountValue,
-                                                    type: offer.type,
-                                                    merchantId: offer.merchantId,
-                                                    merchantName: offer.merchantName,
-                                                    merchantLogo: offer.merchantLogo,
-                                                    merchantCity: offer.merchantCity,
-                                                    avgRating: offer.avgRating
-                                                }}
-                                                isVerified={isVerified}
-                                                onVerifyClick={onVerifyClick}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <TrendingOfferCard
+                                    <div className="mr-4">
+                                        <TrendingPosterCard
                                             offer={{
                                                 id: offer.id,
                                                 title: offer.title,
@@ -162,15 +143,13 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
                                                 merchantCity: offer.merchantCity,
                                                 code: offer.code,
                                                 link: offer.link,
-                                                avgRating: offer.avgRating,
-                                                totalRatings: offer.totalRatings,
-                                                isNewSystem: offer.isNewSystem
+                                                avgRating: offer.avgRating
                                             }}
                                             variant={activeTab}
                                             isVerified={isVerified}
                                             onVerifyClick={onVerifyClick}
                                         />
-                                    )}
+                                    </div>
                                 </motion.div>
                             ))
                         ) : (
