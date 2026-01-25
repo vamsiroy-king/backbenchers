@@ -150,11 +150,22 @@ export default function TrendingOffersPage() {
 
     // Filter offers for the Add Modal
     const filteredOffers = allOffers.filter(offer => {
-        // Exclude currently selected offers
+        // 1. Strict Type Filtering based on Active Section
+        if (activeSection === 'offline') {
+            // Only allow offline offers (from real merchants)
+            // Online offers usually have merchantBbmId='ONLINE' or type='online'
+            if (offer.merchantBbmId === 'ONLINE' || offer.type === 'online') return false;
+        } else {
+            // Only allow online offers
+            if (offer.merchantBbmId !== 'ONLINE' && offer.type !== 'online') return false;
+        }
+
+        // 2. Exclude currently selected offers
         const isOffline = trendingOffline.some(o => o.id === offer.id);
         const isOnline = trendingOnline.some(o => o.id === offer.id);
         if (isOffline || isOnline) return false;
 
+        // 3. Search Term
         if (!searchQuery) return true;
         const q = searchQuery.toLowerCase();
         return (
