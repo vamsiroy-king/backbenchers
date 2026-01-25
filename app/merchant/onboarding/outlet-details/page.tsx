@@ -89,6 +89,37 @@ export default function OutletDetailsPage() {
         }
     };
 
+    // Load saved data from localStorage on mount
+    useEffect(() => {
+        const savedData = localStorage.getItem('merchant_outlet');
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                setFormData(prev => ({
+                    ...prev,
+                    outletName: parsed.outletName || prev.outletName,
+                    state: parsed.state || prev.state,
+                    city: parsed.city || prev.city,
+                    address: parsed.address || prev.address,
+                    pincode: parsed.pincode || prev.pincode,
+                    phone: parsed.phone || prev.phone,
+                    managerName: parsed.managerName || prev.managerName,
+                    managerPhone: parsed.managerPhone ? parsed.managerPhone.replace('+91', '') : prev.managerPhone,
+                    googleMapsLink: parsed.googleMapsLink || prev.googleMapsLink,
+                }));
+                if (parsed.googleMapsLink) {
+                    // Trigger extraction if link exists
+                    // Optional: could re-verify, but for now just trusting saved link
+                    if (parsed.latitude && parsed.longitude) {
+                        setExtractedCoords({ lat: parsed.latitude, lng: parsed.longitude });
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading saved outlet data:', e);
+            }
+        }
+    }, []);
+
     const availableCities = formData.state ? (CITIES_BY_STATE[formData.state] || []) : [];
 
     const isFormValid =
@@ -98,7 +129,8 @@ export default function OutletDetailsPage() {
         formData.address.length > 10 &&
         formData.pincode.length === 6 &&
         formData.managerName.length > 2 &&
-        formData.managerPhone.length === 10;
+        formData.managerPhone.length === 10 &&
+        formData.googleMapsLink.length > 10; // Added Map Link Validation
 
     const handleContinue = () => {
         if (!isFormValid || !brand) return;

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AutoScrollingRow } from "@/components/ui/AutoScrollingRow";
+import { ScrollVelocityMarquee } from "@/components/ui/ScrollVelocityMarquee";
 import { offerService } from "@/lib/services/offer.service";
 import { trendingService } from "@/lib/services/trending.service";
 import { topBrandsService } from "@/lib/services/topBrands.service";

@@ -116,42 +116,74 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
             {/* Content Area - Horizontal Scroll */}
             <div className="relative w-full">
                 <div
+                    id="trending-scroll-container"
                     className="flex overflow-x-auto pb-6 -mx-5 px-5 snap-x snap-mandatory scrollbar-hide gap-4"
                     style={{ scrollBehavior: 'smooth' }}
                 >
                     <AnimatePresence mode='wait'>
                         {!isEmpty ? (
-                            currentOffers.map((offer) => (
-                                <motion.div
-                                    key={`${activeTab}-${offer.id}`}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="snap-center transform-gpu"
-                                >
-                                    <div className="mr-4">
-                                        <TrendingPosterCard
-                                            offer={{
-                                                id: offer.id,
-                                                title: offer.title,
-                                                discountValue: offer.discountValue,
-                                                type: offer.type,
-                                                merchantId: offer.merchantId,
-                                                merchantName: offer.merchantName,
-                                                merchantLogo: offer.merchantLogo,
-                                                merchantCity: offer.merchantCity,
-                                                code: offer.code,
-                                                link: offer.link,
-                                                avgRating: offer.avgRating
-                                            }}
-                                            variant={activeTab}
-                                            isVerified={isVerified}
-                                            onVerifyClick={onVerifyClick}
-                                        />
-                                    </div>
-                                </motion.div>
-                            ))
+                            <>
+                                {/* Spacer to push first card to middle if needed, or just let scroll handle it */}
+                                {currentOffers.map((offer, index) => (
+                                    <motion.div
+                                        key={`${activeTab}-${offer.id}`}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -20 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="snap-center transform-gpu"
+                                        onLayoutAnimationComplete={() => {
+                                            // Scroll to 2nd card on first load if it exists
+                                            if (index === 1 && typeof document !== 'undefined') {
+                                                const container = document.getElementById('trending-scroll-container');
+                                                if (container) {
+                                                    // Calculate position to center the 2nd card
+                                                    // Card width 260 + Gap 16 = 276
+                                                    // We want 2nd card center.
+                                                    // Let's just scroll to the start of 2nd card for simplicity as requested "start from the middle card means 2nd"
+                                                    // Actually "auto middle" implies centering.
+
+                                                    // Simple scroll to roughly show the previous one peeking
+                                                    // container.scrollLeft = 200; 
+
+                                                    // User said "leave the first card and the card should start from the middle card means 2nd"
+                                                    // Sounds like he wants the 2nd card to be the primary focus on load.
+
+                                                    // Trigger scroll after small delay to ensure rendering
+                                                    setTimeout(() => {
+                                                        const cardWidth = 260;
+                                                        const gap = 16;
+                                                        // Scroll to 2nd card
+                                                        container.scrollTo({ left: cardWidth + gap - 40, behavior: 'smooth' });
+                                                        // -40 to show a bit of the first card ("preview")
+                                                    }, 500);
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        <div className="mr-4">
+                                            <TrendingPosterCard
+                                                offer={{
+                                                    id: offer.id,
+                                                    title: offer.title,
+                                                    discountValue: offer.discountValue,
+                                                    type: offer.type,
+                                                    merchantId: offer.merchantId,
+                                                    merchantName: offer.merchantName,
+                                                    merchantLogo: offer.merchantLogo,
+                                                    merchantCity: offer.merchantCity,
+                                                    code: offer.code,
+                                                    link: offer.link,
+                                                    avgRating: offer.avgRating
+                                                }}
+                                                variant={activeTab}
+                                                isVerified={isVerified}
+                                                onVerifyClick={onVerifyClick}
+                                            />
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </>
                         ) : (
                             <motion.div
                                 initial={{ opacity: 0 }}
