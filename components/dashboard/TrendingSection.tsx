@@ -129,25 +129,15 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
                                             if (index === 1 && typeof document !== 'undefined') {
                                                 const container = document.getElementById('trending-scroll-container');
                                                 if (container) {
-                                                    // Calculate position to center the 2nd card
-                                                    // Card width 260 + Gap 16 = 276
-                                                    // We want 2nd card center.
-                                                    // Let's just scroll to the start of 2nd card for simplicity as requested "start from the middle card means 2nd"
-                                                    // Actually "auto middle" implies centering.
-
-                                                    // Simple scroll to roughly show the previous one peeking
-                                                    // container.scrollLeft = 200; 
-
-                                                    // User said "leave the first card and the card should start from the middle card means 2nd"
-                                                    // Sounds like he wants the 2nd card to be the primary focus on load.
-
-                                                    // Trigger scroll after small delay to ensure rendering
+                                                    // Add delay to ensure layout
                                                     setTimeout(() => {
                                                         const cardWidth = 260;
                                                         const gap = 16;
-                                                        // Scroll to 2nd card
-                                                        container.scrollTo({ left: cardWidth + gap - 40, behavior: 'smooth' });
-                                                        // -40 to show a bit of the first card ("preview")
+                                                        // Center the 2nd card (Index 1)
+                                                        // Offset = (CardWidth + Gap) - (ContainerWidth/2) + (CardWidth/2)
+                                                        // Assuming 390px mobile width: 276 - 195 + 130 = 211
+                                                        // We can also just guess a safe value that pushes 1st card partially offscreen
+                                                        container.scrollTo({ left: 216, behavior: 'smooth' });
                                                     }, 500);
                                                 }
                                             }
