@@ -80,7 +80,7 @@ export function TrendingPosterCard({
             whileHover={{ y: -4, scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleClick}
-            className="group relative w-[240px] h-[320px] flex-shrink-0 cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 border border-white/[0.08]"
+            className="group relative w-[260px] h-[350px] flex-shrink-0 cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 border border-white/[0.08]"
         >
             {/* Background Image / Gradient */}
             <div className="absolute inset-0 z-0">

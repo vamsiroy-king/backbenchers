@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { AutoScrollingRow } from "@/components/ui/AutoScrollingRow";
 import { offerService } from "@/lib/services/offer.service";
 import { trendingService } from "@/lib/services/trending.service";
 import { topBrandsService } from "@/lib/services/topBrands.service";
@@ -825,28 +826,30 @@ export default function DashboardPage() {
                     </section>
                 )}
 
-                {/* Top Brands - Premium Horizontal Scroll */}
+                {/* Top Brands - Premium Split Marquee Layout */}
                 {contentSettings.showTopBrands && topBrandsData.length > 0 && (
-                    <section className="py-6 space-y-6">
+                    <section className="py-8 space-y-10">
                         {/* Section Header */}
-                        <div className="flex items-center justify-center mb-5">
+                        <div className="flex items-center justify-center mb-6">
                             <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                            <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TOP BRANDS</span>
+                            <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>PARTNER BRANDS</span>
                             <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                         </div>
 
-                        {/* Online Brands - Blue Glow Premium Cards */}
+                        {/* ROW 1: ONLINE BRANDS (Scroll Left) */}
                         {topBrandsData.some(b => b.category === 'Online' || (b as any).merchant?.isOnline) && (
                             <div>
-                                <h4 className="px-1 text-xs font-bold text-blue-400 mb-3 uppercase tracking-wider flex items-center gap-1.5 opacity-80">
+                                <h4 className="px-6 text-xs font-bold text-blue-400 mb-4 uppercase tracking-wider flex items-center gap-1.5 opacity-90">
                                     <Globe className="h-3 w-3" /> Online Partners
                                 </h4>
-                                <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 md:grid md:grid-cols-6 md:mx-0 md:px-0 scroll-smooth pb-4">
-                                    {topBrandsData
+                                <AutoScrollingRow direction="left" speed={0.5} className="-mx-5 px-5 pb-4">
+                                    {/* Triplicating data for infinite feel */}
+                                    {[...topBrandsData, ...topBrandsData, ...topBrandsData]
                                         .filter(b => b.category === 'Online' || (b as any).merchant?.isOnline)
-                                        .map((brand) => (
+                                        .slice(0, 15) // Limit total items to prevent DOM overload
+                                        .map((brand, idx) => (
                                             <motion.button
-                                                key={brand.id}
+                                                key={`${brand.id}-online-${idx}`}
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => {
                                                     if (!isVerified) {
@@ -855,9 +858,9 @@ export default function DashboardPage() {
                                                         router.push(`/dashboard/online-brand/${brand.id}`);
                                                     }
                                                 }}
-                                                className="flex-shrink-0 flex flex-col items-center gap-2 w-[100px] md:w-auto group"
+                                                className="flex-shrink-0 flex flex-col items-center gap-2 w-[110px] group"
                                             >
-                                                <div className="relative h-[100px] w-[100px] md:h-28 md:w-full aspect-square rounded-2xl overflow-hidden border border-blue-500/30 bg-[#0a101f] shadow-[0_0_20px_rgba(59,130,246,0.15)] group-hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] group-hover:border-blue-400 transition-all duration-300">
+                                                <div className="relative h-[110px] w-[110px] aspect-square rounded-2xl overflow-hidden border border-blue-500/30 bg-[#0a101f] shadow-[0_0_20px_rgba(59,130,246,0.15)] group-hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] group-hover:border-blue-400 transition-all duration-300">
                                                     {/* Premium Blue Glow Background */}
                                                     <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-transparent to-transparent opacity-60" />
                                                     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/40 via-transparent to-transparent" />
@@ -866,32 +869,34 @@ export default function DashboardPage() {
                                                     <div className="absolute inset-2 bg-black/40 backdrop-blur-sm rounded-xl flex items-center justify-center p-3 border border-white/5 group-hover:border-white/10 transition-colors">
                                                         {brand.logo ? (
                                                             <div className="relative w-full h-full">
-                                                                <Image src={brand.logo} alt={brand.name} fill className="object-contain drop-shadow-lg" sizes="80px" />
+                                                                <Image src={brand.logo} alt={brand.name} fill className="object-contain drop-shadow-lg" sizes="110px" />
                                                             </div>
                                                         ) : (
                                                             <Globe className="h-8 w-8 text-blue-400" />
                                                         )}
                                                     </div>
                                                 </div>
-                                                <span className="text-[11px] font-semibold text-blue-100/80 truncate w-full text-center group-hover:text-blue-400 transition-colors">{brand.name}</span>
+                                                <span className="text-[11px] font-semibold text-blue-100/60 truncate w-full text-center group-hover:text-blue-400 transition-colors">{brand.name}</span>
                                             </motion.button>
                                         ))}
-                                </div>
+                                </AutoScrollingRow>
                             </div>
                         )}
 
-                        {/* Offline Brands - Dark Premium Cards */}
+                        {/* ROW 2: OFFLINE BRANDS (Scroll Right) */}
                         {topBrandsData.some(b => b.category !== 'Online' && !(b as any).merchant?.isOnline) && (
                             <div>
-                                <h4 className="px-1 text-xs font-bold text-green-400 mb-3 uppercase tracking-wider flex items-center gap-1.5 opacity-80">
+                                <h4 className="px-6 text-xs font-bold text-green-400 mb-4 uppercase tracking-wider flex items-center gap-1.5 opacity-90">
                                     <Store className="h-3 w-3" /> In-Store Partners
                                 </h4>
-                                <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 md:grid md:grid-cols-6 md:mx-0 md:px-0 scroll-smooth">
-                                    {topBrandsData
+                                <AutoScrollingRow direction="right" speed={0.5} className="-mx-5 px-5">
+                                    {/* Triplicating data for infinite feel */}
+                                    {[...topBrandsData, ...topBrandsData, ...topBrandsData]
                                         .filter(b => b.category !== 'Online' && !(b as any).merchant?.isOnline)
-                                        .map((brand) => (
+                                        .slice(0, 15) // Limit
+                                        .map((brand, idx) => (
                                             <motion.button
-                                                key={brand.id}
+                                                key={`${brand.id}-offline-${idx}`}
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => {
                                                     if (!isVerified) {
@@ -900,9 +905,9 @@ export default function DashboardPage() {
                                                         router.push(`/store/${brand.id}`);
                                                     }
                                                 }}
-                                                className="flex-shrink-0 flex flex-col items-center gap-2 w-[100px] md:w-auto group"
+                                                className="flex-shrink-0 flex flex-col items-center gap-2 w-[110px] group"
                                             >
-                                                <div className="relative h-[100px] w-[100px] md:h-28 md:w-full aspect-square rounded-2xl overflow-hidden border border-white/[0.08] bg-[#111] shadow-lg group-hover:border-green-500/50 transition-all duration-300">
+                                                <div className="relative h-[110px] w-[110px] aspect-square rounded-2xl overflow-hidden border border-white/[0.08] bg-[#111] shadow-lg group-hover:border-green-500/50 transition-all duration-300">
                                                     {/* Green Touch Background */}
                                                     <div className="absolute top-0 right-0 w-16 h-16 bg-green-500/10 blur-2xl rounded-full translate-x-4 -translate-y-4" />
 
@@ -910,17 +915,17 @@ export default function DashboardPage() {
                                                     <div className="absolute inset-0 flex items-center justify-center p-4">
                                                         {brand.logo ? (
                                                             <div className="relative w-full h-full">
-                                                                <Image src={brand.logo} alt={brand.name} fill className="object-contain" sizes="80px" />
+                                                                <Image src={brand.logo} alt={brand.name} fill className="object-contain" sizes="110px" />
                                                             </div>
                                                         ) : (
                                                             <Store className="h-8 w-8 text-green-500/50" />
                                                         )}
                                                     </div>
                                                 </div>
-                                                <span className="text-[11px] font-medium text-white/60 truncate w-full text-center group-hover:text-white transition-colors">{brand.name}</span>
+                                                <span className="text-[11px] font-medium text-white/50 truncate w-full text-center group-hover:text-white transition-colors">{brand.name}</span>
                                             </motion.button>
                                         ))}
-                                </div>
+                                </AutoScrollingRow>
                             </div>
                         )}
                     </section>

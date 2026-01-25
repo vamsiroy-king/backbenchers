@@ -28,7 +28,7 @@ export default function AdminDashboardPage() {
     const [cityDistribution, setCityDistribution] = useState<CityDistribution[]>([]);
     const [categoryPerformance, setCategoryPerformance] = useState<CategoryPerformance[]>([]);
 
-    const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'merchants'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'merchants' | 'pending'>('overview');
     const [dateRange, setDateRange] = useState('7');
 
     useEffect(() => {
@@ -54,7 +54,8 @@ export default function AdminDashboardPage() {
                 setStats(dashboardStats);
 
                 if (pendingResult.success && pendingResult.data) {
-                    setPendingMerchants(pendingResult.data.slice(0, 5));
+                    // Store ALL pending merchants for the full tab view
+                    setPendingMerchants(pendingResult.data);
                 }
 
                 setTopMerchants(topMerchantsData);
@@ -108,8 +109,9 @@ export default function AdminDashboardPage() {
                 <div className="flex p-1 bg-gray-900/50 backdrop-blur-md rounded-xl border border-gray-800 w-fit">
                     {[
                         { id: 'overview', label: 'Overview', icon: BarChart3 },
-                        { id: 'analytics', label: 'Analytics', icon: PieChart },
-                        { id: 'merchants', label: 'Merchants', icon: Store }
+                        { id: 'pending', label: 'Pending Requests', icon: Clock },
+                        { id: 'merchants', label: 'Merchants', icon: Store },
+                        { id: 'analytics', label: 'Analytics', icon: PieChart }
                     ].map((tab) => (
                         <button
                             key={tab.id}
@@ -128,6 +130,91 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <AnimatePresence mode="wait">
+                    {activeTab === 'pending' && (
+                        <motion.div
+                            key="pending"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                        >
+                            <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+                                <div className="p-5 border-b border-gray-800 flex justify-between items-center">
+                                    <h3 className="font-bold text-white flex items-center gap-2">
+                                        <Clock className="h-4 w-4 text-yellow-500" />
+                                        Pending Requests
+                                    </h3>
+                                    <span className="text-xs bg-yellow-500/10 text-yellow-500 px-2 py-1 rounded-full font-bold">
+                                        {pendingMerchants.length} Pending
+                                    </span>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="bg-gray-800/50 text-gray-400 font-medium">
+                                            <tr>
+                                                <th className="px-6 py-3">Merchant</th>
+                                                <th className="px-6 py-3">Contact</th>
+                                                <th className="px-6 py-3">Location</th>
+                                                <th className="px-6 py-3 text-right">Submitted</th>
+                                                <th className="px-6 py-3 text-right">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-800">
+                                            {loading ? (
+                                                [1, 2, 3].map(i => (
+                                                    <tr key={i}>
+                                                        <td colSpan={5} className="px-6 py-4"><Skeleton className="h-8 w-full bg-gray-800" /></td>
+                                                    </tr>
+                                                ))
+                                            ) : pendingMerchants.length > 0 ? (
+                                                pendingMerchants.map((m) => (
+                                                    <tr key={m.id} className="hover:bg-gray-800/30 transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="h-10 w-10 bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
+                                                                    {m.logo ? (
+                                                                        <img src={m.logo} alt="" className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <Store className="h-5 w-5 text-gray-500" />
+                                                                    )}
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-bold text-white">{m.businessName}</p>
+                                                                    <p className="text-xs text-gray-400">{m.category}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <p className="text-white">{m.ownerName}</p>
+                                                            <p className="text-xs text-gray-400">{m.ownerPhone}</p>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-gray-400">{m.city}, {m.state}</td>
+                                                        <td className="px-6 py-4 text-right text-gray-500 text-xs">
+                                                            {new Date(m.createdAt || Date.now()).toLocaleDateString()}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <Link href={`/admin/dashboard/merchants/${m.id}`}>
+                                                                <button className="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-lg text-xs font-bold transition-colors">
+                                                                    Review
+                                                                </button>
+                                                            </Link>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                                                        <Check className="h-12 w-12 mx-auto mb-3 text-green-500/20" />
+                                                        <p>All caught up! No pending requests.</p>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
                     {activeTab === 'overview' && (
                         <motion.div
                             key="overview"
