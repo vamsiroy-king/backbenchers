@@ -507,7 +507,12 @@ export const merchantService = {
                         display_order: index
                     }));
 
-                    await supabase.from('merchant_store_images').insert(imageInserts);
+                    const { error: imgError } = await supabase.from('merchant_store_images').insert(imageInserts);
+
+                    if (imgError) {
+                        console.error('CRITICAL ERROR: Failed to migrate store photos during approval:', imgError);
+                        throw new Error(`Failed to save store photos: ${imgError.message}`);
+                    }
                 }
             }
 
