@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Heart, MapPin, Sparkles, X, ShieldCheck, Wifi, Bell, TrendingUp, Store, Loader2, ChevronDown, ChevronRight, Search, Clock } from "lucide-react";
+import { Heart, MapPin, Sparkles, X, ShieldCheck, Wifi, Bell, TrendingUp, Store, Loader2, ChevronDown, ChevronRight, Search, Clock, Globe } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -825,47 +825,90 @@ export default function DashboardPage() {
                     </section>
                 )}
 
-                {/* Top Brands - Minimal Grid - MOVED TO MIDDLE */}
-                {
-                    contentSettings.showTopBrands && (
-                        <section className="py-6">
-                            {/* Section Header - Shop by Category Style */}
-                            <div className="flex items-center justify-center mb-5">
-                                <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                                <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TOP BRANDS</span>
-                                <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                            </div>
+                {/* Top Brands - Split Rows (Online / Offline) */}
+                {contentSettings.showTopBrands && topBrandsData.length > 0 && (
+                    <section className="py-6 space-y-4">
+                        {/* Section Header */}
+                        <div className="flex items-center justify-center mb-5">
+                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                            <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TOP BRANDS</span>
+                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                        </div>
 
-                            <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:justify-center md:gap-4">
-                                {(topBrandsData.length > 0 ? topBrandsData : TOP_BRANDS.map(b => ({ id: String(b.id), name: b.name, logo: null, category: b.emoji, discount: b.discount }))).map((brand) => (
-                                    <motion.button
-                                        key={brand.id}
-                                        whileTap={{ scale: 0.97 }}
-                                        onClick={(e) => {
-                                            if (!isVerified) {
-                                                e.preventDefault();
-                                                setShowVerifyModal(true);
-                                            } else {
-                                                router.push(`/store/${brand.id}`);
-                                            }
-                                        }}
-                                        className={`rounded-xl p-3 flex flex-col items-center gap-2 border transition-all ${isLightTheme ? 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300' : 'bg-white/[0.02] border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08]'} md:w-32 md:p-4`}
-                                    >
-                                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center overflow-hidden ${isLightTheme ? 'bg-gray-100' : 'bg-white/[0.04]'} md:h-12 md:w-12`}>
-                                            {brand.logo ? (
-                                                <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <Store className={`h-4 w-4 ${isLightTheme ? 'text-gray-400' : 'text-white/30'}`} />
-                                            )}
-                                        </div>
-                                        <span className={`text-xs font-medium text-center line-clamp-1 ${isLightTheme ? 'text-gray-700' : 'text-white/80'}`}>{brand.name}</span>
-                                        <span className="text-[10px] text-green-500">{brand.discount || brand.category}</span>
-                                    </motion.button>
-                                ))}
+                        {/* Row 1: Online Brands */}
+                        {topBrandsData.some(b => b.category === 'Online' || (b as any).merchant?.isOnline) && (
+                            <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 md:justify-center md:gap-4 scroll-smooth">
+                                {topBrandsData
+                                    .filter(b => b.category === 'Online' || (b as any).merchant?.isOnline)
+                                    .map((brand) => (
+                                        <motion.button
+                                            key={brand.id}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => {
+                                                if (!isVerified) {
+                                                    setShowVerifyModal(true);
+                                                } else {
+                                                    // Online brands usually redirect to brand page or offer
+                                                    router.push(`/dashboard/online-brand/${brand.id}`);
+                                                }
+                                            }}
+                                            className="flex-shrink-0 flex flex-col items-center gap-2 w-[72px] md:w-24 group"
+                                        >
+                                            <div className="relative h-[72px] w-[72px] rounded-2xl overflow-hidden border border-white/[0.08] bg-black shadow-lg shadow-blue-900/10 group-hover:border-blue-500/50 transition-all duration-300">
+                                                {/* Blue Glow for Online */}
+                                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-50" />
+
+                                                {brand.logo ? (
+                                                    <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover p-2" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-[#111]">
+                                                        <Globe className="h-6 w-6 text-blue-500" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <span className="text-[10px] font-medium text-white/70 truncate w-full text-center">{brand.name}</span>
+                                        </motion.button>
+                                    ))}
                             </div>
-                        </section>
-                    )
-                }
+                        )}
+
+                        {/* Row 2: Offline / In-Store Brands */}
+                        {topBrandsData.some(b => b.category !== 'Online' && !(b as any).merchant?.isOnline) && (
+                            <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 md:justify-center md:gap-4 scroll-smooth pt-2">
+                                {topBrandsData
+                                    .filter(b => b.category !== 'Online' && !(b as any).merchant?.isOnline)
+                                    .map((brand) => (
+                                        <motion.button
+                                            key={brand.id}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => {
+                                                if (!isVerified) {
+                                                    setShowVerifyModal(true);
+                                                } else {
+                                                    router.push(`/store/${brand.id}`);
+                                                }
+                                            }}
+                                            className="flex-shrink-0 flex flex-col items-center gap-2 w-[72px] md:w-24 group"
+                                        >
+                                            <div className="relative h-[72px] w-[72px] rounded-2xl overflow-hidden border border-white/[0.08] bg-black shadow-lg shadow-green-900/10 group-hover:border-green-500/50 transition-all duration-300">
+                                                {/* Green Glow for Offline */}
+                                                <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-50" />
+
+                                                {brand.logo ? (
+                                                    <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover p-1" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-[#111]">
+                                                        <Store className="h-6 w-6 text-green-500" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <span className="text-[10px] font-medium text-white/70 truncate w-full text-center">{brand.name}</span>
+                                        </motion.button>
+                                    ))}
+                            </div>
+                        )}
+                    </section>
+                )}
 
                 {/* Trending Offers - Online/Offline Tabs with Discount Cards */}
                 {contentSettings.showTrending && (

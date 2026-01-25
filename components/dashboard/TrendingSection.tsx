@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Store, Globe, Sparkles } from 'lucide-react';
 import { TrendingOfferCard } from './TrendingOfferCard';
+import { OfflineTicketCard } from './OfflineTicketCard';
 
 interface TrendingSectionProps {
     onlineOffers: any[];
@@ -61,8 +62,8 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
                     <button
                         onClick={() => handleTabChange('offline')}
                         className={`relative px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 ${activeTab === 'offline'
-                                ? 'text-black'
-                                : 'text-white/40 hover:text-white/70'
+                            ? 'text-black'
+                            : 'text-white/40 hover:text-white/70'
                             }`}
                     >
                         {activeTab === 'offline' && (
@@ -82,8 +83,8 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
                     <button
                         onClick={() => handleTabChange('online')}
                         className={`relative px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 ${activeTab === 'online'
-                                ? 'text-black'
-                                : 'text-white/40 hover:text-white/70'
+                            ? 'text-black'
+                            : 'text-white/40 hover:text-white/70'
                             }`}
                     >
                         {activeTab === 'online' && (
@@ -105,8 +106,8 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
             {!isEmpty && (
                 <div className="flex justify-center mb-4">
                     <span className={`text-[10px] font-medium px-3 py-1 rounded-full ${activeTab === 'offline'
-                            ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                            : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                        ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                        : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                         }`}>
                         {currentOffers.length} {activeTab === 'offline' ? 'Store' : 'Online'} Deals Available
                     </span>
@@ -130,26 +131,46 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
                                     transition={{ duration: 0.3 }}
                                     className="snap-center"
                                 >
-                                    <TrendingOfferCard
-                                        offer={{
-                                            id: offer.id,
-                                            title: offer.title,
-                                            discountValue: offer.discountValue,
-                                            type: offer.type,
-                                            merchantId: offer.merchantId,
-                                            merchantName: offer.merchantName,
-                                            merchantLogo: offer.merchantLogo,
-                                            merchantCity: offer.merchantCity,
-                                            code: offer.code,
-                                            link: offer.link,
-                                            avgRating: offer.avgRating,
-                                            totalRatings: offer.totalRatings,
-                                            isNewSystem: offer.isNewSystem
-                                        }}
-                                        variant={activeTab}
-                                        isVerified={isVerified}
-                                        onVerifyClick={onVerifyClick}
-                                    />
+                                    {activeTab === 'offline' ? (
+                                        <div className="mr-3">
+                                            <OfflineTicketCard
+                                                offer={{
+                                                    id: offer.id,
+                                                    title: offer.title,
+                                                    discountValue: offer.discountValue,
+                                                    type: offer.type,
+                                                    merchantId: offer.merchantId,
+                                                    merchantName: offer.merchantName,
+                                                    merchantLogo: offer.merchantLogo,
+                                                    merchantCity: offer.merchantCity,
+                                                    avgRating: offer.avgRating
+                                                }}
+                                                isVerified={isVerified}
+                                                onVerifyClick={onVerifyClick}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <TrendingOfferCard
+                                            offer={{
+                                                id: offer.id,
+                                                title: offer.title,
+                                                discountValue: offer.discountValue,
+                                                type: offer.type,
+                                                merchantId: offer.merchantId,
+                                                merchantName: offer.merchantName,
+                                                merchantLogo: offer.merchantLogo,
+                                                merchantCity: offer.merchantCity,
+                                                code: offer.code,
+                                                link: offer.link,
+                                                avgRating: offer.avgRating,
+                                                totalRatings: offer.totalRatings,
+                                                isNewSystem: offer.isNewSystem
+                                            }}
+                                            variant={activeTab}
+                                            isVerified={isVerified}
+                                            onVerifyClick={onVerifyClick}
+                                        />
+                                    )}
                                 </motion.div>
                             ))
                         ) : (
@@ -159,8 +180,8 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
                                 className="flex-shrink-0 w-full px-5 text-center py-12"
                             >
                                 <div className={`inline-flex flex-col items-center gap-2 px-8 py-6 rounded-2xl border ${activeTab === 'offline'
-                                        ? 'bg-green-500/5 border-green-500/10'
-                                        : 'bg-blue-500/5 border-blue-500/10'
+                                    ? 'bg-green-500/5 border-green-500/10'
+                                    : 'bg-blue-500/5 border-blue-500/10'
                                     }`}>
                                     {activeTab === 'offline' ? (
                                         <Store className="h-6 w-6 text-white/20" />
