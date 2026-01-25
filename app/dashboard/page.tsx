@@ -867,18 +867,16 @@ export default function DashboardPage() {
                     )
                 }
 
-                {/* Trending Offers - Redesigned Component (Removed as per user request) */}
-                {/* {
-                    contentSettings.showTrending && (
-                        <TrendingSection
-                            onlineOffers={trendingOnline}
-                            offlineOffers={trendingOffline}
-                            isVerified={isVerified}
-                            onVerifyClick={() => setShowVerifyModal(true)}
-                            city={selectedCity}
-                        />
-                    )
-                } */}
+                {/* Trending Offers - Online/Offline Tabs with Discount Cards */}
+                {contentSettings.showTrending && (
+                    <TrendingSection
+                        onlineOffers={trendingOnline}
+                        offlineOffers={cityFilteredTrendingOffline}
+                        isVerified={isVerified}
+                        onVerifyClick={() => setShowVerifyModal(true)}
+                        city={selectedCity}
+                    />
+                )}
             </main >
 
 

@@ -470,6 +470,7 @@ export const merchantService = {
                 logo_url: pendingData.logo_url,
                 cover_photo_url: pendingData.cover_photo_url,
                 payment_qr_url: pendingData.payment_qr_url,
+                operating_hours: pendingData.operating_hours, // CRITICAL: Include store timings!
                 // gst_number: pendingData.gst_number, // Column doesn't exist in merchants
                 // pan_number: pendingData.pan_number, // Column doesn't exist in merchants
                 status: 'approved',
