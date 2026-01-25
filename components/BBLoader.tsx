@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 interface BBLoaderProps {
     size?: "sm" | "md" | "lg";
@@ -11,9 +12,9 @@ interface BBLoaderProps {
 // Premium full-screen loader with logo pulse animation
 export function BBLoader({ size = "md", text, fullScreen = false }: BBLoaderProps) {
     const sizes = {
-        sm: { logo: "h-10 w-10", text: "text-xs", logoText: "text-base" },
-        md: { logo: "h-14 w-14", text: "text-sm", logoText: "text-xl" },
-        lg: { logo: "h-20 w-20", text: "text-base", logoText: "text-2xl" },
+        sm: { logo: "h-10 w-10 relative", text: "text-xs", logoText: "text-base" },
+        md: { logo: "h-14 w-14 relative", text: "text-sm", logoText: "text-xl" },
+        lg: { logo: "h-20 w-20 relative", text: "text-base", logoText: "text-2xl" },
     };
 
     const loader = (
@@ -35,7 +36,7 @@ export function BBLoader({ size = "md", text, fullScreen = false }: BBLoaderProp
                 }}
                 className={`${sizes[size].logo} rounded-2xl overflow-hidden flex items-center justify-center`}
             >
-                <img src="/b-logo.png" alt="B" className="w-full h-full object-cover" />
+                <Image src="/b-logo.png" alt="B" fill className="object-cover" sizes="80px" priority />
             </motion.div>
 
             {/* Loading dots */}
@@ -89,9 +90,9 @@ export function BBInlineLoader() {
                     opacity: [0.5, 1, 0.5]
                 }}
                 transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-                className="h-8 w-8 rounded-xl overflow-hidden flex items-center justify-center"
+                className="h-8 w-8 relative rounded-xl overflow-hidden flex items-center justify-center"
             >
-                <img src="/b-logo.png" alt="B" className="w-full h-full object-cover" />
+                <Image src="/b-logo.png" alt="B" fill className="object-cover" sizes="32px" />
             </motion.div>
         </div>
     );

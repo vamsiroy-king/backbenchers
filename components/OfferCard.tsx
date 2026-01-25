@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Heart, MapPin, ChevronRight, Star } from "lucide-react";
 import { Offer } from "@/lib/types";
 import { vibrate } from "@/lib/haptics";
-import { useState } from "react";
+import Image from "next/image";
 
 interface OfferCardProps {
     offer: Offer & { avgRating?: number; totalRatings?: number };
@@ -21,7 +21,6 @@ export function OfferCard({
     priority = false,
     variant = 'default'
 }: OfferCardProps) {
-    const [imageLoaded, setImageLoaded] = useState(false);
 
     const discountBadge = offer.type === 'percentage'
         ? `${offer.discountValue}% OFF`
@@ -47,9 +46,15 @@ export function OfferCard({
                 className="flex gap-4 p-4 bg-[#1a1a1a] rounded-2xl cursor-pointer"
             >
                 {/* Image */}
-                <div className="w-20 h-20 rounded-xl overflow-hidden bg-[#2a2a2a] flex-shrink-0">
+                <div className="w-20 h-20 rounded-xl overflow-hidden bg-[#2a2a2a] flex-shrink-0 relative">
                     {offer.merchantLogo ? (
-                        <img src={offer.merchantLogo} alt="" className="w-full h-full object-cover" />
+                        <Image
+                            src={offer.merchantLogo}
+                            alt={offer.merchantName || "Offer"}
+                            fill
+                            className="object-cover"
+                            sizes="80px"
+                        />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-white/20 text-2xl font-bold">
                             {offer.merchantName?.[0] || 'B'}
@@ -88,7 +93,14 @@ export function OfferCard({
                 {/* Background Image */}
                 <div className="absolute inset-0 bg-[#1a1a1a]">
                     {offer.merchantLogo && (
-                        <img src={offer.merchantLogo} alt="" className="w-full h-full object-cover" />
+                        <Image
+                            src={offer.merchantLogo}
+                            alt={offer.merchantName || "Featured Offer"}
+                            fill
+                            className="object-cover"
+                            priority={priority}
+                            sizes="(max-width: 768px) 100vw, 800px"
+                        />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
                 </div>
@@ -96,7 +108,7 @@ export function OfferCard({
                 {/* Content */}
                 <div className="absolute inset-0 p-5 flex flex-col justify-end">
                     {/* Discount Badge */}
-                    <div className="absolute top-4 left-4 bg-green-500 text-black px-3 py-1.5 rounded-xl font-bold text-sm">
+                    <div className="absolute top-4 left-4 bg-green-500 text-black px-3 py-1.5 rounded-xl font-bold text-sm z-10">
                         {discountBadge}
                     </div>
 
@@ -105,7 +117,7 @@ export function OfferCard({
                         <motion.button
                             whileTap={{ scale: 0.85 }}
                             onClick={handleSave}
-                            className="absolute top-4 right-4 h-10 w-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center"
+                            className="absolute top-4 right-4 h-10 w-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center z-10"
                         >
                             <Heart
                                 className={`h-5 w-5 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-white'}`}
@@ -114,10 +126,16 @@ export function OfferCard({
                     )}
 
                     {/* Info */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 relative z-10">
                         {offer.merchantLogo && (
-                            <div className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur overflow-hidden border border-white/20">
-                                <img src={offer.merchantLogo} alt="" className="w-full h-full object-cover" />
+                            <div className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur overflow-hidden border border-white/20 relative flex-shrink-0">
+                                <Image
+                                    src={offer.merchantLogo}
+                                    alt=""
+                                    fill
+                                    className="object-cover"
+                                    sizes="48px"
+                                />
                             </div>
                         )}
                         <div className="flex-1 min-w-0">
@@ -136,26 +154,18 @@ export function OfferCard({
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             onClick={handleTap}
-            className="relative bg-[#1a1a1a] rounded-2xl overflow-hidden cursor-pointer"
+            className="relative bg-[#1a1a1a] rounded-2xl overflow-hidden cursor-pointer h-full flex flex-col"
         >
             {/* Image Container */}
             <div className="relative aspect-square bg-[#222] overflow-hidden">
-                {/* Shimmer while loading */}
-                {!imageLoaded && offer.merchantLogo && (
-                    <motion.div
-                        animate={{ opacity: [0.3, 0.5, 0.3] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                        className="absolute inset-0 bg-[#2a2a2a]"
-                    />
-                )}
-
                 {offer.merchantLogo ? (
-                    <img
+                    <Image
                         src={offer.merchantLogo}
-                        alt=""
-                        onLoad={() => setImageLoaded(true)}
-                        className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        alt={offer.merchantName || "Offer"}
+                        fill
+                        className="object-cover"
                         loading={priority ? "eager" : "lazy"}
+                        sizes="(max-width: 768px) 50vw, 300px"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#2a2a2a] to-[#1a1a1a]">
@@ -166,7 +176,7 @@ export function OfferCard({
                 )}
 
                 {/* Discount Badge - Top Left */}
-                <div className="absolute top-3 left-3">
+                <div className="absolute top-3 left-3 z-10">
                     <div className="bg-green-500 text-black px-2.5 py-1 rounded-lg font-bold text-xs shadow-lg">
                         {discountBadge}
                     </div>
@@ -177,7 +187,7 @@ export function OfferCard({
                     <motion.button
                         whileTap={{ scale: 0.8 }}
                         onClick={handleSave}
-                        className="absolute top-3 right-3 h-8 w-8 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center"
+                        className="absolute top-3 right-3 h-8 w-8 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center z-10"
                     >
                         <Heart
                             className={`h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-white/80'}`}
@@ -188,7 +198,7 @@ export function OfferCard({
 
                 {/* Rating - Bottom Right Overlay */}
                 {(offer as any).avgRating > 0 && (
-                    <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-md flex items-center gap-1">
+                    <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-md flex items-center gap-1 z-10">
                         <span className="text-white text-[10px] font-bold">{(offer as any).avgRating?.toFixed(1)}</span>
                         <Star className="h-2 w-2 text-yellow-400 fill-yellow-400" />
                         <span className="text-white/60 text-[9px]">({(offer as any).totalRatings})</span>
@@ -197,7 +207,7 @@ export function OfferCard({
             </div>
 
             {/* Content */}
-            <div className="p-3">
+            <div className="p-3 flex-1 flex flex-col">
                 <h3 className="font-semibold text-white text-[14px] truncate">
                     {offer.merchantName || 'Merchant'}
                 </h3>
@@ -205,7 +215,7 @@ export function OfferCard({
                     {offer.title}
                 </p>
                 {offer.merchantCity && (
-                    <div className="flex items-center gap-1 mt-2">
+                    <div className="flex items-center gap-1 mt-auto pt-2">
                         <MapPin className="h-3 w-3 text-[#555]" />
                         <span className="text-[#555] text-[11px]">{offer.merchantCity}</span>
                     </div>

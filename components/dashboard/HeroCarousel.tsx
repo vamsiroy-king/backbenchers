@@ -137,11 +137,14 @@ export function HeroCarousel({ banners, autoScrollInterval = 5000 }: HeroCarouse
                         {/* Background Image (Cover) */}
                         {currentBanner.imageUrl && (
                             <div className="absolute inset-0 z-0">
-                                <img
+                                <Image
                                     src={currentBanner.imageUrl}
-                                    className="w-full h-full object-cover"
-                                    alt=""
+                                    className="object-cover"
+                                    fill
+                                    priority
+                                    alt="Hero Banner"
                                     draggable={false}
+                                    sizes="(max-width: 768px) 100vw, 800px"
                                 />
                                 <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px]" /> {/* Premium blur overlay */}
                             </div>
@@ -154,7 +157,14 @@ export function HeroCarousel({ banners, autoScrollInterval = 5000 }: HeroCarouse
                             {currentBanner.logoUrl ? (
                                 <div className="flex flex-col items-center gap-2 mb-1">
                                     <div className="h-14 w-14 relative flex items-center justify-center filter drop-shadow-xl">
-                                        <img src={currentBanner.logoUrl} alt="" className="w-full h-full object-contain" draggable={false} />
+                                        <Image
+                                            src={currentBanner.logoUrl}
+                                            alt="Partner Logo"
+                                            fill
+                                            className="object-contain"
+                                            draggable={false}
+                                            sizes="56px"
+                                        />
                                     </div>
                                     <div className="px-3 py-0.5 bg-white/10 border border-white/5 rounded-full backdrop-blur-md">
                                         <span className="text-[9px] font-bold text-white/90 tracking-widest uppercase flex items-center gap-1.5">

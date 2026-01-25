@@ -859,7 +859,7 @@ export default function DashboardPage() {
                                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-50" />
 
                                                 {brand.logo ? (
-                                                    <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover p-2" />
+                                                    <Image src={brand.logo} alt={brand.name} fill className="object-cover p-2" sizes="72px" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center bg-[#111]">
                                                         <Globe className="h-6 w-6 text-blue-500" />
@@ -895,7 +895,7 @@ export default function DashboardPage() {
                                                 <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-50" />
 
                                                 {brand.logo ? (
-                                                    <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover p-1" />
+                                                    <Image src={brand.logo} alt={brand.name} fill className="object-cover p-1" sizes="72px" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center bg-[#111]">
                                                         <Store className="h-6 w-6 text-green-500" />
