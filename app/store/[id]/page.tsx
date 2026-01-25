@@ -4,6 +4,7 @@ import { ArrowLeft, MapPin, Phone, Navigation, Heart, ChevronRight, Share2, Tag,
 import Link from "next/link";
 import { useState, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { merchantService } from "@/lib/services/merchant.service";
 import { offerService } from "@/lib/services/offer.service";
 import { ratingService, MerchantRatingStats } from "@/lib/services/rating.service";
@@ -324,7 +325,14 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
 
                     {heroImage ? (
                         <div className="absolute inset-0">
-                            <img src={heroImage} alt={merchant.businessName} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                            <Image
+                                src={heroImage}
+                                alt={merchant.businessName}
+                                fill
+                                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                priority
+                                sizes="100vw"
+                            />
                             {/* Reduced Gradient Opacity */}
                             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/30" />
                         </div>
@@ -339,8 +347,14 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                         <div className="max-w-7xl mx-auto w-full px-8 flex items-end justify-between gap-8">
                             <div className="flex items-end gap-6 text-shadow-sm">
                                 {/* Logo */}
-                                <div className="h-32 w-32 rounded-2xl bg-white p-1 shadow-2xl shadow-black/50 shrink-0">
-                                    <img src={merchant.logo || '/placeholder.png'} alt="" className="w-full h-full object-contain rounded-xl" />
+                                <div className="h-32 w-32 rounded-2xl bg-white p-1 shadow-2xl shadow-black/50 shrink-0 relative">
+                                    <Image
+                                        src={merchant.logo || '/placeholder.png'}
+                                        alt={merchant.businessName}
+                                        fill
+                                        className="object-contain rounded-xl"
+                                        sizes="128px"
+                                    />
                                 </div>
 
                                 {/* Text Info */}
@@ -350,6 +364,12 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                         <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-white">
                                             {merchant.category}
                                         </span>
+                                        {bestDiscount > 0 && (
+                                            <span className="bg-green-500 text-black px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-[0_0_15px_rgba(34,197,94,0.4)] animate-pulse">
+                                                <Tag className="h-3 w-3 fill-black" />
+                                                {bestDiscount}% OFF
+                                            </span>
+                                        )}
                                         <span className="flex items-center gap-1.5">
                                             <MapPin className="h-4 w-4 text-green-400" />
                                             {merchant.city}
@@ -630,9 +650,15 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                     {/* Store Info */}
                     <div className="px-4 pt-4 pb-4 border-b border-[#222]">
                         <div className="flex items-start gap-3 mb-4">
-                            <div className="h-14 w-14 rounded-xl bg-black flex items-center justify-center flex-shrink-0 overflow-hidden border border-[#333]">
+                            <div className="h-14 w-14 rounded-xl bg-black flex items-center justify-center flex-shrink-0 overflow-hidden border border-[#333] relative">
                                 {merchant.logo ? (
-                                    <img src={merchant.logo} alt="" className="w-full h-full object-cover" />
+                                    <Image
+                                        src={merchant.logo}
+                                        alt={merchant.businessName}
+                                        fill
+                                        className="object-cover"
+                                        sizes="56px"
+                                    />
                                 ) : (
                                     <span className="text-white font-bold text-2xl">{merchant.businessName[0]}</span>
                                 )}
@@ -644,6 +670,11 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                                         <div className="flex items-center gap-1 bg-yellow-500/20 px-2 py-0.5 rounded-full">
                                             <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
                                             <span className="text-xs font-bold text-yellow-400">{ratingStats.avgRating.toFixed(1)}</span>
+                                        </div>
+                                    )}
+                                    {bestDiscount > 0 && (
+                                        <div className="flex items-center gap-1 bg-green-500 px-2 py-0.5 rounded-full shadow-lg shadow-green-500/20">
+                                            <span className="text-xs font-bold text-black">{bestDiscount}% OFF</span>
                                         </div>
                                     )}
                                 </div>

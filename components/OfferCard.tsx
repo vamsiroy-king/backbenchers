@@ -156,8 +156,8 @@ export function OfferCard({
             onClick={handleTap}
             className="relative bg-[#1a1a1a] rounded-2xl overflow-hidden cursor-pointer h-full flex flex-col"
         >
-            {/* Image Container */}
-            <div className="relative aspect-square bg-[#222] overflow-hidden">
+            {/* Image Container - Poster Aspect Ratio */}
+            <div className="relative aspect-[4/5] bg-[#222] overflow-hidden">
                 {offer.merchantLogo ? (
                     <Image
                         src={offer.merchantLogo}

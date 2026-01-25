@@ -166,9 +166,9 @@ export function HeroCarousel({ banners, autoScrollInterval = 5000 }: HeroCarouse
                                             sizes="56px"
                                         />
                                     </div>
-                                    <div className="px-3 py-0.5 bg-white/10 border border-white/5 rounded-full backdrop-blur-md">
-                                        <span className="text-[9px] font-bold text-white/90 tracking-widest uppercase flex items-center gap-1.5">
-                                            BACKBENCHERS <span className="text-white/40">✕</span> {currentBanner.organizerName || 'PARTNER'}
+                                    <div className="px-4 py-1.5 bg-white/10 border border-white/20 rounded-full backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                                        <span className="text-[11px] font-black text-white tracking-widest uppercase flex items-center gap-2">
+                                            BACKBENCHERS <span className="text-white/60 text-[10px]">✕</span> {currentBanner.organizerName || 'PARTNER'}
                                         </span>
                                     </div>
                                 </div>
