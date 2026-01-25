@@ -22,8 +22,22 @@ export interface TrendingOffer {
 }
 
 const transformTrendingOffer = (row: any): TrendingOffer => {
-    // Check if it's an online offer
+    // Check if it's an online offer (New System)
     if (row.online_offers) {
+        // Try to find discount in title if not present
+        const extractDiscount = (title: string): number => {
+            const text = title.toLowerCase();
+            const percentMatch = text.match(/(\d+)\s*%/);
+            if (percentMatch) return parseInt(percentMatch[1]);
+            const amountMatch = text.match(/(?:rs\.?|₹)\s*(\d+)/);
+            if (amountMatch) return parseInt(amountMatch[1]);
+            const flatMatch = text.match(/flat\s*(\d+)/);
+            if (flatMatch) return parseInt(flatMatch[1]);
+            return 0; // Fallback
+        };
+
+        const discountVal = extractDiscount(row.online_offers.title);
+
         return {
             id: row.id,
             offerId: row.online_offer_id,
@@ -33,8 +47,7 @@ const transformTrendingOffer = (row: any): TrendingOffer => {
             offer: {
                 id: row.online_offers.id,
                 title: row.online_offers.title,
-                // Parse discount from title if not explicit (Online offers might vary)
-                discountValue: 0,
+                discountValue: discountVal > 0 ? discountVal : (row.online_offers.title.includes('Free') ? 100 : 0),
                 type: 'online_coupon',
                 merchantName: row.online_offers.brand?.name || 'Online Brand',
                 merchantId: row.online_offers.brand_id,
@@ -44,23 +57,35 @@ const transformTrendingOffer = (row: any): TrendingOffer => {
         };
     }
 
-    // Default to offline offer
+    // Offline offer
+    if (row.offers) {
+        return {
+            id: row.id,
+            offerId: row.offer_id,
+            section: row.section || 'offline',
+            position: row.position,
+            createdAt: row.created_at,
+            offer: {
+                id: row.offers.id,
+                title: row.offers.title,
+                discountValue: row.offers.discount_value || 0,
+                type: row.offers.type,
+                merchantName: row.offers.merchants?.business_name,
+                merchantId: row.offers.merchant_id,
+                merchantCity: row.offers.merchants?.city,
+                merchantLogo: row.offers.merchants?.logo_url,
+            }
+        };
+    }
+
+    // Fallback for broken/missing relations
     return {
         id: row.id,
-        offerId: row.offer_id,
-        section: row.section || 'offline',
+        offerId: 'missing',
+        section: 'offline',
         position: row.position,
         createdAt: row.created_at,
-        offer: row.offers ? {
-            id: row.offers.id,
-            title: row.offers.title,
-            discountValue: row.offers.discount_value,
-            type: row.offers.type,
-            merchantName: row.offers.merchants?.business_name,
-            merchantId: row.offers.merchant_id,
-            merchantCity: row.offers.merchants?.city,
-            merchantLogo: row.offers.merchants?.logo_url,
-        } : undefined,
+        offer: undefined
     };
 };
 
@@ -384,7 +409,8 @@ export const trendingService = {
                     return {
                         id: o.id,
                         title: o.title,
-                        discountValue: discountVal,
+                        // Ensure valid fallback if 0
+                        discountValue: discountVal > 0 ? discountVal : (o.title?.toLowerCase().includes('free') ? 100 : 0),
                         type: 'coupon', // Default type for coupon-based offers
                         merchantName: brand.name,
                         merchantId: o.brand_id, // Use brand_id as merchantId

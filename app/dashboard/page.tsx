@@ -49,14 +49,11 @@ const CATEGORIES = [
     { id: 3, name: "Fitness", symbol: "F³", tagline: "Train smarter", color: "bg-blue-600", icon: "💪" },
 ];
 
-// Top Brands
-const TOP_BRANDS = [
-    { id: 1, name: "Starbucks", emoji: "☕", discount: "15% OFF" },
-    { id: 2, name: "McDonald's", emoji: "🍔", discount: "10% OFF" },
-    { id: 3, name: "Nike", emoji: "👟", discount: "20% OFF" },
-    { id: 4, name: "Apple", emoji: "🍎", discount: "EDU Price" },
-    { id: 5, name: "Zara", emoji: "👕", discount: "25% OFF" },
-    { id: 6, name: "Netflix", emoji: "🎬", discount: "Student" },
+// Top Brands (Static Fallback)
+const STATIC_TOP_BRANDS = [
+    { id: 1, name: "Starbucks", logo: "/brands/starbucks.png", category: "Food" },
+    { id: 2, name: "McDonald's", logo: "/brands/mcdonalds.png", category: "Food" },
+    { id: 3, name: "Nike", logo: "/brands/nike.png", category: "Fashion" },
 ];
 
 // Offers
@@ -74,7 +71,6 @@ const OFFLINE_OFFERS = [
 // All searchable items
 const ALL_ITEMS = [
     ...CATEGORIES.map(c => ({ type: 'category', name: c.name, emoji: c.icon, color: c.color })),
-    ...TOP_BRANDS.map(b => ({ type: 'brand', name: b.name, emoji: b.emoji, discount: b.discount })),
     { type: 'offer', name: 'Spotify', emoji: '🎵', discount: 'Student Plan' },
     { type: 'offer', name: 'Netflix', emoji: '🎬', discount: '3 Months Free' },
     { type: 'location', name: 'Bengaluru', emoji: '📍', info: '45 offers' },
@@ -147,20 +143,11 @@ export default function DashboardPage() {
         return [];
     });
 
-    // Top brands from admin - Initialize from cache
-    const [topBrandsData, setTopBrandsData] = useState<{ id: string; name: string; logo: string | null; category: string; discount?: string }[]>(() => {
-        if (typeof window !== 'undefined') {
-            const cached = dashboardCache.getTopBrands();
-            if (cached) {
-                return cached.map((b: any) => ({
-                    id: b.merchantId || b.id,
-                    name: b.merchant?.businessName || b.name || 'Unknown',
-                    logo: b.merchant?.logo || b.logo || null,
-                    category: b.merchant?.category || b.category || 'Store',
-                }));
-            }
-        }
-        return [];
+    // Split Top Brands (Online vs Offline)
+    // We use a broader state to hold both lists
+    const [topBrandsState, setTopBrandsState] = useState<{ online: any[], offline: any[] }>({
+        online: [],
+        offline: []
     });
 
     // New merchants for "New on BackBenchers" section
@@ -278,12 +265,17 @@ export default function DashboardPage() {
                 if (cachedOffers) setRealOffers(cachedOffers);
                 if (cachedTrendingOffline) setTrendingOffline(cachedTrendingOffline);
                 if (cachedTrendingOnline) setTrendingOnline(cachedTrendingOnline);
-                if (cachedTopBrands) setTopBrandsData(cachedTopBrands.map((b: any) => ({
-                    id: b.merchantId || b.id,
-                    name: b.merchant?.businessName || b.name || 'Unknown',
-                    logo: b.merchant?.logo || b.logo || null,
-                    category: b.merchant?.category || b.category || 'Store',
-                })));
+                if (cachedTopBrands) {
+                    const mapped = cachedTopBrands.map((b: any) => ({
+                        id: b.merchantId || b.id,
+                        name: b.merchant?.businessName || b.name || 'Unknown',
+                        logo: b.merchant?.logo || b.logo || null,
+                        category: b.merchant?.category || b.category || 'Store',
+                    }));
+                    const online = mapped.filter((b: any) => b.category === 'Startups/Apps' || b.category === 'Online');
+                    const offline = mapped.filter((b: any) => b.category !== 'Startups/Apps' && b.category !== 'Online');
+                    setTopBrandsState({ online, offline });
+                }
                 if (cachedNewMerchants) setNewMerchants(cachedNewMerchants);
                 if (cachedBanners && cachedBanners.length > 0) setHeroBanners(cachedBanners);
                 if (cachedFavorites) setFavoriteIds(cachedFavorites);
@@ -381,26 +373,56 @@ export default function DashboardPage() {
                     }
                 }
 
-                // Fetch top brands from admin dashboard (if not cached)
-                if (!cachedTopBrands) {
+                // Fetch top brands and split into Online/Offline for Marquee
+                if (contentSettings.showTopBrands) {
                     const brandsResult = await topBrandsService.getAll();
                     if (brandsResult.success && brandsResult.data) {
-                        dashboardCache.setTopBrands(brandsResult.data);
-                        setTopBrandsData(brandsResult.data.map(b => ({
-                            id: b.merchantId,
-                            name: b.merchant?.businessName || 'Unknown',
-                            logo: b.merchant?.logo || null,
-                            category: b.merchant?.category || 'Store',
-                        })));
-                    }
-                }
+                        const allBrands = brandsResult.data;
 
-                // Fetch new merchants for "New on BackBenchers" (if not cached)
-                if (!cachedNewMerchants) {
-                    const newMerchantsResult = await newMerchantService.getNewMerchants(7, 10, cityToUse || undefined);
-                    if (newMerchantsResult.success && newMerchantsResult.data) {
-                        setNewMerchants(newMerchantsResult.data);
-                        dashboardCache.setNewMerchants(newMerchantsResult.data, cityToUse || undefined);
+                        // We need to fetch full merchant details to know if they are online/offline
+                        // Or we can rely on heuristic: Brands with "online" category or empty city?
+                        // Better: Fetch trending online to get online brands, and approved merchants for offline.
+                        // Let's mix explicitly featured brands with high-performing ones.
+
+                        // For the Marquee, we strictly want:
+                        // Row 1 (Left): Online Brands
+                        const online = allBrands.filter(b => b.merchant?.category === 'Startups/Apps' || b.merchant?.category === 'Online').map(b => ({
+                            id: b.merchantId,
+                            name: b.merchant?.businessName,
+                            logo: b.merchant?.logo,
+                            category: b.merchant?.category
+                        }));
+
+                        // Row 2 (Right): Offline Stores
+                        const offline = allBrands.filter(b => b.merchant?.category !== 'Startups/Apps' && b.merchant?.category !== 'Online').map(b => ({
+                            id: b.merchantId,
+                            name: b.merchant?.businessName,
+                            logo: b.merchant?.logo,
+                            category: b.merchant?.category
+                        }));
+
+                        // If lists are too short, fetch generic top merchants to fill
+                        if (online.length < 5) {
+                            const { data: trendingOnline } = await trendingService.getBySection('online');
+                            if (trendingOnline) {
+                                trendingOnline.slice(0, 10).forEach(t => {
+                                    if (!online.find(b => b.id === t.offer?.merchantId)) {
+                                        online.push({
+                                            id: t.offer?.merchantId || 'unknown',
+                                            name: t.offer?.merchantName || 'Brand',
+                                            logo: t.offer?.merchantLogo,
+                                            category: 'Online'
+                                        });
+                                    }
+                                });
+                            }
+                        }
+
+                        // Sanitize duplicates and empty logos
+                        const cleanOnline = online.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i && v.logo);
+                        const cleanOffline = offline.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i && v.logo);
+
+                        setTopBrandsState({ online: cleanOnline, offline: cleanOffline });
                     }
                 }
             } catch (error) {
@@ -729,9 +751,51 @@ export default function DashboardPage() {
 
                 {/* Hero Banner - NEW COMPONENT */}
                 {contentSettings.showHeroBanners && (
-                    <div className="-mx-5 md:mx-0 md:rounded-2xl overflow-hidden mb-6">
+                    <div className="-mx-5 md:mx-0 md:rounded-2xl overflow-hidden mb-8">
                         <HeroCarousel banners={heroBanners} />
                     </div>
+                )}
+
+                {/* Top Brands Marquee - SCROLL LINKED */}
+                {contentSettings.showTopBrands && (topBrandsState.online.length > 0 || topBrandsState.offline.length > 0) && (
+                    <section className="mb-8">
+                        {/* Header */}
+                        <div className="flex items-center justify-center mb-5">
+                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                            <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TOP BRANDS</span>
+                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                        </div>
+
+                        <div className="space-y-4">
+                            {/* Row 1: Online Brands (Left) */}
+                            {topBrandsState.online.length > 0 && (
+                                <ScrollVelocityMarquee direction="left" speed={1.5}>
+                                    {topBrandsState.online.map((brand) => (
+                                        <div key={`on-${brand.id}`} className="flex flex-col items-center gap-2 w-20 flex-shrink-0 cursor-pointer" onClick={() => router.push(`/dashboard/online-brand/${brand.id}`)}>
+                                            <div className="h-16 w-16 rounded-2xl bg-white p-2 shadow-sm border border-black/5 flex items-center justify-center overflow-hidden">
+                                                <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" />
+                                            </div>
+                                            <span className={`text-[10px] font-medium truncate w-full text-center ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>{brand.name}</span>
+                                        </div>
+                                    ))}
+                                </ScrollVelocityMarquee>
+                            )}
+
+                            {/* Row 2: Offline Brands (Right) */}
+                            {topBrandsState.offline.length > 0 && (
+                                <ScrollVelocityMarquee direction="right" speed={1.5}>
+                                    {topBrandsState.offline.map((brand) => (
+                                        <div key={`off-${brand.id}`} className="flex flex-col items-center gap-2 w-20 flex-shrink-0 cursor-pointer" onClick={() => router.push(`/store/${brand.id}`)}>
+                                            <div className="h-16 w-16 rounded-2xl bg-white p-2 shadow-sm border border-black/5 flex items-center justify-center overflow-hidden">
+                                                <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" />
+                                            </div>
+                                            <span className={`text-[10px] font-medium truncate w-full text-center ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>{brand.name}</span>
+                                        </div>
+                                    ))}
+                                </ScrollVelocityMarquee>
+                            )}
+                        </div>
+                    </section>
                 )}
 
                 {/* Categories - Connected to Hero Fade */}
@@ -827,121 +891,21 @@ export default function DashboardPage() {
                     </section>
                 )}
 
-                {/* Top Brands - Premium Split Marquee Layout */}
-                {contentSettings.showTopBrands && topBrandsData.length > 0 && (
-                    <section className="py-8 space-y-10">
-                        {/* Section Header */}
-                        <div className="flex items-center justify-center mb-6">
-                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                            <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>PARTNER BRANDS</span>
-                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                        </div>
 
-                        {/* ROW 1: ONLINE BRANDS (Scroll Left) */}
-                        {topBrandsData.some(b => b.category === 'Online' || (b as any).merchant?.isOnline) && (
-                            <div>
-                                <h4 className="px-6 text-xs font-bold text-blue-400 mb-4 uppercase tracking-wider flex items-center gap-1.5 opacity-90">
-                                    <Globe className="h-3 w-3" /> Online Partners
-                                </h4>
-                                <AutoScrollingRow direction="left" speed={0.5} className="-mx-5 px-5 pb-4">
-                                    {/* Triplicating data for infinite feel */}
-                                    {[...topBrandsData, ...topBrandsData, ...topBrandsData]
-                                        .filter(b => b.category === 'Online' || (b as any).merchant?.isOnline)
-                                        .slice(0, 15) // Limit total items to prevent DOM overload
-                                        .map((brand, idx) => (
-                                            <motion.button
-                                                key={`${brand.id}-online-${idx}`}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => {
-                                                    if (!isVerified) {
-                                                        setShowVerifyModal(true);
-                                                    } else {
-                                                        router.push(`/dashboard/online-brand/${brand.id}`);
-                                                    }
-                                                }}
-                                                className="flex-shrink-0 flex flex-col items-center gap-2 w-[110px] group"
-                                            >
-                                                <div className="relative h-[110px] w-[110px] aspect-square rounded-2xl overflow-hidden border border-blue-500/30 bg-[#0a101f] shadow-[0_0_20px_rgba(59,130,246,0.15)] group-hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] group-hover:border-blue-400 transition-all duration-300">
-                                                    {/* Premium Blue Glow Background */}
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-transparent to-transparent opacity-60" />
-                                                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/40 via-transparent to-transparent" />
 
-                                                    {/* Logo Container */}
-                                                    <div className="absolute inset-2 bg-black/40 backdrop-blur-sm rounded-xl flex items-center justify-center p-3 border border-white/5 group-hover:border-white/10 transition-colors">
-                                                        {brand.logo ? (
-                                                            <div className="relative w-full h-full">
-                                                                <Image src={brand.logo} alt={brand.name} fill className="object-contain drop-shadow-lg" sizes="110px" />
-                                                            </div>
-                                                        ) : (
-                                                            <Globe className="h-8 w-8 text-blue-400" />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <span className="text-[11px] font-semibold text-blue-100/60 truncate w-full text-center group-hover:text-blue-400 transition-colors">{brand.name}</span>
-                                            </motion.button>
-                                        ))}
-                                </AutoScrollingRow>
-                            </div>
-                        )}
-
-                        {/* ROW 2: OFFLINE BRANDS (Scroll Right) */}
-                        {topBrandsData.some(b => b.category !== 'Online' && !(b as any).merchant?.isOnline) && (
-                            <div>
-                                <h4 className="px-6 text-xs font-bold text-green-400 mb-4 uppercase tracking-wider flex items-center gap-1.5 opacity-90">
-                                    <Store className="h-3 w-3" /> In-Store Partners
-                                </h4>
-                                <AutoScrollingRow direction="right" speed={0.5} className="-mx-5 px-5">
-                                    {/* Triplicating data for infinite feel */}
-                                    {[...topBrandsData, ...topBrandsData, ...topBrandsData]
-                                        .filter(b => b.category !== 'Online' && !(b as any).merchant?.isOnline)
-                                        .slice(0, 15) // Limit
-                                        .map((brand, idx) => (
-                                            <motion.button
-                                                key={`${brand.id}-offline-${idx}`}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => {
-                                                    if (!isVerified) {
-                                                        setShowVerifyModal(true);
-                                                    } else {
-                                                        router.push(`/store/${brand.id}`);
-                                                    }
-                                                }}
-                                                className="flex-shrink-0 flex flex-col items-center gap-2 w-[110px] group"
-                                            >
-                                                <div className="relative h-[110px] w-[110px] aspect-square rounded-2xl overflow-hidden border border-white/[0.08] bg-[#111] shadow-lg group-hover:border-green-500/50 transition-all duration-300">
-                                                    {/* Green Touch Background */}
-                                                    <div className="absolute top-0 right-0 w-16 h-16 bg-green-500/10 blur-2xl rounded-full translate-x-4 -translate-y-4" />
-
-                                                    {/* Logo */}
-                                                    <div className="absolute inset-0 flex items-center justify-center p-4">
-                                                        {brand.logo ? (
-                                                            <div className="relative w-full h-full">
-                                                                <Image src={brand.logo} alt={brand.name} fill className="object-contain" sizes="110px" />
-                                                            </div>
-                                                        ) : (
-                                                            <Store className="h-8 w-8 text-green-500/50" />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <span className="text-[11px] font-medium text-white/50 truncate w-full text-center group-hover:text-white transition-colors">{brand.name}</span>
-                                            </motion.button>
-                                        ))}
-                                </AutoScrollingRow>
-                            </div>
-                        )}
-                    </section>
-                )}
 
                 {/* Trending Offers - Online/Offline Tabs with Discount Cards */}
-                {contentSettings.showTrending && (
-                    <TrendingSection
-                        onlineOffers={trendingOnline}
-                        offlineOffers={cityFilteredTrendingOffline}
-                        isVerified={isVerified}
-                        onVerifyClick={() => setShowVerifyModal(true)}
-                        city={selectedCity}
-                    />
-                )}
+                {
+                    contentSettings.showTrending && (
+                        <TrendingSection
+                            onlineOffers={trendingOnline}
+                            offlineOffers={cityFilteredTrendingOffline}
+                            isVerified={isVerified}
+                            onVerifyClick={() => setShowVerifyModal(true)}
+                            city={selectedCity}
+                        />
+                    )
+                }
             </main >
 
 

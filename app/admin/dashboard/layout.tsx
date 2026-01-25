@@ -6,8 +6,10 @@ import { useState, createContext, useContext, useEffect } from "react";
 import { Toaster } from "sonner";
 
 // Context for sidebar state
+// Context for sidebar state
 const SidebarContext = createContext({ collapsed: false, setCollapsed: (v: boolean) => { } });
-export const useSidebar = () => useContext(SidebarContext);
+// export const useSidebar = () => useContext(SidebarContext); // Removed to fix build error (Next.js layout export rules)
+
 
 export default function AdminDashboardLayout({
     children,

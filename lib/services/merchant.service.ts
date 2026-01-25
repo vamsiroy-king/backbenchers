@@ -48,7 +48,7 @@ export const merchantService = {
                     .from('pending_merchants')
                     .select('*')
                     .eq('status', 'pending')
-                    .order('submitted_at', { ascending: false });
+                    .order('created_at', { ascending: false });
 
                 if (error) {
                     return { success: false, data: null, error: error.message };
@@ -76,7 +76,7 @@ export const merchantService = {
                     status: 'pending',
                     totalOffers: 0,
                     totalRedemptions: 0,
-                    createdAt: row.submitted_at,
+                    createdAt: row.created_at,
                     latitude: row.latitude,
                     longitude: row.longitude,
                     googleMapsLink: row.google_maps_link,
@@ -383,9 +383,9 @@ export const merchantService = {
 
             const { data, error } = await supabase
                 .from('pending_merchants')
-                .select('id, business_name, status, submitted_at')
+                .select('id, business_name, status, created_at')
                 .eq('user_id', user.id)
-                .order('submitted_at', { ascending: false })
+                .order('created_at', { ascending: false })
                 .limit(1)
                 .single();
 
@@ -399,7 +399,7 @@ export const merchantService = {
                     id: data.id,
                     businessName: data.business_name,
                     status: data.status as 'pending' | 'rejected',
-                    submittedAt: data.submitted_at
+                    submittedAt: data.created_at
                 },
                 error: null
             };
@@ -474,7 +474,7 @@ export const merchantService = {
                 // gst_number: pendingData.gst_number, // Column doesn't exist in merchants
                 // pan_number: pendingData.pan_number, // Column doesn't exist in merchants
                 status: 'approved',
-                created_at: pendingData.submitted_at,
+                created_at: pendingData.created_at,
                 approved_at: new Date().toISOString()
             };
 
