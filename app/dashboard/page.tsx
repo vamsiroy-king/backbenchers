@@ -760,19 +760,20 @@ export default function DashboardPage() {
 
 
                 {/* Categories - Connected to Hero Fade */}
+                {/* Categories - Connected to Hero Fade */}
                 <section className="pb-4 relative z-10">
                     <div className="flex items-center justify-center mb-5">
                         <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                         <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>SHOP BY CATEGORY</span>
                         <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                     </div>
-                    {/* Fixed: Use flex for desktop to prevent huge stretched cards */}
-                    <div className="grid grid-cols-4 gap-2 md:flex md:justify-center md:gap-6">
+                    {/* Horizontal Scroll Categories - Stories Style */}
+                    <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 snap-x snap-mandatory">
                         {[
-                            { line1: "Food", line2: "& Beverages", image: "/assets/categories/food_ultra.png", color: isLightTheme ? "from-orange-100 to-orange-200" : "from-orange-900/50 to-orange-950/80", category: "Food" },
-                            { line1: "Fashion", line2: "& Apparel", image: "/assets/categories/fashion_ultra.png", color: isLightTheme ? "from-pink-100 to-pink-200" : "from-pink-900/50 to-pink-950/80", category: "Fashion" },
-                            { line1: "Health", line2: "& Fitness", image: "/assets/categories/fitness_ultra.png", color: isLightTheme ? "from-blue-100 to-blue-200" : "from-blue-900/50 to-blue-950/80", category: "Fitness" },
-                            { line1: "Skincare", line2: "& Beauty", image: "/assets/categories/beauty_ultra.png", color: isLightTheme ? "from-purple-100 to-purple-200" : "from-purple-900/50 to-purple-950/80", category: "Beauty" },
+                            { line1: "Food", line2: "& Beverages", image: "/assets/categories/food_ultra.png", color: isLightTheme ? "from-orange-100 to-orange-200" : "from-orange-900/40 to-orange-900/20", category: "Food" },
+                            { line1: "Fashion", line2: "& Apparel", image: "/assets/categories/fashion_ultra.png", color: isLightTheme ? "from-pink-100 to-pink-200" : "from-pink-900/40 to-pink-900/20", category: "Fashion" },
+                            { line1: "Health", line2: "& Fitness", image: "/assets/categories/fitness_ultra.png", color: isLightTheme ? "from-blue-100 to-blue-200" : "from-blue-900/40 to-blue-900/20", category: "Fitness" },
+                            { line1: "Skincare", line2: "& Beauty", image: "/assets/categories/beauty_ultra.png", color: isLightTheme ? "from-purple-100 to-purple-200" : "from-purple-900/40 to-purple-900/20", category: "Beauty" },
                         ].map((cat) => (
                             <motion.div
                                 key={cat.category}
@@ -781,10 +782,10 @@ export default function DashboardPage() {
                                     vibrate('light');
                                     router.push(`/dashboard/explore?category=${cat.category}`);
                                 }}
-                                className={`aspect-square rounded-xl bg-gradient-to-br ${cat.color} border flex flex-col items-center justify-center relative overflow-hidden transition-all cursor-pointer ${isLightTheme ? 'border-gray-200 hover:border-gray-300' : 'border-white/[0.06] hover:border-white/[0.12]'} md:w-28 md:h-28`}
+                                className={`snap-center flex-shrink-0 w-28 aspect-[3/4] rounded-2xl bg-gradient-to-br ${cat.color} border flex flex-col items-center justify-center relative overflow-hidden transition-all cursor-pointer ${isLightTheme ? 'border-gray-200 hover:border-gray-300' : 'border-white/[0.06] hover:border-white/[0.12]'} shadow-lg shadow-black/20`}
                             >
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="relative w-full h-full mix-blend-screen opacity-100">
+                                    <div className="relative w-full h-full mix-blend-overlay opacity-80">
                                         <Image
                                             src={cat.image}
                                             alt={cat.category}
@@ -792,10 +793,11 @@ export default function DashboardPage() {
                                             className="object-cover scale-110"
                                         />
                                     </div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90" />
                                 </div>
-                                <div className="relative z-10 flex flex-col items-center justify-end h-full pb-2 md:pb-3 w-full bg-gradient-to-t from-black/80 via-black/20 to-transparent">
-                                    <span className="text-[11px] font-bold leading-tight text-white drop-shadow-md md:text-sm">{cat.line1}</span>
-                                    <span className="text-[9px] font-medium leading-tight text-white/90 drop-shadow-sm md:text-[10px]">{cat.line2}</span>
+                                <div className="relative z-10 flex flex-col items-center justify-end h-full pb-4 w-full px-2 text-center">
+                                    <span className="text-sm font-bold leading-none text-white drop-shadow-lg mb-1">{cat.line1}</span>
+                                    <span className="text-[10px] font-medium leading-none text-white/70 drop-shadow-md">{cat.line2}</span>
                                 </div>
                             </motion.div>
                         ))}
@@ -811,41 +813,52 @@ export default function DashboardPage() {
                             <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>NEW STORES</span>
                             <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
                         </div>
-                        {/* Mobile: Horizontal Scroll */}
-                        <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 pb-4 gap-4">
+                        {/* Mobile: Horizontal Scroll - Trending Style Large Cards */}
+                        <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 pb-4 gap-4 snap-x snap-mandatory">
                             {newMerchants.map((merchant) => (
-                                <div key={merchant.id} className="w-[110px] flex-shrink-0 relative group">
+                                <div key={merchant.id} className="w-[260px] flex-shrink-0 relative group snap-center">
                                     {/* New Badge Ribbon */}
-                                    <div className="absolute top-2 right-2 z-10 bg-green-500 text-black text-[9px] font-bold px-2 py-0.5 rounded-full shadow-lg shadow-green-500/20 flex items-center gap-1">
-                                        <Sparkles className="h-2.5 w-2.5 fill-black" />
-                                        NEW
+                                    <div className="absolute top-4 left-4 z-10 bg-green-500 text-black text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg shadow-green-500/20 flex items-center gap-1.5 ring-2 ring-black/20">
+                                        <Sparkles className="h-3 w-3 fill-black" />
+                                        NEW ARRIVAL
                                     </div>
-                                    <OfferCard
-                                        offer={{
-                                            id: merchant.id,
-                                            merchantId: merchant.id,
-                                            merchantName: merchant.businessName,
-                                            merchantLogo: merchant.logoUrl,
-                                            title: merchant.category || "New Store",
-                                            description: merchant.hasOffers ? "New Arrival" : "Coming Soon",
-                                            type: merchant.discountType || "percentage",
-                                            discountValue: merchant.bestDiscount || 0,
-                                            status: "active",
-                                            totalRedemptions: 0,
-                                            createdAt: merchant.createdAt,
-                                            // Rating data
-                                            avgRating: merchant.avgRating,
-                                            totalRatings: merchant.totalRatings
-                                        } as any}
-                                        onClick={() => {
-                                            if (!isVerified) {
-                                                setShowVerifyModal(true);
-                                            } else {
-                                                router.push(`/store/${merchant.id}`);
-                                            }
-                                        }}
-                                        priority={false}
-                                    />
+                                    <div className="h-[350px]">
+                                        <OfferCard
+                                            offer={{
+                                                id: merchant.id,
+                                                merchantId: merchant.id,
+                                                merchantName: merchant.businessName,
+                                                merchantLogo: merchant.logoUrl,
+                                                title: merchant.category || "New Store",
+                                                description: merchant.hasOffers ? "New Arrival" : "Coming Soon",
+                                                type: merchant.discountType || "percentage",
+                                                discountValue: merchant.bestDiscount || 0,
+                                                status: "active",
+                                                totalRedemptions: 0,
+                                                createdAt: merchant.createdAt,
+                                                avgRating: merchant.avgRating,
+                                                totalRatings: merchant.totalRatings
+                                            } as any}
+                                            variant="default" // Use Default (Poster) or Featured? Default is Grid. Featured is Large Hero.
+                                            // Actually Trending uses TrendingPosterCard which is CUSTOM. 
+                                            // OfferCard 'default' is the vertical card. 'featured' is horizontal 16/9.
+                                            // User said "Like trending section". Trending uses TrendingPosterCard (260x350).
+                                            // OfferCard default is `aspect-[4/5]` ~ 260x325. 
+                                            // I will use `TrendingPosterCard` if I can, OR just make OfferCard container matching size.
+                                            // I will use OfferCard but forced in a container of 260x350 to match.
+                                            // ACTUALLY, TrendingPosterCard is visually distinct (black, big text). OfferCard is Image + Text below.
+                                            // User said "design... like trending". He might mean "Big Black Card" look?
+                                            // Or just "Big Vertical Card". I will stick to "Big Vertical Card" (260px).
+                                            onClick={() => {
+                                                if (!isVerified) {
+                                                    setShowVerifyModal(true);
+                                                } else {
+                                                    router.push(`/store/${merchant.id}`);
+                                                }
+                                            }}
+                                            priority={false}
+                                        />
+                                    </div>
                                 </div>
                             ))}
                         </div>

@@ -129,15 +129,15 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
                                             if (index === 1 && typeof document !== 'undefined') {
                                                 const container = document.getElementById('trending-scroll-container');
                                                 if (container) {
-                                                    // Add delay to ensure layout
+                                                    // Trigger scroll after small delay to ensure rendering
                                                     setTimeout(() => {
                                                         const cardWidth = 260;
                                                         const gap = 16;
-                                                        // Center the 2nd card (Index 1)
-                                                        // Offset = (CardWidth + Gap) - (ContainerWidth/2) + (CardWidth/2)
-                                                        // Assuming 390px mobile width: 276 - 195 + 130 = 211
-                                                        // We can also just guess a safe value that pushes 1st card partially offscreen
-                                                        container.scrollTo({ left: 216, behavior: 'smooth' });
+                                                        // Center the 2nd card
+                                                        // Offset = (260 + 16) - (390/2 - 260/2) = 276 - 65 = 211.
+                                                        // My previous calc was 216. 
+                                                        // Let's try 230 to be safer / more "middle".
+                                                        container.scrollTo({ left: 230, behavior: 'smooth' });
                                                     }, 500);
                                                 }
                                             }
