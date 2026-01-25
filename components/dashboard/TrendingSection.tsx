@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, TrendingUp, Store, Globe, ChevronRight } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { OfferCard } from "@/components/OfferCard";
+import { TrendingUp, Store, Globe, Sparkles } from 'lucide-react';
+import { TrendingOfferCard } from './TrendingOfferCard';
 
 interface TrendingSectionProps {
     onlineOffers: any[];
@@ -19,7 +18,6 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
     onVerifyClick,
     city
 }) => {
-    const router = useRouter();
     // Initialize from localStorage strictly to match user preference persistence
     const [activeTab, setActiveTab] = useState<'offline' | 'online'>(() => {
         if (typeof window !== 'undefined') {
@@ -28,13 +26,11 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
         return 'offline';
     });
 
-    const isLightTheme = false; // Force dark theme aesthetic as per District design
-
     const handleTabChange = (tab: 'offline' | 'online') => {
         setActiveTab(tab);
         if (typeof window !== 'undefined') {
             localStorage.setItem('trendingTab', tab);
-            if (navigator?.vibrate) navigator.vibrate(10); // Light haptic
+            if (navigator?.vibrate) navigator.vibrate(10);
         }
     };
 
@@ -43,110 +39,146 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
 
     return (
         <section className="pb-8 relative overflow-hidden">
-            {/* Header: Centered Divider Style */}
+            {/* Section Header - Premium Style */}
             <div className="flex items-center justify-center mb-6 px-4">
-                <div className="flex-1 h-px bg-white/[0.08]" />
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
                 <div className="mx-4 flex flex-col items-center">
-                    <div className="flex items-center gap-1.5 mb-1">
-                        <TrendingUp className="h-3 w-3 text-green-500" />
-                        <span className="text-[10px] tracking-[0.2em] font-medium text-white/60 uppercase">Trending Now</span>
+                    <div className="flex items-center gap-2 bg-white/[0.03] px-4 py-2 rounded-full border border-white/[0.06]">
+                        <div className="relative">
+                            <TrendingUp className="h-4 w-4 text-green-500" />
+                            <Sparkles className="absolute -top-1 -right-1 h-2 w-2 text-yellow-400" />
+                        </div>
+                        <span className="text-xs tracking-[0.15em] font-bold text-white/80 uppercase">Trending Now</span>
                     </div>
                 </div>
-                <div className="flex-1 h-px bg-white/[0.08]" />
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
             </div>
 
-            {/* Toggle: Glassmorphic Pill */}
+            {/* Premium Toggle Pills */}
             <div className="flex justify-center mb-8 relative z-10">
-                <div className="flex p-1 bg-white/[0.03] rounded-full border border-white/[0.08] backdrop-blur-md">
+                <div className="flex p-1.5 bg-black/40 rounded-2xl border border-white/[0.08] backdrop-blur-xl shadow-2xl">
+                    {/* In-Store Tab */}
                     <button
                         onClick={() => handleTabChange('offline')}
-                        className={`relative px-5 py-2 rounded-full text-xs font-bold transition-all duration-300 ${activeTab === 'offline'
-                            ? 'text-black shadow-[0_0_20px_rgba(34,197,94,0.3)]'
-                            : 'text-white/40 hover:text-white/70'
+                        className={`relative px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 ${activeTab === 'offline'
+                                ? 'text-black'
+                                : 'text-white/40 hover:text-white/70'
                             }`}
                     >
                         {activeTab === 'offline' && (
                             <motion.div
-                                layoutId="activeTabBg"
-                                className="absolute inset-0 bg-green-500 rounded-full"
-                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                layoutId="trendingTabBg"
+                                className="absolute inset-0 bg-gradient-to-r from-green-400 to-green-500 rounded-xl shadow-lg shadow-green-500/30"
+                                transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
                             />
                         )}
-                        <span className="relative z-10 flex items-center gap-1.5">
-                            <Store className="h-3 w-3" />
+                        <span className="relative z-10 flex items-center gap-2">
+                            <Store className="h-3.5 w-3.5" />
                             In-Store
                         </span>
                     </button>
+
+                    {/* Online Tab */}
                     <button
                         onClick={() => handleTabChange('online')}
-                        className={`relative px-5 py-2 rounded-full text-xs font-bold transition-all duration-300 ${activeTab === 'online'
-                            ? 'text-black shadow-[0_0_20px_rgba(34,197,94,0.3)]'
-                            : 'text-white/40 hover:text-white/70'
+                        className={`relative px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 ${activeTab === 'online'
+                                ? 'text-black'
+                                : 'text-white/40 hover:text-white/70'
                             }`}
                     >
                         {activeTab === 'online' && (
                             <motion.div
-                                layoutId="activeTabBg"
-                                className="absolute inset-0 bg-green-500 rounded-full"
-                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                layoutId="trendingTabBg"
+                                className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-500 rounded-xl shadow-lg shadow-blue-500/30"
+                                transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
                             />
                         )}
-                        <span className="relative z-10 flex items-center gap-1.5">
-                            <Globe className="h-3 w-3" />
+                        <span className="relative z-10 flex items-center gap-2">
+                            <Globe className="h-3.5 w-3.5" />
                             Online
                         </span>
                     </button>
                 </div>
             </div>
 
-            {/* Content Area */}
+            {/* Count Badge */}
+            {!isEmpty && (
+                <div className="flex justify-center mb-4">
+                    <span className={`text-[10px] font-medium px-3 py-1 rounded-full ${activeTab === 'offline'
+                            ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                            : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                        }`}>
+                        {currentOffers.length} {activeTab === 'offline' ? 'Store' : 'Online'} Deals Available
+                    </span>
+                </div>
+            )}
+
+            {/* Content Area - Horizontal Scroll */}
             <div className="relative w-full">
-                {/* Scroll Container */}
                 <div
-                    className="flex overflow-x-auto pb-8 -mx-5 px-5 snap-x snap-mandatory scrollbar-hide"
+                    className="flex overflow-x-auto pb-6 -mx-5 px-5 snap-x snap-mandatory scrollbar-hide gap-4"
                     style={{ scrollBehavior: 'smooth' }}
                 >
                     <AnimatePresence mode='wait'>
                         {!isEmpty ? (
-                            currentOffers.map((offer, index) => (
-                                <div key={`${activeTab}-${offer.id}`} className="snap-center flex-shrink-0 w-[180px] mr-4 last:mr-0 group">
-                                    <OfferCard
+                            currentOffers.map((offer) => (
+                                <motion.div
+                                    key={`${activeTab}-${offer.id}`}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="snap-center"
+                                >
+                                    <TrendingOfferCard
                                         offer={{
                                             id: offer.id,
+                                            title: offer.title,
+                                            discountValue: offer.discountValue,
+                                            type: offer.type,
                                             merchantId: offer.merchantId,
                                             merchantName: offer.merchantName,
                                             merchantLogo: offer.merchantLogo,
-                                            title: offer.title,
-                                            description: offer.merchantCity || "Trending",
-                                            type: offer.type || "percentage",
-                                            discountValue: offer.discountValue || 0,
-                                            status: "active",
-                                            totalRedemptions: 0,
-                                            createdAt: new Date().toISOString(),
+                                            merchantCity: offer.merchantCity,
+                                            code: offer.code,
+                                            link: offer.link,
                                             avgRating: offer.avgRating,
-                                            totalRatings: offer.totalRatings
-                                        } as any}
-                                        onClick={() => {
-                                            if (!isVerified) {
-                                                onVerifyClick();
-                                            } else if (offer.isNewSystem) {
-                                                router.push(`/dashboard/online-brand/${offer.merchantId}`);
-                                            } else if (activeTab === 'online') {
-                                                router.push(`/offer/${offer.id}`);
-                                            } else {
-                                                router.push(`/store/${offer.merchantId}`);
-                                            }
+                                            totalRatings: offer.totalRatings,
+                                            isNewSystem: offer.isNewSystem
                                         }}
+                                        variant={activeTab}
+                                        isVerified={isVerified}
+                                        onVerifyClick={onVerifyClick}
                                     />
-                                </div>
+                                </motion.div>
                             ))
                         ) : (
-                            <div className="flex-shrink-0 w-full px-5 text-center py-10">
-                                <p className="text-white/40 text-xs tracking-widest uppercase">No trending offers found</p>
-                            </div>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="flex-shrink-0 w-full px-5 text-center py-12"
+                            >
+                                <div className={`inline-flex flex-col items-center gap-2 px-8 py-6 rounded-2xl border ${activeTab === 'offline'
+                                        ? 'bg-green-500/5 border-green-500/10'
+                                        : 'bg-blue-500/5 border-blue-500/10'
+                                    }`}>
+                                    {activeTab === 'offline' ? (
+                                        <Store className="h-6 w-6 text-white/20" />
+                                    ) : (
+                                        <Globe className="h-6 w-6 text-white/20" />
+                                    )}
+                                    <p className="text-white/40 text-xs tracking-wide">
+                                        No {activeTab === 'offline' ? 'in-store' : 'online'} deals in {city || 'your area'}
+                                    </p>
+                                </div>
+                            </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
+
+                {/* Gradient Fade Edges */}
+                <div className="absolute top-0 bottom-6 left-0 w-8 bg-gradient-to-r from-black to-transparent pointer-events-none z-10" />
+                <div className="absolute top-0 bottom-6 right-0 w-8 bg-gradient-to-l from-black to-transparent pointer-events-none z-10" />
             </div>
         </section>
     );
