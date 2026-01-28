@@ -81,81 +81,62 @@ export function TrendingPosterCard({
         >
             {/* Premium Background Layer */}
             <div className="absolute inset-0 z-0">
-                {/* Base Gradient */}
-                <div className={cn(
-                    "absolute inset-0 bg-gradient-to-br",
-                    isOnline
-                        ? "from-[#0F172A] via-[#020617] to-black"
-                        : "from-[#052e16] via-[#020617] to-black"
-                )} />
+                {/* Minimal Background - No Gradients/Glows */}
+                <div className="absolute inset-0 bg-neutral-900 border border-white/5" />
 
-                {/* Dynamic Glow Orbs */}
-                <div className={cn(
-                    "absolute -top-20 -right-20 w-64 h-64 rounded-full blur-[80px] opacity-40",
-                    isOnline ? "bg-blue-600" : "bg-green-600"
-                )} />
-                <div className={cn(
-                    "absolute -bottom-20 -left-20 w-64 h-64 rounded-full blur-[80px] opacity-20",
-                    isOnline ? "bg-purple-600" : "bg-emerald-600"
-                )} />
+                {/* Fallback Pattern if no logo */}
+                {!offer.merchantLogo && (
+                    <div className="absolute inset-0 opacity-[0.03]"
+                        style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '16px 16px' }}
+                    />
+                )}
 
-                {/* Grid Pattern Overlay */}
-                <div className="absolute inset-0 opacity-[0.03]"
-                    style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '24px 24px' }}
-                />
-            </div>
-
-            {/* Top Badge */}
-            <div className="absolute top-5 left-5 z-20">
-                <div className={cn(
-                    "px-3 py-1.5 rounded-full backdrop-blur-md border flex items-center gap-2 shadow-lg",
-                    isOnline
-                        ? "bg-blue-500/10 border-blue-400/20 text-blue-400"
-                        : "bg-green-500/10 border-green-400/20 text-green-400"
-                )}>
-                    <span className={cn("h-1.5 w-1.5 rounded-full animate-pulse", isOnline ? "bg-blue-400" : "bg-green-400")} />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">
-                        {isOnline ? 'ONLINE' : 'IN-STORE'}
-                    </span>
-                </div>
-            </div>
-
-            {/* Main Center Content */}
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center mt-[-20px]">
-                {/* Floating Logo Card */}
-                <motion.div
-                    whileHover={{ rotate: [0, -5, 5, 0] }}
-                    transition={{ duration: 0.5 }}
-                    className="relative mb-6"
-                >
-                    <div className="absolute inset-0 bg-white/20 blur-xl rounded-full scale-110" />
-                    <div className="relative h-20 w-20 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/20 p-2 shadow-2xl flex items-center justify-center">
-                        <img
-                            src={offer.merchantLogo || "/placeholder.png"}
-                            alt={offer.merchantName}
-                            className="w-full h-full object-contain drop-shadow-md"
-                        />
+                {/* Content Container */}
+                <div className="relative z-10 h-full flex flex-col p-6">
+                    {/* Header: Logo & Badges */}
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="h-12 w-12 rounded-xl bg-white p-1.5 shadow-sm overflow-hidden flex-shrink-0">
+                            {offer.merchantLogo ? (
+                                <img
+                                    src={offer.merchantLogo}
+                                    className="w-full h-full object-contain"
+                                    alt={offer.merchantName || 'Merchant'}
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-neutral-100 flex items-center justify-center text-neutral-400 font-bold text-xs">
+                                    {(offer.merchantName || 'M').substring(0, 2).toUpperCase()}
+                                </div>
+                            )}
+                        </div>
+                        <div className={cn(
+                            "px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider border",
+                            isOnline
+                                ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        )}>
+                            {isOnline ? "Online" : "In-Store"}
+                        </div>
                     </div>
-                </motion.div>
 
-                {/* Discount Value */}
-                <div className="relative mb-2">
-                    <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 tracking-tight drop-shadow-lg">
-                        {offer.type === 'percentage' ? (
-                            <span>{offer.discountValue}%</span>
-                        ) : (
-                            <span>₹{offer.discountValue}</span>
-                        )}
-                    </h2>
-                    <p className="text-sm font-bold text-white/60 tracking-[0.2em] uppercase mt-1">
-                        OFF
-                    </p>
+                    {/* Discount - Clean & Big */}
+                    <div className="mt-auto mb-4">
+                        <div className="text-4xl font-bold text-white tracking-tight mb-1">
+                            {offer.type === 'flat' ? '₹' : ''}{offer.discountValue}{offer.type === 'percentage' ? '%' : ''}
+                        </div>
+                        <div className="text-lg font-medium text-white/60">OFF</div>
+                    </div>
+
+                    {/* Footer Info */}
+                    <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                        <div>
+                            <h3 className="text-sm font-semibold text-white line-clamp-1">{offer.merchantName}</h3>
+                            <p className="text-xs text-white/40 mt-0.5 line-clamp-1">{offer.title}</p>
+                        </div>
+                        <div className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center">
+                            <ArrowRight className="h-4 w-4 text-white/40" />
+                        </div>
+                    </div>
                 </div>
-
-                {/* Offer Title */}
-                <p className="text-sm font-medium text-white/50 line-clamp-2 max-w-[200px] leading-relaxed">
-                    {offer.title}
-                </p>
             </div>
 
             {/* Bottom Footer */}

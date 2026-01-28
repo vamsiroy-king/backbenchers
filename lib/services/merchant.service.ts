@@ -42,84 +42,42 @@ export const merchantService = {
     // Get all merchants with filters
     async getAll(filters?: MerchantFilters): Promise<ApiResponse<Merchant[]>> {
         try {
-            // If filtering for pending, fetch from pending_merchants table
-            if (filters?.status === 'pending') {
-                const { data, error } = await supabase
-                    .from('pending_merchants')
-                    .select('*')
-                    .eq('status', 'pending')
-                    .order('created_at', { ascending: false });
-
-                if (error) {
-                    return { success: false, data: null, error: error.message };
-                }
-
-                // Map pending_merchants to Merchant type
-                const merchants: Merchant[] = data.map((row: any) => ({
-                    id: row.id,
-                    bbmId: null,
-                    businessName: row.business_name,
-                    ownerName: row.owner_name,
-                    ownerPhone: row.owner_phone,
-                    email: row.email,
-                    phone: row.phone,
-                    category: row.category,
-                    description: row.description,
-                    address: row.address,
-                    city: row.city,
-                    state: row.state,
-                    pinCode: row.pincode,
-                    logo: row.logo_url,
-                    coverPhoto: row.cover_photo_url,
-                    storeImages: row.store_images || [],
-                    operatingHours: row.operating_hours,
-                    status: 'pending',
-                    totalOffers: 0,
-                    totalRedemptions: 0,
-                    createdAt: row.created_at,
-                    latitude: row.latitude,
-                    longitude: row.longitude,
-                    googleMapsLink: row.google_maps_link,
-                    paymentQrUrl: row.payment_qr_url
-                }));
-
-                return { success: true, data: merchants, error: null };
-            }
-
-            // For all other filters, use merchants table
             let query = supabase
                 .from('merchants')
                 .select('*')
                 .order('created_at', { ascending: false });
 
             if (filters) {
+                // Status Filter
                 if (filters.status && filters.status !== 'all') {
                     query = query.eq('status', filters.status);
                 }
-                if (filters.state) {
+
+                // Location Filters
+                if (filters.state && filters.state !== 'All States') {
                     query = query.eq('state', filters.state);
                 }
-                if (filters.city) {
+                if (filters.city && filters.city !== 'All Cities') {
                     query = query.eq('city', filters.city);
                 }
+
+                // Search Filter
                 if (filters.search) {
-                    query = query.ilike('business_name', `%${filters.search}%`);
-                }
-                if (filters.bbmIdSearch) {
-                    query = query.ilike('bbm_id', `%${filters.bbmIdSearch}%`);
+                    query = query.or(`business_name.ilike.%${filters.search}%,owner_name.ilike.%${filters.search}%`);
                 }
             }
 
             const { data, error } = await query;
 
             if (error) {
+                console.error('Error fetching merchants:', error);
                 return { success: false, data: null, error: error.message };
             }
 
-            const merchants = data.map(mapDbToMerchant);
+            const merchants = (data || []).map(mapDbToMerchant);
             return { success: true, data: merchants, error: null };
         } catch (error: any) {
-            return { success: false, data: null, error: error.message };
+            return { success: false, error: error.message };
         }
     },
 

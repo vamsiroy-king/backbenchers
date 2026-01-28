@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 const MENU_ITEMS = [
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { name: "Hero Banners", href: "/admin/dashboard/hero-banners", icon: Image },
+    { name: "Categories", href: "/admin/dashboard/categories", icon: Tag },
     { name: "Online Brands", href: "/admin/dashboard/online-brands", icon: Globe },
     { name: "Brands", href: "/admin/dashboard/brands", icon: Building2 },
     { name: "Merchants", href: "/admin/dashboard/merchants", icon: Store },

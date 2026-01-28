@@ -813,6 +813,36 @@ export default function DashboardPage() {
                     </div>
                 </section>
 
+                {/* Top Brands - Clean & Consistent */}
+                <section className="py-2">
+                    <div className="flex items-center justify-center mb-6">
+                        <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                        <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TOP BRANDS</span>
+                        <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                    </div>
+
+                    <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-4">
+                        {[
+                            { name: "Big Basket", image: "/assets/brands/bigbasket.png", color: "bg-green-100" },
+                            { name: "Deccan chai", image: "/assets/brands/chai.png", color: "bg-orange-100" },
+                            { name: "Big Basket", image: "/assets/brands/bigbasket.png", color: "bg-green-100" },
+                            { name: "Starbucks", image: "/assets/brands/starbucks.png", color: "bg-green-100" },
+                            { name: "Dominos", image: "/assets/brands/dominos.png", color: "bg-blue-100" },
+                        ].map((brand, i) => (
+                            <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
+                                <div className={`h-24 w-24 rounded-[32px] p-5 flex items-center justify-center transition-all ${brand.color} border border-black/5 shadow-sm`}>
+                                    <div className="relative w-full h-full grayscale hover:grayscale-0 transition-all duration-500">
+                                        {/* Placeholder or actual image logic */}
+                                        <div className="w-full h-full bg-white/50 rounded-xl flex items-center justify-center text-xs font-bold text-black/20">
+                                            LOGO
+                                        </div>
+                                    </div>
+                                </div>
+                                <span className={`text-[10px] font-medium ${isLightTheme ? 'text-gray-500' : 'text-gray-400'}`}>{brand.name}</span>
+                            </div>
+                        ))}
+                    </div>
+                </section>
                 {/* New Stores - Real App Style */}
                 {newMerchants.length > 0 && (
                     <section className="py-6">
