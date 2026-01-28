@@ -23,6 +23,7 @@ import { RatingModal } from "@/components/RatingModal";
 import Image from "next/image";
 import { Offer } from "@/lib/types";
 import { dashboardCache } from "@/lib/services/cache.service";
+import { categoryService, Category } from "@/lib/services/category.service";
 import { HeartButton } from "@/components/HeartButton";
 import { BBInlineLoader, BBCardPlaceholder } from "@/components/BBLoader";
 import { MasonryGrid } from "@/components/ui/MasonryGrid";
@@ -43,10 +44,11 @@ const HERO_CONTENT = {
 };
 
 // Categories - F³ Cube (Food, Fashion, Fitness) with solid colors
-const CATEGORIES = [
-    { id: 1, name: "Food", symbol: "F¹", tagline: "Dine for less", color: "bg-orange-500", icon: "🍕" },
-    { id: 2, name: "Fashion", symbol: "F²", tagline: "Style on budget", color: "bg-rose-500", icon: "👗" },
-    { id: 3, name: "Fitness", symbol: "F³", tagline: "Train smarter", color: "bg-blue-600", icon: "💪" },
+const DEFAULT_CATEGORIES = [
+    { id: '1', name: "Food", tagline: "Dine for less", gradient_from: "orange-100", gradient_to: "orange-200", icon: "🍕", image_url: "/assets/categories/food_ultra.png", display_order: 1 },
+    { id: '2', name: "Fashion", tagline: "Style on budget", gradient_from: "pink-100", gradient_to: "pink-200", icon: "👗", image_url: "/assets/categories/fashion_ultra.png", display_order: 2 },
+    { id: '3', name: "Fitness", tagline: "Train smarter", gradient_from: "blue-100", gradient_to: "blue-200", icon: "💪", image_url: "/assets/categories/fitness_ultra.png", display_order: 3 },
+    { id: '4', name: "Beauty", tagline: "Glow up", gradient_from: "purple-100", gradient_to: "purple-200", icon: "✨", image_url: "/assets/categories/beauty_ultra.png", display_order: 4 },
 ];
 
 // Top Brands (Static Fallback)
@@ -70,7 +72,7 @@ const OFFLINE_OFFERS = [
 
 // All searchable items
 const ALL_ITEMS = [
-    ...CATEGORIES.map(c => ({ type: 'category', name: c.name, emoji: c.icon, color: c.color })),
+    ...DEFAULT_CATEGORIES.map(c => ({ type: 'category', name: c.name, emoji: c.icon, color: c.gradient_from })),
     { type: 'offer', name: 'Spotify', emoji: '🎵', discount: 'Student Plan' },
     { type: 'offer', name: 'Netflix', emoji: '🎬', discount: '3 Months Free' },
     { type: 'location', name: 'Bengaluru', emoji: '📍', info: '45 offers' },
@@ -108,6 +110,7 @@ export default function DashboardPage() {
     });
     const [heroBanners, setHeroBanners] = useState<HeroBanner[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [categories, setCategories] = useState<any[]>(DEFAULT_CATEGORIES);
     const [selectedCategory, setSelectedCategory] = useState(0); // For Floating Card Stack
     const [searchPlaceholderIndex, setSearchPlaceholderIndex] = useState(0);
     const heroRef = useRef<HTMLDivElement>(null);
@@ -260,6 +263,15 @@ export default function DashboardPage() {
                 const cachedNewMerchants = dashboardCache.getNewMerchants(cityToUse || undefined);
                 const cachedBanners = dashboardCache.getHeroBanners(cityToUse || undefined);
                 const cachedFavorites = dashboardCache.getFavoriteIds();
+
+                // Fetch data concurrently (including categories)
+                const [categoriesRes] = await Promise.all([
+                    categoryService.getAll()
+                ]);
+
+                if (categoriesRes.success && categoriesRes.data && categoriesRes.data.length > 0) {
+                    setCategories(categoriesRes.data);
+                }
 
                 // If we have cached data, use it immediately (instant render)
                 if (cachedOffers) setRealOffers(cachedOffers);
@@ -769,35 +781,32 @@ export default function DashboardPage() {
                     </div>
                     {/* Horizontal Scroll Categories - Stories Style */}
                     <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 snap-x snap-mandatory">
-                        {[
-                            { line1: "Food", line2: "& Beverages", image: "/assets/categories/food_ultra.png", color: isLightTheme ? "from-orange-100 to-orange-200" : "from-orange-900/40 to-orange-900/20", category: "Food" },
-                            { line1: "Fashion", line2: "& Apparel", image: "/assets/categories/fashion_ultra.png", color: isLightTheme ? "from-pink-100 to-pink-200" : "from-pink-900/40 to-pink-900/20", category: "Fashion" },
-                            { line1: "Health", line2: "& Fitness", image: "/assets/categories/fitness_ultra.png", color: isLightTheme ? "from-blue-100 to-blue-200" : "from-blue-900/40 to-blue-900/20", category: "Fitness" },
-                            { line1: "Skincare", line2: "& Beauty", image: "/assets/categories/beauty_ultra.png", color: isLightTheme ? "from-purple-100 to-purple-200" : "from-purple-900/40 to-purple-900/20", category: "Beauty" },
-                        ].map((cat) => (
+                        {categories.map((cat) => (
                             <motion.div
-                                key={cat.category}
+                                key={cat.id}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => {
                                     vibrate('light');
-                                    router.push(`/dashboard/explore?category=${cat.category}`);
+                                    router.push(`/dashboard/explore?category=${cat.name}`);
                                 }}
-                                className={`snap-center flex-shrink-0 w-28 aspect-[3/4] rounded-2xl bg-gradient-to-br ${cat.color} border flex flex-col items-center justify-center relative overflow-hidden transition-all cursor-pointer ${isLightTheme ? 'border-gray-200 hover:border-gray-300' : 'border-white/[0.06] hover:border-white/[0.12]'} shadow-lg shadow-black/20`}
+                                className={`snap-center flex-shrink-0 w-32 aspect-[3/4] rounded-2xl bg-gradient-to-br ${isLightTheme ? `from-${cat.gradient_from} to-${cat.gradient_to}` : `from-${cat.gradient_from}/40 to-${cat.gradient_to}/20`} border flex flex-col items-center justify-center relative overflow-hidden transition-all cursor-pointer ${isLightTheme ? 'border-gray-200 hover:border-gray-300' : 'border-white/[0.06] hover:border-white/[0.12]'} shadow-lg shadow-black/20`}
                             >
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <div className="relative w-full h-full mix-blend-overlay opacity-80">
-                                        <Image
-                                            src={cat.image}
-                                            alt={cat.category}
-                                            fill
-                                            className="object-cover scale-110"
-                                        />
+                                        {cat.image_url && (
+                                            <Image
+                                                src={cat.image_url}
+                                                alt={cat.name}
+                                                fill
+                                                className="object-cover scale-110"
+                                            />
+                                        )}
                                     </div>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90" />
                                 </div>
                                 <div className="relative z-10 flex flex-col items-center justify-end h-full pb-4 w-full px-2 text-center">
-                                    <span className="text-sm font-bold leading-none text-white drop-shadow-lg mb-1">{cat.line1}</span>
-                                    <span className="text-[10px] font-medium leading-none text-white/70 drop-shadow-md">{cat.line2}</span>
+                                    <span className="text-sm font-bold leading-none text-white drop-shadow-lg mb-1">{cat.name}</span>
+                                    <span className="text-[10px] font-medium leading-none text-white/70 drop-shadow-md">{cat.tagline}</span>
                                 </div>
                             </motion.div>
                         ))}
@@ -889,23 +898,23 @@ export default function DashboardPage() {
                                             router.push(`/store/${brand.id}`);
                                         }
                                     }}
-                                    className="flex flex-col items-center gap-3 cursor-pointer flex-shrink-0 w-20"
+                                    className="flex flex-col items-center gap-3 cursor-pointer flex-shrink-0 w-24 group"
                                 >
-                                    <div className={`h-20 w-20 rounded-[24px] p-4 flex items-center justify-center shadow-lg border transition-all ${isLightTheme
-                                        ? 'bg-white border-gray-100 shadow-gray-200/50'
-                                        : 'bg-[#161616] border-white/[0.06] shadow-black/40'
+                                    <div className={`h-24 w-24 rounded-[32px] p-5 flex items-center justify-center transition-all ${isLightTheme
+                                        ? 'bg-white border border-gray-100 shadow-xl shadow-gray-200/50'
+                                        : 'bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl shadow-2xl shadow-black/20 group-hover:bg-white/[0.06] group-hover:border-white/[0.12]'
                                         }`}>
-                                        <div className="relative w-full h-full">
+                                        <div className="relative w-full h-full grayscale group-hover:grayscale-0 transition-all duration-300 opacity-80 group-hover:opacity-100">
                                             <Image
                                                 src={brand.logo}
                                                 alt={brand.name}
                                                 fill
                                                 className="object-contain"
-                                                sizes="80px"
+                                                sizes="96px"
                                             />
                                         </div>
                                     </div>
-                                    <span className={`text-[10px] font-medium text-center line-clamp-1 w-full px-1 ${isLightTheme ? 'text-gray-600' : 'text-white/60'
+                                    <span className={`text-[11px] font-medium text-center line-clamp-1 w-full px-1 ${isLightTheme ? 'text-gray-600' : 'text-white/50 group-hover:text-white transition-colors'
                                         }`}>
                                         {brand.name}
                                     </span>

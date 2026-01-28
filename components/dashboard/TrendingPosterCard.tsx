@@ -68,98 +68,113 @@ export function TrendingPosterCard({
         }
     };
 
-    // Formatted Discount
-    const discountDisplay = offer.type === 'percentage'
-        ? `${offer.discountValue}% OFF`
-        : offer.type === 'flat'
-            ? `₹${offer.discountValue} OFF`
-            : 'DEAL';
-
     return (
         <motion.div
-            whileHover={{ y: -4, scale: 1.01 }}
+            whileHover={{ y: -6, scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleClick}
-            className="group relative w-[260px] h-[350px] flex-shrink-0 cursor-pointer overflow-hidden rounded-3xl bg-zinc-900 border border-white/[0.08]"
+            className={cn(
+                "group relative w-[260px] h-[350px] flex-shrink-0 cursor-pointer overflow-hidden rounded-[32px]",
+                "border border-white/[0.08] hover:border-white/[0.2]",
+                "transition-all duration-500 shadow-2xl shadow-black/50"
+            )}
         >
-            {/* Background Image / Gradient */}
+            {/* Premium Background Layer */}
             <div className="absolute inset-0 z-0">
-                {offer.merchantLogo ? (
-                    // Using logo as a blurred background pattern or actual cover if available
-                    <div className="w-full h-full relative">
-                        {/* We strongly prefer a cover image here, but falling back to logo pattern */}
-                        <div className="absolute inset-0 bg-black" />
-                        <img
-                            src={offer.merchantLogo}
-                            className="absolute inset-0 w-full h-full object-cover opacity-60 blur-sm scale-150 grayscale group-hover:grayscale-0 transition-all duration-700"
-                            alt=""
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" />
-                    </div>
-                ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-black" />
-                )}
+                {/* Base Gradient */}
+                <div className={cn(
+                    "absolute inset-0 bg-gradient-to-br",
+                    isOnline
+                        ? "from-[#0F172A] via-[#020617] to-black"
+                        : "from-[#052e16] via-[#020617] to-black"
+                )} />
+
+                {/* Dynamic Glow Orbs */}
+                <div className={cn(
+                    "absolute -top-20 -right-20 w-64 h-64 rounded-full blur-[80px] opacity-40",
+                    isOnline ? "bg-blue-600" : "bg-green-600"
+                )} />
+                <div className={cn(
+                    "absolute -bottom-20 -left-20 w-64 h-64 rounded-full blur-[80px] opacity-20",
+                    isOnline ? "bg-purple-600" : "bg-emerald-600"
+                )} />
+
+                {/* Grid Pattern Overlay */}
+                <div className="absolute inset-0 opacity-[0.03]"
+                    style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+                />
             </div>
 
             {/* Top Badge */}
-            <div className="absolute top-4 left-4 z-10">
-                {isOnline ? (
-                    <div className="px-3 py-1.5 rounded-full bg-blue-500/20 border border-blue-500/30 backdrop-blur-md flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-                        <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">ONLINE</span>
-                    </div>
-                ) : (
-                    <div className="px-3 py-1.5 rounded-full bg-green-500/20 border border-green-500/30 backdrop-blur-md flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">LIVE NOW</span>
-                    </div>
-                )}
+            <div className="absolute top-5 left-5 z-20">
+                <div className={cn(
+                    "px-3 py-1.5 rounded-full backdrop-blur-md border flex items-center gap-2 shadow-lg",
+                    isOnline
+                        ? "bg-blue-500/10 border-blue-400/20 text-blue-400"
+                        : "bg-green-500/10 border-green-400/20 text-green-400"
+                )}>
+                    <span className={cn("h-1.5 w-1.5 rounded-full animate-pulse", isOnline ? "bg-blue-400" : "bg-green-400")} />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                        {isOnline ? 'ONLINE' : 'IN-STORE'}
+                    </span>
+                </div>
             </div>
 
-            {/* Center Content (Logo & Big Text) */}
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center pt-12">
-                {/* Logo Circle */}
-                <div className="h-16 w-16 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 p-1 mb-4 shadow-2xl group-hover:scale-110 transition-transform duration-500">
-                    <img
-                        src={offer.merchantLogo || "/placeholder.png"}
-                        alt={offer.merchantName}
-                        className="w-full h-full rounded-full object-cover"
-                    />
+            {/* Main Center Content */}
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center mt-[-20px]">
+                {/* Floating Logo Card */}
+                <motion.div
+                    whileHover={{ rotate: [0, -5, 5, 0] }}
+                    transition={{ duration: 0.5 }}
+                    className="relative mb-6"
+                >
+                    <div className="absolute inset-0 bg-white/20 blur-xl rounded-full scale-110" />
+                    <div className="relative h-20 w-20 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/20 p-2 shadow-2xl flex items-center justify-center">
+                        <img
+                            src={offer.merchantLogo || "/placeholder.png"}
+                            alt={offer.merchantName}
+                            className="w-full h-full object-contain drop-shadow-md"
+                        />
+                    </div>
+                </motion.div>
+
+                {/* Discount Value */}
+                <div className="relative mb-2">
+                    <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 tracking-tight drop-shadow-lg">
+                        {offer.type === 'percentage' ? (
+                            <span>{offer.discountValue}%</span>
+                        ) : (
+                            <span>₹{offer.discountValue}</span>
+                        )}
+                    </h2>
+                    <p className="text-sm font-bold text-white/60 tracking-[0.2em] uppercase mt-1">
+                        OFF
+                    </p>
                 </div>
 
-                {/* Big Discount Text */}
-                <h2 className="text-3xl font-black text-white leading-none tracking-tight mb-2 drop-shadow-lg">
-                    {offer.type === 'percentage' ? (
-                        <>
-                            <span className="text-[40px]">{offer.discountValue}</span>
-                            <span className="text-2xl">%</span>
-                        </>
-                    ) : (
-                        <>
-                            <span className="text-2xl align-top mt-1">₹</span>
-                            <span className="text-[40px]">{offer.discountValue}</span>
-                        </>
-                    )}
-                    <br />
-                    <span className="text-lg font-bold text-white/80 tracking-wide">OFF</span>
-                </h2>
-
-                <p className="text-sm font-medium text-white/50 line-clamp-2 px-2">
+                {/* Offer Title */}
+                <p className="text-sm font-medium text-white/50 line-clamp-2 max-w-[200px] leading-relaxed">
                     {offer.title}
                 </p>
             </div>
 
-            {/* Bottom Action Footer */}
-            <div className="absolute bottom-0 left-0 right-0 z-20 p-4">
-                <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-1 flex items-center justify-between pl-4">
-                    <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">{offer.merchantName}</span>
+            {/* Bottom Footer */}
+            <div className="absolute bottom-0 inset-x-0 p-5 z-20">
+                <div className="bg-white/[0.03] backdrop-blur-md border border-white/[0.08] rounded-2xl p-1.5 flex items-center justify-between pl-4 shadow-lg">
+                    <div className="flex flex-col overflow-hidden">
+                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider truncate mb-0.5">
+                            {offer.merchantName}
+                        </span>
                         {isOnline && offer.code ? (
-                            <span className="text-xs font-mono font-bold text-white">{offer.code}</span>
+                            <span className="text-xs font-mono font-bold text-white tracking-wide truncate">
+                                {offer.code}
+                            </span>
                         ) : (
-                            <div className="flex items-center gap-1 text-white/80">
-                                <MapPin className="h-3 w-3" />
-                                <span className="text-xs font-semibold">{offer.merchantCity || 'Nearby'}</span>
+                            <div className="flex items-center gap-1.5 text-white/80">
+                                <MapPin className="h-3 w-3 text-white/60" />
+                                <span className="text-xs font-semibold truncate max-w-[100px]">
+                                    {offer.merchantCity || 'Nearby'}
+                                </span>
                             </div>
                         )}
                     </div>
@@ -168,14 +183,16 @@ export function TrendingPosterCard({
                         <button
                             onClick={handleCopy}
                             className={cn(
-                                "h-9 px-4 rounded-xl flex items-center justify-center transition-all font-bold text-xs gap-2",
-                                copied ? "bg-green-500 text-black" : "bg-white text-black hover:bg-white/90"
+                                "h-9 px-4 rounded-xl flex items-center justify-center transition-all font-bold text-[10px] gap-1.5 uppercase tracking-wide",
+                                copied
+                                    ? "bg-green-500 text-black shadow-lg shadow-green-500/20"
+                                    : "bg-white text-black hover:bg-white/90 shadow-lg shadow-white/10"
                             )}>
                             {copied ? "COPIED" : "COPY"}
                             <Copy className="h-3 w-3" />
                         </button>
                     ) : (
-                        <button className="h-9 w-9 rounded-xl bg-white text-black flex items-center justify-center hover:scale-105 transition-transform">
+                        <button className="h-9 w-9 rounded-xl bg-white text-black flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-white/10">
                             <ArrowRight className="h-4 w-4" />
                         </button>
                     )}
