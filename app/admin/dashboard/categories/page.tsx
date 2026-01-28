@@ -83,12 +83,12 @@ export default function CategoriesPage() {
                 // Update
                 const result = await categoryService.update(editingCategory.id, dataToSave);
                 if (result.success) toast.success("Category updated");
-                else throw new Error(result.error);
+                else throw new Error(result.error || "Failed to update category");
             } else {
                 // Create
                 const result = await categoryService.create(dataToSave);
                 if (result.success) toast.success("Category created");
-                else throw new Error(result.error);
+                else throw new Error(result.error || "Failed to create category");
             }
 
             setIsEditModalOpen(false);
