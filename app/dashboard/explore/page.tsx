@@ -1,30 +1,33 @@
 "use client";
 
-import { Search, ChevronLeft, Wifi, MapPin, Heart, Star, Zap, Sparkles, TrendingUp } from "lucide-react";
-import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { Search, ChevronLeft, Wifi, MapPin, Heart, Star, Zap, Sparkles, TrendingUp, X, Store, Globe, Tag, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { offerService } from "@/lib/services/offer.service";
 import { studentService } from "@/lib/services/student.service";
 import { onlineBrandService } from "@/lib/services/online-brand.service";
+import { searchService, SearchResults, SearchResult } from "@/lib/services/search.service";
 import { useFavorites } from "@/components/providers/FavoritesProvider";
 import { Offer, OnlineBrand } from "@/lib/types";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { OfferCard } from "@/components/OfferCard";
 
-// District-style categories with proper icons
+// District-style categories with COMBINATIONAL names
 const CATEGORIES = [
-    { id: 'Food', name: "Food", icon: "🍕", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#A855F7]" },
-    { id: 'Fashion', name: "Fashion", icon: "👗", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#EC4899]" },
-    { id: 'Fitness', name: "Fitness", icon: "💪", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#3B82F6]" },
-    { id: 'Entertainment', name: "Fun", icon: "🎬", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#F59E0B]" },
-    { id: 'Technology', name: "Tech", icon: "💻", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#6366F1]" },
-    { id: 'Beauty', name: "Beauty", icon: "💄", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#8B5CF6]" },
+    { id: 'Food & Dining', name: "Food & Dining", shortName: "Food", icon: "🍕", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#A855F7]" },
+    { id: 'Fashion & Apparel', name: "Fashion & Apparel", shortName: "Fashion", icon: "👗", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#EC4899]" },
+    { id: 'Fitness & Wellness', name: "Fitness & Wellness", shortName: "Fitness", icon: "💪", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#3B82F6]" },
+    { id: 'Entertainment & Events', name: "Entertainment & Events", shortName: "Fun", icon: "🎬", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#F59E0B]" },
+    { id: 'Electronics & Gadgets', name: "Electronics & Gadgets", shortName: "Tech", icon: "💻", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#6366F1]" },
+    { id: 'Beauty & Skincare', name: "Beauty & Skincare", shortName: "Beauty", icon: "💄", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#8B5CF6]" },
+    { id: 'Groceries & Essentials', name: "Groceries & Essentials", shortName: "Grocery", icon: "🛒", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#10B981]" },
+    { id: 'Travel & Transport', name: "Travel & Transport", shortName: "Travel", icon: "✈️", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#06B6D4]" },
 ];
 
-const SEARCH_PLACEHOLDERS = ["Search 'Sneakers'", "Search 'Coffee'", "Search 'Gym'", "Search 'Nike'"];
+const SEARCH_PLACEHOLDERS = ["Search 'Starbucks'", "Search 'Nike'", "Search 'Gym'", "Search 'Food & Dining'"];
 
 export default function ExplorePage() {
     const router = useRouter();

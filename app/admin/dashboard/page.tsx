@@ -45,7 +45,7 @@ export default function AdminDashboardPage() {
                     categoryData
                 ] = await Promise.all([
                     analyticsService.getDashboardStats(),
-                    merchantService.getAll({ status: 'pending' }),
+                    merchantService.getPending(), // Use getPending() to fetch from pending_merchants table
                     analyticsService.getTopMerchants(10),
                     analyticsService.getCityDistribution(),
                     analyticsService.getCategoryPerformance()

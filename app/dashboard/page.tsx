@@ -34,6 +34,7 @@ import { HeroCarousel } from "@/components/dashboard/HeroCarousel";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ThemeProvider";
+import { SearchOverlay } from "@/components/SearchOverlay";
 
 // Hero Banner - Premium #India's 1st
 const HERO_CONTENT = {
@@ -43,12 +44,16 @@ const HERO_CONTENT = {
     cta: "Explore Deals"
 };
 
-// Categories - F³ Cube (Food, Fashion, Fitness) with solid colors
+// Categories - Combinational Names (Food & Dining, Fashion & Apparel, etc.)
 const DEFAULT_CATEGORIES = [
-    { id: '1', name: "Food", tagline: "Dine for less", gradient_from: "orange-100", gradient_to: "orange-200", icon: "🍕", image_url: "/assets/categories/food_ultra.png", display_order: 1 },
-    { id: '2', name: "Fashion", tagline: "Style on budget", gradient_from: "pink-100", gradient_to: "pink-200", icon: "👗", image_url: "/assets/categories/fashion_ultra.png", display_order: 2 },
-    { id: '3', name: "Fitness", tagline: "Train smarter", gradient_from: "blue-100", gradient_to: "blue-200", icon: "💪", image_url: "/assets/categories/fitness_ultra.png", display_order: 3 },
-    { id: '4', name: "Beauty", tagline: "Glow up", gradient_from: "purple-100", gradient_to: "purple-200", icon: "✨", image_url: "/assets/categories/beauty_ultra.png", display_order: 4 },
+    { id: '1', name: "Food & Dining", tagline: "Dine for less", gradient_from: "orange-100", gradient_to: "orange-200", icon: "🍕", image_url: "/assets/categories/food_ultra.png", display_order: 1 },
+    { id: '2', name: "Fashion & Apparel", tagline: "Style on budget", gradient_from: "pink-100", gradient_to: "pink-200", icon: "👗", image_url: "/assets/categories/fashion_ultra.png", display_order: 2 },
+    { id: '3', name: "Fitness & Wellness", tagline: "Train smarter", gradient_from: "blue-100", gradient_to: "blue-200", icon: "💪", image_url: "/assets/categories/fitness_ultra.png", display_order: 3 },
+    { id: '4', name: "Beauty & Skincare", tagline: "Glow up for less", gradient_from: "purple-100", gradient_to: "purple-200", icon: "✨", image_url: "/assets/categories/beauty_ultra.png", display_order: 4 },
+    { id: '5', name: "Groceries & Essentials", tagline: "Save on daily needs", gradient_from: "green-100", gradient_to: "green-200", icon: "🛒", image_url: "/assets/categories/groceries_ultra.png", display_order: 5 },
+    { id: '6', name: "Electronics & Gadgets", tagline: "Tech deals for students", gradient_from: "indigo-100", gradient_to: "indigo-200", icon: "📱", image_url: "/assets/categories/electronics_ultra.png", display_order: 6 },
+    { id: '7', name: "Entertainment & Events", tagline: "Fun for less", gradient_from: "yellow-100", gradient_to: "yellow-200", icon: "🎬", image_url: "/assets/categories/entertainment_ultra.png", display_order: 7 },
+    { id: '8', name: "Travel & Transport", tagline: "Explore on budget", gradient_from: "cyan-100", gradient_to: "cyan-200", icon: "✈️", image_url: "/assets/categories/travel_ultra.png", display_order: 8 },
 ];
 
 // Top Brands (Static Fallback)
@@ -81,9 +86,11 @@ const ALL_ITEMS = [
 
 // Animated search placeholders
 const SEARCH_PLACEHOLDERS = [
-    "Search Food deals...",
-    "Search Fashion...",
-    "Search Fitness...",
+    "Search Food & Dining...",
+    "Search Fashion & Apparel...",
+    "Search Fitness deals...",
+    "Search Groceries...",
+    "Search Electronics...",
     "Search Starbucks...",
     "Search Nike...",
     "Search Netflix...",
@@ -595,92 +602,13 @@ export default function DashboardPage() {
 
 
 
-            {/* Search Panel */}
-            <AnimatePresence>
-                {showSearch && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[90] bg-black"
-                    >
-                        <div className="p-4 pt-12">
-                            <div className="flex items-center gap-3 mb-6">
-                                <button onClick={() => { setShowSearch(false); setSearchQuery(""); }} className="h-10 w-10 rounded-full bg-white/[0.05] flex items-center justify-center hover:bg-white/[0.1] transition-colors">
-                                    <X className="h-5 w-5 text-white/60" />
-                                </button>
-                                <div className="flex-1 relative">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
-                                    <input
-                                        autoFocus
-                                        type="text"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        placeholder="Search brands, categories..."
-                                        className="w-full h-12 bg-white/[0.05] rounded-2xl pl-12 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-green-500/30 text-white placeholder:text-white/40 border border-white/[0.06]"
-                                    />
-                                </div>
-                            </div>
-
-                            {searchQuery.length === 0 ? (
-                                <div className="space-y-6">
-                                    <div>
-                                        <h4 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Recent Searches</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {['Nike', 'Starbucks', 'Netflix'].map((term) => (
-                                                <button key={term} onClick={() => setSearchQuery(term)} className="px-4 py-2 bg-white/[0.05] rounded-full text-sm font-medium text-white hover:bg-white/[0.1] transition-colors">
-                                                    {term}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Trending</h4>
-                                        <div className="space-y-2">
-                                            {['Spotify Student', 'Apple Education', 'Uber'].map((term, i) => (
-                                                <button key={term} onClick={() => setSearchQuery(term)} className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-white/[0.05] transition-colors">
-                                                    <span className="text-lg">🔥</span>
-                                                    <span className="font-medium text-sm text-white">{term}</span>
-                                                    <span className="text-xs text-white/40 ml-auto">#{i + 1}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {filteredItems.length === 0 ? (
-                                        <div className="text-center py-12 text-white/40">
-                                            <p className="text-4xl mb-2">🔍</p>
-                                            <p className="text-sm">No results for "{searchQuery}"</p>
-                                        </div>
-                                    ) : (
-                                        filteredItems.map((item, i) => (
-                                            <motion.button
-                                                key={i}
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: i * 0.05 }}
-                                                onClick={() => { setShowSearch(false); setSearchQuery(""); }}
-                                                className="flex items-center gap-4 w-full p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] transition-colors border border-white/[0.06]"
-                                            >
-                                                <span className="text-2xl">{item.emoji}</span>
-                                                <div className="text-left">
-                                                    <p className="font-bold text-sm text-white">{item.name}</p>
-                                                    <p className="text-xs text-white/50 capitalize">{item.type}</p>
-                                                </div>
-                                                {'discount' in item && (
-                                                    <span className="ml-auto text-xs font-semibold text-green-400">{item.discount}</span>
-                                                )}
-                                            </motion.button>
-                                        ))
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {/* Real-Time Search Overlay */}
+            <SearchOverlay
+                isOpen={showSearch}
+                onClose={() => setShowSearch(false)}
+                city={selectedCity}
+                placeholder={SEARCH_PLACEHOLDERS[searchPlaceholderIndex]}
+            />
 
             {/* City Selector Modal */}
             <CitySelector
@@ -813,36 +741,7 @@ export default function DashboardPage() {
                     </div>
                 </section>
 
-                {/* Top Brands - Clean & Consistent */}
-                <section className="py-2">
-                    <div className="flex items-center justify-center mb-6">
-                        <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                        <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TOP BRANDS</span>
-                        <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                    </div>
 
-                    <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-4">
-                        {[
-                            { name: "Big Basket", image: "/assets/brands/bigbasket.png", color: "bg-green-100" },
-                            { name: "Deccan chai", image: "/assets/brands/chai.png", color: "bg-orange-100" },
-                            { name: "Big Basket", image: "/assets/brands/bigbasket.png", color: "bg-green-100" },
-                            { name: "Starbucks", image: "/assets/brands/starbucks.png", color: "bg-green-100" },
-                            { name: "Dominos", image: "/assets/brands/dominos.png", color: "bg-blue-100" },
-                        ].map((brand, i) => (
-                            <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
-                                <div className={`h-24 w-24 rounded-[32px] p-5 flex items-center justify-center transition-all ${brand.color} border border-black/5 shadow-sm`}>
-                                    <div className="relative w-full h-full grayscale hover:grayscale-0 transition-all duration-500">
-                                        {/* Placeholder or actual image logic */}
-                                        <div className="w-full h-full bg-white/50 rounded-xl flex items-center justify-center text-xs font-bold text-black/20">
-                                            LOGO
-                                        </div>
-                                    </div>
-                                </div>
-                                <span className={`text-[10px] font-medium ${isLightTheme ? 'text-gray-500' : 'text-gray-400'}`}>{brand.name}</span>
-                            </div>
-                        ))}
-                    </div>
-                </section>
                 {/* New Stores - Real App Style */}
                 {newMerchants.length > 0 && (
                     <section className="py-6">

@@ -81,6 +81,55 @@ export const merchantService = {
         }
     },
 
+    // Get pending merchants from pending_merchants table (for admin review)
+    async getPending(): Promise<ApiResponse<Merchant[]>> {
+        try {
+            const { data, error } = await supabase
+                .from('pending_merchants')
+                .select('*')
+                .eq('status', 'pending')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error fetching pending merchants:', error);
+                return { success: false, data: null, error: error.message };
+            }
+
+            // Map pending_merchants to Merchant type
+            const merchants: Merchant[] = (data || []).map((row: any) => ({
+                id: row.id,
+                bbmId: null,
+                businessName: row.business_name,
+                ownerName: row.owner_name,
+                ownerPhone: row.owner_phone,
+                email: row.email,
+                phone: row.phone,
+                category: row.category,
+                description: row.description,
+                address: row.address,
+                city: row.city,
+                state: row.state,
+                pinCode: row.pincode,
+                logo: row.logo_url,
+                coverPhoto: row.cover_photo_url,
+                storeImages: row.store_images || [],
+                operatingHours: row.operating_hours,
+                status: 'pending' as const,
+                totalOffers: 0,
+                totalRedemptions: 0,
+                createdAt: row.created_at,
+                latitude: row.latitude,
+                longitude: row.longitude,
+                googleMapsLink: row.google_maps_link,
+                paymentQrUrl: row.payment_qr_url
+            }));
+
+            return { success: true, data: merchants, error: null };
+        } catch (error: any) {
+            return { success: false, data: null, error: error.message };
+        }
+    },
+
     // Get approved merchants (for student explore/map)
     async getApproved(): Promise<ApiResponse<Merchant[]>> {
         try {
