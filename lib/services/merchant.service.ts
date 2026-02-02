@@ -90,7 +90,7 @@ export const merchantService = {
                 .from('pending_merchants')
                 .select('*')
                 .eq('status', 'pending')
-                .order('created_at', { ascending: false });
+                .order('submitted_at', { ascending: false });
 
             console.log('[MerchantService.getPending] Raw response - data:', data);
             console.log('[MerchantService.getPending] Raw response - error:', error);
@@ -123,7 +123,7 @@ export const merchantService = {
                 status: 'pending' as const,
                 totalOffers: 0,
                 totalRedemptions: 0,
-                createdAt: row.created_at,
+                createdAt: row.submitted_at,
                 latitude: row.latitude,
                 longitude: row.longitude,
                 googleMapsLink: row.google_maps_link,
