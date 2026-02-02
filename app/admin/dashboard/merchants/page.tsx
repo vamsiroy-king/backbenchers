@@ -31,12 +31,18 @@ export default function MerchantsListPage() {
 
                 if (filter === 'pending') {
                     // Only fetch from pending_merchants table
+                    console.log('[Admin] Fetching pending merchants...');
                     const pendingResult = await merchantService.getPending();
+                    console.log('[Admin] getPending result:', pendingResult);
                     if (pendingResult.success && pendingResult.data) {
                         allMerchants = pendingResult.data;
+                        console.log('[Admin] Found', allMerchants.length, 'pending merchants');
+                    } else if (pendingResult.error) {
+                        console.error('[Admin] getPending error:', pendingResult.error);
                     }
                 } else if (filter === 'all') {
                     // Fetch from both tables and combine
+                    console.log('[Admin] Fetching all merchants (both tables)...');
                     const [approvedResult, pendingResult] = await Promise.all([
                         merchantService.getAll({
                             state: selectedState === 'All States' ? undefined : selectedState,
@@ -46,6 +52,9 @@ export default function MerchantsListPage() {
                         merchantService.getPending()
                     ]);
 
+                    console.log('[Admin] getAll result:', approvedResult);
+                    console.log('[Admin] getPending result:', pendingResult);
+
                     if (approvedResult.success && approvedResult.data) {
                         allMerchants = [...approvedResult.data];
                     }
@@ -53,6 +62,7 @@ export default function MerchantsListPage() {
                         // Add pending merchants at the top (most recent first)
                         allMerchants = [...pendingResult.data, ...allMerchants];
                     }
+                    console.log('[Admin] Total merchants after merge:', allMerchants.length);
                 } else {
                     // 'approved' or 'rejected' - only from merchants table
                     const result = await merchantService.getAll({
@@ -89,9 +99,10 @@ export default function MerchantsListPage() {
                 setMerchants(allMerchants);
 
                 const statsData = await merchantService.getStats();
+                console.log('[Admin] Stats:', statsData);
                 setStats(statsData);
             } catch (error) {
-                console.error('Error fetching merchants:', error);
+                console.error('[Admin] Error fetching merchants:', error);
             } finally {
                 setLoading(false);
             }
