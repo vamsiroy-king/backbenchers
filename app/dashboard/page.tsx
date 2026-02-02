@@ -67,24 +67,33 @@ const getCategoryGradient = (from: string, to: string, isLight: boolean = false)
     return { background: `linear-gradient(to bottom right, ${fromColor}40, ${toColor}20)` };
 };
 
-// Categories - Combinational Names (Food & Dining, Fashion & Apparel, etc.)
+// Categories - Limited to 4 essential categories in 2x2 grid
 const DEFAULT_CATEGORIES = [
     { id: '1', name: "Food & Dining", tagline: "Dine for less", gradient_from: "orange-100", gradient_to: "orange-200", icon: "🍕", image_url: "/assets/categories/food_ultra.png", display_order: 1 },
     { id: '2', name: "Fashion & Apparel", tagline: "Style on budget", gradient_from: "pink-100", gradient_to: "pink-200", icon: "👗", image_url: "/assets/categories/fashion_ultra.png", display_order: 2 },
-    { id: '3', name: "Fitness & Wellness", tagline: "Train smarter", gradient_from: "blue-100", gradient_to: "blue-200", icon: "💪", image_url: "/assets/categories/fitness_ultra.png", display_order: 3 },
-    { id: '4', name: "Beauty & Skincare", tagline: "Glow up for less", gradient_from: "purple-100", gradient_to: "purple-200", icon: "✨", image_url: "/assets/categories/beauty_ultra.png", display_order: 4 },
-    { id: '5', name: "Groceries & Essentials", tagline: "Save on daily needs", gradient_from: "green-100", gradient_to: "green-200", icon: "🛒", image_url: "/assets/categories/groceries_ultra.png", display_order: 5 },
-    { id: '6', name: "Electronics & Gadgets", tagline: "Tech deals for students", gradient_from: "indigo-100", gradient_to: "indigo-200", icon: "📱", image_url: "/assets/categories/electronics_ultra.png", display_order: 6 },
-    { id: '7', name: "Entertainment & Events", tagline: "Fun for less", gradient_from: "yellow-100", gradient_to: "yellow-200", icon: "🎬", image_url: "/assets/categories/entertainment_ultra.png", display_order: 7 },
-    { id: '8', name: "Travel & Transport", tagline: "Explore on budget", gradient_from: "cyan-100", gradient_to: "cyan-200", icon: "✈️", image_url: "/assets/categories/travel_ultra.png", display_order: 8 },
+    { id: '3', name: "Groceries & Essentials", tagline: "Save on daily needs", gradient_from: "green-100", gradient_to: "green-200", icon: "🛒", image_url: "/assets/categories/groceries_ultra.png", display_order: 3 },
+    { id: '4', name: "Fitness & Wellness", tagline: "Train smarter", gradient_from: "blue-100", gradient_to: "blue-200", icon: "💪", image_url: "/assets/categories/fitness_ultra.png", display_order: 4 },
 ];
 
-// Top Brands (Static Fallback)
-const STATIC_TOP_BRANDS = [
-    { id: 1, name: "Starbucks", logo: "/brands/starbucks.png", category: "Food" },
-    { id: 2, name: "McDonald's", logo: "/brands/mcdonalds.png", category: "Food" },
-    { id: 3, name: "Nike", logo: "/brands/nike.png", category: "Fashion" },
-];
+// Top Brands (Static Fallback - Demo Data)
+const STATIC_TOP_BRANDS = {
+    online: [
+        { id: 'o1', name: "Amazon", logo: "/brands/amazon.png", category: "Online" },
+        { id: 'o2', name: "Flipkart", logo: "/brands/flipkart.png", category: "Online" },
+        { id: 'o3', name: "Zomato", logo: "/brands/zomato.png", category: "Online" },
+        { id: 'o4', name: "Swiggy", logo: "/brands/swiggy.png", category: "Online" },
+        { id: 'o5', name: "Netflix", logo: "/brands/netflix.png", category: "Online" },
+        { id: 'o6', name: "Spotify", logo: "/brands/spotify.png", category: "Online" },
+    ],
+    offline: [
+        { id: 's1', name: "Starbucks", logo: "/brands/starbucks.png", category: "Food" },
+        { id: 's2', name: "McDonald's", logo: "/brands/mcdonalds.png", category: "Food" },
+        { id: 's3', name: "Nike", logo: "/brands/nike.png", category: "Fashion" },
+        { id: 's4', name: "Adidas", logo: "/brands/adidas.png", category: "Fashion" },
+        { id: 's5', name: "Domino's", logo: "/brands/dominos.png", category: "Food" },
+        { id: 's6', name: "KFC", logo: "/brands/kfc.png", category: "Food" },
+    ]
+};
 
 // Offers
 const ONLINE_OFFERS = [
@@ -465,7 +474,11 @@ export default function DashboardPage() {
                         const cleanOnline = online.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i && v.logo);
                         const cleanOffline = offline.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i && v.logo);
 
-                        setTopBrandsState({ online: cleanOnline, offline: cleanOffline });
+                        // Use demo data as fallback if no brands fetched
+                        const finalOnline = cleanOnline.length > 0 ? cleanOnline : STATIC_TOP_BRANDS.online;
+                        const finalOffline = cleanOffline.length > 0 ? cleanOffline : STATIC_TOP_BRANDS.offline;
+
+                        setTopBrandsState({ online: finalOnline, offline: finalOffline });
                     }
                     setLoadingBrands(false);
                 }
@@ -723,47 +736,48 @@ export default function DashboardPage() {
 
                 {/* Top Brands Marquee - SCROLL LINKED */}
 
-                {/* Categories Section */}
+                {/* Categories Section - 2x2 Grid Layout */}
                 <section className="pb-6 relative z-10">
-                    <div className="flex items-center justify-center mb-6">
+                    <div className="flex items-center justify-center mb-5">
                         <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
                         <span className={`px-4 text-[10px] tracking-[0.2em] font-semibold uppercase ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>SHOP BY CATEGORY</span>
                         <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
                     </div>
-                    {/* Horizontal Scroll Categories */}
-                    <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 snap-x snap-mandatory">
+                    {/* 2x2 Grid Categories */}
+                    <div className="grid grid-cols-2 gap-3 px-1">
                         {categories.map((cat) => (
                             <motion.div
                                 key={cat.id}
-                                whileTap={{ scale: 0.95 }}
+                                whileTap={{ scale: 0.97 }}
+                                whileHover={{ scale: 1.02 }}
                                 onClick={() => {
                                     vibrate('light');
                                     router.push(`/dashboard/explore?category=${cat.name}`);
                                 }}
                                 style={getCategoryGradient(cat.gradient_from, cat.gradient_to, isLightTheme)}
-                                className={`snap-center flex-shrink-0 w-32 aspect-[3/4] rounded-2xl border flex flex-col items-center justify-center relative overflow-hidden cursor-pointer ${isLightTheme
-                                    ? 'border-gray-200 hover:border-gray-300 shadow-lg shadow-gray-200/50'
-                                    : 'border-white/[0.08] hover:border-white/[0.12] shadow-lg shadow-black/20'
+                                className={`relative aspect-[4/3] rounded-2xl border flex flex-col items-center justify-center overflow-hidden cursor-pointer transition-all duration-200 ${isLightTheme
+                                    ? 'border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg'
+                                    : 'border-white/[0.08] hover:border-white/[0.15] shadow-lg shadow-black/20'
                                     }`}
                             >
                                 {/* Background Image */}
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="relative w-full h-full mix-blend-overlay opacity-80">
+                                    <div className="relative w-full h-full">
                                         {cat.image_url && (
                                             <Image
                                                 src={cat.image_url}
                                                 alt={cat.name}
                                                 fill
-                                                className="object-cover scale-110"
+                                                className="object-cover"
                                             />
                                         )}
                                     </div>
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
                                 </div>
                                 {/* Content */}
-                                <div className="relative z-10 flex flex-col items-center justify-end h-full pb-4 w-full px-2 text-center">
-                                    <span className="text-sm font-bold leading-none text-white drop-shadow-lg mb-1">{cat.name}</span>
-                                    <span className="text-[10px] font-medium leading-none text-white/70 drop-shadow-md">{cat.tagline}</span>
+                                <div className="relative z-10 flex flex-col items-center justify-end h-full pb-3 w-full px-3 text-center">
+                                    <span className="text-xs font-bold text-white drop-shadow-lg mb-0.5 line-clamp-1">{cat.name}</span>
+                                    <span className="text-[9px] font-medium text-white/70 drop-shadow-md">{cat.tagline}</span>
                                 </div>
                             </motion.div>
                         ))}
@@ -831,68 +845,126 @@ export default function DashboardPage() {
                     </section>
                 )}
 
-                {/* Top Brands Section */}
+                {/* Top Brands Section - Online (top) / Offline (bottom) */}
                 {contentSettings.showTopBrands && (loadingBrands || topBrandsState.online.length > 0 || topBrandsState.offline.length > 0) && (
                     <section className="py-6">
-                        {/* Section Header - Consistent with Categories */}
-                        <div className="flex items-center justify-center mb-6">
-                            <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
-                            <span className={`px-4 text-[10px] tracking-[0.2em] font-semibold uppercase ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>TOP BRANDS</span>
-                            <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
-                        </div>
+                        {/* Online Brands Row */}
+                        {(loadingBrands || topBrandsState.online.length > 0) && (
+                            <div className="mb-6">
+                                <div className="flex items-center justify-center mb-4">
+                                    <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
+                                    <span className={`px-3 text-[9px] tracking-[0.15em] font-semibold uppercase flex items-center gap-1.5 ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>
+                                        <Globe className="h-3 w-3 text-blue-400" />
+                                        ONLINE BRANDS
+                                    </span>
+                                    <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
+                                </div>
+                                <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-4 pb-2">
+                                    {loadingBrands && topBrandsState.online.length === 0 ? (
+                                        <>
+                                            {[1, 2, 3, 4].map((i) => (
+                                                <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0 w-20">
+                                                    <div className={`h-20 w-20 rounded-2xl animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
+                                                    <div className={`h-2.5 w-14 rounded animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
+                                                </div>
+                                            ))}
+                                        </>
+                                    ) : (
+                                        topBrandsState.online.map((brand, index) => (
+                                            <motion.div
+                                                key={brand.id}
+                                                initial={{ opacity: 0, scale: 0.9 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ delay: index * 0.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={() => {
+                                                    vibrate('light');
+                                                    router.push(`/dashboard/online-brand/${brand.id}`);
+                                                }}
+                                                className="flex flex-col items-center gap-2 cursor-pointer flex-shrink-0 w-20 group"
+                                            >
+                                                <div className={`h-20 w-20 rounded-2xl p-3 flex items-center justify-center transition-all duration-200 ${isLightTheme
+                                                    ? 'bg-white border border-gray-100 shadow-lg hover:shadow-xl'
+                                                    : 'bg-white/[0.04] border border-white/[0.08] hover:border-blue-500/30 hover:bg-blue-500/5'
+                                                    }`}>
+                                                    <div className="relative w-full h-full">
+                                                        <Image
+                                                            src={brand.logo}
+                                                            alt={brand.name}
+                                                            fill
+                                                            className="object-contain"
+                                                            sizes="80px"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <span className={`text-[10px] font-medium text-center line-clamp-1 w-full ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>
+                                                    {brand.name}
+                                                </span>
+                                            </motion.div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
-                        {/* Brand Logos - Horizontal Scroll */}
-                        <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-5 pb-2">
-                            {loadingBrands && topBrandsState.online.length === 0 && topBrandsState.offline.length === 0 ? (
-                                // Shimmer Placeholders
-                                <>
-                                    {[1, 2, 3, 4, 5].map((i) => (
-                                        <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0 w-24">
-                                            <div className={`h-24 w-24 rounded-[32px] animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
-                                            <div className={`h-3 w-16 rounded animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
-                                        </div>
-                                    ))}
-                                </>
-                            ) : (
-                                [...topBrandsState.online, ...topBrandsState.offline].slice(0, 10).map((brand, index) => (
-                                    <motion.div
-                                        key={brand.id}
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: index * 0.05 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={() => {
-                                            vibrate('light');
-                                            if (brand.category === 'Online' || brand.category === 'Startups/Apps') {
-                                                router.push(`/dashboard/online-brand/${brand.id}`);
-                                            } else {
-                                                router.push(`/store/${brand.id}`);
-                                            }
-                                        }}
-                                        className="flex flex-col items-center gap-3 cursor-pointer flex-shrink-0 w-24 group"
-                                    >
-                                        <div className={`h-24 w-24 rounded-[32px] p-5 flex items-center justify-center transition-all duration-300 ${isLightTheme
-                                            ? 'bg-white border border-gray-100 shadow-xl shadow-gray-200/50'
-                                            : 'bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl shadow-2xl shadow-black/20 group-hover:bg-white/[0.06] group-hover:border-white/[0.15]'
-                                            }`}>
-                                            <div className="relative w-full h-full grayscale group-hover:grayscale-0 transition-all duration-300 opacity-80 group-hover:opacity-100">
-                                                <Image
-                                                    src={brand.logo}
-                                                    alt={brand.name}
-                                                    fill
-                                                    className="object-contain"
-                                                    sizes="96px"
-                                                />
-                                            </div>
-                                        </div>
-                                        <span className={`text-[11px] font-medium text-center line-clamp-1 w-full px-1 transition-colors ${isLightTheme ? 'text-gray-600' : 'text-white/50 group-hover:text-white'
-                                            }`}>
-                                            {brand.name}
-                                        </span>
-                                    </motion.div>
-                                ))
-                            )}
-                        </div>
+                        {/* Offline Brands Row */}
+                        {(loadingBrands || topBrandsState.offline.length > 0) && (
+                            <div>
+                                <div className="flex items-center justify-center mb-4">
+                                    <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
+                                    <span className={`px-3 text-[9px] tracking-[0.15em] font-semibold uppercase flex items-center gap-1.5 ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>
+                                        <Store className="h-3 w-3 text-green-400" />
+                                        IN-STORE BRANDS
+                                    </span>
+                                    <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
+                                </div>
+                                <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-4 pb-2">
+                                    {loadingBrands && topBrandsState.offline.length === 0 ? (
+                                        <>
+                                            {[1, 2, 3, 4].map((i) => (
+                                                <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0 w-20">
+                                                    <div className={`h-20 w-20 rounded-2xl animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
+                                                    <div className={`h-2.5 w-14 rounded animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
+                                                </div>
+                                            ))}
+                                        </>
+                                    ) : (
+                                        topBrandsState.offline.map((brand, index) => (
+                                            <motion.div
+                                                key={brand.id}
+                                                initial={{ opacity: 0, scale: 0.9 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ delay: index * 0.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={() => {
+                                                    vibrate('light');
+                                                    router.push(`/store/${brand.id}`);
+                                                }}
+                                                className="flex flex-col items-center gap-2 cursor-pointer flex-shrink-0 w-20 group"
+                                            >
+                                                <div className={`h-20 w-20 rounded-2xl p-3 flex items-center justify-center transition-all duration-200 ${isLightTheme
+                                                    ? 'bg-white border border-gray-100 shadow-lg hover:shadow-xl'
+                                                    : 'bg-white/[0.04] border border-white/[0.08] hover:border-green-500/30 hover:bg-green-500/5'
+                                                    }`}>
+                                                    <div className="relative w-full h-full">
+                                                        <Image
+                                                            src={brand.logo}
+                                                            alt={brand.name}
+                                                            fill
+                                                            className="object-contain"
+                                                            sizes="80px"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <span className={`text-[10px] font-medium text-center line-clamp-1 w-full ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>
+                                                    {brand.name}
+                                                </span>
+                                            </motion.div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </section>
                 )}
 
