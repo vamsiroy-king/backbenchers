@@ -95,11 +95,21 @@ const STATIC_TOP_BRANDS = {
     ]
 };
 
-// Offers
-const ONLINE_OFFERS = [
-    { id: 1, brand: "Spotify", discount: "Student Plan ₹59/mo", type: "Music", isNew: true },
-    { id: 2, brand: "Netflix", discount: "3 Months Free", type: "Streaming", isNew: true },
-];
+// Demo Trending Offers (Fallback when database is empty)
+const DEMO_TRENDING_OFFERS = {
+    online: [
+        { id: 'demo-o1', title: 'Flat 50% Off', discountValue: 50, type: 'percentage' as const, merchantId: 'zomato', merchantName: 'Zomato', merchantLogo: '/brands/zomato.png', code: 'BB50' },
+        { id: 'demo-o2', title: 'Student Plan ₹59/mo', discountValue: 59, type: 'flat' as const, merchantId: 'spotify', merchantName: 'Spotify', merchantLogo: '/brands/spotify.png', code: 'STUDENT' },
+        { id: 'demo-o3', title: '3 Months Free', discountValue: 100, type: 'percentage' as const, merchantId: 'netflix', merchantName: 'Netflix', merchantLogo: '/brands/netflix.png', code: 'BBFREE' },
+        { id: 'demo-o4', title: 'Extra ₹100 Off', discountValue: 100, type: 'flat' as const, merchantId: 'amazon', merchantName: 'Amazon', merchantLogo: '/brands/amazon.png', code: 'BBSAVE' },
+    ],
+    offline: [
+        { id: 'demo-s1', title: '20% Off on Meals', discountValue: 20, type: 'percentage' as const, merchantId: 'starbucks', merchantName: 'Starbucks', merchantLogo: '/brands/starbucks.png', merchantCity: 'All Cities' },
+        { id: 'demo-s2', title: 'Buy 1 Get 1 Free', discountValue: 50, type: 'bogo' as const, merchantId: 'dominos', merchantName: "Domino's", merchantLogo: '/brands/dominos.png', merchantCity: 'All Cities' },
+        { id: 'demo-s3', title: '15% Student Discount', discountValue: 15, type: 'percentage' as const, merchantId: 'mcdonalds', merchantName: "McDonald's", merchantLogo: '/brands/mcdonalds.png', merchantCity: 'All Cities' },
+        { id: 'demo-s4', title: 'Flat ₹200 Off', discountValue: 200, type: 'flat' as const, merchantId: 'nike', merchantName: 'Nike', merchantLogo: '/brands/nike.png', merchantCity: 'All Cities' },
+    ]
+};
 
 const OFFLINE_OFFERS = [
     { id: 1, brand: "Burger King", discount: "15% Student Discount", locations: "6+", isNew: true },
@@ -116,16 +126,13 @@ const ALL_ITEMS = [
     { type: 'location', name: 'Mumbai', emoji: '📍', info: '32 offers' },
 ];
 
-// Animated search suggestions (shorter for typewriter effect)
-const SEARCH_SUGGESTIONS = [
-    "Pizza",
-    "Fashion",
-    "Starbucks",
-    "Gym",
-    "Groceries",
-    "Nike",
-    "Zomato",
-    "Near me",
+// Animated search placeholders (slide animation)
+const SEARCH_PLACEHOLDERS = [
+    "Search deals near you",
+    "Find 'Starbucks'",
+    "Search 'Pizza'",
+    "Explore 'Fashion'",
+    "Find nearby gyms",
 ];
 
 export default function DashboardPage() {
@@ -150,9 +157,7 @@ export default function DashboardPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [categories, setCategories] = useState<any[]>(DEFAULT_CATEGORIES);
     const [selectedCategory, setSelectedCategory] = useState(0); // For Floating Card Stack
-    const [searchSuggestionIndex, setSearchSuggestionIndex] = useState(0);
-    const [typedText, setTypedText] = useState("");
-    const [isTyping, setIsTyping] = useState(true);
+    const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const heroRef = useRef<HTMLDivElement>(null);
 
     // Initialize Real Offers from Cache (Synchronous to prevent flash)
@@ -263,38 +268,13 @@ export default function DashboardPage() {
         };
     }, []);
 
-    // Professional typewriter animation for search
+    // Slide animation for search placeholder
     useEffect(() => {
-        const currentSuggestion = SEARCH_SUGGESTIONS[searchSuggestionIndex];
-        let timeoutId: NodeJS.Timeout;
-
-        if (isTyping) {
-            // Typing phase
-            if (typedText.length < currentSuggestion.length) {
-                timeoutId = setTimeout(() => {
-                    setTypedText(currentSuggestion.slice(0, typedText.length + 1));
-                }, 80); // Typing speed
-            } else {
-                // Pause at full text, then start deleting
-                timeoutId = setTimeout(() => {
-                    setIsTyping(false);
-                }, 1500);
-            }
-        } else {
-            // Deleting phase
-            if (typedText.length > 0) {
-                timeoutId = setTimeout(() => {
-                    setTypedText(typedText.slice(0, -1));
-                }, 40); // Delete speed (faster)
-            } else {
-                // Move to next suggestion
-                setSearchSuggestionIndex((prev) => (prev + 1) % SEARCH_SUGGESTIONS.length);
-                setIsTyping(true);
-            }
-        }
-
-        return () => clearTimeout(timeoutId);
-    }, [typedText, isTyping, searchSuggestionIndex]);
+        const interval = setInterval(() => {
+            setPlaceholderIndex((prev) => (prev + 1) % SEARCH_PLACEHOLDERS.length);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
 
     // Auto-scroll hero banners every 4 seconds
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
@@ -671,7 +651,7 @@ export default function DashboardPage() {
                 isOpen={showSearch}
                 onClose={() => setShowSearch(false)}
                 city={selectedCity}
-                placeholder={`Search ${typedText || 'deals'}...`}
+                placeholder={SEARCH_PLACEHOLDERS[placeholderIndex]}
             />
 
             {/* City Selector Modal */}
@@ -729,23 +709,26 @@ export default function DashboardPage() {
             </header>
 
             <main className="max-w-7xl mx-auto space-y-4 px-5 pt-4 pb-4">
-                {/* Premium Search Bar with Typewriter Effect */}
+                {/* Search Bar with Slide Animation */}
                 <motion.button
                     onClick={() => setShowSearch(true)}
                     whileTap={{ scale: 0.99 }}
                     className={`w-full h-12 rounded-xl flex items-center gap-3 px-4 transition-colors border ${isLightTheme ? 'bg-white border-gray-200 hover:bg-gray-50' : 'bg-white/[0.03] border-white/[0.04] hover:bg-white/[0.05]'}`}
                 >
                     <Search className={`h-4 w-4 flex-shrink-0 ${isLightTheme ? 'text-gray-400' : 'text-white/30'}`} />
-                    <div className="flex-1 text-left flex items-center gap-1 overflow-hidden">
-                        <span className={`text-sm ${isLightTheme ? 'text-gray-500' : 'text-white/30'}`}>Search</span>
-                        <span className={`text-sm font-medium ${isLightTheme ? 'text-gray-600' : 'text-white/50'}`}>
-                            {typedText}
-                        </span>
-                        <motion.span
-                            animate={{ opacity: [1, 0, 1] }}
-                            transition={{ duration: 0.8, repeat: Infinity }}
-                            className={`w-0.5 h-4 ${isLightTheme ? 'bg-gray-400' : 'bg-white/40'}`}
-                        />
+                    <div className="flex-1 text-left overflow-hidden">
+                        <AnimatePresence mode="wait">
+                            <motion.span
+                                key={placeholderIndex}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3 }}
+                                className={`text-sm block ${isLightTheme ? 'text-gray-400' : 'text-white/40'}`}
+                            >
+                                {SEARCH_PLACEHOLDERS[placeholderIndex]}
+                            </motion.span>
+                        </AnimatePresence>
                     </div>
                 </motion.button>
 
@@ -758,50 +741,33 @@ export default function DashboardPage() {
 
                 {/* Top Brands Marquee - SCROLL LINKED */}
 
-                {/* Categories Section - 2x2 Grid Layout */}
-                <section className="pb-6 relative z-10">
-                    <div className="flex items-center justify-center mb-5">
+                {/* Categories - Single Line Horizontal Scroll */}
+                <section className="pb-4 relative z-10">
+                    <div className="flex items-center justify-center mb-4">
                         <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
-                        <span className={`px-4 text-[10px] tracking-[0.2em] font-semibold uppercase ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>SHOP BY CATEGORY</span>
+                        <span className={`px-4 text-[10px] tracking-[0.2em] font-semibold uppercase ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>CATEGORIES</span>
                         <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
                     </div>
-                    {/* 2x2 Grid Categories */}
-                    <div className="grid grid-cols-2 gap-3 px-1">
+                    {/* Horizontal Scroll Categories */}
+                    <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 pb-2">
                         {categories.map((cat) => (
-                            <motion.div
+                            <motion.button
                                 key={cat.id}
-                                whileTap={{ scale: 0.97 }}
-                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.95 }}
                                 onClick={() => {
                                     vibrate('light');
                                     router.push(`/dashboard/explore?category=${cat.name}`);
                                 }}
-                                style={getCategoryGradient(cat.gradient_from, cat.gradient_to, isLightTheme)}
-                                className={`relative aspect-[4/3] rounded-2xl border flex flex-col items-center justify-center overflow-hidden cursor-pointer transition-all duration-200 ${isLightTheme
-                                    ? 'border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg'
-                                    : 'border-white/[0.08] hover:border-white/[0.15] shadow-lg shadow-black/20'
+                                className={`flex-shrink-0 flex flex-col items-center justify-center gap-2 w-20 h-20 rounded-2xl border transition-all duration-200 group ${isLightTheme
+                                    ? 'bg-white border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md'
+                                    : 'bg-[#111] border-[#222] hover:border-[#333]'
                                     }`}
                             >
-                                {/* Background Image */}
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="relative w-full h-full">
-                                        {cat.image_url && (
-                                            <Image
-                                                src={cat.image_url}
-                                                alt={cat.name}
-                                                fill
-                                                className="object-cover"
-                                            />
-                                        )}
-                                    </div>
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                                </div>
-                                {/* Content */}
-                                <div className="relative z-10 flex flex-col items-center justify-end h-full pb-3 w-full px-3 text-center">
-                                    <span className="text-xs font-bold text-white drop-shadow-lg mb-0.5 line-clamp-1">{cat.name}</span>
-                                    <span className="text-[9px] font-medium text-white/70 drop-shadow-md">{cat.tagline}</span>
-                                </div>
-                            </motion.div>
+                                <span className="text-2xl group-hover:scale-110 transition-transform duration-300">{cat.icon || '🏷️'}</span>
+                                <span className={`text-[10px] font-medium text-center line-clamp-1 px-1 ${isLightTheme ? 'text-gray-600' : 'text-white/60'} group-hover:${isLightTheme ? 'text-gray-800' : 'text-white'}`}>
+                                    {cat.name?.split(' ')[0] || 'Category'}
+                                </span>
+                            </motion.button>
                         ))}
                     </div>
                 </section>
@@ -867,126 +833,68 @@ export default function DashboardPage() {
                     </section>
                 )}
 
-                {/* Top Brands Section - Online (top) / Offline (bottom) */}
+                {/* Top Brands Section - Combined Row */}
                 {contentSettings.showTopBrands && (loadingBrands || topBrandsState.online.length > 0 || topBrandsState.offline.length > 0) && (
-                    <section className="py-6">
-                        {/* Online Brands Row */}
-                        {(loadingBrands || topBrandsState.online.length > 0) && (
-                            <div className="mb-6">
-                                <div className="flex items-center justify-center mb-4">
-                                    <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
-                                    <span className={`px-3 text-[9px] tracking-[0.15em] font-semibold uppercase flex items-center gap-1.5 ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>
-                                        <Globe className="h-3 w-3 text-blue-400" />
-                                        ONLINE BRANDS
-                                    </span>
-                                    <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
-                                </div>
-                                <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-4 pb-2">
-                                    {loadingBrands && topBrandsState.online.length === 0 ? (
-                                        <>
-                                            {[1, 2, 3, 4].map((i) => (
-                                                <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0 w-20">
-                                                    <div className={`h-20 w-20 rounded-2xl animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
-                                                    <div className={`h-2.5 w-14 rounded animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
-                                                </div>
-                                            ))}
-                                        </>
-                                    ) : (
-                                        topBrandsState.online.map((brand, index) => (
-                                            <motion.div
-                                                key={brand.id}
-                                                initial={{ opacity: 0, scale: 0.9 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                transition={{ delay: index * 0.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => {
-                                                    vibrate('light');
+                    <section className="py-4">
+                        <div className="flex items-center justify-center mb-4">
+                            <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
+                            <span className={`px-4 text-[10px] tracking-[0.2em] font-semibold uppercase ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>TOP BRANDS</span>
+                            <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
+                        </div>
+                        <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-4 pb-2">
+                            {loadingBrands && topBrandsState.online.length === 0 && topBrandsState.offline.length === 0 ? (
+                                <>
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                        <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0 w-20">
+                                            <div className={`h-20 w-20 rounded-2xl animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
+                                            <div className={`h-2.5 w-14 rounded animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
+                                        </div>
+                                    ))}
+                                </>
+                            ) : (
+                                <>
+                                    {/* All brands combined */}
+                                    {[...topBrandsState.online, ...topBrandsState.offline].map((brand, index) => (
+                                        <motion.div
+                                            key={brand.id}
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: index * 0.03 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => {
+                                                vibrate('light');
+                                                // Route based on brand type
+                                                const isOnline = topBrandsState.online.some(b => b.id === brand.id);
+                                                if (isOnline) {
                                                     router.push(`/dashboard/online-brand/${brand.id}`);
-                                                }}
-                                                className="flex flex-col items-center gap-2 cursor-pointer flex-shrink-0 w-20 group"
-                                            >
-                                                <div className={`h-20 w-20 rounded-2xl p-3 flex items-center justify-center transition-all duration-200 ${isLightTheme
-                                                    ? 'bg-white border border-gray-100 shadow-lg hover:shadow-xl'
-                                                    : 'bg-white/[0.04] border border-white/[0.08] hover:border-blue-500/30 hover:bg-blue-500/5'
-                                                    }`}>
-                                                    <div className="relative w-full h-full">
-                                                        <Image
-                                                            src={brand.logo}
-                                                            alt={brand.name}
-                                                            fill
-                                                            className="object-contain"
-                                                            sizes="80px"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <span className={`text-[10px] font-medium text-center line-clamp-1 w-full ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>
-                                                    {brand.name}
-                                                </span>
-                                            </motion.div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Offline Brands Row */}
-                        {(loadingBrands || topBrandsState.offline.length > 0) && (
-                            <div>
-                                <div className="flex items-center justify-center mb-4">
-                                    <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
-                                    <span className={`px-3 text-[9px] tracking-[0.15em] font-semibold uppercase flex items-center gap-1.5 ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>
-                                        <Store className="h-3 w-3 text-green-400" />
-                                        IN-STORE BRANDS
-                                    </span>
-                                    <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
-                                </div>
-                                <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-4 pb-2">
-                                    {loadingBrands && topBrandsState.offline.length === 0 ? (
-                                        <>
-                                            {[1, 2, 3, 4].map((i) => (
-                                                <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0 w-20">
-                                                    <div className={`h-20 w-20 rounded-2xl animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
-                                                    <div className={`h-2.5 w-14 rounded animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
-                                                </div>
-                                            ))}
-                                        </>
-                                    ) : (
-                                        topBrandsState.offline.map((brand, index) => (
-                                            <motion.div
-                                                key={brand.id}
-                                                initial={{ opacity: 0, scale: 0.9 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                transition={{ delay: index * 0.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => {
-                                                    vibrate('light');
+                                                } else {
                                                     router.push(`/store/${brand.id}`);
-                                                }}
-                                                className="flex flex-col items-center gap-2 cursor-pointer flex-shrink-0 w-20 group"
-                                            >
-                                                <div className={`h-20 w-20 rounded-2xl p-3 flex items-center justify-center transition-all duration-200 ${isLightTheme
-                                                    ? 'bg-white border border-gray-100 shadow-lg hover:shadow-xl'
-                                                    : 'bg-white/[0.04] border border-white/[0.08] hover:border-green-500/30 hover:bg-green-500/5'
-                                                    }`}>
-                                                    <div className="relative w-full h-full">
-                                                        <Image
-                                                            src={brand.logo}
-                                                            alt={brand.name}
-                                                            fill
-                                                            className="object-contain"
-                                                            sizes="80px"
-                                                        />
-                                                    </div>
+                                                }
+                                            }}
+                                            className="flex flex-col items-center gap-2 cursor-pointer flex-shrink-0 w-20 group"
+                                        >
+                                            <div className={`h-20 w-20 rounded-2xl p-3 flex items-center justify-center transition-all duration-200 ${isLightTheme
+                                                ? 'bg-white border border-gray-100 shadow-lg hover:shadow-xl'
+                                                : 'bg-white/[0.04] border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.06]'
+                                                }`}>
+                                                <div className="relative w-full h-full">
+                                                    <Image
+                                                        src={brand.logo}
+                                                        alt={brand.name}
+                                                        fill
+                                                        className="object-contain"
+                                                        sizes="80px"
+                                                    />
                                                 </div>
-                                                <span className={`text-[10px] font-medium text-center line-clamp-1 w-full ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>
-                                                    {brand.name}
-                                                </span>
-                                            </motion.div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                                            </div>
+                                            <span className={`text-[10px] font-medium text-center line-clamp-1 w-full ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>
+                                                {brand.name}
+                                            </span>
+                                        </motion.div>
+                                    ))}
+                                </>
+                            )}
+                        </div>
                     </section>
                 )}
 
@@ -997,8 +905,8 @@ export default function DashboardPage() {
                 {
                     contentSettings.showTrending && (
                         <TrendingSection
-                            onlineOffers={trendingOnline}
-                            offlineOffers={cityFilteredTrendingOffline}
+                            onlineOffers={trendingOnline.length > 0 ? trendingOnline : DEMO_TRENDING_OFFERS.online as any}
+                            offlineOffers={cityFilteredTrendingOffline.length > 0 ? cityFilteredTrendingOffline : DEMO_TRENDING_OFFERS.offline as any}
                             isVerified={isVerified}
                             onVerifyClick={() => setShowVerifyModal(true)}
                             city={selectedCity}
