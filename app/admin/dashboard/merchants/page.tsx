@@ -23,16 +23,70 @@ export default function MerchantsListPage() {
         async function fetchMerchants() {
             setLoading(true);
             try {
-                const result = await merchantService.getAll({
-                    status: filter === 'all' ? undefined : filter,
-                    state: selectedState === 'All States' ? undefined : selectedState,
-                    city: selectedCity === 'All Cities' ? undefined : selectedCity,
-                    search: searchQuery || undefined
-                });
+                let allMerchants: Merchant[] = [];
 
-                if (result.success && result.data) {
-                    setMerchants(result.data);
+                // When filter is 'pending', fetch ONLY from pending_merchants table
+                // When filter is 'all', fetch from BOTH tables
+                // Otherwise, fetch only from merchants table
+
+                if (filter === 'pending') {
+                    // Only fetch from pending_merchants table
+                    const pendingResult = await merchantService.getPending();
+                    if (pendingResult.success && pendingResult.data) {
+                        allMerchants = pendingResult.data;
+                    }
+                } else if (filter === 'all') {
+                    // Fetch from both tables and combine
+                    const [approvedResult, pendingResult] = await Promise.all([
+                        merchantService.getAll({
+                            state: selectedState === 'All States' ? undefined : selectedState,
+                            city: selectedCity === 'All Cities' ? undefined : selectedCity,
+                            search: searchQuery || undefined
+                        }),
+                        merchantService.getPending()
+                    ]);
+
+                    if (approvedResult.success && approvedResult.data) {
+                        allMerchants = [...approvedResult.data];
+                    }
+                    if (pendingResult.success && pendingResult.data) {
+                        // Add pending merchants at the top (most recent first)
+                        allMerchants = [...pendingResult.data, ...allMerchants];
+                    }
+                } else {
+                    // 'approved' or 'rejected' - only from merchants table
+                    const result = await merchantService.getAll({
+                        status: filter,
+                        state: selectedState === 'All States' ? undefined : selectedState,
+                        city: selectedCity === 'All Cities' ? undefined : selectedCity,
+                        search: searchQuery || undefined
+                    });
+                    if (result.success && result.data) {
+                        allMerchants = result.data;
+                    }
                 }
+
+                // Apply search filter to pending merchants if needed
+                if (searchQuery && (filter === 'pending' || filter === 'all')) {
+                    const searchLower = searchQuery.toLowerCase();
+                    allMerchants = allMerchants.filter(m =>
+                        m.businessName?.toLowerCase().includes(searchLower) ||
+                        m.ownerName?.toLowerCase().includes(searchLower) ||
+                        m.ownerPhone?.includes(searchQuery)
+                    );
+                }
+
+                // Apply location filters to pending merchants if needed
+                if (filter === 'pending' || filter === 'all') {
+                    if (selectedState !== 'All States') {
+                        allMerchants = allMerchants.filter(m => m.state === selectedState);
+                    }
+                    if (selectedCity !== 'All Cities') {
+                        allMerchants = allMerchants.filter(m => m.city === selectedCity);
+                    }
+                }
+
+                setMerchants(allMerchants);
 
                 const statsData = await merchantService.getStats();
                 setStats(statsData);

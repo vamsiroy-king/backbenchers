@@ -44,6 +44,29 @@ const HERO_CONTENT = {
     cta: "Explore Deals"
 };
 
+// Category gradient color mapping (Tailwind dynamic classes don't work - use inline styles)
+const getCategoryGradient = (from: string, to: string, isLight: boolean = false): React.CSSProperties => {
+    const colorMap: Record<string, string> = {
+        'orange-100': '#ffedd5', 'orange-200': '#fed7aa', 'orange-300': '#fdba74',
+        'pink-100': '#fce7f3', 'pink-200': '#fbcfe8', 'pink-300': '#f9a8d4',
+        'blue-100': '#dbeafe', 'blue-200': '#bfdbfe', 'blue-300': '#93c5fd',
+        'purple-100': '#f3e8ff', 'purple-200': '#e9d5ff', 'purple-300': '#d8b4fe',
+        'green-100': '#dcfce7', 'green-200': '#bbf7d0', 'green-300': '#86efac',
+        'indigo-100': '#e0e7ff', 'indigo-200': '#c7d2fe', 'indigo-300': '#a5b4fc',
+        'yellow-100': '#fef9c3', 'yellow-200': '#fef08a', 'yellow-300': '#fde047',
+        'cyan-100': '#cffafe', 'cyan-200': '#a5f3fc', 'cyan-300': '#67e8f9',
+        'red-100': '#fee2e2', 'red-200': '#fecaca', 'red-300': '#fca5a5',
+    };
+    const fromColor = colorMap[from] || '#1a1a1a';
+    const toColor = colorMap[to] || '#111111';
+
+    if (isLight) {
+        return { background: `linear-gradient(to bottom right, ${fromColor}, ${toColor})` };
+    }
+    // Dark mode: use colors with reduced opacity overlay effect
+    return { background: `linear-gradient(to bottom right, ${fromColor}40, ${toColor}20)` };
+};
+
 // Categories - Combinational Names (Food & Dining, Fashion & Apparel, etc.)
 const DEFAULT_CATEGORIES = [
     { id: '1', name: "Food & Dining", tagline: "Dine for less", gradient_from: "orange-100", gradient_to: "orange-200", icon: "🍕", image_url: "/assets/categories/food_ultra.png", display_order: 1 },
@@ -159,6 +182,7 @@ export default function DashboardPage() {
         online: [],
         offline: []
     });
+    const [loadingBrands, setLoadingBrands] = useState(true);
 
     // New merchants for "New on BackBenchers" section
     const [newMerchants, setNewMerchants] = useState<NewMerchant[]>([]);
@@ -443,6 +467,7 @@ export default function DashboardPage() {
 
                         setTopBrandsState({ online: cleanOnline, offline: cleanOffline });
                     }
+                    setLoadingBrands(false);
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -698,16 +723,14 @@ export default function DashboardPage() {
 
                 {/* Top Brands Marquee - SCROLL LINKED */}
 
-
-                {/* Categories - Connected to Hero Fade */}
-                {/* Categories - Connected to Hero Fade */}
-                <section className="pb-4 relative z-10">
-                    <div className="flex items-center justify-center mb-5">
-                        <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                        <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>SHOP BY CATEGORY</span>
-                        <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                {/* Categories Section */}
+                <section className="pb-6 relative z-10">
+                    <div className="flex items-center justify-center mb-6">
+                        <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
+                        <span className={`px-4 text-[10px] tracking-[0.2em] font-semibold uppercase ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>SHOP BY CATEGORY</span>
+                        <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
                     </div>
-                    {/* Horizontal Scroll Categories - Stories Style */}
+                    {/* Horizontal Scroll Categories */}
                     <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 snap-x snap-mandatory">
                         {categories.map((cat) => (
                             <motion.div
@@ -717,8 +740,13 @@ export default function DashboardPage() {
                                     vibrate('light');
                                     router.push(`/dashboard/explore?category=${cat.name}`);
                                 }}
-                                className={`snap-center flex-shrink-0 w-32 aspect-[3/4] rounded-2xl bg-gradient-to-br ${isLightTheme ? `from-${cat.gradient_from} to-${cat.gradient_to}` : `from-${cat.gradient_from}/40 to-${cat.gradient_to}/20`} border flex flex-col items-center justify-center relative overflow-hidden transition-all cursor-pointer ${isLightTheme ? 'border-gray-200 hover:border-gray-300' : 'border-white/[0.06] hover:border-white/[0.12]'} shadow-lg shadow-black/20`}
+                                style={getCategoryGradient(cat.gradient_from, cat.gradient_to, isLightTheme)}
+                                className={`snap-center flex-shrink-0 w-32 aspect-[3/4] rounded-2xl border flex flex-col items-center justify-center relative overflow-hidden cursor-pointer ${isLightTheme
+                                    ? 'border-gray-200 hover:border-gray-300 shadow-lg shadow-gray-200/50'
+                                    : 'border-white/[0.08] hover:border-white/[0.12] shadow-lg shadow-black/20'
+                                    }`}
                             >
+                                {/* Background Image */}
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <div className="relative w-full h-full mix-blend-overlay opacity-80">
                                         {cat.image_url && (
@@ -732,6 +760,7 @@ export default function DashboardPage() {
                                     </div>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90" />
                                 </div>
+                                {/* Content */}
                                 <div className="relative z-10 flex flex-col items-center justify-end h-full pb-4 w-full px-2 text-center">
                                     <span className="text-sm font-bold leading-none text-white drop-shadow-lg mb-1">{cat.name}</span>
                                     <span className="text-[10px] font-medium leading-none text-white/70 drop-shadow-md">{cat.tagline}</span>
@@ -741,17 +770,16 @@ export default function DashboardPage() {
                     </div>
                 </section>
 
-
-                {/* New Stores - Real App Style */}
+                {/* New Stores Section */}
                 {newMerchants.length > 0 && (
                     <section className="py-6">
-                        {/* Section Header */}
-                        <div className="flex items-center justify-center mb-5">
-                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                            <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>NEW STORES</span>
-                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                        {/* Section Header - Consistent with Categories */}
+                        <div className="flex items-center justify-center mb-6">
+                            <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
+                            <span className={`px-4 text-[10px] tracking-[0.2em] font-semibold uppercase ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>NEW ARRIVALS</span>
+                            <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
                         </div>
-                        {/* Mobile: Horizontal Scroll - Trending Style Large Cards */}
+                        {/* Horizontal Scroll Cards */}
                         <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 pb-4 gap-4 snap-x snap-mandatory">
                             {newMerchants.map((merchant) => (
                                 <div key={merchant.id} className="w-[260px] flex-shrink-0 relative group snap-center">
@@ -803,52 +831,67 @@ export default function DashboardPage() {
                     </section>
                 )}
 
-                {/* Top Brands - District Design Horizontal Scroll */}
-                {contentSettings.showTopBrands && (topBrandsState.online.length > 0 || topBrandsState.offline.length > 0) && (
-                    <section className="mb-8">
-                        {/* Header */}
-                        <div className="flex items-center justify-center mb-5">
-                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
-                            <span className={`px-4 text-[10px] tracking-[0.2em] font-medium ${isLightTheme ? 'text-gray-500' : 'text-white/40'}`}>TOP BRANDS</span>
-                            <div className={`flex-1 h-px ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.08]'}`} />
+                {/* Top Brands Section */}
+                {contentSettings.showTopBrands && (loadingBrands || topBrandsState.online.length > 0 || topBrandsState.offline.length > 0) && (
+                    <section className="py-6">
+                        {/* Section Header - Consistent with Categories */}
+                        <div className="flex items-center justify-center mb-6">
+                            <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
+                            <span className={`px-4 text-[10px] tracking-[0.2em] font-semibold uppercase ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>TOP BRANDS</span>
+                            <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
                         </div>
 
-                        {/* District Style Horizontal Scroll */}
-                        <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-4">
-                            {[...topBrandsState.online, ...topBrandsState.offline].slice(0, 10).map((brand) => (
-                                <motion.div
-                                    key={brand.id}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() => {
-                                        vibrate('light');
-                                        if (brand.category === 'Online' || brand.category === 'Startups/Apps') {
-                                            router.push(`/dashboard/online-brand/${brand.id}`);
-                                        } else {
-                                            router.push(`/store/${brand.id}`);
-                                        }
-                                    }}
-                                    className="flex flex-col items-center gap-3 cursor-pointer flex-shrink-0 w-24 group"
-                                >
-                                    <div className={`h-24 w-24 rounded-[32px] p-5 flex items-center justify-center transition-all ${isLightTheme
-                                        ? 'bg-white border border-gray-100 shadow-xl shadow-gray-200/50'
-                                        : 'bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl shadow-2xl shadow-black/20 group-hover:bg-white/[0.06] group-hover:border-white/[0.12]'
-                                        }`}>
-                                        <div className="relative w-full h-full grayscale group-hover:grayscale-0 transition-all duration-300 opacity-80 group-hover:opacity-100">
-                                            <Image
-                                                src={brand.logo}
-                                                alt={brand.name}
-                                                fill
-                                                className="object-contain"
-                                                sizes="96px"
-                                            />
+                        {/* Brand Logos - Horizontal Scroll */}
+                        <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-5 pb-2">
+                            {loadingBrands && topBrandsState.online.length === 0 && topBrandsState.offline.length === 0 ? (
+                                // Shimmer Placeholders
+                                <>
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                        <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0 w-24">
+                                            <div className={`h-24 w-24 rounded-[32px] animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
+                                            <div className={`h-3 w-16 rounded animate-pulse ${isLightTheme ? 'bg-gray-200' : 'bg-white/[0.06]'}`} />
                                         </div>
-                                    </div>
-                                    <span className={`text-[11px] font-medium text-center line-clamp-1 w-full px-1 ${isLightTheme ? 'text-gray-600' : 'text-white/50 group-hover:text-white transition-colors'
-                                        }`}>
-                                        {brand.name}
-                                    </span>
-                                </motion.div>
-                            ))}
+                                    ))}
+                                </>
+                            ) : (
+                                [...topBrandsState.online, ...topBrandsState.offline].slice(0, 10).map((brand, index) => (
+                                    <motion.div
+                                        key={brand.id}
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => {
+                                            vibrate('light');
+                                            if (brand.category === 'Online' || brand.category === 'Startups/Apps') {
+                                                router.push(`/dashboard/online-brand/${brand.id}`);
+                                            } else {
+                                                router.push(`/store/${brand.id}`);
+                                            }
+                                        }}
+                                        className="flex flex-col items-center gap-3 cursor-pointer flex-shrink-0 w-24 group"
+                                    >
+                                        <div className={`h-24 w-24 rounded-[32px] p-5 flex items-center justify-center transition-all duration-300 ${isLightTheme
+                                            ? 'bg-white border border-gray-100 shadow-xl shadow-gray-200/50'
+                                            : 'bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl shadow-2xl shadow-black/20 group-hover:bg-white/[0.06] group-hover:border-white/[0.15]'
+                                            }`}>
+                                            <div className="relative w-full h-full grayscale group-hover:grayscale-0 transition-all duration-300 opacity-80 group-hover:opacity-100">
+                                                <Image
+                                                    src={brand.logo}
+                                                    alt={brand.name}
+                                                    fill
+                                                    className="object-contain"
+                                                    sizes="96px"
+                                                />
+                                            </div>
+                                        </div>
+                                        <span className={`text-[11px] font-medium text-center line-clamp-1 w-full px-1 transition-colors ${isLightTheme ? 'text-gray-600' : 'text-white/50 group-hover:text-white'
+                                            }`}>
+                                            {brand.name}
+                                        </span>
+                                    </motion.div>
+                                ))
+                            )}
                         </div>
                     </section>
                 )}

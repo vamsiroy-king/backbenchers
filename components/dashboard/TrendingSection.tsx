@@ -38,12 +38,12 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
     const isEmpty = currentOffers.length === 0;
 
     return (
-        <section className="pb-8 relative overflow-hidden">
-            {/* Section Header - Standardized */}
+        <section className="py-6 relative overflow-hidden">
+            {/* Section Header - Consistent with Dashboard */}
             <div className="flex items-center justify-center mb-6">
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
-                <span className="px-4 text-[10px] tracking-[0.2em] font-medium text-white/40 uppercase">TRENDING NOW</span>
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent" />
+                <span className="px-4 text-[10px] tracking-[0.2em] font-semibold uppercase text-white/50">TRENDING NOW</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent" />
             </div>
 
             {/* Premium Toggle Pills */}
