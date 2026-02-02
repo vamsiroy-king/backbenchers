@@ -116,17 +116,16 @@ const ALL_ITEMS = [
     { type: 'location', name: 'Mumbai', emoji: '📍', info: '32 offers' },
 ];
 
-// Animated search placeholders
-const SEARCH_PLACEHOLDERS = [
-    "Search Food & Dining...",
-    "Search Fashion & Apparel...",
-    "Search Fitness deals...",
-    "Search Groceries...",
-    "Search Electronics...",
-    "Search Starbucks...",
-    "Search Nike...",
-    "Search Netflix...",
-    "Search near you...",
+// Animated search suggestions (shorter for typewriter effect)
+const SEARCH_SUGGESTIONS = [
+    "Pizza",
+    "Fashion",
+    "Starbucks",
+    "Gym",
+    "Groceries",
+    "Nike",
+    "Zomato",
+    "Near me",
 ];
 
 export default function DashboardPage() {
@@ -151,7 +150,9 @@ export default function DashboardPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [categories, setCategories] = useState<any[]>(DEFAULT_CATEGORIES);
     const [selectedCategory, setSelectedCategory] = useState(0); // For Floating Card Stack
-    const [searchPlaceholderIndex, setSearchPlaceholderIndex] = useState(0);
+    const [searchSuggestionIndex, setSearchSuggestionIndex] = useState(0);
+    const [typedText, setTypedText] = useState("");
+    const [isTyping, setIsTyping] = useState(true);
     const heroRef = useRef<HTMLDivElement>(null);
 
     // Initialize Real Offers from Cache (Synchronous to prevent flash)
@@ -262,13 +263,38 @@ export default function DashboardPage() {
         };
     }, []);
 
-    // Animate search placeholder
+    // Professional typewriter animation for search
     useEffect(() => {
-        const interval = setInterval(() => {
-            setSearchPlaceholderIndex((prev) => (prev + 1) % SEARCH_PLACEHOLDERS.length);
-        }, 2000);
-        return () => clearInterval(interval);
-    }, []);
+        const currentSuggestion = SEARCH_SUGGESTIONS[searchSuggestionIndex];
+        let timeoutId: NodeJS.Timeout;
+
+        if (isTyping) {
+            // Typing phase
+            if (typedText.length < currentSuggestion.length) {
+                timeoutId = setTimeout(() => {
+                    setTypedText(currentSuggestion.slice(0, typedText.length + 1));
+                }, 80); // Typing speed
+            } else {
+                // Pause at full text, then start deleting
+                timeoutId = setTimeout(() => {
+                    setIsTyping(false);
+                }, 1500);
+            }
+        } else {
+            // Deleting phase
+            if (typedText.length > 0) {
+                timeoutId = setTimeout(() => {
+                    setTypedText(typedText.slice(0, -1));
+                }, 40); // Delete speed (faster)
+            } else {
+                // Move to next suggestion
+                setSearchSuggestionIndex((prev) => (prev + 1) % SEARCH_SUGGESTIONS.length);
+                setIsTyping(true);
+            }
+        }
+
+        return () => clearTimeout(timeoutId);
+    }, [typedText, isTyping, searchSuggestionIndex]);
 
     // Auto-scroll hero banners every 4 seconds
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
@@ -645,7 +671,7 @@ export default function DashboardPage() {
                 isOpen={showSearch}
                 onClose={() => setShowSearch(false)}
                 city={selectedCity}
-                placeholder={SEARCH_PLACEHOLDERS[searchPlaceholderIndex]}
+                placeholder={`Search ${typedText || 'deals'}...`}
             />
 
             {/* City Selector Modal */}
@@ -703,27 +729,23 @@ export default function DashboardPage() {
             </header>
 
             <main className="max-w-7xl mx-auto space-y-4 px-5 pt-4 pb-4">
-                {/* Minimal Search Bar */}
+                {/* Premium Search Bar with Typewriter Effect */}
                 <motion.button
                     onClick={() => setShowSearch(true)}
                     whileTap={{ scale: 0.99 }}
                     className={`w-full h-12 rounded-xl flex items-center gap-3 px-4 transition-colors border ${isLightTheme ? 'bg-white border-gray-200 hover:bg-gray-50' : 'bg-white/[0.03] border-white/[0.04] hover:bg-white/[0.05]'}`}
                 >
                     <Search className={`h-4 w-4 flex-shrink-0 ${isLightTheme ? 'text-gray-400' : 'text-white/30'}`} />
-                    <div className="flex-1 text-left flex items-center gap-1.5 overflow-hidden">
+                    <div className="flex-1 text-left flex items-center gap-1 overflow-hidden">
                         <span className={`text-sm ${isLightTheme ? 'text-gray-500' : 'text-white/30'}`}>Search</span>
-                        <AnimatePresence mode="wait">
-                            <motion.span
-                                key={searchPlaceholderIndex}
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }}
-                                transition={{ duration: 0.2 }}
-                                className={`text-sm ${isLightTheme ? 'text-gray-400' : 'text-white/20'}`}
-                            >
-                                {SEARCH_PLACEHOLDERS[searchPlaceholderIndex].replace('Search ', '')}
-                            </motion.span>
-                        </AnimatePresence>
+                        <span className={`text-sm font-medium ${isLightTheme ? 'text-gray-600' : 'text-white/50'}`}>
+                            {typedText}
+                        </span>
+                        <motion.span
+                            animate={{ opacity: [1, 0, 1] }}
+                            transition={{ duration: 0.8, repeat: Infinity }}
+                            className={`w-0.5 h-4 ${isLightTheme ? 'bg-gray-400' : 'bg-white/40'}`}
+                        />
                     </div>
                 </motion.button>
 
