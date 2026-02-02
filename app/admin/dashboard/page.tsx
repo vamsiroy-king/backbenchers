@@ -35,6 +35,7 @@ export default function AdminDashboardPage() {
         async function fetchData() {
             try {
                 setLoading(true);
+                console.log('[AdminDashboard] Starting data fetch...');
 
                 // Parallel Data Fetching
                 const [
@@ -51,11 +52,19 @@ export default function AdminDashboardPage() {
                     analyticsService.getCategoryPerformance()
                 ]);
 
+                console.log('[AdminDashboard] getPending result:', pendingResult);
+                console.log('[AdminDashboard] pendingResult.success:', pendingResult.success);
+                console.log('[AdminDashboard] pendingResult.data:', pendingResult.data);
+                console.log('[AdminDashboard] pendingResult.error:', pendingResult.error);
+
                 setStats(dashboardStats);
 
                 if (pendingResult.success && pendingResult.data) {
                     // Store ALL pending merchants for the full tab view
+                    console.log('[AdminDashboard] Setting', pendingResult.data.length, 'pending merchants');
                     setPendingMerchants(pendingResult.data);
+                } else {
+                    console.error('[AdminDashboard] Failed to get pending merchants:', pendingResult.error);
                 }
 
                 setTopMerchants(topMerchantsData);
@@ -63,7 +72,7 @@ export default function AdminDashboardPage() {
                 setCategoryPerformance(categoryData);
 
             } catch (error) {
-                console.error('Error fetching admin data:', error);
+                console.error('[AdminDashboard] Error fetching admin data:', error);
             } finally {
                 setLoading(false);
             }

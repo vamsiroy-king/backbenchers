@@ -84,14 +84,20 @@ export const merchantService = {
     // Get pending merchants from pending_merchants table (for admin review)
     async getPending(): Promise<ApiResponse<Merchant[]>> {
         try {
+            console.log('[MerchantService.getPending] Fetching from pending_merchants table...');
+
             const { data, error } = await supabase
                 .from('pending_merchants')
                 .select('*')
                 .eq('status', 'pending')
                 .order('created_at', { ascending: false });
 
+            console.log('[MerchantService.getPending] Raw response - data:', data);
+            console.log('[MerchantService.getPending] Raw response - error:', error);
+            console.log('[MerchantService.getPending] Data count:', data?.length || 0);
+
             if (error) {
-                console.error('Error fetching pending merchants:', error);
+                console.error('[MerchantService.getPending] Error fetching pending merchants:', error);
                 return { success: false, data: null, error: error.message };
             }
 
@@ -124,8 +130,10 @@ export const merchantService = {
                 paymentQrUrl: row.payment_qr_url
             }));
 
+            console.log('[MerchantService.getPending] Mapped merchants count:', merchants.length);
             return { success: true, data: merchants, error: null };
         } catch (error: any) {
+            console.error('[MerchantService.getPending] Exception:', error);
             return { success: false, data: null, error: error.message };
         }
     },
