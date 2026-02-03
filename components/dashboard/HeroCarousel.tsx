@@ -150,51 +150,61 @@ export function HeroCarousel({ banners, autoScrollInterval = 5000 }: HeroCarouse
                             </div>
                         )}
 
-                        {/* Content Container */}
-                        <div className="relative z-10 flex flex-col items-center gap-3 w-full max-w-sm">
+                        {/* Content Container - Logo on Left, Text on Right */}
+                        <div className="relative z-10 flex items-center gap-6 w-full h-full px-6">
 
-                            {/* Logo & Partnership Tag */}
-                            {currentBanner.logoUrl ? (
-                                <div className="flex flex-col items-center gap-2 mb-1">
-                                    <div className="h-14 w-14 relative flex items-center justify-center filter drop-shadow-xl">
+                            {/* Left Side: Logo */}
+                            {currentBanner.logoUrl && (
+                                <div className="flex-shrink-0 relative">
+                                    <div className="h-20 w-20 rounded-2xl bg-white shadow-2xl p-2 border border-white/30">
                                         <Image
                                             src={currentBanner.logoUrl}
                                             alt="Partner Logo"
                                             fill
-                                            className="object-contain"
+                                            className="object-contain p-1"
                                             draggable={false}
-                                            sizes="56px"
+                                            sizes="80px"
                                         />
                                     </div>
-                                    <div className="px-4 py-1.5 bg-white/10 border border-white/20 rounded-full backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                                        <span className="text-[11px] font-black text-white tracking-widest uppercase flex items-center gap-2">
-                                            BACKBENCHERS <span className="text-white/60 text-[10px]">✕</span> {currentBanner.organizerName || 'PARTNER'}
-                                        </span>
-                                    </div>
-                                </div>
-                            ) : currentBanner.bannerType === 'new_store' && (
-                                <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full mb-1 backdrop-blur-md">
-                                    <span className="text-[10px] font-bold text-green-400 tracking-wider uppercase drop-shadow-sm">NEW PARTNER</span>
                                 </div>
                             )}
 
-                            {/* Text */}
-                            <div className="space-y-1.5">
-                                <h2 className="text-white font-extrabold text-2xl md:text-3xl tracking-tight leading-none drop-shadow-md">
+                            {/* Right Side: Text & CTA */}
+                            <div className="flex-1 flex flex-col items-start gap-2">
+                                {/* Partnership Badge */}
+                                {currentBanner.organizerName && (
+                                    <div className="px-3 py-1 bg-white/10 border border-white/20 rounded-full backdrop-blur-md">
+                                        <span className="text-[10px] font-black text-white tracking-widest uppercase flex items-center gap-1.5">
+                                            BACKBENCHERS <span className="text-white/50">×</span> {currentBanner.organizerName}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* New Store Badge */}
+                                {!currentBanner.organizerName && currentBanner.bannerType === 'new_store' && (
+                                    <div className="px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full">
+                                        <span className="text-[10px] font-bold text-green-400 tracking-wider uppercase">NEW PARTNER</span>
+                                    </div>
+                                )}
+
+                                {/* Title */}
+                                <h2 className="text-white font-extrabold text-xl md:text-2xl tracking-tight leading-tight drop-shadow-md text-left">
                                     {currentBanner.title}
                                 </h2>
+
+                                {/* Subtitle */}
                                 {currentBanner.subtitle && (
-                                    <p className="text-white/80 text-xs md:text-sm font-medium leading-relaxed max-w-[280px] drop-shadow-sm">
+                                    <p className="text-white/70 text-xs font-medium leading-relaxed text-left max-w-[240px]">
                                         {currentBanner.subtitle}
                                     </p>
                                 )}
-                            </div>
 
-                            {/* CTA Button */}
-                            <button className="mt-3 px-6 py-2.5 bg-white/95 hover:bg-white text-black text-xs font-bold rounded-full transition-all active:scale-95 flex items-center gap-1.5 group backdrop-blur shadow-[0_0_20px_rgba(255,255,255,0.3)]">
-                                {currentBanner.ctaText}
-                                <span className="group-hover:translate-x-0.5 transition-transform">→</span>
-                            </button>
+                                {/* CTA Button */}
+                                <button className="mt-1 px-5 py-2 bg-white hover:bg-white/90 text-black text-xs font-bold rounded-full transition-all active:scale-95 flex items-center gap-1.5 group shadow-xl">
+                                    {currentBanner.ctaText}
+                                    <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 </AnimatePresence>

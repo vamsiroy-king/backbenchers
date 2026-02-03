@@ -878,3 +878,83 @@ button,
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.45);
 }
+
+/* ============ PERFORMANCE OPTIMIZATIONS ============ */
+
+/* GPU Acceleration Hints for smoother animations */
+.transform-gpu {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Optimized scrolling for mobile */
+.scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Reduce animations on devices that prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce {
+    animation: none !important;
+  }
+}
+
+/* Optimize images and backgrounds */
+img,
+video {
+  content-visibility: auto;
+}
+
+/* Reduce expensive blur effects on low-end devices */
+@media (max-width: 480px) {
+  .backdrop-blur,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+  
+  .glass,
+  .glass-heavy {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+}
+
+/* Hardware accelerated cards for smoother scrolling */
+.card,
+.offer-card,
+[class*="Card"] {
+  transform: translateZ(0);
+  will-change: auto;
+}
+
+/* Efficient touch interactions */
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+/* Contain paint operations for better performance */
+.contain-paint {
+  contain: paint;
+}
+
+.contain-layout {
+  contain: layout;
+}

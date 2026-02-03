@@ -332,7 +332,10 @@ export const trendingService = {
                     merchantName: t.offer!.merchantName,
                     merchantId: t.offer!.merchantId,
                     merchantCity: t.offer!.merchantCity,
+                    merchantLogo: t.offer!.merchantLogo, // FIX: Include logo for admin picks
                     isAdminPick: true,
+                    avgRating: 0, // Admin picks don't have rating data by default
+                    totalRatings: 0
                 }));
 
             // If admin picks already fill the limit, return them
