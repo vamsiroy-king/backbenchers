@@ -31,6 +31,7 @@ import { OfferCard } from "@/components/OfferCard";
 import { DistrictOfferCard } from "@/components/DistrictOfferCard";
 import { TrendingSection } from "@/components/dashboard/TrendingSection";
 import { HeroCarousel } from "@/components/dashboard/HeroCarousel";
+import { DiscountTicker } from "@/components/dashboard/DiscountTicker";
 import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ThemeProvider";
@@ -734,10 +735,15 @@ export default function DashboardPage() {
 
                 {/* Hero Banner - NEW COMPONENT */}
                 {contentSettings.showHeroBanners && (
-                    <div className="-mx-5 md:mx-0 md:rounded-2xl overflow-hidden mb-8">
+                    <div className="-mx-5 md:mx-0 md:rounded-2xl overflow-hidden mb-4">
                         <HeroCarousel banners={heroBanners} />
                     </div>
                 )}
+
+                {/* Discount Ticker - Scrolling Deals */}
+                <div className="-mx-5 mb-6">
+                    <DiscountTicker />
+                </div>
 
                 {/* Top Brands Marquee - SCROLL LINKED */}
 

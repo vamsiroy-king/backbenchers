@@ -37,6 +37,7 @@ export default function HeroBannersPage() {
     const [form, setForm] = useState({
         title: "",
         subtitle: "",
+        organizerName: "", // For "BACKBENCHERS × PARTNER" badge
         ctaText: "Explore",
         ctaLink: "",
         backgroundGradient: "from-green-500 to-emerald-600",
@@ -70,6 +71,7 @@ export default function HeroBannersPage() {
         setForm({
             title: "",
             subtitle: "",
+            organizerName: "",
             ctaText: "Explore",
             ctaLink: "",
             backgroundGradient: "from-green-500 to-emerald-600",
@@ -91,6 +93,7 @@ export default function HeroBannersPage() {
         setForm({
             title: banner.title,
             subtitle: banner.subtitle || "",
+            organizerName: banner.organizerName || "",
             ctaText: banner.ctaText,
             ctaLink: banner.ctaLink || "",
             backgroundGradient: banner.backgroundGradient,
@@ -98,7 +101,7 @@ export default function HeroBannersPage() {
             logoUrl: banner.logoUrl || "",
             bannerType: banner.bannerType,
             coverageType: banner.coverageType,
-            selectedState: "", // Reset state selector on edit, or try to infer if needed (optional)
+            selectedState: "",
             selectedCities: banner.cityIds || [],
             startDate: banner.startDate.split('T')[0],
             endDate: banner.endDate ? banner.endDate.split('T')[0] : "",
@@ -114,6 +117,7 @@ export default function HeroBannersPage() {
         const bannerData: Partial<HeroBanner> = {
             title: form.title,
             subtitle: form.subtitle || null,
+            organizerName: form.organizerName || null,
             ctaText: form.ctaText,
             ctaLink: form.ctaLink || null,
             backgroundGradient: form.backgroundGradient,
@@ -443,6 +447,27 @@ export default function HeroBannersPage() {
                                         placeholder="e.g., Limited time offer"
                                         className="w-full h-11 bg-gray-100 dark:bg-gray-800 rounded-xl px-4 text-sm outline-none dark:text-white"
                                     />
+                                </div>
+
+                                {/* Partner Name - for badge */}
+                                <div>
+                                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 block mb-1">
+                                        Partner Name <span className="text-gray-400 font-normal">(for badge)</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={form.organizerName}
+                                        onChange={(e) => setForm({ ...form, organizerName: e.target.value })}
+                                        placeholder="e.g., CHAI POINT → shows as BACKBENCHERS × CHAI POINT"
+                                        className="w-full h-11 bg-gray-100 dark:bg-gray-800 rounded-xl px-4 text-sm outline-none dark:text-white"
+                                    />
+                                    {form.organizerName && (
+                                        <div className="mt-2 inline-flex px-3 py-1 bg-white/10 border border-white/20 rounded-full">
+                                            <span className="text-[10px] font-black text-gray-600 dark:text-white tracking-widest uppercase">
+                                                BACKBENCHERS × {form.organizerName.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Image & Logo Upload */}
