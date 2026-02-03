@@ -53,9 +53,19 @@ export interface CategoryPerformance {
 }
 
 export const analyticsService = {
-    // Get dashboard overview stats using database function
+    // Get dashboard overview stats using server-side API (bypasses RLS for accurate data)
     async getDashboardStats(): Promise<DashboardStats> {
         try {
+            // Use server-side API with service role key for accurate transaction data
+            const response = await fetch('/api/admin/stats');
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                return result.data;
+            }
+
+            // Fallback to RPC if API fails
+            console.warn('[Analytics] API failed, trying RPC fallback');
             const { data, error } = await supabase.rpc('get_admin_dashboard_stats');
 
             if (error) {

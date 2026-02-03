@@ -740,13 +740,6 @@ export default function DashboardPage() {
                     </div>
                 )}
 
-                {/* Discount Ticker - Scrolling Deals */}
-                <div className="-mx-5 mb-6">
-                    <DiscountTicker />
-                </div>
-
-                {/* Top Brands Marquee - SCROLL LINKED */}
-
                 {/* Categories - Image Background Style (Like District) */}
                 <section className="pb-4 relative z-10">
                     {/* Horizontal Scroll Categories with Image Backgrounds */}

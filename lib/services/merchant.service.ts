@@ -579,9 +579,10 @@ export const merchantService = {
                 });
 
                 console.log('[Merchant Approve] Auto-generated hero banner for:', pendingData.business_name);
-            } catch (bannerError) {
+            } catch (bannerError: any) {
                 // Don't fail approval if banner creation fails - just log
                 console.error('[Merchant Approve] Failed to auto-generate banner:', bannerError);
+                console.error('[Merchant Approve] Banner Error Details:', bannerError?.message || bannerError);
             }
 
             // 7. Return mapped merchant

@@ -20,7 +20,7 @@ export interface NewMerchant {
 }
 
 export const newMerchantService = {
-    // Get new merchants (registered within last N days, optionally filtered by city)
+    // Get new merchants (approved within last N days, optionally filtered by city)
     async getNewMerchants(days: number = 7, limit: number = 10, city?: string): Promise<ApiResponse<NewMerchant[]>> {
         try {
             const cutoffDate = new Date();
@@ -29,13 +29,13 @@ export const newMerchantService = {
             let query = supabase
                 .from('merchants')
                 .select(`
-                    id, business_name, category, city, logo_url, created_at,
+                    id, business_name, category, city, logo_url, created_at, approved_at,
                     average_rating, total_ratings,
                     offers!left (id, discount_value, type, status)
                 `)
                 .eq('status', 'approved')
-                .gte('created_at', cutoffDate.toISOString())
-                .order('created_at', { ascending: false })
+                .gte('approved_at', cutoffDate.toISOString()) // CRITICAL: Use approved_at, not created_at
+                .order('approved_at', { ascending: false })
                 .limit(limit);
 
             // Filter by city if provided (case-insensitive match)
@@ -50,9 +50,10 @@ export const newMerchantService = {
             }
 
             const merchants: NewMerchant[] = data.map((row: any) => {
-                const createdDate = new Date(row.created_at);
+                // Use approved_at for "days old" calculation
+                const liveDate = new Date(row.approved_at || row.created_at);
                 const now = new Date();
-                const diffTime = Math.abs(now.getTime() - createdDate.getTime());
+                const diffTime = Math.abs(now.getTime() - liveDate.getTime());
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                 // Find best discount from active offers
@@ -70,7 +71,7 @@ export const newMerchantService = {
                     category: row.category,
                     city: row.city,
                     logoUrl: row.logo_url,
-                    createdAt: row.created_at,
+                    createdAt: row.approved_at || row.created_at, // Return approved date as creation date for UI
                     daysOld: diffDays,
                     hasOffers: activeOffers.length > 0,
                     bestDiscount: bestOffer?.discount_value || 0,
@@ -86,11 +87,12 @@ export const newMerchantService = {
         }
     },
 
-    // Check if a merchant is "new" (registered within X days)
-    isNewMerchant(createdAt: string, days: number = 7): boolean {
-        const createdDate = new Date(createdAt);
+    // Check if a merchant is "new" (approved within X days)
+    isNewMerchant(approvedAt: string, days: number = 7): boolean {
+        if (!approvedAt) return false;
+        const liveDate = new Date(approvedAt);
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - days);
-        return createdDate >= cutoffDate;
+        return liveDate >= cutoffDate;
     }
 };

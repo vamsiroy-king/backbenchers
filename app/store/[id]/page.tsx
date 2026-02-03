@@ -418,6 +418,34 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                     </div>
                 </div>
 
+                {/* Desktop Ticker - Consistent with Brand Page */}
+                {activeOffers.length > 0 && (
+                    <div className="hidden md:block w-full bg-gradient-to-r from-green-600 to-green-500 py-3 overflow-hidden border-b border-green-400/20 shadow-lg relative z-20">
+                        <motion.div
+                            className="flex whitespace-nowrap"
+                            animate={{ x: ["0%", "-50%"] }}
+                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                        >
+                            {[0, 1, 2, 3].map((i) => (
+                                <div key={i} className="flex items-center gap-12 px-8 text-black text-sm font-bold tracking-wide">
+                                    <span className="flex items-center gap-2">
+                                        <span className="h-2 w-2 rounded-full bg-black/40 animate-pulse" />
+                                        STUDENT EXCLUSIVE
+                                    </span>
+                                    <span className="bg-black/10 px-3 py-1 rounded-full border border-black/10">
+                                        {activeOffers.length} ACTIVE DEALS
+                                    </span>
+                                    <span>INSTANT ACTIVATION</span>
+                                    <span className="flex items-center gap-2">
+                                        <span className="h-2 w-2 rounded-full bg-black/40 animate-pulse" />
+                                        official partner
+                                    </span>
+                                </div>
+                            ))}
+                        </motion.div>
+                    </div>
+                )}
+
                 {/* Main Content Area */}
                 <div className="w-full md:max-w-7xl md:mx-auto md:px-8 mt-8">
                     <div className="md:grid md:grid-cols-12 md:gap-8 items-start">
