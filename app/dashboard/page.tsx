@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Heart, MapPin, Sparkles, X, ShieldCheck, Wifi, Bell, TrendingUp, Store, Loader2, ChevronDown, ChevronRight, Search, Clock, Globe } from "lucide-react";
+import { Heart, MapPin, Sparkles, X, ShieldCheck, Wifi, Bell, TrendingUp, Store, Loader2, ChevronDown, ChevronRight, Search, Clock, Globe, Star } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -741,16 +741,11 @@ export default function DashboardPage() {
 
                 {/* Top Brands Marquee - SCROLL LINKED */}
 
-                {/* Categories - Single Line Horizontal Scroll */}
+                {/* Categories - Image Background Style (Like District) */}
                 <section className="pb-4 relative z-10">
-                    <div className="flex items-center justify-center mb-4">
-                        <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
-                        <span className={`px-4 text-[10px] tracking-[0.2em] font-semibold uppercase ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>CATEGORIES</span>
-                        <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
-                    </div>
-                    {/* Horizontal Scroll Categories */}
+                    {/* Horizontal Scroll Categories with Image Backgrounds */}
                     <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 pb-2">
-                        {categories.map((cat) => (
+                        {categories.slice(0, 4).map((cat) => (
                             <motion.button
                                 key={cat.id}
                                 whileTap={{ scale: 0.95 }}
@@ -758,76 +753,117 @@ export default function DashboardPage() {
                                     vibrate('light');
                                     router.push(`/dashboard/explore?category=${cat.name}`);
                                 }}
-                                className={`flex-shrink-0 flex flex-col items-center justify-center gap-2 w-20 h-20 rounded-2xl border transition-all duration-200 group ${isLightTheme
-                                    ? 'bg-white border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md'
-                                    : 'bg-[#111] border-[#222] hover:border-[#333]'
-                                    }`}
+                                className="flex-shrink-0 relative w-[90px] h-[100px] rounded-2xl overflow-hidden border border-white/10 shadow-lg group"
                             >
-                                <span className="text-2xl group-hover:scale-110 transition-transform duration-300">{cat.icon || '🏷️'}</span>
-                                <span className={`text-[10px] font-medium text-center line-clamp-1 px-1 ${isLightTheme ? 'text-gray-600' : 'text-white/60'} group-hover:${isLightTheme ? 'text-gray-800' : 'text-white'}`}>
-                                    {cat.name?.split(' ')[0] || 'Category'}
-                                </span>
+                                {/* Background Image */}
+                                {cat.image_url ? (
+                                    <Image
+                                        src={cat.image_url}
+                                        alt={cat.name}
+                                        fill
+                                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                    />
+                                ) : (
+                                    <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900" />
+                                )}
+                                {/* Gradient Overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                                {/* Category Name */}
+                                <div className="absolute bottom-2 left-2 right-2">
+                                    <span className="text-[11px] font-bold text-white leading-tight block">
+                                        {cat.name?.split(' & ')[0] || 'Category'}
+                                    </span>
+                                    {cat.name?.includes('&') && (
+                                        <span className="text-[9px] font-medium text-white/70">
+                                            & {cat.name?.split(' & ')[1]}
+                                        </span>
+                                    )}
+                                </div>
                             </motion.button>
                         ))}
                     </div>
                 </section>
 
-                {/* New Stores Section */}
+                {/* New Stores Section - District Style */}
                 {newMerchants.length > 0 && (
-                    <section className="py-6">
-                        {/* Section Header - Consistent with Categories */}
-                        <div className="flex items-center justify-center mb-6">
+                    <section className="py-4">
+                        {/* Section Header */}
+                        <div className="flex items-center justify-center mb-5">
                             <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
-                            <span className={`px-4 text-[10px] tracking-[0.2em] font-semibold uppercase ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>NEW ARRIVALS</span>
+                            <span className={`px-4 text-[10px] tracking-[0.2em] font-semibold uppercase ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>NEW STORES</span>
                             <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${isLightTheme ? 'via-gray-300' : 'via-white/[0.12]'} to-transparent`} />
                         </div>
                         {/* Horizontal Scroll Cards */}
                         <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 pb-4 gap-4 snap-x snap-mandatory">
                             {newMerchants.map((merchant) => (
-                                <div key={merchant.id} className="w-[260px] flex-shrink-0 relative group snap-center">
-                                    {/* New Badge Ribbon */}
-                                    <div className="absolute top-4 left-4 z-10 bg-green-500 text-black text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg shadow-green-500/20 flex items-center gap-1.5 ring-2 ring-black/20">
-                                        <Sparkles className="h-3 w-3 fill-black" />
-                                        NEW ARRIVAL
+                                <motion.div
+                                    key={merchant.id}
+                                    className="w-[280px] flex-shrink-0 snap-center"
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => {
+                                        vibrate('light');
+                                        if (!isVerified) {
+                                            setShowVerifyModal(true);
+                                        } else {
+                                            router.push(`/store/${merchant.id}`);
+                                        }
+                                    }}
+                                >
+                                    {/* Card Container */}
+                                    <div className="relative rounded-3xl overflow-hidden border border-white/10 cursor-pointer group">
+                                        {/* Store Branding Area - Large Background */}
+                                        <div className="relative h-[320px] bg-gradient-to-br from-green-600 via-green-700 to-green-900 overflow-hidden">
+                                            {/* Logo/Image Display */}
+                                            {merchant.logoUrl ? (
+                                                <div className="absolute inset-0 flex items-center justify-center p-8">
+                                                    <div className="relative w-full h-full">
+                                                        <Image
+                                                            src={merchant.logoUrl}
+                                                            alt={merchant.businessName}
+                                                            fill
+                                                            className="object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-500"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <span className="text-6xl font-black text-white/30">{merchant.businessName.charAt(0)}</span>
+                                                </div>
+                                            )}
+
+                                            {/* Discount Badge - Top Left */}
+                                            {merchant.bestDiscount > 0 && (
+                                                <div className="absolute top-4 left-4 bg-black text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-lg">
+                                                    {merchant.discountType === 'flat' ? `₹${merchant.bestDiscount} OFF` : `${merchant.bestDiscount}% OFF`}
+                                                </div>
+                                            )}
+
+                                            {/* NEW Badge - Top Right */}
+                                            <div className="absolute top-4 right-4 bg-white/90 text-black text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-lg">
+                                                <Sparkles className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                                                NEW
+                                            </div>
+
+                                            {/* Rating - Bottom Right */}
+                                            {merchant.avgRating > 0 && (
+                                                <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1">
+                                                    {merchant.avgRating.toFixed(1)} <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
+                                                    {merchant.totalRatings > 0 && <span className="text-white/60">({merchant.totalRatings})</span>}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Store Name & Category - Bottom */}
+                                        <div className={`px-4 py-3 ${isLightTheme ? 'bg-white' : 'bg-[#111]'}`}>
+                                            <h3 className={`font-bold text-base truncate ${isLightTheme ? 'text-gray-900' : 'text-white'}`}>
+                                                {merchant.businessName}
+                                            </h3>
+                                            <p className={`text-[12px] truncate ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>
+                                                {merchant.category}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="h-[350px]">
-                                        <OfferCard
-                                            offer={{
-                                                id: merchant.id,
-                                                merchantId: merchant.id,
-                                                merchantName: merchant.businessName,
-                                                merchantLogo: merchant.logoUrl,
-                                                title: merchant.category || "New Store",
-                                                description: merchant.hasOffers ? "New Arrival" : "Coming Soon",
-                                                type: merchant.discountType || "percentage",
-                                                discountValue: merchant.bestDiscount || 0,
-                                                status: "active",
-                                                totalRedemptions: 0,
-                                                createdAt: merchant.createdAt,
-                                                avgRating: merchant.avgRating,
-                                                totalRatings: merchant.totalRatings
-                                            } as any}
-                                            variant="default" // Use Default (Poster) or Featured? Default is Grid. Featured is Large Hero.
-                                            // Actually Trending uses TrendingPosterCard which is CUSTOM. 
-                                            // OfferCard 'default' is the vertical card. 'featured' is horizontal 16/9.
-                                            // User said "Like trending section". Trending uses TrendingPosterCard (260x350).
-                                            // OfferCard default is `aspect-[4/5]` ~ 260x325. 
-                                            // I will use `TrendingPosterCard` if I can, OR just make OfferCard container matching size.
-                                            // I will use OfferCard but forced in a container of 260x350 to match.
-                                            // ACTUALLY, TrendingPosterCard is visually distinct (black, big text). OfferCard is Image + Text below.
-                                            // User said "design... like trending". He might mean "Big Black Card" look?
-                                            // Or just "Big Vertical Card". I will stick to "Big Vertical Card" (260px).
-                                            onClick={() => {
-                                                if (!isVerified) {
-                                                    setShowVerifyModal(true);
-                                                } else {
-                                                    router.push(`/store/${merchant.id}`);
-                                                }
-                                            }}
-                                            priority={false}
-                                        />
-                                    </div>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
                     </section>
