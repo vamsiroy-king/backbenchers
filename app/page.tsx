@@ -139,10 +139,10 @@ export default function RootPage() {
   // Show landing page for non-authenticated users
   return (
     <div className="min-h-screen bg-background text-foreground flex justify-center">
-      <div className="w-full max-w-[430px] min-h-screen flex flex-col">
+      <div className="w-full max-w-[430px] lg:max-w-6xl min-h-screen flex flex-col lg:px-8">
 
         {/* Header */}
-        <header className="px-5 pt-4 pb-2">
+        <header className="px-5 pt-4 pb-2 lg:pt-8 lg:pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center" style={{ transform: 'skewX(-6deg)' }}>
@@ -158,35 +158,36 @@ export default function RootPage() {
         </header>
 
         {/* Hero - Centered in Screen */}
-        <section className="flex-1 flex flex-col justify-center px-5 min-h-[60vh]">
+        <section className="flex-1 flex flex-col justify-center px-5 min-h-[60vh] lg:min-h-[50vh] lg:items-center lg:text-center">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
+            className="lg:max-w-2xl"
           >
-            <p className="text-[13px] font-medium text-foreground mb-1">India's 1st</p>
+            <p className="text-[13px] lg:text-base font-medium text-foreground mb-1">India's 1st</p>
 
-            <h1 className="text-[44px] leading-[0.95] font-extrabold tracking-tight text-foreground">
+            <h1 className="text-[44px] lg:text-7xl leading-[0.95] font-extrabold tracking-tight text-foreground">
               Student
             </h1>
-            <div className="h-[48px] overflow-hidden">
+            <div className="h-[48px] lg:h-[72px] overflow-hidden">
               <motion.div
                 key={wordIdx}
                 initial={{ y: 48 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
-                className="text-[44px] leading-[0.95] font-extrabold text-primary tracking-tight"
+                className="text-[44px] lg:text-7xl leading-[0.95] font-extrabold text-primary tracking-tight"
               >
                 {WORDS[wordIdx]}
               </motion.div>
             </div>
-            <p className="text-[13px] font-medium text-foreground mt-1 mb-6">Platform</p>
+            <p className="text-[13px] lg:text-base font-medium text-foreground mt-1 mb-6">Platform</p>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2.5 lg:flex lg:gap-4 lg:space-y-0 lg:justify-center">
               <Link href="/signup">
                 <motion.button
                   whileTap={{ scale: 0.98 }}
-                  className="w-full h-[50px] bg-primary text-primary-foreground font-semibold rounded-2xl flex items-center justify-center gap-2"
+                  className="w-full lg:w-auto lg:px-10 h-[50px] lg:h-14 bg-primary text-primary-foreground font-semibold rounded-2xl flex items-center justify-center gap-2"
                 >
                   Get Started <ArrowRight className="h-4 w-4" />
                 </motion.button>
@@ -194,7 +195,7 @@ export default function RootPage() {
               <Link href="/dashboard">
                 <motion.button
                   whileTap={{ scale: 0.98 }}
-                  className="w-full h-[50px] font-medium rounded-2xl border border-border text-muted-foreground mt-2.5"
+                  className="w-full lg:w-auto lg:px-10 h-[50px] lg:h-14 font-medium rounded-2xl border border-border text-muted-foreground mt-2.5 lg:mt-0"
                 >
                   Explore
                 </motion.button>
@@ -204,11 +205,11 @@ export default function RootPage() {
         </section>
 
         {/* How It Works */}
-        <section className="px-5 py-10">
+        <section className="px-5 py-10 lg:py-20">
           <Reveal>
-            <h3 className="text-[11px] font-semibold uppercase tracking-widest text-primary mb-4 text-center">How it works</h3>
+            <h3 className="text-[11px] lg:text-sm font-semibold uppercase tracking-widest text-primary mb-4 lg:mb-10 text-center">How it works</h3>
           </Reveal>
-          <div className="space-y-4">
+          <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-12 lg:max-w-4xl lg:mx-auto">
             <Reveal delay={0.1}>
               <div className="flex items-start gap-3">
                 <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -259,16 +260,16 @@ export default function RootPage() {
                 <span className="text-foreground">BACK</span>
                 <span className="text-primary">BENCHERS</span>
               </motion.h2>
-              <p className="text-sm font-semibold text-primary mt-2 tracking-wide">BORN TO SAVE</p>
-              <p className="text-[12px] text-muted-foreground mt-1">Verify once. Save forever.</p>
+              <p className="text-sm lg:text-base font-semibold text-primary mt-2 tracking-wide">BORN TO SAVE</p>
+              <p className="text-[12px] lg:text-sm text-muted-foreground mt-1">Verify once. Save forever.</p>
             </div>
           </Reveal>
         </section>
 
         {/* Footer */}
         <footer className="mt-auto border-t border-border">
-          <div className="px-5 pt-6 pb-6">
-            <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="px-5 pt-6 pb-6 lg:py-12 lg:max-w-5xl lg:mx-auto">
+            <div className="grid grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-8 mb-6 lg:mb-8">
               <div>
                 <p className="text-[10px] text-primary/60 font-semibold uppercase tracking-widest mb-2">Platform</p>
                 <div className="space-y-1.5">
@@ -317,6 +318,6 @@ export default function RootPage() {
         </footer>
 
       </div>
-    </div>
+    </div >
   );
 }

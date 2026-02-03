@@ -750,7 +750,7 @@ export default function DashboardPage() {
                 {/* Categories - Image Background Style (Like District) */}
                 <section className="pb-4 relative z-10">
                     {/* Horizontal Scroll Categories with Image Backgrounds */}
-                    <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 pb-2">
+                    <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 pb-2 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-visible">
                         {categories.slice(0, 4).map((cat) => (
                             <motion.button
                                 key={cat.id}
@@ -759,7 +759,7 @@ export default function DashboardPage() {
                                     vibrate('light');
                                     router.push(`/dashboard/explore?category=${cat.name}`);
                                 }}
-                                className="flex-shrink-0 relative w-[90px] h-[100px] rounded-2xl overflow-hidden border border-white/10 shadow-lg group"
+                                className="flex-shrink-0 relative w-[90px] h-[100px] lg:w-full lg:h-36 rounded-2xl overflow-hidden border border-white/10 shadow-lg group"
                             >
                                 {/* Background Image */}
                                 {cat.image_url ? (
