@@ -43,41 +43,24 @@ export default function StudentDetailPage() {
         async function fetchData() {
             if (!studentId) return;
             try {
-                // Fetch basic student info first to fail fast
-                const studentRes = await studentService.getById(studentId);
+                // Fetch all data from the secure Admin API (bypasses RLS)
+                const response = await fetch(`/api/admin/students/${studentId}/stats`);
+                const result = await response.json();
 
-                if (!studentRes.success || !studentRes.data) {
+                if (!result.success || !result.data) {
+                    toast.error("Student not found or failed to load");
                     setLoading(false);
                     return;
                 }
 
-                // Parallel fetch for history
-                const [offlineRes, onlineRes] = await Promise.all([
-                    transactionService.getStudentTransactions(studentId),
-                    onlineBrandService.getStudentRedemptions(studentId)
-                ]);
+                const { student: studentData, offlineTransactions, onlineRedemptions } = result.data;
 
-                // Calculate Real Stats
-                const realOfflineTx = offlineRes.success ? offlineRes.data || [] : [];
-                const realOnlineTx = onlineRes || [];
+                setStudent(studentData);
+                setOfflineTransactions(offlineTransactions);
+                setOnlineRedemptions(onlineRedemptions);
 
-                const offlineSavings = realOfflineTx.reduce((sum, tx) => sum + (tx.discountAmount || 0), 0);
-                const onlineCount = realOnlineTx.length;
-
-                // TODO: Online savings aren't strictly monetary per reveal, 
-                // but we can estimate or just show count.
-                // For now, Total Savings = Offline Savings.
-
-                setStudent({
-                    ...studentRes.data,
-                    totalSavings: offlineSavings,
-                    totalRedemptions: realOfflineTx.length + onlineCount
-                });
-                setEditedName(studentRes.data.name);
-                setEditedEmail(studentRes.data.email);
-
-                setOfflineTransactions(realOfflineTx);
-                setOnlineRedemptions(realOnlineTx);
+                setEditedName(studentData.name);
+                setEditedEmail(studentData.email);
 
             } catch (error) {
                 console.error("Error fetching student details:", error);
