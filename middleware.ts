@@ -49,6 +49,21 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
+    // BUSINESS SUBDOMAIN: business.backbenchers.app
+    if (hostname.startsWith('business.')) {
+        // Only allow recruiter routes and shared API
+        if (pathname.startsWith('/admin') || pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
+            url.pathname = '/recruiter/dashboard';
+            return NextResponse.redirect(url);
+        }
+        // Redirect root to recruiter login
+        if (pathname === '/') {
+            url.pathname = '/recruiter/auth/login';
+            return NextResponse.redirect(url);
+        }
+        return NextResponse.next();
+    }
+
     // ADMIN SUBDOMAIN: admin.backbenchers.app
     if (hostname.startsWith('admin.')) {
         // === ADMIN AUTHENTICATION ===
@@ -94,7 +109,7 @@ export function middleware(request: NextRequest) {
         url.pathname = '/dashboard';
         return NextResponse.redirect(url);
     }
-    if (pathname.startsWith('/merchant')) {
+    if (pathname.startsWith('/merchant') || pathname.startsWith('/recruiter')) {
         url.pathname = '/dashboard';
         return NextResponse.redirect(url);
     }
