@@ -49,6 +49,8 @@ export default function PostOpportunityPage() {
     const router = useRouter();
     const [categories, setCategories] = useState<OpportunityCategory[]>([]);
     const [loading, setLoading] = useState(false);
+    const [pageLoading, setPageLoading] = useState(true);
+    const [recruiterStatus, setRecruiterStatus] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState('');
 
@@ -71,9 +73,25 @@ export default function PostOpportunityPage() {
     const [applyLink, setApplyLink] = useState('');
 
     useEffect(() => {
-        hustleService.getCategories().then(res => {
-            if (res.success && res.data) setCategories(res.data);
-        });
+        const loadData = async () => {
+            setPageLoading(true);
+            try {
+                // Fetch categories
+                const catRes = await hustleService.getCategories();
+                if (catRes.success && catRes.data) setCategories(catRes.data);
+
+                // Fetch profile status
+                const profileRes = await recruiterService.getMyProfile();
+                if (profileRes.success && profileRes.data) {
+                    setRecruiterStatus(profileRes.data.status);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setPageLoading(false);
+            }
+        };
+        loadData();
     }, []);
 
     const isValid = title && description && type && workMode && categoryId;
@@ -136,7 +154,22 @@ export default function PostOpportunityPage() {
                 </div>
             </div>
 
-            <div className="space-y-5">
+            {/* Verification Banner */}
+            {!pageLoading && recruiterStatus !== 'verified' && (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-6 flex items-start gap-3">
+                    <div className="bg-amber-500/20 p-2 rounded-lg shrink-0">
+                        <Clock className="h-5 w-5 text-amber-500" />
+                    </div>
+                    <div>
+                        <h3 className="text-amber-500 font-bold text-sm">Verification Pending</h3>
+                        <p className="text-amber-500/60 text-xs mt-1">
+                            Your account is currently under review. You needs to be verified by our team before you can post opportunities.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            <div className={`space-y-5 ${recruiterStatus !== 'verified' ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
                 {/* Category */}
                 <Field label="Category" required>
                     <select value={categoryId} onChange={e => setCategoryId(e.target.value)}

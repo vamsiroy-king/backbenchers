@@ -20,7 +20,9 @@ export interface Recruiter {
     description: string | null;
     city: string | null;
     state: string | null;
+    address: string | null;
     gst_number: string | null;
+    pan_number: string | null;
     status: 'pending' | 'verified' | 'rejected' | 'suspended';
     rejected_reason: string | null;
     plan: 'free' | 'starter' | 'pro' | 'enterprise';
@@ -42,7 +44,9 @@ export interface RecruiterOnboardingData {
     description?: string;
     city?: string;
     state?: string;
+    address?: string;
     gst_number?: string;
+    pan_number?: string;
     logo_url?: string;
 }
 

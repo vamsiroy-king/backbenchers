@@ -238,9 +238,11 @@ export default function AdminRecruitersPage() {
                         <Info label="Company Type" value={selectedRecruiter.company_type} />
                         <Info label="Industry" value={selectedRecruiter.industry} />
                         <Info label="Location" value={selectedRecruiter.city ? `${selectedRecruiter.city}, ${selectedRecruiter.state}` : '—'} />
+                        <Info label="Address" value={selectedRecruiter.address || '—'} />
                         <Info label="Website" value={selectedRecruiter.website || '—'} isLink />
                         <Info label="LinkedIn" value={selectedRecruiter.linkedin || '—'} isLink />
                         <Info label="GST Number" value={selectedRecruiter.gst_number || '—'} />
+                        <Info label="PAN Number" value={selectedRecruiter.pan_number || '—'} />
                         <Info label="BBR ID" value={selectedRecruiter.bbr_id} />
                         <Info label="Plan" value={selectedRecruiter.plan} />
                         <Info label="Total Postings" value={String(selectedRecruiter.total_postings)} />

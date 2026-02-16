@@ -49,9 +49,11 @@ export default function RecruiterOnboardingCompanyPage() {
     const [description, setDescription] = useState('');
     const [city, setCity] = useState('');
     const [state, setState] = useState('');
+    const [address, setAddress] = useState('');
+    const [panNumber, setPanNumber] = useState('');
     const [gstNumber, setGstNumber] = useState('');
 
-    const isValid = companyName && contactPerson && email && phone && companyType && industry;
+    const isValid = companyName && contactPerson && email && phone && companyType && industry && address && panNumber;
 
     const handleSubmit = async () => {
         if (!isValid) return;
@@ -70,7 +72,9 @@ export default function RecruiterOnboardingCompanyPage() {
             description: description || undefined,
             city: city || undefined,
             state: state || undefined,
+            address: address || undefined,
             gst_number: gstNumber || undefined,
+            pan_number: panNumber || undefined,
         });
 
         if (res.success) {
@@ -141,9 +145,25 @@ export default function RecruiterOnboardingCompanyPage() {
                     <InputField label="LinkedIn Company Page" icon={Globe}
                         value={linkedin} onChange={setLinkedin} placeholder="https://linkedin.com/company/..." />
 
-                    {/* GST (Optional) */}
-                    <InputField label="GST Number (Optional)" icon={FileText}
-                        value={gstNumber} onChange={setGstNumber} placeholder="22AAAAA0000A1Z5" />
+                    {/* Address */}
+                    <div className="col-span-2">
+                        <label className="text-white/50 text-xs font-semibold mb-1.5 block">Registered Address *</label>
+                        <textarea
+                            value={address}
+                            onChange={e => setAddress(e.target.value)}
+                            placeholder="Complete street address..."
+                            rows={2}
+                            className="w-full p-4 rounded-xl text-sm bg-white/[0.03] border border-white/[0.06] text-white placeholder:text-white/30 resize-none focus:outline-none focus:ring-2 focus:ring-green-500/30"
+                        />
+                    </div>
+
+                    {/* GST & PAN */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <InputField label="PAN Number" required icon={FileText}
+                            value={panNumber} onChange={setPanNumber} placeholder="ABCDE1234F" />
+                        <InputField label="GST Number (Optional)" icon={FileText}
+                            value={gstNumber} onChange={setGstNumber} placeholder="22AAAAA0000A1Z5" />
+                    </div>
 
                     {/* Description */}
                     <div>
