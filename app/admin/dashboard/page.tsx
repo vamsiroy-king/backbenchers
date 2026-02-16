@@ -4,7 +4,7 @@ import {
     Users, Store, Tag, TrendingUp, ChevronRight, Clock, Check,
     Loader2, ArrowUpRight, ArrowDownRight, Eye, Image, DollarSign,
     PiggyBank, Activity, MapPin, BarChart3, PieChart, Wallet,
-    UserCheck, Award, AlertTriangle, Star, LogOut
+    UserCheck, Award, AlertTriangle, Star, LogOut, Briefcase
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { studentService } from "@/lib/services/student.service";
 import { merchantService } from "@/lib/services/merchant.service";
+import { recruiterService, Recruiter } from "@/lib/services/recruiter.service";
 import { analyticsService, TopMerchant, CityDistribution, CategoryPerformance, DashboardStats } from "@/lib/services/analytics.service";
 import { Merchant } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,6 +25,7 @@ export default function AdminDashboardPage() {
     // Data State
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [pendingMerchants, setPendingMerchants] = useState<Merchant[]>([]);
+    const [pendingRecruiters, setPendingRecruiters] = useState<Recruiter[]>([]);
     const [topMerchants, setTopMerchants] = useState<TopMerchant[]>([]);
     const [cityDistribution, setCityDistribution] = useState<CityDistribution[]>([]);
     const [categoryPerformance, setCategoryPerformance] = useState<CategoryPerformance[]>([]);
@@ -40,32 +42,39 @@ export default function AdminDashboardPage() {
                 // Parallel Data Fetching
                 const [
                     dashboardStats,
-                    pendingResult,
+                    pendingMerchantsResult,
+                    pendingRecruitersResult,
                     topMerchantsData,
                     cityData,
                     categoryData
                 ] = await Promise.all([
                     analyticsService.getDashboardStats(),
-                    merchantService.getPending(), // Use getPending() to fetch from pending_merchants table
+                    merchantService.getPending(),
+                    recruiterService.getPending(),
                     analyticsService.getTopMerchants(10),
                     analyticsService.getCityDistribution(),
                     analyticsService.getCategoryPerformance()
                 ]);
 
-                console.log('[AdminDashboard] getPending result:', pendingResult);
-                console.log('[AdminDashboard] pendingResult.success:', pendingResult.success);
-                console.log('[AdminDashboard] pendingResult.data:', pendingResult.data);
-                console.log('[AdminDashboard] pendingResult.error:', pendingResult.error);
+                // Handle Recruiter Result
+                if (pendingRecruitersResult.success && pendingRecruitersResult.data) {
+                    setPendingRecruiters(pendingRecruitersResult.data);
+                }
 
                 setStats(dashboardStats);
 
-                if (pendingResult.success && pendingResult.data) {
-                    // Store ALL pending merchants for the full tab view
-                    console.log('[AdminDashboard] Setting', pendingResult.data.length, 'pending merchants');
-                    setPendingMerchants(pendingResult.data);
+                if (pendingMerchantsResult.success && pendingMerchantsResult.data) {
+                    setPendingMerchants(pendingMerchantsResult.data);
                 } else {
-                    console.error('[AdminDashboard] Failed to get pending merchants:', pendingResult.error);
+                    console.error('[AdminDashboard] Failed to get pending merchants:', pendingMerchantsResult.error);
                 }
+
+                // recruitersResult (index 2 in Promise.all now) is actually pendingResult's neighbor
+                // But wait, I changed Promise.all structure. 
+                // Let's fix destructing carefully in next chunk or rely on array index.
+                // The Promise.all returned [stats, merchPending, recPending, top, city, cat]
+                // So pendingResult is merchPending.
+                // I need to handle recPending.
 
                 setTopMerchants(topMerchantsData);
                 setCityDistribution(cityData);
@@ -153,7 +162,7 @@ export default function AdminDashboardPage() {
                                         Pending Requests
                                     </h3>
                                     <span className="text-xs bg-yellow-500/10 text-yellow-500 px-2 py-1 rounded-full font-bold">
-                                        {pendingMerchants.length} Pending
+                                        {pendingMerchants.length + pendingRecruiters.length} Pending
                                     </span>
                                 </div>
                                 <div className="overflow-x-auto">
@@ -174,41 +183,77 @@ export default function AdminDashboardPage() {
                                                         <td colSpan={5} className="px-6 py-4"><Skeleton className="h-8 w-full bg-gray-800" /></td>
                                                     </tr>
                                                 ))
-                                            ) : pendingMerchants.length > 0 ? (
-                                                pendingMerchants.map((m) => (
-                                                    <tr key={m.id} className="hover:bg-gray-800/30 transition-colors">
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="h-10 w-10 bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
-                                                                    {m.logo ? (
-                                                                        <img src={m.logo} alt="" className="w-full h-full object-cover" />
-                                                                    ) : (
-                                                                        <Store className="h-5 w-5 text-gray-500" />
-                                                                    )}
+                                            ) : (pendingMerchants.length > 0 || pendingRecruiters.length > 0) ? (
+                                                <>
+                                                    {pendingRecruiters.map((r) => (
+                                                        <tr key={r.id} className="hover:bg-gray-800/30 transition-colors">
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="h-10 w-10 bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
+                                                                        {r.logo_url ? (
+                                                                            <img src={r.logo_url} alt="" className="w-full h-full object-cover" />
+                                                                        ) : (
+                                                                            <Briefcase className="h-5 w-5 text-gray-500" />
+                                                                        )}
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="font-bold text-white">{r.company_name}</p>
+                                                                        <p className="text-xs text-blue-400">Recruiter • {r.industry}</p>
+                                                                    </div>
                                                                 </div>
-                                                                <div>
-                                                                    <p className="font-bold text-white">{m.businessName}</p>
-                                                                    <p className="text-xs text-gray-400">{m.category}</p>
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <p className="text-white">{r.contact_person}</p>
+                                                                <p className="text-xs text-gray-400">{r.email}</p>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-gray-400">{r.city || '-'}, {r.state || '-'}</td>
+                                                            <td className="px-6 py-4 text-right text-gray-500 text-xs">
+                                                                {new Date(r.created_at).toLocaleDateString()}
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right">
+                                                                <Link href={`/admin/dashboard/recruiters`}>
+                                                                    <button className="bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors">
+                                                                        Review
+                                                                    </button>
+                                                                </Link>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    {pendingMerchants.map((m) => (
+                                                        <tr key={m.id} className="hover:bg-gray-800/30 transition-colors">
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="h-10 w-10 bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
+                                                                        {m.logo ? (
+                                                                            <img src={m.logo} alt="" className="w-full h-full object-cover" />
+                                                                        ) : (
+                                                                            <Store className="h-5 w-5 text-gray-500" />
+                                                                        )}
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="font-bold text-white">{m.businessName}</p>
+                                                                        <p className="text-xs text-gray-400">{m.category}</p>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <p className="text-white">{m.ownerName}</p>
-                                                            <p className="text-xs text-gray-400">{m.ownerPhone}</p>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-gray-400">{m.city}, {m.state}</td>
-                                                        <td className="px-6 py-4 text-right text-gray-500 text-xs">
-                                                            {new Date(m.createdAt || Date.now()).toLocaleDateString()}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-right">
-                                                            <Link href={`/admin/dashboard/merchants/${m.id}`}>
-                                                                <button className="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-lg text-xs font-bold transition-colors">
-                                                                    Review
-                                                                </button>
-                                                            </Link>
-                                                        </td>
-                                                    </tr>
-                                                ))
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <p className="text-white">{m.ownerName}</p>
+                                                                <p className="text-xs text-gray-400">{m.ownerPhone}</p>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-gray-400">{m.city}, {m.state}</td>
+                                                            <td className="px-6 py-4 text-right text-gray-500 text-xs">
+                                                                {new Date(m.createdAt || Date.now()).toLocaleDateString()}
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right">
+                                                                <Link href={`/admin/dashboard/merchants/${m.id}`}>
+                                                                    <button className="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-lg text-xs font-bold transition-colors">
+                                                                        Review
+                                                                    </button>
+                                                                </Link>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </>
                                             ) : (
                                                 <tr>
                                                     <td colSpan={5} className="px-6 py-12 text-center text-gray-500">

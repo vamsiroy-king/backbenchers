@@ -139,6 +139,25 @@ export const recruiterService = {
     },
 
     // -------------------------------------------
+    // Admin / General
+    // -------------------------------------------
+    async getPending(): Promise<{ success: boolean; data?: Recruiter[]; error?: string }> {
+        try {
+            const { data, error } = await supabase
+                .from('recruiters')
+                .select('*')
+                .eq('status', 'pending')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            return { success: true, data: data || [] };
+        } catch (error: any) {
+            console.error('Error fetching pending recruiters:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // -------------------------------------------
     // Opportunities Management
     // -------------------------------------------
     async postOpportunity(data: PostOpportunityData): Promise<{ success: boolean; data?: any; error?: string }> {
