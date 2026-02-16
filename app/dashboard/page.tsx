@@ -36,6 +36,7 @@ import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ThemeProvider";
 import { SearchOverlay } from "@/components/SearchOverlay";
+import { useStudentStore, isCacheValid } from "@/lib/store/useStudentStore";
 
 // Hero Banner - Premium #India's 1st
 const HERO_CONTENT = {
@@ -137,16 +138,41 @@ const SEARCH_PLACEHOLDERS = [
 ];
 
 export default function DashboardPage() {
+    // State management via Zustand (Persistent)
+    const {
+        offers: cachedOffers,
+        categories: cachedCategories,
+        trendingOffline: cachedTrendingOffline,
+        trendingOnline: cachedTrendingOnline,
+        topBrands: cachedTopBrands,
+        newMerchants: cachedNewMerchants,
+        heroBanners: cachedHeroBanners,
+        favoriteIds,
+
+        setOffers,
+        setCategories: setStoreCategories,
+        setTrendingOffline,
+        setTrendingOnline,
+        setTopBrands,
+        setNewMerchants,
+        setHeroBanners,
+        setFavoriteIds,
+        toggleFavoriteId,
+        clearCityData
+    } = useStudentStore();
+
+
     const router = useRouter();
     const { theme } = useTheme();
     const isLightTheme = theme === 'light';
+    const { unreadCount } = useNotifications();
 
+    // Local UI states
     const [heroIndex, setHeroIndex] = useState(0);
-
     const [showVerifyModal, setShowVerifyModal] = useState(false);
-    const [showNotifications, setShowNotifications] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [showCitySelector, setShowCitySelector] = useState(false);
+
     // Initialize city from localStorage immediately to avoid loading flash
     const [selectedCity, setSelectedCity] = useState<string | null>(() => {
         if (typeof window !== 'undefined') {
@@ -154,120 +180,38 @@ export default function DashboardPage() {
         }
         return null;
     });
-    const [heroBanners, setHeroBanners] = useState<HeroBanner[]>([]);
+
     const [searchQuery, setSearchQuery] = useState("");
-    const [categories, setCategories] = useState<any[]>(DEFAULT_CATEGORIES);
-    const [selectedCategory, setSelectedCategory] = useState(0); // For Floating Card Stack
+    const [selectedCategory, setSelectedCategory] = useState(0);
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
-    const heroRef = useRef<HTMLDivElement>(null);
 
-    // Initialize Real Offers from Cache (Synchronous to prevent flash)
-    const [realOffers, setRealOffers] = useState<Offer[]>(() => {
-        if (typeof window !== 'undefined') {
-            const city = localStorage.getItem('selectedCity');
-            const cached = dashboardCache.getOffers(city || undefined);
-            if (cached) return cached;
-        }
-        return [];
-    });
+    // Derived state for rendering
+    const categories = cachedCategories?.data || DEFAULT_CATEGORIES;
+    const realOffers = cachedOffers?.data || [];
+    const trendingOffline = cachedTrendingOffline?.data || [];
+    const trendingOnline = cachedTrendingOnline?.data || [];
+    const newMerchants = cachedNewMerchants?.data || [];
+    const heroBanners = cachedHeroBanners?.data || [];
 
-    // Initialize Loading State based on Cache existence
-    const [loadingOffers, setLoadingOffers] = useState(() => {
-        if (typeof window !== 'undefined') {
-            const city = localStorage.getItem('selectedCity');
-            return !dashboardCache.hasCachedData(city || undefined);
-        }
-        return true;
-    });
+    // Loading states (only true if NO data exists in cache)
+    const [loadingOffers, setLoadingOffers] = useState(() => !cachedOffers);
+    const [loadingBrands, setLoadingBrands] = useState(() => !cachedTopBrands);
 
-    // Trending offers from admin - Initialize from cache
-    const [trendingOnline, setTrendingOnline] = useState<Offer[]>(() =>
-        (typeof window !== 'undefined' ? dashboardCache.getTrendingOnline() : null) || []
-    );
-    const [trendingOffline, setTrendingOffline] = useState<Offer[]>(() => {
-        if (typeof window !== 'undefined') {
-            const city = localStorage.getItem('selectedCity');
-            return dashboardCache.getTrendingOffline(city || undefined) || [];
-        }
-        return [];
-    });
-
-    // Split Top Brands (Online vs Offline)
-    // We use a broader state to hold both lists
+    // Split Top Brands
     const [topBrandsState, setTopBrandsState] = useState<{ online: any[], offline: any[] }>({
         online: [],
         offline: []
     });
-    const [loadingBrands, setLoadingBrands] = useState(true);
 
-    // New merchants for "New on BackBenchers" section
-    const [newMerchants, setNewMerchants] = useState<NewMerchant[]>([]);
-
-    // Content visibility settings (from admin)
+    // Content visibility settings
     const [contentSettings, setContentSettings] = useState({
         showTopBrands: true,
         showHeroBanners: true,
         showTrending: true,
     });
 
-    // Check if student is verified (logged in with profile)
     const [isVerified, setIsVerified] = useState(false);
     const [studentId, setStudentId] = useState<string | null>(null);
-
-    // Favorite offers
-    const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-
-    // Real-time notifications with Supabase realtime subscription
-    const { unreadCount, markAllAsRead } = useNotifications();
-
-    // Load content visibility settings from DATABASE with REALTIME subscription
-    useEffect(() => {
-        let channel: any = null;
-
-        async function loadContentSettings() {
-            try {
-                const { settingsService } = await import('@/lib/services/settings.service');
-                const settings = await settingsService.getContentSettings();
-                setContentSettings(settings);
-            } catch (error) {
-                console.error('Error loading content settings:', error);
-            }
-        }
-
-        // Initial load
-        loadContentSettings();
-
-        // Subscribe to realtime changes for instant admin toggle updates
-        async function subscribeToRealtime() {
-            const { supabase } = await import('@/lib/supabase');
-            channel = supabase
-                .channel('site_settings_changes')
-                .on(
-                    'postgres_changes',
-                    {
-                        event: '*',
-                        schema: 'public',
-                        table: 'site_settings',
-                        filter: 'key=eq.content_visibility'
-                    },
-                    (payload: any) => {
-                        console.log('Content settings changed via realtime:', payload);
-                        if (payload.new?.value) {
-                            setContentSettings(payload.new.value);
-                        }
-                    }
-                )
-                .subscribe();
-        }
-
-        subscribeToRealtime();
-
-        return () => {
-            if (channel) {
-                channel.unsubscribe();
-            }
-        };
-    }, []);
 
     // Slide animation for search placeholder
     useEffect(() => {
@@ -277,238 +221,156 @@ export default function DashboardPage() {
         return () => clearInterval(interval);
     }, []);
 
-    // Auto-scroll hero banners every 4 seconds
-    const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-    const [swipeDirection, setSwipeDirection] = useState<'left' | 'right'>('left'); // Track swipe direction for animation
-    const bannerCount = heroBanners.length > 0 ? heroBanners.length : 3;
-
+    // Load content visibility settings from DATABASE with REALTIME subscription
     useEffect(() => {
-        const interval = setInterval(() => {
-            setSwipeDirection('left'); // Auto-scroll always goes "left" (next)
-            setCurrentBannerIndex((prev) => (prev + 1) % bannerCount);
-        }, 4000);
-        return () => clearInterval(interval);
-    }, [bannerCount]);
+        let channel: any = null;
+        async function loadContentSettings() {
+            try {
+                const { settingsService } = await import('@/lib/services/settings.service');
+                const settings = await settingsService.getContentSettings();
+                setContentSettings(settings);
+            } catch (error) {
+                console.error('Error loading content settings:', error);
+            }
+        }
+        loadContentSettings();
 
-    // Check for pending ratings - REMOVED (Relocated to GlobalRatingProvider)
-    const checkPendingRatings = async (sId: string) => {
-        // Legacy: Logic moved to GlobalRatingProvider
-    };
+        async function subscribeToRealtime() {
+            const { supabase } = await import('@/lib/supabase');
+            channel = supabase
+                .channel('site_settings_changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings', filter: 'key=eq.content_visibility' },
+                    (payload: any) => {
+                        if (payload.new?.value) setContentSettings(payload.new.value);
+                    }
+                ).subscribe();
+        }
+        subscribeToRealtime();
+        return () => { if (channel) channel.unsubscribe(); };
+    }, []);
+
+    // EFFECT: Process Cached Top Brands into Split State
+    useEffect(() => {
+        if (cachedTopBrands?.data) {
+            const mapped = cachedTopBrands.data.map((b: any) => ({
+                id: b.merchantId || b.id,
+                name: b.merchant?.businessName || b.name || 'Unknown',
+                logo: b.merchant?.logo || b.logo || null,
+                category: b.merchant?.category || b.category || 'Store',
+            }));
+            const online = mapped.filter((b: any) => b.category === 'Startups/Apps' || b.category === 'Online');
+            const offline = mapped.filter((b: any) => b.category !== 'Startups/Apps' && b.category !== 'Online');
+            setTopBrandsState({ online, offline });
+            setLoadingBrands(false);
+        }
+    }, [cachedTopBrands]);
+
 
     // Fetch real offers and check verification status
     useEffect(() => {
         async function fetchData() {
             try {
-                // STEP 1: Determine the city (localStorage first, then profile)
-                let cityToUse = cityService.getSelectedCity();
+                // STEP 1: Determine the city 
+                let cityToUse = selectedCity || cityService.getSelectedCity();
 
-                // CHECK CACHE FIRST - instant load if cached
-                const cachedOffers = dashboardCache.getOffers(cityToUse || undefined);
-                const cachedTrendingOffline = dashboardCache.getTrendingOffline(cityToUse || undefined);
-                const cachedTrendingOnline = dashboardCache.getTrendingOnline();
-                const cachedTopBrands = dashboardCache.getTopBrands();
-                const cachedNewMerchants = dashboardCache.getNewMerchants(cityToUse || undefined);
-                const cachedBanners = dashboardCache.getHeroBanners(cityToUse || undefined);
-                const cachedFavorites = dashboardCache.getFavoriteIds();
-
-                // Fetch data concurrently (including categories)
-                const [categoriesRes] = await Promise.all([
-                    categoryService.getAll()
-                ]);
-
-                if (categoriesRes.success && categoriesRes.data && categoriesRes.data.length > 0) {
-                    setCategories(categoriesRes.data);
+                // 1. Categories (Static-ish, only fetch if expired/missing)
+                if (!isCacheValid(cachedCategories)) {
+                    categoryService.getAll().then(res => {
+                        if (res.success && res.data) setStoreCategories(res.data);
+                    });
                 }
 
-                // If we have cached data, use it immediately (instant render)
-                if (cachedOffers) setRealOffers(cachedOffers);
-                if (cachedTrendingOffline) setTrendingOffline(cachedTrendingOffline);
-                if (cachedTrendingOnline) setTrendingOnline(cachedTrendingOnline);
-                if (cachedTopBrands) {
-                    const mapped = cachedTopBrands.map((b: any) => ({
-                        id: b.merchantId || b.id,
-                        name: b.merchant?.businessName || b.name || 'Unknown',
-                        logo: b.merchant?.logo || b.logo || null,
-                        category: b.merchant?.category || b.category || 'Store',
-                    }));
-                    const online = mapped.filter((b: any) => b.category === 'Startups/Apps' || b.category === 'Online');
-                    const offline = mapped.filter((b: any) => b.category !== 'Startups/Apps' && b.category !== 'Online');
-                    setTopBrandsState({ online, offline });
-                }
-                if (cachedNewMerchants) setNewMerchants(cachedNewMerchants);
-                if (cachedBanners && cachedBanners.length > 0) setHeroBanners(cachedBanners);
-                if (cachedFavorites) setFavoriteIds(cachedFavorites);
+                // 2. Offers (Critical)
+                if (!isCacheValid(cachedOffers, cityToUse || undefined)) {
+                    // Fetch in background, store updates will trigger re-render
+                    const promise = cityToUse
+                        ? offerService.getOffersByCity(cityToUse)
+                        : offerService.getActiveOffers();
 
-                // If all cache exists, we can still load, but let's not block UI
-                if (cachedOffers && cachedTrendingOffline && cachedTopBrands) {
+                    promise.then(result => {
+                        if (result.success && result.data) {
+                            setOffers(result.data, cityToUse || undefined);
+                            setLoadingOffers(false);
+                        }
+                    });
+                } else {
                     setLoadingOffers(false);
                 }
 
-                // STEP 2: Check if student is verified and get city from profile
+                // STEP 2: Check student profile (Always check for favorites sync)
                 const { studentService } = await import('@/lib/services/student.service');
                 const profileResult = await studentService.getMyProfile();
+
                 if (profileResult.success && profileResult.data) {
                     setIsVerified(true);
                     setStudentId(profileResult.data.id);
 
-                    // If no city in localStorage, use student's city from profile
+                    // Sync city
                     if (!cityToUse) {
                         const userCity = profileResult.data.selectedCity || profileResult.data.city;
                         if (userCity) {
                             cityToUse = userCity;
-                            cityService.setSelectedCity(userCity); // Save to localStorage
+                            cityService.setSelectedCity(userCity);
+                            setSelectedCity(userCity);
                         }
                     }
 
-                    // Fetch favorite IDs (saved offers) if not cached
-                    if (!cachedFavorites) {
-                        const savedOfferIds = await favoritesService.getSavedOfferIds();
-                        setFavoriteIds(savedOfferIds);
-                        dashboardCache.setFavoriteIds(savedOfferIds);
+                    // Sync favorites
+                    if (favoriteIds.length === 0) {
+                        favoritesService.getSavedOfferIds().then(ids => setFavoriteIds(ids));
                     }
                 }
 
-                // Set the city in state
-                if (cityToUse) {
-                    setSelectedCity(cityToUse);
+                // Update city state if changed
+                if (cityToUse && cityToUse !== selectedCity) setSelectedCity(cityToUse);
+
+
+                // STEP 3: Background Fetches for other sections
+
+                // Hero Banners
+                if (!isCacheValid(cachedHeroBanners, cityToUse || undefined)) {
+                    heroBannerService.getActiveForCity(cityToUse || 'All').then(res => {
+                        if (res.success && res.data) setHeroBanners(res.data, cityToUse || undefined);
+                    });
                 }
 
-                // STEP 3: Fetch data with proper city filtering
-                // Fetch hero banners from database (if not cached)
-                if (!cachedBanners || cachedBanners.length === 0) {
-                    const bannerResult = await heroBannerService.getActiveForCity(cityToUse || 'All');
-                    if (bannerResult.success && bannerResult.data && bannerResult.data.length > 0) {
-                        setHeroBanners(bannerResult.data);
-                        dashboardCache.setHeroBanners(bannerResult.data, cityToUse || undefined);
-                    }
+                // Trending Offline
+                if (!isCacheValid(cachedTrendingOffline, cityToUse || undefined)) {
+                    trendingService.getMergedTrending('offline', 10, cityToUse || undefined).then(data => {
+                        if (data) setTrendingOffline(data as any, cityToUse || undefined);
+                    });
                 }
 
-                // Fetch offers filtered by city (always fetch in background to update cache)
-                // if (!cachedOffers) {  <-- REMOVED check to enable stale-while-revalidate
-                const result = cityToUse
-                    ? await offerService.getOffersByCity(cityToUse)
-                    : await offerService.getActiveOffers();
-
-                // Only update if we get valid data back. 
-                // This prevents "disappearing" if the API returns empty temporarily or on error.
-                if (result.success && result.data && result.data.length > 0) {
-                    setRealOffers(result.data);
-                    dashboardCache.setOffers(result.data, cityToUse || undefined);
-                }
-                // }
-
-                // Fetch trending offers (if not cached)
-                if (!cachedTrendingOffline || !cachedTrendingOnline) {
-                    // 1. Get User for location-based filtering
-                    let userLocation = { city: undefined as string | undefined, state: undefined as string | undefined };
-                    try {
-                        const { authService } = await import('@/lib/services/auth.service'); // Import authService here
-                        const user = await authService.getCurrentUser();
-                        if (user) {
-                            const u = user as any;
-                            userLocation = {
-                                city: u.city || u.selectedCity || undefined,
-                                state: u.state || undefined
-                            };
-                        }
-                    } catch (e) {
-                        console.log("Could not load user for location", e);
-                    }
-
-                    const [
-                        offlineTrending,
-                        onlineTrending
-                    ] = await Promise.all([
-                        trendingService.getMergedTrending('offline', 10, cityToUse || undefined),
-                        trendingService.getMergedTrending('online', 10, cityToUse || userLocation.city, userLocation.state), // Pass selected city
-                    ]);
-                    if (!cachedTrendingOffline) {
-                        setTrendingOffline(offlineTrending as any);
-                        dashboardCache.setTrendingOffline(offlineTrending, cityToUse || undefined);
-                    }
-                    if (!cachedTrendingOnline) {
-                        setTrendingOnline(onlineTrending as any);
-                        dashboardCache.setTrendingOnline(onlineTrending);
-                    }
+                // Trending Online
+                if (!isCacheValid(cachedTrendingOnline)) {
+                    // Need user loc for online? maybe not strict
+                    trendingService.getMergedTrending('online', 10, cityToUse || undefined).then(data => {
+                        if (data) setTrendingOnline(data as any);
+                    });
                 }
 
-                // Fetch top brands and split into Online/Offline for Marquee
-                if (contentSettings.showTopBrands) {
-                    const brandsResult = await topBrandsService.getAll();
-                    if (brandsResult.success && brandsResult.data) {
-                        const allBrands = brandsResult.data;
-
-                        // We need to fetch full merchant details to know if they are online/offline
-                        // Or we can rely on heuristic: Brands with "online" category or empty city?
-                        // Better: Fetch trending online to get online brands, and approved merchants for offline.
-                        // Let's mix explicitly featured brands with high-performing ones.
-
-                        // For the Marquee, we strictly want:
-                        // Row 1 (Left): Online Brands
-                        const online = allBrands.filter(b => b.merchant?.category === 'Startups/Apps' || b.merchant?.category === 'Online').map(b => ({
-                            id: b.merchantId,
-                            name: b.merchant?.businessName,
-                            logo: b.merchant?.logo,
-                            category: b.merchant?.category
-                        }));
-
-                        // Row 2 (Right): Offline Stores
-                        const offline = allBrands.filter(b => b.merchant?.category !== 'Startups/Apps' && b.merchant?.category !== 'Online').map(b => ({
-                            id: b.merchantId,
-                            name: b.merchant?.businessName,
-                            logo: b.merchant?.logo,
-                            category: b.merchant?.category
-                        }));
-
-                        // If lists are too short, fetch generic top merchants to fill
-                        if (online.length < 5) {
-                            const { data: trendingOnline } = await trendingService.getBySection('online');
-                            if (trendingOnline) {
-                                trendingOnline.slice(0, 10).forEach(t => {
-                                    if (!online.find(b => b.id === t.offer?.merchantId)) {
-                                        online.push({
-                                            id: t.offer?.merchantId || 'unknown',
-                                            name: t.offer?.merchantName || 'Brand',
-                                            logo: t.offer?.merchantLogo,
-                                            category: 'Online'
-                                        });
-                                    }
-                                });
-                            }
-                        }
-
-                        // Sanitize duplicates and empty logos
-                        const cleanOnline = online.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i && v.logo);
-                        const cleanOffline = offline.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i && v.logo);
-
-                        // Use demo data as fallback if no brands fetched
-                        const finalOnline = cleanOnline.length > 0 ? cleanOnline : STATIC_TOP_BRANDS.online;
-                        const finalOffline = cleanOffline.length > 0 ? cleanOffline : STATIC_TOP_BRANDS.offline;
-
-                        setTopBrandsState({ online: finalOnline, offline: finalOffline });
-                    }
-                    setLoadingBrands(false);
+                // Top Brands
+                if (contentSettings.showTopBrands && !isCacheValid(cachedTopBrands)) {
+                    topBrandsService.getAll().then(res => {
+                        if (res.success && res.data) setTopBrands(res.data);
+                    });
                 }
+
             } catch (error) {
                 console.error('Error fetching data:', error);
-            } finally {
                 setLoadingOffers(false);
             }
         }
         fetchData();
-    }, []);
+    }, [selectedCity]); // Re-run when city changes
 
     // Re-fetch new merchants when city changes
     useEffect(() => {
-        async function refetchNewMerchants() {
-            if (selectedCity) {
-                const result = await newMerchantService.getNewMerchants(7, 10, selectedCity);
-                if (result.success && result.data) {
-                    setNewMerchants(result.data);
-                }
-            }
+        if (selectedCity && !isCacheValid(cachedNewMerchants, selectedCity)) {
+            newMerchantService.getNewMerchants(7, 10, selectedCity).then(res => {
+                if (res.success && res.data) setNewMerchants(res.data, selectedCity);
+            });
         }
-        refetchNewMerchants();
     }, [selectedCity]);
 
 
@@ -528,26 +390,15 @@ export default function DashboardPage() {
         }
 
         const isFav = favoriteIds.includes(offerId);
-        // Optimistic update (both state and cache)
-        if (isFav) {
-            setFavoriteIds(prev => prev.filter(id => id !== offerId));
-            dashboardCache.updateFavoriteIds(offerId, false);
-        } else {
-            setFavoriteIds(prev => [...prev, offerId]);
-            dashboardCache.updateFavoriteIds(offerId, true);
-        }
+
+        // Optimistic update via store action
+        toggleFavoriteId(offerId, !isFav);
 
         // Actual API call
         const result = await favoritesService.toggleOffer(offerId);
         if (!result.success) {
-            // Revert on failure (both state and cache)
-            if (isFav) {
-                setFavoriteIds(prev => [...prev, offerId]);
-                dashboardCache.updateFavoriteIds(offerId, true);
-            } else {
-                setFavoriteIds(prev => prev.filter(id => id !== offerId));
-                dashboardCache.updateFavoriteIds(offerId, false);
-            }
+            // Revert on failure
+            toggleFavoriteId(offerId, isFav); // Revert to original state
         }
     };
 
@@ -672,7 +523,7 @@ export default function DashboardPage() {
                     // Refetch offers for new city
                     const result = await offerService.getOffersByCity(city);
                     if (result.success && result.data) {
-                        setRealOffers(result.data);
+                        setOffers(result.data, city);
                     }
                 }}
             />
@@ -711,10 +562,9 @@ export default function DashboardPage() {
 
             <main className="max-w-7xl mx-auto space-y-4 px-5 pt-4 pb-4">
                 {/* Search Bar with Slide Animation */}
-                <motion.button
+                <button
                     onClick={() => setShowSearch(true)}
-                    whileTap={{ scale: 0.99 }}
-                    className={`w-full h-12 rounded-xl flex items-center gap-3 px-4 transition-colors border ${isLightTheme ? 'bg-white border-gray-200 hover:bg-gray-50' : 'bg-white/[0.03] border-white/[0.04] hover:bg-white/[0.05]'}`}
+                    className={`w-full h-12 rounded-xl flex items-center gap-3 px-4 transition-colors border press-scale ${isLightTheme ? 'bg-white border-gray-200 hover:bg-gray-50' : 'bg-white/[0.03] border-white/[0.04] hover:bg-white/[0.05]'}`}
                 >
                     <Search className={`h-4 w-4 flex-shrink-0 ${isLightTheme ? 'text-gray-400' : 'text-white/30'}`} />
                     <div className="flex-1 text-left overflow-hidden">
@@ -731,7 +581,7 @@ export default function DashboardPage() {
                             </motion.span>
                         </AnimatePresence>
                     </div>
-                </motion.button>
+                </button>
 
                 {/* Hero Banner - NEW COMPONENT */}
                 {contentSettings.showHeroBanners && (
@@ -745,22 +595,23 @@ export default function DashboardPage() {
                     {/* Horizontal Scroll Categories with Image Backgrounds */}
                     <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 gap-3 pb-2 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-visible">
                         {categories.slice(0, 4).map((cat) => (
-                            <motion.button
+                            <button
                                 key={cat.id}
-                                whileTap={{ scale: 0.95 }}
                                 onClick={() => {
                                     vibrate('light');
                                     router.push(`/dashboard/explore?category=${cat.name}`);
                                 }}
-                                className="flex-shrink-0 relative w-[90px] h-[100px] lg:w-full lg:h-36 rounded-2xl overflow-hidden border border-white/10 shadow-lg group"
+                                className="flex-shrink-0 relative w-[90px] h-[100px] lg:w-full lg:h-36 rounded-2xl overflow-hidden border border-white/10 shadow-lg group press-scale img-container"
                             >
-                                {/* Background Image */}
+                                {/* Background Image — explicit dimensions prevent layout shifts */}
                                 {cat.image_url ? (
                                     <Image
                                         src={cat.image_url}
                                         alt={cat.name}
                                         fill
+                                        sizes="(max-width: 1024px) 90px, 25vw"
                                         className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                        priority={true}
                                     />
                                 ) : (
                                     <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900" />
@@ -778,7 +629,7 @@ export default function DashboardPage() {
                                         </span>
                                     )}
                                 </div>
-                            </motion.button>
+                            </button>
                         ))}
                     </div>
                 </section>
@@ -795,10 +646,9 @@ export default function DashboardPage() {
                         {/* Horizontal Scroll Cards */}
                         <div className="flex overflow-x-auto hide-scrollbar -mx-5 px-5 pb-4 gap-4 snap-x snap-mandatory">
                             {newMerchants.map((merchant) => (
-                                <motion.div
+                                <div
                                     key={merchant.id}
-                                    className="w-[280px] flex-shrink-0 snap-center"
-                                    whileTap={{ scale: 0.98 }}
+                                    className="w-[280px] flex-shrink-0 snap-center press-scale cursor-pointer"
                                     onClick={() => {
                                         vibrate('light');
                                         if (!isVerified) {
@@ -862,7 +712,7 @@ export default function DashboardPage() {
                                             </p>
                                         </div>
                                     </div>
-                                </motion.div>
+                                </div>
                             ))}
                         </div>
                     </section>
@@ -890,15 +740,10 @@ export default function DashboardPage() {
                                 <>
                                     {/* All brands combined */}
                                     {[...topBrandsState.online, ...topBrandsState.offline].map((brand, index) => (
-                                        <motion.div
+                                        <div
                                             key={brand.id}
-                                            initial={{ opacity: 0, scale: 0.9 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: index * 0.03 }}
-                                            whileTap={{ scale: 0.95 }}
                                             onClick={() => {
                                                 vibrate('light');
-                                                // Route based on brand type
                                                 const isOnline = topBrandsState.online.some(b => b.id === brand.id);
                                                 if (isOnline) {
                                                     router.push(`/dashboard/online-brand/${brand.id}`);
@@ -906,9 +751,9 @@ export default function DashboardPage() {
                                                     router.push(`/store/${brand.id}`);
                                                 }
                                             }}
-                                            className="flex flex-col items-center gap-2 cursor-pointer flex-shrink-0 w-20 group"
+                                            className="flex flex-col items-center gap-2 cursor-pointer flex-shrink-0 w-20 group press-scale"
                                         >
-                                            <div className={`h-20 w-20 rounded-2xl p-3 flex items-center justify-center transition-all duration-200 ${isLightTheme
+                                            <div className={`h-20 w-20 rounded-2xl p-3 flex items-center justify-center transition-all duration-200 img-container ${isLightTheme
                                                 ? 'bg-white border border-gray-100 shadow-lg hover:shadow-xl'
                                                 : 'bg-white/[0.04] border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.06]'
                                                 }`}>
@@ -918,14 +763,15 @@ export default function DashboardPage() {
                                                         alt={brand.name}
                                                         fill
                                                         className="object-contain"
-                                                        sizes="80px"
+                                                        sizes="56px"
+                                                        loading={index < 6 ? 'eager' : 'lazy'}
                                                     />
                                                 </div>
                                             </div>
                                             <span className={`text-[10px] font-medium text-center line-clamp-1 w-full ${isLightTheme ? 'text-gray-600' : 'text-white/60'}`}>
                                                 {brand.name}
                                             </span>
-                                        </motion.div>
+                                        </div>
                                     ))}
                                 </>
                             )}

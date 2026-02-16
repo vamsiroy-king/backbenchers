@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, User, Flame, Compass, Map, LogOut, Settings } from "lucide-react";
+import { Home, User, Briefcase, Compass, Map, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
@@ -10,7 +10,7 @@ const TABS = [
     { name: "Home", href: "/dashboard", icon: Home },
     { name: "Explore", href: "/dashboard/explore", icon: Compass },
     { name: "Map", href: "/dashboard/map", icon: Map },
-    { name: "Drops", href: "/dashboard/drops", icon: Flame },
+    { name: "Hustle", href: "/dashboard/hustle", icon: Briefcase },
     { name: "Profile", href: "/dashboard/profile", icon: User },
 ];
 
@@ -44,19 +44,19 @@ export function DesktopSidebar() {
                     return (
                         <Link key={tab.name} href={tab.href} prefetch={true} className="block group">
                             <div className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 ${isActive
-                                    ? isLight ? 'bg-gray-100' : 'bg-white/[0.08]'
-                                    : 'hover:bg-white/[0.04]'
+                                ? isLight ? 'bg-gray-100' : 'bg-white/[0.08]'
+                                : 'hover:bg-white/[0.04]'
                                 }`}>
                                 <Icon
                                     className={`h-6 w-6 transition-colors ${isActive
-                                            ? 'text-green-500' // Always green when active
-                                            : isLight ? 'text-gray-500 group-hover:text-gray-900' : 'text-white/40 group-hover:text-white'
+                                        ? 'text-green-500' // Always green when active
+                                        : isLight ? 'text-gray-500 group-hover:text-gray-900' : 'text-white/40 group-hover:text-white'
                                         }`}
                                     strokeWidth={isActive ? 2.5 : 2}
                                 />
                                 <span className={`font-medium text-sm transition-colors ${isActive
-                                        ? isLight ? 'text-gray-900 font-bold' : 'text-white font-bold'
-                                        : isLight ? 'text-gray-500 group-hover:text-gray-900' : 'text-white/60 group-hover:text-white'
+                                    ? isLight ? 'text-gray-900 font-bold' : 'text-white font-bold'
+                                    : isLight ? 'text-gray-500 group-hover:text-gray-900' : 'text-white/60 group-hover:text-white'
                                     }`}>
                                     {tab.name}
                                 </span>

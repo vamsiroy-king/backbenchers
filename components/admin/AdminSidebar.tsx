@@ -17,7 +17,9 @@ import {
     LogOut,
     Image,
     Building2,
-    Globe
+    Globe,
+    Briefcase,
+    ClipboardList
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -30,6 +32,8 @@ const MENU_ITEMS = [
     { name: "Brands", href: "/admin/dashboard/brands", icon: Building2 },
     { name: "Merchants", href: "/admin/dashboard/merchants", icon: Store },
     { name: "Students", href: "/admin/dashboard/students", icon: Users },
+    { name: "Recruiters", href: "/admin/dashboard/recruiters", icon: Briefcase },
+    { name: "Opportunities", href: "/admin/dashboard/opportunities", icon: ClipboardList },
     { name: "Offers", href: "/admin/dashboard/offers", icon: Tag },
     { name: "Trending", href: "/admin/dashboard/trending", icon: Flame },
     { name: "Top Brands", href: "/admin/dashboard/top-brands", icon: Star },

@@ -1,16 +1,15 @@
 "use client";
 
-import { Home, User, Flame, Compass, Map } from "lucide-react";
+import { Home, User, Briefcase, Compass, Map } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import { useTheme } from "@/components/providers/ThemeProvider";
 
 const TABS = [
     { name: "Home", href: "/dashboard", icon: Home },
     { name: "Explore", href: "/dashboard/explore", icon: Compass },
     { name: "Map", href: "/dashboard/map", icon: Map },
-    { name: "Drops", href: "/dashboard/drops", icon: Flame },
+    { name: "Hustle", href: "/dashboard/hustle", icon: Briefcase },
     { name: "Profile", href: "/dashboard/profile", icon: User },
 ];
 
@@ -20,10 +19,7 @@ export function MobileNav() {
     const isLight = theme === 'light';
 
     return (
-        <motion.div
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        <div
             className="fixed bottom-0 left-0 right-0 z-[5000]"
             style={{ transform: 'translateZ(0)', willChange: 'transform' }}
         >
@@ -42,7 +38,7 @@ export function MobileNav() {
                                 key={tab.name}
                                 href={tab.href}
                                 prefetch={true}
-                                className="flex-1"
+                                className="flex-1 press-scale"
                             >
                                 <div
                                     className="flex flex-col items-center justify-center py-2 relative"
@@ -81,6 +77,6 @@ export function MobileNav() {
                     })}
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 }

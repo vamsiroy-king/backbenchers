@@ -16,19 +16,30 @@ export function SuspendedCheck({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
     useEffect(() => {
+        let didTimeout = false;
+
+        // Timeout fallback — show the page after 3s even if auth is slow
+        const timer = setTimeout(() => {
+            didTimeout = true;
+            setIsChecking(false);
+        }, 3000);
+
         async function checkStatus() {
             try {
                 const user = await authService.getCurrentUser();
-                if (user?.isSuspended) {
+                if (!didTimeout && user?.isSuspended) {
                     setIsSuspended(true);
                 }
             } catch (error) {
                 console.error('Error checking suspension status:', error);
             } finally {
+                clearTimeout(timer);
                 setIsChecking(false);
             }
         }
         checkStatus();
+
+        return () => clearTimeout(timer);
     }, []);
 
     const handleLogout = async () => {

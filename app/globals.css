@@ -896,6 +896,7 @@ button,
 
 /* Reduce animations on devices that prefer reduced motion */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -904,7 +905,7 @@ button,
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  
+
   .animate-spin,
   .animate-pulse,
   .animate-bounce {
@@ -920,6 +921,7 @@ video {
 
 /* Reduce expensive blur effects on low-end devices */
 @media (max-width: 480px) {
+
   .backdrop-blur,
   .backdrop-blur-md,
   .backdrop-blur-lg,
@@ -927,7 +929,7 @@ video {
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
   }
-  
+
   .glass,
   .glass-heavy {
     backdrop-filter: blur(8px) !important;
@@ -943,11 +945,45 @@ video {
   will-change: auto;
 }
 
-/* Efficient touch interactions */
+/* ============================================= */
+/* NATIVE MOBILE APP FEEL — Performance Layer    */
+/* ============================================= */
+
+/* Kill 300ms tap delay + remove blue/grey highlight on all interactive elements */
 button,
 a,
-[role="button"] {
+[role="button"],
+input,
+select,
+textarea,
+label {
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Native press feedback — instant scale on tap (no JS overhead) */
+.press-scale {
+  transition: transform 100ms ease-out;
+}
+
+.press-scale:active {
+  transform: scale(0.96);
+}
+
+/* GPU-accelerated smooth scroll for all scrollable containers */
+.hide-scrollbar,
+[class*="overflow-x-auto"],
+[class*="overflow-y-auto"] {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Scroll containers — contain paint for isolation */
+.scroll-container {
+  contain: paint;
+  transform: translateZ(0);
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Contain paint operations for better performance */
@@ -957,4 +993,43 @@ a,
 
 .contain-layout {
   contain: layout;
+}
+
+/* Prevent content shifts from images loading */
+.img-container {
+  contain: layout style;
+}
+
+/* Smooth page transitions between tabs */
+.page-transition {
+  animation: fadeIn 150ms ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Premium shimmer that doesn't cause layout shifts */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(255, 255, 255, 0.04) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }

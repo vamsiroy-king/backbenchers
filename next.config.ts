@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   devIndicators: false,
 
   images: {
+    minimumCacheTTL: 86400, // 24h — prevents category/brand images from re-loading
     remotePatterns: [
       {
         protocol: "https",

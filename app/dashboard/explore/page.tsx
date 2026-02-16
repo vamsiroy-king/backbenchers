@@ -15,6 +15,8 @@ import { vibrate } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { OfferCard } from "@/components/OfferCard";
 
+import { useStudentStore, isCacheValid } from "@/lib/store/useStudentStore";
+
 // District-style categories with COMBINATIONAL names
 const CATEGORIES = [
     { id: 'Food & Dining', name: "Food & Dining", shortName: "Food", icon: "🍕", bgColor: "bg-[#1a1a1a]", headerColor: "bg-[#A855F7]" },
@@ -34,13 +36,23 @@ export default function ExplorePage() {
     const searchParams = useSearchParams();
     const categoryParam = searchParams.get("category");
 
+    // Zustand store — cached explore data
+    const {
+        exploreOffers: cachedExploreOffers,
+        exploreBrands: cachedExploreBrands,
+        setExploreOffers,
+        setExploreBrands,
+    } = useStudentStore();
+
     const [searchQuery, setSearchQuery] = useState("");
-    const [offers, setOffers] = useState<Offer[]>([]);
-    const [onlineBrands, setOnlineBrands] = useState<OnlineBrand[]>([]);
+    // Initialize from cache immediately (no loading flash on tab switch)
+    const [offers, setOffers] = useState<Offer[]>(() => cachedExploreOffers?.data || []);
+    const [onlineBrands, setOnlineBrands] = useState<OnlineBrand[]>(() => cachedExploreBrands?.data || []);
     const [filteredOffers, setFilteredOffers] = useState<Offer[]>([]);
     const [activeTab, setActiveTab] = useState<'nearby' | 'online'>('nearby');
     const [studentCity, setStudentCity] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
+    // Only show loading if we have NO cached data at all
+    const [loading, setLoading] = useState(() => !cachedExploreOffers?.data);
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
     // Global Favorites
@@ -54,10 +66,9 @@ export default function ExplorePage() {
         return () => clearInterval(interval);
     }, []);
 
-    // Fetch data
+    // Fetch data — uses Zustand cache, only fetches if stale
     useEffect(() => {
         async function fetchData() {
-            setLoading(true);
             try {
                 // 1. Get location
                 let city: string | null = null;
@@ -76,27 +87,37 @@ export default function ExplorePage() {
                 }
                 setStudentCity(city);
 
-                // 2. Fetch Offline offers
-                let offersRes;
-                if (categoryParam) {
-                    offersRes = await offerService.getByCategory(categoryParam);
-                } else {
-                    offersRes = await offerService.getActiveOffers();
+                // 2. Check cache — skip fetch if data is fresh (unless category filter changed)
+                const cacheHit = !categoryParam && isCacheValid(cachedExploreOffers, city || undefined);
+
+                if (!cacheHit) {
+                    // Only show loading if we have NO data yet
+                    if (offers.length === 0) setLoading(true);
+
+                    // Fetch Offline offers
+                    const offersRes = categoryParam
+                        ? await offerService.getByCategory(categoryParam)
+                        : await offerService.getActiveOffers();
+
+                    if (offersRes.success && offersRes.data) {
+                        setOffers(offersRes.data);
+                        if (!categoryParam) setExploreOffers(offersRes.data, city || undefined);
+                    } else {
+                        setOffers([]);
+                    }
                 }
 
-                if (offersRes.success && offersRes.data) {
-                    setOffers(offersRes.data);
-                } else {
-                    setOffers([]);
+                // 3. Fetch Online brands (only if cache is stale)
+                const brandsHit = !categoryParam && isCacheValid(cachedExploreBrands);
+                if (!brandsHit) {
+                    const studentLocation = { city: city || undefined, state: state || undefined };
+                    const brands = await onlineBrandService.getAllBrands(
+                        categoryParam || undefined,
+                        studentLocation
+                    );
+                    setOnlineBrands(brands);
+                    if (!categoryParam) setExploreBrands(brands);
                 }
-
-                // 3. Fetch Online brands
-                const studentLocation = { city: city || undefined, state: state || undefined };
-                const brands = await onlineBrandService.getAllBrands(
-                    categoryParam || undefined,
-                    studentLocation
-                );
-                setOnlineBrands(brands);
 
             } catch (error) {
                 console.error('Error loading explore data:', error);
