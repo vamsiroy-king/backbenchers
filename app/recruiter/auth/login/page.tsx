@@ -9,6 +9,29 @@ import { supabase } from "@/lib/supabase";
 export default function RecruiterLoginPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleEmailLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        try {
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+            if (signInError) throw signInError;
+            router.push('/recruiter/auth/callback'); // Or direct to /recruiter
+        } catch (err: any) {
+            console.error('Login error:', err);
+            setError(err.message || 'Failed to sign in');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleGoogleLogin = async () => {
         setLoading(true);
@@ -42,6 +65,45 @@ export default function RecruiterLoginPage() {
                     <p className="text-white/40 text-sm mt-2">
                         Log in to manage your opportunities and candidates.
                     </p>
+                </div>
+
+                {/* Email Form */}
+                <form onSubmit={handleEmailLogin} className="space-y-4 mb-6">
+                    <div>
+                        <input
+                            type="email"
+                            required
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            placeholder="Work Email"
+                            className="w-full h-12 px-4 rounded-xl text-sm bg-white/[0.03] border border-white/[0.06] text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-green-500/30"
+                        />
+                    </div>
+                    <div>
+                        <input
+                            type="password"
+                            required
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            placeholder="Password"
+                            className="w-full h-12 px-4 rounded-xl text-sm bg-white/[0.03] border border-white/[0.06] text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-green-500/30"
+                        />
+                    </div>
+                    {error && <p className="text-red-400 text-xs px-2">{error}</p>}
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full h-12 bg-green-500 text-white font-bold text-sm rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Log In'}
+                    </button>
+                </form>
+
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="h-px bg-white/10 flex-1" />
+                    <span className="text-white/20 text-xs">OR</span>
+                    <div className="h-px bg-white/10 flex-1" />
                 </div>
 
                 {/* Google Login Button */}
