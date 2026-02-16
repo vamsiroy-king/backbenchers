@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
     Building2, User, Mail, Phone, Globe, MapPin, FileText,
-    ArrowRight, Loader2, Briefcase, ChevronDown
+    ArrowRight, Loader2, Briefcase, ChevronDown, Upload, Image as ImageIcon
 } from "lucide-react";
 import { recruiterService } from "@/lib/services/recruiter.service";
+import { supabase } from "@/lib/supabase";
 
 const COMPANY_TYPES = [
     { value: 'startup', label: 'Startup' },
@@ -52,8 +53,40 @@ export default function RecruiterOnboardingCompanyPage() {
     const [address, setAddress] = useState('');
     const [panNumber, setPanNumber] = useState('');
     const [gstNumber, setGstNumber] = useState('');
+    const [logoUrl, setLogoUrl] = useState('');
+    const [uploadingLogo, setUploadingLogo] = useState(false);
 
     const isValid = companyName && contactPerson && email && phone && companyType && industry && address && panNumber;
+
+    const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        const file = e.target.files[0];
+        setUploadingLogo(true);
+
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('company-logos')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('company-logos')
+                .getPublicUrl(filePath);
+
+            setLogoUrl(publicUrl);
+        } catch (error) {
+            console.error('Error uploading logo:', error);
+            alert('Failed to upload logo');
+        } finally {
+            setUploadingLogo(false);
+        }
+    };
 
     const handleSubmit = async () => {
         if (!isValid) return;
@@ -75,6 +108,7 @@ export default function RecruiterOnboardingCompanyPage() {
             address: address || undefined,
             gst_number: gstNumber || undefined,
             pan_number: panNumber || undefined,
+            logo_url: logoUrl || undefined,
         });
 
         if (res.success) {
@@ -90,11 +124,42 @@ export default function RecruiterOnboardingCompanyPage() {
             <div className="max-w-lg mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="h-14 w-14 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <Briefcase className="h-7 w-7 text-white" />
+                    <div className="h-12 w-12 bg-green-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <Building2 className="h-6 w-6 text-green-500" />
                     </div>
-                    <h1 className="text-white text-xl font-bold">Company Details</h1>
-                    <p className="text-white/40 text-sm mt-1">Tell us about your organization</p>
+
+                    {/* Logo Upload */}
+                    <div className="mb-8 flex justify-center">
+                        <div className="relative group cursor-pointer" onClick={() => document.getElementById('logo-upload')?.click()}>
+                            <div className={`h-24 w-24 rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors ${logoUrl ? 'border-green-500/50 bg-black' : 'border-white/20 hover:border-green-500/50 hover:bg-white/5'}`}>
+                                {uploadingLogo ? (
+                                    <Loader2 className="h-8 w-8 text-green-500 animate-spin" />
+                                ) : logoUrl ? (
+                                    <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
+                                ) : (
+                                    <div className="text-center p-2">
+                                        <ImageIcon className="h-6 w-6 text-white/40 mx-auto mb-1" />
+                                        <span className="text-[10px] text-white/40">Upload Logo</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                                <Upload className="h-4 w-4 text-black" />
+                            </div>
+                            <input
+                                id="logo-upload"
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleLogoUpload}
+                            />
+                        </div>
+                    </div>
+
+                    <h2 className="text-2xl font-bold text-white mb-2">Company Details</h2>
+                    <p className="text-white/40 text-sm mb-8">
+                        Tell us about your organization to verify your account.
+                    </p>
                 </div>
 
                 {/* Form */}
