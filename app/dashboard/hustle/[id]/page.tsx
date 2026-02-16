@@ -2,16 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { motion } from "framer-motion";
 import {
     ArrowLeft, MapPin, Clock, Building2, Globe, Laptop, Users,
     Briefcase, CheckCircle2, ExternalLink, Mail, Phone,
-    Loader2, Send, ChevronRight, AlertCircle
+    Loader2, AlertCircle, ShieldCheck, MessageCircle
 } from "lucide-react";
 import Image from "next/image";
 import { useTheme } from "@/components/ThemeProvider";
 import { hustleService, Opportunity } from "@/lib/services/hustle.service";
-import { vibrate } from "@/lib/haptics";
+import { studentService } from "@/lib/services/student.service";
 
 const TYPE_LABELS: Record<string, string> = {
     freelance: 'Freelance', internship: 'Internship',
@@ -38,45 +37,39 @@ export default function OpportunityDetailPage() {
 
     const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
     const [loading, setLoading] = useState(true);
-    const [applying, setApplying] = useState(false);
-    const [hasApplied, setHasApplied] = useState(false);
-    const [showApplyModal, setShowApplyModal] = useState(false);
-    const [coverNote, setCoverNote] = useState('');
-    const [applyError, setApplyError] = useState('');
+    const [isVerified, setIsVerified] = useState(false);
 
     useEffect(() => {
         if (!oppId) return;
 
         Promise.all([
             hustleService.getOpportunityById(oppId),
-            hustleService.hasApplied(oppId),
-        ]).then(([oppRes, applied]) => {
+            studentService.getMyProfile(),
+        ]).then(([oppRes, profileRes]) => {
             if (oppRes.success && oppRes.data) setOpportunity(oppRes.data);
-            setHasApplied(applied);
+            if (profileRes.success && profileRes.data) {
+                setIsVerified(profileRes.data.status === 'verified');
+            }
             setLoading(false);
         });
     }, [oppId]);
 
-    const handleApply = async () => {
-        if (opportunity?.apply_method !== 'in_app') {
-            // External apply
-            if (opportunity?.apply_link) {
-                window.open(opportunity.apply_link, '_blank');
-            }
-            return;
-        }
+    // Direct Contact — open external link based on apply method
+    const handleApply = () => {
+        if (!opportunity) return;
 
-        setApplying(true);
-        setApplyError('');
-        const res = await hustleService.applyToOpportunity(oppId, coverNote);
-        if (res.success) {
-            vibrate('success');
-            setHasApplied(true);
-            setShowApplyModal(false);
-        } else {
-            setApplyError(res.error || 'Failed to apply');
+        const method = opportunity.apply_method;
+        const link = opportunity.apply_link;
+
+        if (method === 'whatsapp' && link) {
+            // Ensure proper WhatsApp URL
+            const phone = link.replace(/\D/g, '');
+            window.open(`https://wa.me/${phone}?text=Hi, I'm interested in the "${opportunity.title}" opportunity listed on BackBenchers.`, '_blank');
+        } else if (method === 'email' && link) {
+            window.open(`mailto:${link}?subject=Application for ${opportunity.title}&body=Hi,%0A%0AI'm interested in the "${opportunity.title}" opportunity listed on BackBenchers.%0A%0AThanks`, '_blank');
+        } else if (link) {
+            window.open(link, '_blank');
         }
-        setApplying(false);
     };
 
     if (loading) {
@@ -108,8 +101,18 @@ export default function OpportunityDetailPage() {
     const WMInfo = WORK_MODE_MAP[opportunity.work_mode] || WORK_MODE_MAP.remote;
     const WMIcon = WMInfo.icon;
 
+    // Determine apply button label and icon
+    const getApplyInfo = () => {
+        const method = opportunity.apply_method;
+        if (method === 'whatsapp') return { icon: MessageCircle, label: 'Apply via WhatsApp' };
+        if (method === 'email') return { icon: Mail, label: 'Apply via Email' };
+        return { icon: ExternalLink, label: 'Apply Now' };
+    };
+    const applyInfo = getApplyInfo();
+    const ApplyIcon = applyInfo.icon;
+
     return (
-        <div className={`min-h-screen pb-36 ${isLight ? 'bg-gray-50' : 'bg-black'}`}>
+        <div className={`min-h-screen pb-40 ${isLight ? 'bg-gray-50' : 'bg-black'}`}>
             {/* Header */}
             <header className={`sticky top-0 z-40 backdrop-blur-xl ${isLight ? 'bg-white/90' : 'bg-black/90'} border-b ${isLight ? 'border-gray-100' : 'border-white/[0.04]'}`}>
                 <div className="max-w-7xl mx-auto px-5 h-14 flex items-center gap-4">
@@ -238,97 +241,31 @@ export default function OpportunityDetailPage() {
                 </div>
             </main>
 
-            {/* Fixed Apply Bar */}
-            <div className={`fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl pb-[max(env(safe-area-inset-bottom),16px)] ${isLight ? 'bg-white/95 border-t border-gray-200' : 'bg-black/95 border-t border-white/[0.06]'}`}>
-                <div className="max-w-7xl mx-auto px-5 pt-3 flex items-center gap-3">
-                    {hasApplied ? (
-                        <div className={`flex-1 flex items-center justify-center gap-2 h-12 rounded-xl font-semibold text-sm ${isLight ? 'bg-green-50 text-green-600' : 'bg-green-500/10 text-green-400'}`}>
-                            <CheckCircle2 className="h-5 w-5" />
-                            Applied Successfully
-                        </div>
-                    ) : opportunity.apply_method === 'in_app' ? (
-                        <motion.button
-                            whileTap={{ scale: 0.97 }}
-                            onClick={() => {
-                                vibrate('medium');
-                                setShowApplyModal(true);
-                            }}
-                            className="flex-1 h-12 bg-green-500 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-green-500/25 hover:bg-green-600 transition-colors"
-                        >
-                            <Send className="h-4 w-4" />
-                            Apply Now
-                        </motion.button>
-                    ) : (
-                        <motion.button
-                            whileTap={{ scale: 0.97 }}
+            {/* Fixed Apply Bar — positioned above mobile nav */}
+            <div className={`fixed bottom-[72px] left-0 right-0 z-40 backdrop-blur-xl pb-2 pt-3 px-5 ${isLight ? 'bg-white/95 border-t border-gray-200' : 'bg-black/95 border-t border-white/[0.06]'}`}>
+                <div className="max-w-7xl mx-auto">
+                    {isVerified ? (
+                        <button
                             onClick={handleApply}
-                            className="flex-1 h-12 bg-green-500 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-green-500/25 hover:bg-green-600 transition-colors"
+                            className="w-full h-12 bg-green-500 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-green-500/25 hover:bg-green-600 transition-colors active:bg-green-700"
                         >
-                            <ExternalLink className="h-4 w-4" />
-                            Apply via {opportunity.apply_method === 'whatsapp' ? 'WhatsApp' : opportunity.apply_method === 'email' ? 'Email' : 'Link'}
-                        </motion.button>
+                            <ApplyIcon className="h-4 w-4" />
+                            {applyInfo.label}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => router.push('/dashboard')}
+                            className={`w-full h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors ${isLight
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                }`}
+                        >
+                            <ShieldCheck className="h-4 w-4" />
+                            Get Verified to Apply
+                        </button>
                     )}
                 </div>
             </div>
-
-            {/* Apply Modal */}
-            {showApplyModal && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-end justify-center"
-                    onClick={() => setShowApplyModal(false)}
-                >
-                    <motion.div
-                        initial={{ y: '100%' }}
-                        animate={{ y: 0 }}
-                        transition={{ type: 'spring', damping: 28 }}
-                        onClick={e => e.stopPropagation()}
-                        className={`w-full max-w-lg rounded-t-3xl p-6 ${isLight ? 'bg-white' : 'bg-gray-900'}`}
-                    >
-                        <div className={`h-1 w-10 rounded-full mx-auto mb-6 ${isLight ? 'bg-gray-300' : 'bg-white/20'}`} />
-
-                        <h3 className={`font-bold text-lg mb-1 ${isLight ? 'text-gray-900' : 'text-white'}`}>
-                            Apply to {opportunity.title}
-                        </h3>
-                        <p className={`text-xs mb-5 ${isLight ? 'text-gray-500' : 'text-white/40'}`}>
-                            Your hustle profile will be shared with the recruiter
-                        </p>
-
-                        <textarea
-                            value={coverNote}
-                            onChange={e => setCoverNote(e.target.value)}
-                            placeholder="Add a cover note (optional) — Tell them why you're a great fit..."
-                            rows={4}
-                            className={`w-full p-4 rounded-xl text-sm resize-none border focus:outline-none focus:ring-2 focus:ring-green-500/30 ${isLight
-                                ? 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400'
-                                : 'bg-white/[0.03] border-white/[0.06] text-white placeholder:text-white/30'
-                                }`}
-                        />
-
-                        {applyError && (
-                            <p className="text-xs text-red-400 mt-2 flex items-center gap-1">
-                                <AlertCircle className="h-3 w-3" /> {applyError}
-                            </p>
-                        )}
-
-                        <button
-                            onClick={handleApply}
-                            disabled={applying}
-                            className="w-full h-12 bg-green-500 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 mt-4 shadow-lg shadow-green-500/25 hover:bg-green-600 transition-colors disabled:opacity-60"
-                        >
-                            {applying ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <>
-                                    <Send className="h-4 w-4" />
-                                    Submit Application
-                                </>
-                            )}
-                        </button>
-                    </motion.div>
-                </motion.div>
-            )}
         </div>
     );
 }

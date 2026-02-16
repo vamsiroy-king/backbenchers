@@ -138,21 +138,7 @@ export default function HustlePage() {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        {/* Your Profile pill */}
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                                vibrate('light');
-                                router.push('/dashboard/hustle/profile');
-                            }}
-                            className={`flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold transition-all border ${isLight
-                                ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                : 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
-                                }`}
-                        >
-                            <Users className="h-3.5 w-3.5" />
-                            My Profile
-                        </motion.button>
+                        {/* Profile button removed - Direct Contact Model */}
                     </div>
                 </div>
             </header>
@@ -341,17 +327,12 @@ export default function HustlePage() {
                             const WMIcon = WorkModeInfo.icon;
 
                             return (
-                                <motion.div
+                                <div
                                     key={opp.id}
-                                    initial={{ opacity: 0, y: 16 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.04 }}
-                                    whileTap={{ scale: 0.98 }}
                                     onClick={() => {
-                                        vibrate('light');
                                         router.push(`/dashboard/hustle/${opp.id}`);
                                     }}
-                                    className={`rounded-2xl p-4 cursor-pointer transition-all border group ${isLight
+                                    className={`rounded-2xl p-4 cursor-pointer transition-colors border group ${isLight
                                         ? 'bg-white border-gray-100 hover:border-gray-200 hover:shadow-lg'
                                         : 'bg-white/[0.02] border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.03]'
                                         }`}
@@ -461,7 +442,7 @@ export default function HustlePage() {
                                             </span>
                                         )}
                                     </div>
-                                </motion.div>
+                                </div>
                             );
                         })}
 

@@ -46,7 +46,7 @@ export default function RecruiterDashboardLayout({ children }: { children: React
                                 <Briefcase className="h-5 w-5 text-white" />
                             </div>
                             <div>
-                                <h1 className="font-bold text-sm text-white">Recruiter</h1>
+                                <h1 className="font-bold text-sm text-white">Partners</h1>
                                 <p className="text-[10px] text-green-400 font-semibold">BACKBENCHERS</p>
                             </div>
                         </motion.div>
@@ -116,7 +116,7 @@ export default function RecruiterDashboardLayout({ children }: { children: React
                             <div className="h-8 w-8 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center">
                                 <Briefcase className="h-4 w-4 text-white" />
                             </div>
-                            <span className="font-bold text-sm text-white">Recruiter</span>
+                            <span className="font-bold text-sm text-white">Partners</span>
                         </div>
                     </div>
                     {/* Mobile Nav */}
