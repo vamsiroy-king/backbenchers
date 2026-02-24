@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // Cookie name must match middleware
 const ADMIN_SESSION_COOKIE = 'bb_admin_session';
 

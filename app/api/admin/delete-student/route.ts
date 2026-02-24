@@ -4,6 +4,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // Helper to verify admin session
 async function verifyAdminSession(request: NextRequest): Promise<boolean> {
     const adminSession = request.cookies.get('bb_admin_session')?.value;

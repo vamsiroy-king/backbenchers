@@ -13,6 +13,7 @@ export const preloadFaceDetection = async (): Promise<void> => {
 
     isLoading = true;
     try {
+        // Dynamically import only when run in browser to prevent Node SSR crashes
         const faceapi = await import("@vladmandic/face-api");
         faceApiInstance = faceapi;
 

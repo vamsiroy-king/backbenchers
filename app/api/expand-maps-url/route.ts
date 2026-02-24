@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic'; // Prevent static render errors during export build
+
 /**
  * API endpoint to expand short Google Maps URLs
  * Mobile share links (maps.app.goo.gl/xxx) are redirects that need to be followed server-side

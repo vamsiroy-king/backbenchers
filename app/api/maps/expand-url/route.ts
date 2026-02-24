@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 /**
  * API route to expand Google Maps short links and extract coordinates
  * Short links like https://maps.app.goo.gl/xxxxx redirect to full URLs with coordinates

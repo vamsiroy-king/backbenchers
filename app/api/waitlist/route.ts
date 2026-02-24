@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // Zod Schema for Waitlist Input
 const waitlistSchema = z.object({
     email: z.string().email("Invalid email address").toLowerCase().trim(),

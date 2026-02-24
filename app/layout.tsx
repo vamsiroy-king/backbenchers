@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Providers } from "@/components/providers";
 import { JsonLd } from "@/components/JsonLd";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { CapacitorAppWrapper } from "@/components/capacitor-wrapper";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans", weight: ["400", "500", "600", "700", "800"] });
 
@@ -118,7 +119,9 @@ export default function RootLayout({
       <body className={cn("min-h-screen bg-background font-sans antialiased overscroll-none", plusJakarta.variable)} suppressHydrationWarning>
         <Providers>
           <ErrorBoundary>
-            {children}
+            <CapacitorAppWrapper>
+              {children}
+            </CapacitorAppWrapper>
           </ErrorBoundary>
         </Providers>
       </body>
