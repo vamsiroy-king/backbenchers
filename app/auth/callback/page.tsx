@@ -19,6 +19,12 @@ export default function AuthCallbackPage() {
                     router.replace('/merchant/auth/callback' + window.location.search);
                     return;
                 }
+                if (authFlow === 'recruiter') {
+                    console.log('Detected recruiter flow - redirecting to recruiter callback');
+                    localStorage.removeItem('auth_flow');
+                    router.replace('/recruiter/auth/callback' + window.location.search);
+                    return;
+                }
 
                 setStatus("Authenticating...");
 

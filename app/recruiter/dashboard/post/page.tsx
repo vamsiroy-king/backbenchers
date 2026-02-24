@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { recruiterService, PostOpportunityData } from "@/lib/services/recruiter.service";
 import { hustleService, OpportunityCategory } from "@/lib/services/hustle.service";
+import { INDIAN_STATES, getCitiesForState } from "@/lib/data/locations";
 
 const JOB_TYPES = [
     { value: 'freelance', label: 'Freelance' },
@@ -66,11 +67,22 @@ export default function PostOpportunityPage() {
     const [skillsStr, setSkillsStr] = useState('');
     const [vacancies, setVacancies] = useState('1');
     const [duration, setDuration] = useState('');
+    const [state, setState] = useState('');
     const [city, setCity] = useState('');
     const [isPanIndia, setIsPanIndia] = useState(false);
+    const [availableCities, setAvailableCities] = useState<string[]>([]);
     const [terms, setTerms] = useState('');
     const [applyMethod, setApplyMethod] = useState('in_app');
     const [applyLink, setApplyLink] = useState('');
+
+    useEffect(() => {
+        if (state) {
+            setAvailableCities(getCitiesForState(state));
+            setCity('');
+        } else {
+            setAvailableCities([]);
+        }
+    }, [state]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -113,7 +125,7 @@ export default function PostOpportunityPage() {
             skills_required: skillsStr.split(',').map(s => s.trim()).filter(Boolean),
             vacancies: parseInt(vacancies) || 1,
             duration: duration || undefined,
-            city: isPanIndia ? undefined : city || undefined,
+            city: isPanIndia ? undefined : (city ? `${city}, ${state}` : undefined),
             is_pan_india: isPanIndia,
             terms: terms || undefined,
             apply_method: applyMethod,
@@ -253,19 +265,33 @@ export default function PostOpportunityPage() {
                 </Field>
 
                 {/* Location */}
-                <div className="grid grid-cols-2 gap-3">
-                    <Field label="City">
-                        <input type="text" value={city} onChange={e => setCity(e.target.value)}
-                            disabled={isPanIndia}
-                            placeholder="e.g. Hyderabad"
-                            className="w-full h-10 px-4 rounded-xl text-sm bg-white/[0.03] border border-white/[0.06] text-white placeholder:text-white/30 focus:outline-none disabled:opacity-30" />
-                    </Field>
+                <div className="space-y-4">
                     <Field label="Pan India?">
                         <button onClick={() => setIsPanIndia(!isPanIndia)}
                             className={`w-full h-10 rounded-xl text-xs font-semibold transition-all border ${isPanIndia ? 'bg-green-500 text-white border-green-500' : 'bg-white/[0.03] text-white/40 border-white/[0.06]'}`}>
-                            {isPanIndia ? 'Yes — Open to all cities' : 'No — City specific'}
+                            {isPanIndia ? 'Yes — Open to all cities' : 'No — Specific Location'}
                         </button>
                     </Field>
+
+                    {!isPanIndia && (
+                        <div className="grid grid-cols-2 gap-3">
+                            <Field label="State">
+                                <select value={state} onChange={e => setState(e.target.value)}
+                                    className="w-full h-10 px-4 rounded-xl text-sm bg-white/[0.03] border border-white/[0.06] text-white appearance-none focus:outline-none focus:ring-2 focus:ring-green-500/30">
+                                    <option value="" disabled className="bg-gray-900">Select State</option>
+                                    {INDIAN_STATES.map(s => <option key={s} value={s} className="bg-gray-900">{s}</option>)}
+                                </select>
+                            </Field>
+                            <Field label="City">
+                                <select value={city} onChange={e => setCity(e.target.value)}
+                                    disabled={!state}
+                                    className="w-full h-10 px-4 rounded-xl text-sm bg-white/[0.03] border border-white/[0.06] text-white appearance-none focus:outline-none focus:ring-2 focus:ring-green-500/30 disabled:opacity-30">
+                                    <option value="" disabled className="bg-gray-900">{state ? 'Select City' : 'Select State First'}</option>
+                                    {availableCities.map(c => <option key={c} value={c} className="bg-gray-900">{c}</option>)}
+                                </select>
+                            </Field>
+                        </div>
+                    )}
                 </div>
 
                 {/* Vacancies + Duration */}

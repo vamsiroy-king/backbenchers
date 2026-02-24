@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { recruiterService } from "@/lib/services/recruiter.service";
 import { supabase } from "@/lib/supabase";
+import { INDIAN_STATES, getCitiesForState } from "@/lib/data/locations";
 
 const COMPANY_TYPES = [
     { value: 'startup', label: 'Startup' },
@@ -23,14 +24,6 @@ const INDUSTRIES = [
     'Education', 'E-commerce', 'Healthcare', 'Finance & Banking',
     'Real Estate', 'Food & Beverage', 'Fashion & Retail',
     'Sports & Fitness', 'Travel & Tourism', 'Consulting', 'Others'
-];
-
-const STATES = [
-    'Andhra Pradesh', 'Telangana', 'Karnataka', 'Tamil Nadu', 'Kerala',
-    'Maharashtra', 'Delhi', 'Uttar Pradesh', 'Gujarat', 'Rajasthan',
-    'West Bengal', 'Madhya Pradesh', 'Bihar', 'Punjab', 'Haryana',
-    'Odisha', 'Jharkhand', 'Assam', 'Chhattisgarh', 'Uttarakhand',
-    'Goa', 'Others'
 ];
 
 export default function RecruiterOnboardingCompanyPage() {
@@ -55,8 +48,18 @@ export default function RecruiterOnboardingCompanyPage() {
     const [gstNumber, setGstNumber] = useState('');
     const [logoUrl, setLogoUrl] = useState('');
     const [uploadingLogo, setUploadingLogo] = useState(false);
+    const [availableCities, setAvailableCities] = useState<string[]>([]);
 
-    const isValid = companyName && contactPerson && email && phone && companyType && industry && address && panNumber;
+    useEffect(() => {
+        if (state) {
+            setAvailableCities(getCitiesForState(state));
+            setCity('');
+        } else {
+            setAvailableCities([]);
+        }
+    }, [state]);
+
+    const isValid = companyName && contactPerson && email && phone && companyType && industry && address && panNumber && city && state;
 
     const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -194,12 +197,14 @@ export default function RecruiterOnboardingCompanyPage() {
 
                     {/* Location */}
                     <div className="grid grid-cols-2 gap-3">
-                        <InputField label="City" icon={MapPin}
-                            value={city} onChange={setCity} placeholder="e.g. Hyderabad" />
-                        <SelectField label="State"
+                        <SelectField label="State" required
                             value={state} onChange={setState}
-                            options={STATES.map(s => ({ value: s, label: s }))}
-                            placeholder="Select" />
+                            options={INDIAN_STATES.map(s => ({ value: s, label: s }))}
+                            placeholder="Select State" />
+                        <SelectField label="City" required
+                            value={city} onChange={setCity}
+                            options={availableCities.map(c => ({ value: c, label: c }))}
+                            placeholder={state ? "Select City" : "Select State First"} />
                     </div>
 
                     {/* Website */}

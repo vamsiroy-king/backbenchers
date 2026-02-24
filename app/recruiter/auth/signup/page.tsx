@@ -20,6 +20,8 @@ export default function RecruiterSignupPage() {
         setError('');
 
         try {
+            localStorage.setItem('auth_flow', 'recruiter');
+            sessionStorage.setItem('auth_flow', 'recruiter');
             const { error: signUpError } = await supabase.auth.signUp({
                 email,
                 password,
@@ -40,6 +42,8 @@ export default function RecruiterSignupPage() {
     const handleGoogleSignup = async () => {
         setLoading(true);
         try {
+            localStorage.setItem('auth_flow', 'recruiter');
+            sessionStorage.setItem('auth_flow', 'recruiter');
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
