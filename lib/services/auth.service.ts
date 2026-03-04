@@ -338,7 +338,7 @@ export const authService = {
     },
 
     // Send OTP to college email for verification
-    // Uses signUp which sends 6-digit OTP code (Confirm Signup template in Supabase)
+    // Uses signInWithOtp which sends a 6-digit OTP code reliably to any email (including Outlook)
     async sendCollegeEmailOTP(collegeEmail: string): Promise<ApiResponse<void>> {
         const email = collegeEmail.toLowerCase().trim();
 
@@ -378,33 +378,20 @@ export const authService = {
         }
 
         try {
-            // Use signUp to send OTP code (Confirm Signup template in Supabase)
-            const { data, error } = await supabase.auth.signUp({
+            // Use signInWithOtp to send a 6-digit OTP code
+            // This works reliably for Outlook/college emails and doesn't create orphan auth users
+            const { error } = await supabase.auth.signInWithOtp({
                 email: email,
-                password: crypto.randomUUID(), // Random password since user won't use password login
+                options: {
+                    shouldCreateUser: true, // Create user if doesn't exist
+                },
             });
 
-            console.log('SignUp response:', { data, error });
-
+            console.log('signInWithOtp response for:', email, 'error:', error);
 
             if (error) {
-                console.error('SignUp error:', error);
-                // If user already exists in Supabase Auth (but not in students table), resend OTP
-                if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-                    console.log('User exists in auth, resending OTP...');
-                    const { error: resendError } = await supabase.auth.resend({
-                        type: 'signup',
-                        email: email,
-                    });
-
-                    if (resendError) {
-                        console.error('Resend error:', resendError);
-                        return { success: false, error: resendError.message };
-                    }
-                    console.log('OTP resent successfully');
-                } else {
-                    return { success: false, error: error.message };
-                }
+                console.error('signInWithOtp error:', error);
+                return { success: false, error: error.message };
             }
 
             // Record successful OTP send for rate limiting
@@ -442,12 +429,20 @@ export const authService = {
             // DEV MODE: Bypass OTP verification for test email
             const isDevTestBypass = IS_DEV && email === DEV_TEST_EMAIL && otp === DEV_TEST_OTP;
 
+            // Save the current Google session BEFORE verifying OTP
+            // (verifyOtp will overwrite the session with the college email user)
+            const { data: { session: googleSession } } = await supabase.auth.getSession();
+            if (!googleSession) {
+                return { success: false, error: 'Please sign in with Google first.' };
+            }
+            const googleUserId = googleSession.user.id;
+
             if (!isDevTestBypass) {
-                // Verify OTP (type must match how it was sent - 'signup' for signUp flow)
+                // Verify OTP (type 'email' matches signInWithOtp flow)
                 const { data, error } = await supabase.auth.verifyOtp({
                     email: email,
                     token: otp,
-                    type: 'signup'  // Must be 'signup' to match signUp method
+                    type: 'email'  // Must be 'email' to match signInWithOtp method
                 });
 
                 if (error) {
@@ -457,49 +452,31 @@ export const authService = {
                 console.log('DEV MODE: Bypassing OTP verification for test email');
             }
 
-
-            // Get current Google auth user
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                return { success: false, error: 'Please sign in with Google first.' };
+            // Restore the Google session so that the user_id in the student record
+            // points to the Google auth account (which is what they log in with)
+            try {
+                await supabase.auth.setSession({
+                    access_token: googleSession.access_token,
+                    refresh_token: googleSession.refresh_token,
+                });
+            } catch (sessionErr) {
+                console.warn('Failed to restore Google session, using saved user ID:', sessionErr);
             }
 
-            // Generate STRICTLY UNIQUE BB-ID with database check
-            const generateUniqueBbId = async (): Promise<string> => {
-                for (let attempt = 0; attempt < 10; attempt++) {
-                    const num = Math.floor(100000 + Math.random() * 900000);
-                    const candidateId = `BB-${num}`;
-
-                    // Check if this BB-ID already exists
-                    const { data: existing } = await supabase
-                        .from('students')
-                        .select('id')
-                        .eq('bb_id', candidateId)
-                        .single();
-
-                    // If no existing record, this ID is unique
-                    if (!existing) {
-                        return candidateId;
-                    }
-                }
-                // Fallback: use timestamp + random for guaranteed uniqueness
-                return `BB-${Date.now().toString().slice(-6)}`;
-            };
-
-            // Note: BB ID is NOT generated here - it will be generated only when profile photo is uploaded
-            // const uniqueBbId = await generateUniqueBbId();
+            // Use the saved Google user ID to create the student record
+            const userId = googleUserId;
 
             // Create student record WITHOUT BB-ID (will be generated after profile photo upload)
             // Manual Check & Update to avoid "ON CONFLICT" constraint errors
             const { data: existingStudent } = await supabase
                 .from('students')
                 .select('id')
-                .or(`user_id.eq.${user.id},college_email.eq.${email}`)
+                .or(`user_id.eq.${userId},college_email.eq.${email}`)
                 .maybeSingle();
 
             let student;
             const studentDataPayload = {
-                user_id: user.id,
+                user_id: userId,
                 email: googleEmail.toLowerCase(),
                 college_email: email,
                 name: studentData.name,
@@ -537,8 +514,6 @@ export const authService = {
                 if (insertError) throw insertError;
                 student = inserted;
             }
-
-
 
             return {
                 success: true,
