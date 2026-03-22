@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Backbenchers',
   webDir: 'public', // Using public as a dummy fallback when offline
   server: {
-    url: 'https://backbenchers.alliance.edu.in', // Your live production URL goes here. Swap to localhost for dev!
+    url: 'https://www.backbenchers.app', // Your live production URL goes here. Swap to localhost for dev!
     cleartext: true, // Allow http for local development testing
   }
 };

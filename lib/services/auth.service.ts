@@ -380,7 +380,7 @@ export const authService = {
         try {
             // Use absolute URL for Capacitor production builds, otherwise use relative for web browser
             const isNative = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNative;
-            const baseUrl = isNative ? 'https://backbenchers.alliance.edu.in' : '';
+            const baseUrl = isNative ? 'https://www.backbenchers.app' : '';
             
             // Use custom API route to send OTP code via Azure (bypassing Supabase built-in emails)
             const res = await fetch(`${baseUrl}/api/auth/send-otp`, {
