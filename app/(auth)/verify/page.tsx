@@ -444,7 +444,16 @@ export default function VerifyPage() {
 
                 {step === "otp" && (
                     <motion.div key="o" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} className="space-y-5">
-                        <div><h1 className="text-xl font-bold text-white mb-1">Verify OTP</h1><p className="text-sm text-white/40 pointer-events-none">Code sent to <span className="text-white select-none">{formData.collegeEmail}</span></p></div>
+                        <div>
+                            <h1 className="text-xl font-bold text-white mb-1">Verify OTP</h1>
+                            <p className="text-sm text-white/40 pointer-events-none">Code sent to <span className="text-white select-none">{formData.collegeEmail}</span></p>
+                            <div className="mt-2 bg-orange-500/10 border border-orange-500/20 rounded-lg p-3">
+                                <p className="text-xs text-orange-300 font-medium flex items-start gap-1.5">
+                                    <AlertCircle className="h-4 w-4 shrink-0" />
+                                    If you don't see the email, please check your Junk/Spam folder and mark it as "Not Spam".
+                                </p>
+                            </div>
+                        </div>
                         {otpError && <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400"><AlertCircle className="h-4 w-4" />{otpError}</div>}
                         <div className="flex justify-center gap-2.5">
                             {otp.map((d, i) => (
