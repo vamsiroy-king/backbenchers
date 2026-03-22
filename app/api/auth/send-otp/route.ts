@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { EmailClient } from "@azure/communication-email";
 import { createClient } from "@supabase/supabase-js";
 
+export async function OPTIONS(req: NextRequest) {
+    return NextResponse.json({}, {
+        status: 200,
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+    });
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 // Use service role key to insert OTP securely bypassing RLS
@@ -11,8 +22,14 @@ export async function POST(req: NextRequest) {
     try {
         const { email } = await req.json();
 
+        const corsHeaders = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        };
+
         if (!email) {
-            return NextResponse.json({ error: "Email is required" }, { status: 400 });
+            return NextResponse.json({ error: "Email is required" }, { status: 400, headers: corsHeaders });
         }
 
         // Generate 6-digit OTP
@@ -30,7 +47,7 @@ export async function POST(req: NextRequest) {
 
         if (dbError) {
             console.error("Database error saving OTP:", dbError);
-            return NextResponse.json({ error: "Failed to generate OTP" }, { status: 500 });
+            return NextResponse.json({ error: "Failed to generate OTP" }, { status: 500, headers: corsHeaders });
         }
 
         // Use Azure Communication Services to send the email
@@ -44,7 +61,7 @@ export async function POST(req: NextRequest) {
                 success: true, 
                 message: "Dev Mode: Azure not configured. OTP stored in DB.",
                 dev_otp: process.env.NODE_ENV === "development" ? otp : undefined
-            });
+            }, { headers: corsHeaders });
         }
 
         const client = new EmailClient(connectionString);
@@ -73,14 +90,17 @@ export async function POST(req: NextRequest) {
         const result = await poller.pollUntilDone();
 
         if (result.status === "Succeeded") {
-            return NextResponse.json({ success: true, message: "OTP sent successfully via Azure" });
+            return NextResponse.json({ success: true, message: "OTP sent successfully via Azure" }, { headers: corsHeaders });
         } else {
             console.error("Azure Email Send Failed:", result);
-            return NextResponse.json({ error: "Failed to send email via Azure" }, { status: 500 });
+            return NextResponse.json({ error: "Failed to send email via Azure" }, { status: 500, headers: corsHeaders });
         }
 
     } catch (error: any) {
         console.error("OTP Error:", error);
-        return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+        return NextResponse.json({ error: error.message || "Internal server error" }, { 
+            status: 500, 
+            headers: { "Access-Control-Allow-Origin": "*" } 
+        });
     }
 }

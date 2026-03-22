@@ -378,8 +378,11 @@ export const authService = {
         }
 
         try {
+            // Use absolute URL for Capacitor production builds
+            const baseUrl = typeof window !== 'undefined' && window.location.origin.startsWith('http') && !window.location.origin.includes('localhost') ? window.location.origin : 'https://backbenchers.alliance.edu.in';
+            
             // Use custom API route to send OTP code via Azure (bypassing Supabase built-in emails)
-            const res = await fetch('/api/auth/send-otp', {
+            const res = await fetch(`${baseUrl}/api/auth/send-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
@@ -428,8 +431,10 @@ export const authService = {
             const isDevTestBypass = IS_DEV && email === DEV_TEST_EMAIL && otp === DEV_TEST_OTP;
 
             if (!isDevTestBypass) {
+                const baseUrl = typeof window !== 'undefined' && window.location.origin.startsWith('http') && !window.location.origin.includes('localhost') ? window.location.origin : 'https://backbenchers.alliance.edu.in';
+
                 // Verify custom OTP via our Azure Communication Services API
-                const res = await fetch('/api/auth/verify-otp', {
+                const res = await fetch(`${baseUrl}/api/auth/verify-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, otp })
