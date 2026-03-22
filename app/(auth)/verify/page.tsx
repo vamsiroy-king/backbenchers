@@ -218,16 +218,6 @@ export default function VerifyPage() {
         const email = formData.collegeEmail.toLowerCase().trim();
         if (!isValidStudentEmail(email)) { setError(getInvalidDomainError()); setLoading(false); return; }
         
-        const selectedUniv = availableUniversities.find(u => u.id === formData.universityId);
-        if (selectedUniv && selectedUniv.emailDomain) {
-            const requiredDomain = selectedUniv.emailDomain.toLowerCase().trim();
-            if (!email.endsWith(`@${requiredDomain}`)) {
-                setError(`Please use your @${requiredDomain} email address for ${selectedUniv.name}.`);
-                setLoading(false); 
-                return;
-            }
-        }
-
         try {
             if (await authService.checkCollegeEmailExists(email)) { setError("Email already registered."); setLoading(false); return; }
             const r = await authService.sendCollegeEmailOTP(email);
