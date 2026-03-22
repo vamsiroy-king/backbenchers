@@ -378,33 +378,18 @@ export const authService = {
         }
 
         try {
-            // Use signUp to send OTP code (Confirm Signup template in Supabase)
-            const { data, error } = await supabase.auth.signUp({
-                email: email,
-                password: crypto.randomUUID(), // Random password since user won't use password login
+            // Use custom API route to send OTP code via Azure (bypassing Supabase built-in emails)
+            const res = await fetch('/api/auth/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
             });
+            
+            const data = await res.json();
+            console.log('Send OTP response:', data);
 
-            console.log('SignUp response:', { data, error });
-
-
-            if (error) {
-                console.error('SignUp error:', error);
-                // If user already exists in Supabase Auth (but not in students table), resend OTP
-                if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-                    console.log('User exists in auth, resending OTP...');
-                    const { error: resendError } = await supabase.auth.resend({
-                        type: 'signup',
-                        email: email,
-                    });
-
-                    if (resendError) {
-                        console.error('Resend error:', resendError);
-                        return { success: false, error: resendError.message };
-                    }
-                    console.log('OTP resent successfully');
-                } else {
-                    return { success: false, error: error.message };
-                }
+            if (!res.ok || (data.error && !data.success)) {
+                return { success: false, error: data.error || 'Failed to send OTP' };
             }
 
             // Record successful OTP send for rate limiting
@@ -443,15 +428,17 @@ export const authService = {
             const isDevTestBypass = IS_DEV && email === DEV_TEST_EMAIL && otp === DEV_TEST_OTP;
 
             if (!isDevTestBypass) {
-                // Verify OTP (type must match how it was sent - 'signup' for signUp flow)
-                const { data, error } = await supabase.auth.verifyOtp({
-                    email: email,
-                    token: otp,
-                    type: 'signup'  // Must be 'signup' to match signUp method
+                // Verify custom OTP via our Azure Communication Services API
+                const res = await fetch('/api/auth/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
                 });
+                
+                const data = await res.json();
 
-                if (error) {
-                    return { success: false, error: 'Invalid OTP. Please try again.' };
+                if (!res.ok || (data.error && !data.success)) {
+                    return { success: false, error: data.error || 'Invalid OTP. Please try again.' };
                 }
             } else {
                 console.log('DEV MODE: Bypassing OTP verification for test email');
